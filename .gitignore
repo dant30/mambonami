@@ -51,7 +51,7 @@ venv/
 # Python / Django
 *.env
 *.venv
-.env
+#.env
 .env.*
 python-env/
 celerybeat-schedule
