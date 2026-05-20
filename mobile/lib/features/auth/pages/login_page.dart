@@ -1,6 +1,7 @@
 ﻿// Login screen
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
@@ -37,8 +38,7 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            // Navigate to role-based dashboard
-            Navigator.pushReplacementNamed(context, '/${state.role}');
+            context.go('/${state.role}');
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
           }
@@ -69,7 +69,11 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text('Login'),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  onPressed: () => context.go('/forgot-password'),
+                  child: const Text('Forgot password?'),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/register'),
                   child: const Text('Create an account'),
                 ),
               ],

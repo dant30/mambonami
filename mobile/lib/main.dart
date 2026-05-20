@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/api_client.dart';
 import 'core/secure_storage.dart';
 import 'core/notification_service.dart';
@@ -48,7 +49,7 @@ Future<void> setupDependencies() async {
   getIt.registerSingleton<NotificationService>(notificationService);
   
   // BLoCs
-  getIt.registerFactory<NotificationBloc>(() => NotificationBloc(
+  getIt.registerLazySingleton<NotificationBloc>(() => NotificationBloc(
     notificationRepository: getIt<NotificationRepository>(),
   ));
 }
@@ -62,9 +63,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ThemeBloc()),
+        BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => ConnectivityBloc()),
-        BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>(), secureStorage: getIt<SecureStorage>())),
+        BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>(), secureStorage: getIt<SecureStorage>())),{
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),
         BlocProvider(create: (_) => TripBloc(tripRepository: getIt<TripRepository>())),
@@ -76,7 +77,7 @@ class MyApp extends StatelessWidget {
             title: 'MAMBONAMI',
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: themeMode,
+            themeMode: (context.watch<ThemeCubit>().state).themeMode,
             routerConfig: _router,
             debugShowCheckedModeBanner: false,
           );

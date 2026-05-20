@@ -2,6 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
+import '../../core/constants.dart';
 import '../../core/secure_storage.dart';
 
 class AuthRepository {
@@ -10,7 +11,7 @@ class AuthRepository {
 
   Future<void> registerInit(String phone, String role) async {
     try {
-      final response = await _apiClient.dio.post('/api/users/register/init/', data: {
+      final response = await _apiClient.dio.post(kRegisterInitEndpoint, data: {
         'phone': phone,
         'role': role,
       });
@@ -47,7 +48,7 @@ class AuthRepository {
       if (vehicleType != null) data['vehicle_type'] = vehicleType;
       if (licensePlate != null) data['license_plate'] = licensePlate;
 
-      final response = await _apiClient.dio.post('/api/users/register/verify/', data: data);
+      final response = await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
       if (response.statusCode == 201) {
         final tokens = response.data['tokens'];
         await _secureStorage.saveTokens(tokens['access'], tokens['refresh']);
@@ -63,7 +64,7 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
-      final response = await _apiClient.dio.post('/api/users/login/', data: {
+      final response = await _apiClient.dio.post(kLoginEndpoint, data: {
         'phone': phone,
         'password': password,
       });
@@ -84,8 +85,36 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> getProfile() async {
     try {
-      final response = await _apiClient.dio.get('/api/users/profile/');
+      final response = await _apiClient.dio.get(kProfileEndpoint);
       return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> forgotPasswordInit(String phone) async {
+    try {
+      final response = await _apiClient.dio.post(kForgotPasswordInitEndpoint, data: {
+        'phone': phone,
+      });
+      if (response.statusCode != 200) {
+        throw Exception('Failed to send reset OTP');
+      }
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> forgotPasswordVerify(String phone, String otp, String newPassword) async {
+    try {
+      final response = await _apiClient.dio.post(kForgotPasswordVerifyEndpoint, data: {
+        'phone': phone,
+        'otp': otp,
+        'new_password': newPassword,
+      });
+      if (response.statusCode != 200) {
+        throw Exception('Failed to reset password');
+      }
     } catch (e) {
       throw _handleError(e);
     }

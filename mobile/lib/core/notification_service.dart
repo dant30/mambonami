@@ -1,7 +1,7 @@
 ﻿import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import '../core/constants.dart';
 import '../blocs/notification/notification_bloc.dart';
 import '../data/models/notification.dart';
 
@@ -84,8 +84,8 @@ class NotificationService {
 
   Future<void> _showLocalNotification(NotificationModel notification) async {
     const androidDetails = AndroidNotificationDetails(
-      'mambonami_channel',
-      'MAMBONAMI Notifications',
+      kNotificationChannelId,
+      kNotificationChannelName,
       importance: Importance.high,
       priority: Priority.high,
     );

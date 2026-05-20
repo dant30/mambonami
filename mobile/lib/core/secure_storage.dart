@@ -9,8 +9,16 @@ class SecureStorage {
   static const String _userPhoneKey = 'user_phone';
 
   Future<void> saveTokens(String access, String refresh) async {
-    await _storage.write(key: _accessTokenKey, value: access);
-    await _storage.write(key: _refreshTokenKey, value: refresh);
+    await saveAccessToken(access);
+    await saveRefreshToken(refresh);
+  }
+
+  Future<void> saveAccessToken(String token) async {
+    await _storage.write(key: _accessTokenKey, value: token);
+  }
+
+  Future<void> saveRefreshToken(String token) async {
+    await _storage.write(key: _refreshTokenKey, value: token);
   }
 
   Future<String?> getAccessToken() async {
