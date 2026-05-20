@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../../core/secure_storage.dart';
-import '../dtos/auth_dto.dart';
 
 class AuthRepository {
   final ApiClient _apiClient = getIt<ApiClient>();

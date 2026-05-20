@@ -12,10 +12,12 @@ import 'data/repositories/auth_repository.dart';
 import 'data/repositories/product_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'data/repositories/trip_repository.dart';
+import 'data/repositories/notification_repository.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/product/product_bloc.dart';
 import 'blocs/order/order_bloc.dart';
 import 'blocs/trip/trip_bloc.dart';
+import 'blocs/notification/notification_bloc.dart';
 import 'blocs/theme/theme_bloc.dart';
 import 'blocs/connectivity/connectivity_bloc.dart';
 
@@ -32,16 +34,23 @@ Future<void> setupDependencies() async {
   // Core
   getIt.registerSingleton<SecureStorage>(SecureStorage());
   getIt.registerSingleton<ApiClient>(ApiClient());
-  getIt.registerSingleton<NotificationService>(NotificationService());
   
   // Repositories
   getIt.registerSingleton<AuthRepository>(AuthRepository());
   getIt.registerSingleton<ProductRepository>(ProductRepository());
   getIt.registerSingleton<OrderRepository>(OrderRepository());
   getIt.registerSingleton<TripRepository>(TripRepository());
+  getIt.registerSingleton<NotificationRepository>(NotificationRepository());
   
   // Initialize notification service
-  await getIt<NotificationService>().init();
+  final notificationService = NotificationService();
+  await notificationService.init();
+  getIt.registerSingleton<NotificationService>(notificationService);
+  
+  // BLoCs
+  getIt.registerFactory<NotificationBloc>(() => NotificationBloc(
+    notificationRepository: getIt<NotificationRepository>(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -59,6 +68,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),
         BlocProvider(create: (_) => TripBloc(tripRepository: getIt<TripRepository>())),
+        BlocProvider(create: (_) => getIt<NotificationBloc>()..add(FetchNotificationsEvent())),
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

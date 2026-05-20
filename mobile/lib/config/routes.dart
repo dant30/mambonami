@@ -7,6 +7,7 @@ import '../features/auth/pages/register_verify_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
+import '../features/notifications/pages/notifications_page.dart';
 import '../blocs/auth/auth_bloc.dart';
 
 class AppRouter {
@@ -33,6 +34,7 @@ class AppRouter {
       GoRoute(path: '/buyer', builder: (_, __) => const BuyerDashboard()),
       GoRoute(path: '/farmer', builder: (_, __) => const FarmerDashboard()),
       GoRoute(path: '/transport_provider', builder: (_, __) => const ProviderDashboard()),
+      GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),
     ],
   );
 }
