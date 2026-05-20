@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ConnectivityBloc()),
-        BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>())),
+        BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>(), secureStorage: getIt<SecureStorage>())),
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),
         BlocProvider(create: (_) => TripBloc(tripRepository: getIt<TripRepository>())),

@@ -1,1 +1,1 @@
-﻿abstract class authState {}
+﻿// mobile/lib/blocs/auth/auth_state.dart

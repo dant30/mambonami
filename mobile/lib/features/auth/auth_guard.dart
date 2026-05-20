@@ -1,1 +1,1 @@
-﻿// Role-based redirect
+﻿// mobile/lib/features/auth/auth_guard.dart

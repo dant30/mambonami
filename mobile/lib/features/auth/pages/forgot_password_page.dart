@@ -1,1 +1,1 @@
-﻿// Forgot password
+﻿// mobile/lib/features/auth/pages/forgot_password_page.dart

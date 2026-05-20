@@ -70,7 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final SecureStorage secureStorage;
 
-  AuthBloc({required this.authRepository}) : super(AuthInitial()) {
+  AuthBloc({required this.authRepository, required this.secureStorage}) : super(AuthInitial()) {
     on<RegisterInitEvent>(_onRegisterInit);
     on<RegisterVerifyEvent>(_onRegisterVerify);
     on<LoginEvent>(_onLogin);
@@ -124,13 +124,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
-    final token = await secureStorage.getAccessToken();
-    final role = await secureStorage.getUserRole();
-    final phone = await secureStorage.getUserPhone();
-    if (token != null && role != null && phone != null) {
-      emit(AuthAuthenticated(role, phone));
-    } else {
-      emit(AuthUnauthenticated());
+    try {
+      // Verify token by fetching profile from backend. If this succeeds,
+      // token is valid; otherwise handle as unauthenticated.
+      final profile = await authRepository.getProfile();
+      final role = profile['role'] as String? ?? await secureStorage.getUserRole();
+      final phone = profile['phone'] as String? ?? await secureStorage.getUserPhone();
+      if (role != null && phone != null) {
+        // Ensure secure storage has the latest values
+        await secureStorage.saveUserRole(role);
+        await secureStorage.saveUserPhone(phone);
+        emit(AuthAuthenticated(role, phone));
+        return;
+      }
+    } catch (e) {
+      // If profile fetch fails (401 or network), clear local auth state
+      await secureStorage.clearAll();
     }
+    emit(AuthUnauthenticated());
   }
 }

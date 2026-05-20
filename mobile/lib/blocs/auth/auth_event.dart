@@ -1,1 +1,1 @@
-﻿abstract class authEvent {}
+﻿// mobile/lib/blocs/auth/auth_event.dart

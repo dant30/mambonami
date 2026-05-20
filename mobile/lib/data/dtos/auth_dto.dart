@@ -1,1 +1,1 @@
-﻿// Auth request/response DTOs
+﻿// mobile/lib/data/dtos/auth_dto.dart

@@ -1,1 +1,1 @@
-﻿class User {}
+﻿// mobile/lib/data/models/user.dart
