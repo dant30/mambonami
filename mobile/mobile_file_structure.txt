@@ -1,0 +1,171 @@
+mobile/
+├── pubspec.yaml
+├── .env.example
+├── assets/
+│   ├── icons/
+│   │   ├── logo.png
+│   │   ├── farmer_icon.png
+│   │   ├── buyer_icon.png
+│   │   └── transport_icon.png
+│   ├── fonts/
+│   │   └── Poppins.ttf
+│   └── translations/
+│       ├── en.json
+│       └── sw.json
+│
+├── lib/
+│   ├── main.dart                         # Entry point, sets up GetIt, BLoC, etc.
+│   │
+│   ├── core/                             # Low-level utilities (no UI)
+│   │   ├── api_client.dart               # Dio wrapper, interceptors (auth, logging)
+│   │   ├── constants.dart                # API endpoints, app constants
+│   │   ├── secure_storage.dart           # JWT token, user data storage (Flutter Secure Storage)
+│   │   ├── notification_service.dart     # Firebase push notification handling
+│   │   ├── logger.dart                   # Logging utility
+│   │   └── utils.dart                    # Helpers (format currency, date, etc.)
+│   │
+│   ├── config/                           # App configuration
+│   │   ├── app_config.dart               # Environment variables (API base URL, etc.)
+│   │   ├── routes.dart                   # Named routes
+│   │   └── theme.dart                    # Light/dark theme definitions
+│   │
+│   ├── data/                             # Data layer (repositories, models, DTOs)
+│   │   ├── models/                       # Domain models (plain Dart)
+│   │   │   ├── user.dart
+│   │   │   ├── product.dart
+│   │   │   ├── order.dart
+│   │   │   ├── trip.dart
+│   │   │   └── notification.dart
+│   │   ├── dtos/                         # Request/response DTOs for API
+│   │   │   ├── auth_dto.dart
+│   │   │   ├── order_dto.dart
+│   │   │   └── ...
+│   │   ├── repositories/                 # API calls + caching
+│   │   │   ├── auth_repository.dart
+│   │   │   ├── product_repository.dart
+│   │   │   ├── order_repository.dart
+│   │   │   ├── trip_repository.dart
+│   │   │   └── notification_repository.dart
+│   │   └── local/                        # SQLite / Hive (offline caching)
+│   │       ├── database_helper.dart
+│   │       └── cache_manager.dart
+│   │
+│   ├── blocs/                            # Business logic components (flutter_bloc)
+│   │   ├── auth/
+│   │   │   ├── auth_bloc.dart
+│   │   │   ├── auth_event.dart
+│   │   │   └── auth_state.dart
+│   │   ├── product/
+│   │   │   ├── product_bloc.dart
+│   │   │   ├── product_event.dart
+│   │   │   └── product_state.dart
+│   │   ├── order/
+│   │   │   ├── order_bloc.dart
+│   │   │   ├── order_event.dart
+│   │   │   └── order_state.dart
+│   │   ├── trip/
+│   │   │   ├── trip_bloc.dart
+│   │   │   ├── trip_event.dart
+│   │   │   └── trip_state.dart
+│   │   ├── notification/
+│   │   │   ├── notification_bloc.dart
+│   │   │   ├── notification_event.dart
+│   │   │   └── notification_state.dart
+│   │   └── common/                       # Shared blocs (connectivity, theme)
+│   │       ├── connectivity_bloc.dart
+│   │       └── theme_bloc.dart
+│   │
+│   ├── features/                         # Feature modules (screens & widgets per role)
+│   │   ├── auth/                         # Authentication (shared)
+│   │   │   ├── pages/
+│   │   │   │   ├── login_page.dart
+│   │   │   │   ├── register_init_page.dart   # Step 1: phone + role
+│   │   │   │   ├── register_verify_page.dart # Step 2: OTP + details
+│   │   │   │   └── forgot_password_page.dart
+│   │   │   ├── widgets/
+│   │   │   │   ├── phone_input_field.dart
+│   │   │   │   └── otp_input_field.dart
+│   │   │   └── auth_guard.dart          # Redirects based on role & token
+│   │   │
+│   │   ├── farmer/                       # Farmer role
+│   │   │   ├── pages/
+│   │   │   │   ├── farmer_dashboard.dart
+│   │   │   │   ├── product_list_page.dart
+│   │   │   │   ├── product_create_page.dart
+│   │   │   │   ├── product_edit_page.dart
+│   │   │   │   ├── order_requests_page.dart   # Orders that need confirmation
+│   │   │   │   ├── order_detail_page.dart
+│   │   │   │   └── earnings_page.dart
+│   │   │   └── widgets/
+│   │   │       ├── product_card.dart
+│   │   │       ├── order_request_card.dart
+│   │   │       └── earnings_summary.dart
+│   │   │
+│   │   ├── buyer/                        # Buyer role (consumers + retailers)
+│   │   │   ├── pages/
+│   │   │   │   ├── buyer_dashboard.dart
+│   │   │   │   ├── product_catalog_page.dart
+│   │   │   │   ├── product_detail_page.dart
+│   │   │   │   ├── cart_page.dart
+│   │   │   │   ├── checkout_page.dart       # Shows PayBill details
+│   │   │   │   ├── order_history_page.dart
+│   │   │   │   ├── order_tracking_page.dart # Live tracking
+│   │   │   │   └── dispute_page.dart
+│   │   │   └── widgets/
+│   │   │       ├── product_grid_tile.dart
+│   │   │       ├── cart_item.dart
+│   │   │       ├── order_status_timeline.dart
+│   │   │       └── otp_verification_dialog.dart
+│   │   │
+│   │   ├── transport/                    # Transport provider role
+│   │   │   ├── pages/
+│   │   │   │   ├── provider_dashboard.dart
+│   │   │   │   ├── available_orders_page.dart
+│   │   │   │   ├── my_trips_page.dart
+│   │   │   │   ├── trip_detail_page.dart
+│   │   │   │   ├── pickup_page.dart        # Mark pickup + photo
+│   │   │   │   ├── delivery_page.dart      # Generate OTP + photo
+│   │   │   │   └── earnings_page.dart
+│   │   │   └── widgets/
+│   │   │       ├── order_offer_card.dart
+│   │   │       ├── trip_card.dart
+│   │   │       └── photo_capture_widget.dart
+│   │   │
+│   │   └── common/                       # Shared feature screens (profile, settings)
+│   │       ├── profile_page.dart
+│   │       ├── settings_page.dart
+│   │       ├── notifications_page.dart
+│   │       └── support_page.dart
+│   │
+│   ├── shared/                           # Reusable UI components
+│   │   ├── widgets/
+│   │   │   ├── custom_app_bar.dart
+│   │   │   ├── loading_indicator.dart
+│   │   │   ├── error_widget.dart
+│   │   │   ├── empty_state.dart
+│   │   │   ├── bottom_nav_bar.dart        # Role‑based tabs
+│   │   │   ├── custom_button.dart
+│   │   │   ├── custom_text_field.dart
+│   │   │   └── role_guard_builder.dart    # Shows/hides UI based on role
+│   │   ├── themes/
+│   │   │   ├── light_theme.dart
+│   │   │   └── dark_theme.dart
+│   │   └── utils/
+│   │       ├── form_validators.dart
+│   │       ├── image_picker_helper.dart
+│   │       └── permission_handler.dart
+│   │
+│   └── services/                         # External services (not in data layer)
+│       ├── location_service.dart         # GPS for provider pickup/delivery
+│       ├── camera_service.dart
+│       └── payment_helper.dart           # Deep link to M-Pesa app (optional)
+│
+├── android/                              # Android‑specific files (generated)
+├── ios/                                  # iOS‑specific files (generated)
+├── test/                                 # Unit & widget tests
+│   ├── core/
+│   ├── data/
+│   ├── blocs/
+│   └── features/
+│
+└── integration_test/                     # Integration tests (full flows)

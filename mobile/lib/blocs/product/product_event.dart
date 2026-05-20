@@ -1,0 +1,38 @@
+﻿part of 'product_bloc.dart';
+
+abstract class ProductEvent extends Equatable {
+  const ProductEvent();
+  @override List<Object?> get props => [];
+}
+
+class FetchProductsEvent extends ProductEvent {
+  final String? categoryCode;
+  final int? farmerId;
+  const FetchProductsEvent({this.categoryCode, this.farmerId});
+  @override List<Object?> get props => [categoryCode, farmerId];
+}
+
+class FetchProductDetailEvent extends ProductEvent {
+  final String uuid;
+  const FetchProductDetailEvent(this.uuid);
+  @override List<Object> get props => [uuid];
+}
+
+class CreateProductEvent extends ProductEvent {
+  final Map<String, dynamic> data;
+  const CreateProductEvent(this.data);
+  @override List<Object> get props => [data];
+}
+
+class UpdateProductEvent extends ProductEvent {
+  final String uuid;
+  final Map<String, dynamic> data;
+  const UpdateProductEvent(this.uuid, this.data);
+  @override List<Object> get props => [uuid, data];
+}
+
+class DeleteProductEvent extends ProductEvent {
+  final String uuid;
+  const DeleteProductEvent(this.uuid);
+  @override List<Object> get props => [uuid];
+}

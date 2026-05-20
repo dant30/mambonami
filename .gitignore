@@ -1,0 +1,85 @@
+@"
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.orig
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.sqlite3
+*.sqlite
+
+# VS Code
+.vscode/
+.history/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-credentials
+.flutter-plugins
+.idea/
+**/build/
+**/android/app/debug/**
+**/android/app/profile/**
+**/android/app/release/**
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/ServiceDefinitions.json
+**/macos/Flutter/ephemeral/
+**/linux/flutter/.pub-cache/
+
+# Python / Django
+*.env
+*.venv
+.env
+.env.*
+python-env/
+celerybeat-schedule
+*.log
+logs/
+staticfiles/
+media/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# GitHub Actions / CI
+.github/workflows/
+
+# Others
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Local macOS
+*.DS_Store
+
+# Local Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Generated files
+pubspec.lock
+"@ | Out-File -FilePath .gitignore -Encoding utf8

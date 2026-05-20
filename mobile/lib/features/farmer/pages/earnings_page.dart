@@ -1,0 +1,1 @@
+﻿// Farmer earnings_page

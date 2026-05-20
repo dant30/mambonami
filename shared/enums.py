@@ -1,0 +1,1 @@
+# mambonami/shared/enums.py

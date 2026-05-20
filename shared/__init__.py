@@ -1,0 +1,1 @@
+﻿# mambonami/shared/__init__.py

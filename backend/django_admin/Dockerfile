@@ -1,0 +1,3 @@
+﻿# Dockerfile for Django admin
+FROM python:3.11-slim
+...

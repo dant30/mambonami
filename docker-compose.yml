@@ -1,0 +1,12 @@
+services:
+  django:
+    build: ./backend/django_admin
+    # ...
+  fastapi:
+    build: ./backend/fastapi_app
+    ports:
+      - "8001:8000"
+    environment:
+      - DJANGO_BASE_URL=http://django:8000
+    depends_on:
+      - django
