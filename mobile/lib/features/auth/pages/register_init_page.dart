@@ -1,9 +1,12 @@
 ﻿// Phone + role
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
 
 class RegisterInitPage extends StatefulWidget {
   const RegisterInitPage({super.key});
@@ -39,49 +42,59 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
-      body: BlocListener<AuthBloc, AuthState>(
+      appBar: const CustomAppBar(title: 'Register'),
+      body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is RegisterInitSuccess) {
-            Navigator.pushNamed(context, '/register/verify', arguments: {
-              'phone': _phoneController.text.trim(),
-              'role': _selectedRole,
-            });
+            context.go(
+              '/register/verify',
+              extra: {
+                'phone': _phoneController.text.trim(),
+                'role': _selectedRole,
+              },
+            );
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            CustomSnackbar.showError(context, state.message);
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedRole,
-                  decoration: const InputDecoration(labelText: 'I am a...'),
-                  items: _roles.map((role) {
-                    return DropdownMenuItem(value: role['value'], child: Text(role['label']!));
-                  }).toList(),
-                  onChanged: (val) => setState(() => _selectedRole = val!),
-                ),
-                const SizedBox(height: 24),
-                CustomButton(
-                  onPressed: _sendOTP,
-                  child: const Text('Send OTP'),
-                ),
-              ],
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 48),
+                  CustomTextField(
+                    controller: _phoneController,
+                    label: 'Phone Number',
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedRole,
+                    decoration: const InputDecoration(labelText: 'I am a...'),
+                    items: _roles.map((role) {
+                      return DropdownMenuItem(value: role['value'], child: Text(role['label']!));
+                    }).toList(),
+                    onChanged: (val) => setState(() => _selectedRole = val ?? _selectedRole),
+                  ),
+                  const SizedBox(height: 24),
+                  CustomButton(
+                    onPressed: _sendOTP,
+                    isLoading: isLoading,
+                    label: 'Send OTP',
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
