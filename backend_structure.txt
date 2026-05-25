@@ -1,397 +1,385 @@
 mambonami/
-├── README.md                                    # project overview & quick start
-├── .env.example                                 # template for environment variables
+├── README.md                                               # project overview & quick start
+├── .env.example                                            # template for environment variables
 ├── .gitignore
-├── docker-compose.yml                           # orchestrate Django + FastAPI + Redis + DB
-├── Makefile                                     # shortcuts for common tasks (test, seed, deploy)
+├── docker-compose.yml
+├── Makefile
 │
 ├── backend/
-│   │   │
-│   │   └── requirements/
-│   │       ├── base.txt
-│   │       ├── dev.txt
-│   │       └── prod.txt
-│   │
-│   ├── django_admin/
-│   │   ├── Dockerfile
-│   │   ├── manage.py
-│   │   ├── config/
-│   │   │   ├── settings/
-│   │   │   │   ├── base.py
-│   │   │   │   ├── dev.py
-│   │   │   │   └── prod.py
-│   │   │   ├── urls.py
-│   │   │   ├── celery.py
-│   │   │   ├── asgi.py
-│   │   │   └── wsgi.py
-│   │   ├── core/                                 # shared utilities (extended)
-│   │   │   ├── __init__.py
-│   │   │   ├── utils.py
-│   │   │   ├── throttling.py
-│   │   │   ├── permissions.py
-│   │   │   ├── middleware.py
-│   │   │   ├── exceptions.py
-│   │   │   ├── logging.py
-│   │   │   ├── cache.py                         # Redis / Memcached helpers
-│   │   │   ├── storage.py                       # S3 / custom file storage backend
-│   │   │   ├── authentication.py                # custom JWT / OTP / role‑based auth (shared)
-│   │   │   ├── validators/                      # custom field validators
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── phone_validator.py
-│   │   │   │   ├── id_number_validator.py
-│   │   │   │   └── price_validator.py
-│   │   │   └── management/
-│   │   │       └── commands/                    # custom Django management commands
-│   │   │           ├── __init__.py
-│   │   │           ├── seed_orders.py
-│   │   │           ├── clear_expired_otp.py
-│   │   │           └── check_escrow_balance.py
-│   │   ├── apps/
-│   │   │   ├── users/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── user.py              # Farmer, Buyer, Retailer, TransportProvider
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── user_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── user_service.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_models.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── products/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── category.py
-│   │   │   │   │   └── product.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── product_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── product_service.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_models.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── orders/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── order.py
-│   │   │   │   │   └── order_item.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── order_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── order_service.py
-│   │   │   │   │   └── state_machine.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_order_flow.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── payments/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── payment.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── payment_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── payment_service.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_models.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── paybill/                         # M‑Pesa PayBill collection & callbacks
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── transaction.py
-│   │   │   │   │   └── mpesa_callback.py        # was idempotency.py – stores idempotency keys
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── callback_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── ipn_handler.py           # POST /mpesa/callback
-│   │   │   │   │   └── reconciliation.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_ipn.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── payouts/                         # B2C payouts to farmers & transport providers
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── payout.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── payout_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── b2c_client.py            # Safaricom B2C API wrapper
-│   │   │   │   │   └── payout_service.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_b2c.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── logistics/                       # transport providers, trips, OTP, matching
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── transport_provider.py    # was rider.py (vehicle_type, capacity, deposit)
-│   │   │   │   │   ├── trip.py                  # references provider_id
-│   │   │   │   │   └── otp.py                   # OTP delivery confirmation
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── logistics_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── matching.py              # merged from matching + vehicle_matcher
-│   │   │   │   │   ├── otp_service.py           # generate/validate OTP
-│   │   │   │   │   └── geolocation.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_matching.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── disputes/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── dispute.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── dispute_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── resolution.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_disputes.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── notifications/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── notification.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── notification_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── whatsapp.py              # Twilio / 360dialog
-│   │   │   │   │   ├── email.py
-│   │   │   │   │   └── push.py                  # Firebase
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_notifications.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   ├── audit/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── audit_log.py
-│   │   │   │   ├── serializers/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── audit_serializer.py
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── logger.py
-│   │   │   │   ├── views/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── api.py
-│   │   │   │   ├── urls.py
-│   │   │   │   ├── admin.py
-│   │   │   │   ├── tasks.py
-│   │   │   │   ├── signals.py               # auto‑log model changes
-│   │   │   │   ├── permissions.py
-│   │   │   │   ├── tests/
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── test_audit.py
-│   │   │   │   └── migrations/
-│   │   │   │       ├── __init__.py
-│   │   │   │       └── ...
-│   │   │   └── analytics/
-│   │   │       ├── __init__.py
-│   │   │       ├── models/
-│   │   │       │   ├── __init__.py
-│   │   │       │   └── daily_metric.py
-│   │   │       ├── serializers/
-│   │   │       │   ├── __init__.py
-│   │   │       │   └── metric_serializer.py
-│   │   │       ├── services/
-│   │   │       │   ├── __init__.py
-│   │   │       │   ├── aggregator.py
-│   │   │       │   └── reports.py
-│   │   │       ├── views/
-│   │   │       │   ├── __init__.py
-│   │   │       │   └── api.py
-│   │   │       ├── urls.py
-│   │   │       ├── admin.py
-│   │   │       ├── tasks.py                 # Celery: daily metrics
-│   │   │       ├── signals.py
-│   │   │       ├── permissions.py
-│   │   │       ├── tests/
-│   │   │       │   ├── __init__.py
-│   │   │       │   └── test_analytics.py
-│   │   │       └── migrations/
-│   │   │           ├── __init__.py
-│   │   │           └── ...
-│   │   └── static/                            # collected static files
-│   │
-│   └── fastapi_app/                             # API gateway (now has health & metrics)
-│       ├── Dockerfile
-│       ├── requirements.txt
-│       ├── main.py
-│       ├── api/
-│       │   ├── __init__.py
-│       │   └── v1/
-│       │       ├── __init__.py
-│       │       └── endpoints/
-│       │           ├── __init__.py
-│       │           ├── health.py                # GET /health – liveness probe
-│       │           └── metrics.py               # GET /metrics – Prometheus (optional)
-│       ├── core/
-│       │   ├── __init__.py
-│       │   ├── config.py
-│       │   ├── security.py
-│       │   ├── dependencies.py                  # shared FastAPI deps (DB session, auth)
-│       │   └── logging.py                       # structured logging for FastAPI
-│       ├── models/                              # (optional, usually not needed)
-│       ├── schemas/                             # Pydantic models
-│       └── services/                            # light proxy services
-│
-├── shared/                                      # shared types & enums
-│   ├── db_models/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── mixins.py
-│   └── enums.py
-├── .github/
-│   └── workflows/
-│       ├── django_ci.yml       # backend tests (use working-directory)
-│       ├── deploy.yml          # SSH deploy script (placeholder)
-│       ├── web_ci.yml          # optional, add later
-│       └── mobile_ci.yml       # optional, add later
-│
-├── mobile/                                      # Flutter app
-│   ├── pubspec.yaml
-│   ├── lib/
-│   │   ├── main.dart
-│   │   ├── core/
-│   │   └── features/                            # includes transport/ (renamed from rider)
-│   └── assets/
-│
-├── web/                                         # React dashboard
-│   └── ...
-│
-├── scripts/                                     # utility scripts
-│   ├── seed_data.py
-│   ├── init_osm_cache.py
-│   └── deploy.sh
-│
-├── nginx/                                       # reverse proxy config
-│   └── nginx.conf
-│
-└── docs/                                        # documentation
-    ├── api_docs.md
-    ├── business_logic_v1.3.md
-    └── database_erd.md
+    ├── django_admin
+    │   ├── .env
+    │   ├── Dockerfile
+    │   ├── apps
+    │   │   ├── analytics
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── metric.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── metric_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── aggregator.py
+    │   │   │   │   └── reports.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_analytics.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── audit
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── management
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── commands
+    │   │   │   │       ├── __init__.py
+    │   │   │   │       └── archive_audit_logs.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── audit_log.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── audit_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── logger.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_audit.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── disputes
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── dispute.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── dispute_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── resolution.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_disputes.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── logistics
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── apps.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── otp.py
+    │   │   │   │   ├── transport_provider.py
+    │   │   │   │   └── trip.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── logistics_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── geolocation.py
+    │   │   │   │   ├── matching.py
+    │   │   │   │   └── otp_service.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_matching.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── notifications
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── notification.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── notification_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── email.py
+    │   │   │   │   ├── push.py
+    │   │   │   │   └── whatsapp.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_models.py
+    │   │   │   │   └── test_notifications.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── orders
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── apps.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── order.py
+    │   │   │   │   └── order_item.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── order_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── order_service.py
+    │   │   │   │   └── state_machine.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_models.py
+    │   │   │   │   └── test_order_flow.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── paybill
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── apps.py
+    │   │   │   ├── management
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── commands
+    │   │   │   │       ├── __init__.py
+    │   │   │   │       └── reconcile_paybill.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── account_number.py
+    │   │   │   │   ├── float_adjustment.py
+    │   │   │   │   ├── mpesa_callback.py
+    │   │   │   │   └── transaction.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── callback_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── account_number.py
+    │   │   │   │   ├── ipn_handler.py
+    │   │   │   │   └── reconciliation.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_ipn.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── payments
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── apps.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── abstract_payment.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── payment_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── payment_service.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── payouts
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── payout.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── payout_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── b2c_client.py
+    │   │   │   │   └── payout_service.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── test_b2c.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   ├── products
+    │   │   │   ├── __init__.py
+    │   │   │   ├── admin.py
+    │   │   │   ├── apps.py
+    │   │   │   ├── migrations
+    │   │   │   │   └── __init__.py
+    │   │   │   ├── models
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   ├── category.py
+    │   │   │   │   └── product.py
+    │   │   │   ├── permissions.py
+    │   │   │   ├── serializers
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── product_serializer.py
+    │   │   │   ├── services
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── product_service.py
+    │   │   │   ├── signals.py
+    │   │   │   ├── tasks.py
+    │   │   │   ├── tests
+    │   │   │   │   ├── __init__.py
+    │   │   │   │   └── test_models.py
+    │   │   │   ├── urls.py
+    │   │   │   └── views
+    │   │   │       ├── __init__.py
+    │   │   │       └── api.py
+    │   │   └── users
+    │   │       ├── __init__.py
+    │   │       ├── admin.py
+    │   │       ├── apps.py
+    │   │       ├── migrations
+    │   │       │   └── __init__.py
+    │   │       ├── models
+    │   │       │   ├── __init__.py
+    │   │       │   └── user.py
+    │   │       ├── permissions.py
+    │   │       ├── serializers
+    │   │       │   ├── __init__.py
+    │   │       │   └── user_serializer.py
+    │   │       ├── services
+    │   │       │   ├── __init__.py
+    │   │       │   └── user_service.py
+    │   │       ├── signals.py
+    │   │       ├── tasks.py
+    │   │       ├── tests
+    │   │       │   ├── __init__.py
+    │   │       │   └── test_models.py
+    │   │       ├── urls.py
+    │   │       └── views
+    │   │           ├── __init__.py
+    │   │           └── api.py
+    │   ├── config
+    │   │   ├── __init__.py
+    │   │   ├── asgi.py
+    │   │   ├── celery.py
+    │   │   ├── settings
+    │   │   │   ├── __init__.py
+    │   │   │   ├── base.py
+    │   │   │   ├── dev.py
+    │   │   │   └── prod.py
+    │   │   ├── urls.py
+    │   │   └── wsgi.py
+    │   ├── core
+    │   │   ├── __init__.py
+    │   │   ├── authentication.py
+    │   │   ├── cache.py
+    │   │   ├── exceptions.py
+    │   │   ├── logging.py
+    │   │   ├── management
+    │   │   │   └── commands
+    │   │   │       ├── __init__.py
+    │   │   │       ├── check_escrow_balance.py
+    │   │   │       ├── clear_expired_otp.py
+    │   │   │       └── seed_orders.py
+    │   │   ├── middleware.py
+    │   │   ├── permissions.py
+    │   │   ├── storage.py
+    │   │   ├── throttling.py
+    │   │   ├── utils.py
+    │   │   └── validators
+    │   │       ├── __init__.py
+    │   │       ├── gps_validator.py
+    │   │       ├── id_number_validator.py
+    │   │       ├── phone_validator.py
+    │   │       └── price_validator.py
+    │   ├── logs
+    │   │   └── mambonami.log
+    │   ├── manage.py
+    │   └── static
+    │       └── .gitkeep
+    ├── fastapi_app
+    │   ├── Dockerfile
+    │   ├── api
+    │   │   ├── __init__.py
+    │   │   └── v1
+    │   │       ├── __init__.py
+    │   │       └── endpoints
+    │   │           ├── __init__.py
+    │   │           ├── health.py
+    │   │           ├── metrics.py
+    │   │           └── proxy.py
+    │   ├── core
+    │   │   ├── __init__.py
+    │   │   ├── config.py
+    │   │   ├── dependencies.py
+    │   │   ├── logging.py
+    │   │   └── security.py
+    │   ├── main.py
+    │   ├── models
+    │   │   └── __init__.py
+    │   ├── schemas
+    │   │   └── __init__.py
+    │   └── services
+    │       └── __init__.py
+    ├── logs
+    │   └── mambonami.log
+    └── requirements
+        ├── base.txt
+        ├── dev.txt
+        └── prod.txt
