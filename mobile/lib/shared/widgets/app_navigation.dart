@@ -9,6 +9,9 @@ class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({super.key});
 
   int _selectedIndex(String location) {
+    if (location.startsWith('/buyer') || location.startsWith('/farmer') || location.startsWith('/transport_provider')) {
+      return 0;
+    }
     if (location.startsWith('/notifications')) return 1;
     if (location.startsWith('/support')) return 2;
     if (location.startsWith('/profile')) return 3;
