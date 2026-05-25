@@ -1,4 +1,5 @@
 ﻿// Named routes
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/auth/auth_guard.dart';
@@ -9,7 +10,10 @@ import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
-import '../features/notifications/pages/notifications_page.dart';
+import '../features/common/notifications_page.dart';
+import '../features/common/profile_page.dart';
+import '../features/common/settings_page.dart';
+import '../features/common/support_page.dart';
 import '../blocs/auth/auth_bloc.dart';
 
 class AppRouter {
@@ -72,6 +76,27 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
           child: NotificationsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          child: ProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          child: SettingsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/support',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          child: SupportPage(),
         ),
       ),
     ],

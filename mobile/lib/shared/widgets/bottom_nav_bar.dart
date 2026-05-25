@@ -16,13 +16,14 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final backgroundColor = theme.bottomAppBarTheme.color ?? theme.colorScheme.surfaceContainerHighest;
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      backgroundColor: theme.bottomAppBarColor,
+      backgroundColor: backgroundColor,
       selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.textTheme.bodySmall?.color?.withOpacity(0.7) ?? Colors.grey,
+      unselectedItemColor: theme.textTheme.bodySmall?.color?.withAlpha(180) ?? Colors.grey,
       selectedLabelStyle: theme.textTheme.bodySmall,
       unselectedLabelStyle: theme.textTheme.bodySmall,
       showUnselectedLabels: true,
@@ -42,7 +43,7 @@ class BottomNavItem {
   final IconData? activeIcon;
   final String label;
 
-  BottomNavItem({
+  const BottomNavItem({
     required this.icon,
     this.activeIcon,
     required this.label,

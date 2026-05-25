@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/notification/notification_bloc.dart';
-import '../../data/models/notification.dart';
+import '../../shared/widgets/custom_app_bar.dart';
+import '../../shared/widgets/app_drawer.dart';
+import '../../shared/widgets/app_navigation.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -9,17 +11,9 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            onPressed: () {
-              context.read<NotificationBloc>().add(MarkAllReadEvent());
-            },
-          ),
-        ],
-      ),
+      appBar: const CustomAppBar(title: 'Notifications'),
+      drawer: const AppDrawer(),
+      bottomNavigationBar: const AppBottomNavigationBar(),
       body: BlocBuilder<NotificationBloc, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {

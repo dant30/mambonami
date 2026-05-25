@@ -1,1 +1,1 @@
-﻿// Buyer dispute_page
+﻿// mobile/lib/features/buyer/pages/dispute_page.dart
