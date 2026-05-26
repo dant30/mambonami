@@ -1,4 +1,4 @@
-﻿// API endpoints and app constants
+﻿// mobile/lib/core/constants.dart
 
 const String kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',

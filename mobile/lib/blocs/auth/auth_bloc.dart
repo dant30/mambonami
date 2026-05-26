@@ -1,4 +1,5 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+﻿// mobile/lib/blocs/auth/auth_bloc.dart
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../core/secure_storage.dart';

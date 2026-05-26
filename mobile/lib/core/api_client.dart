@@ -1,4 +1,4 @@
-﻿// Dio wrapper with interceptors
+﻿// mobile/lib/core/api_client.dart
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'secure_storage.dart';
