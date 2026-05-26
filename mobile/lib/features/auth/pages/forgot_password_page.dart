@@ -1,8 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -33,71 +36,84 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   void _verifyReset() {
-    if (_otpController.text.trim().length == 4 && _newPasswordController.text.trim().length >= 6) {
+    if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(ForgotPasswordVerifyEvent(
             phone: _phoneController.text.trim(),
             otp: _otpController.text.trim(),
             newPassword: _newPasswordController.text,
           ));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid OTP and password (min 6 chars)')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset Password')),
-      body: BlocListener<AuthBloc, AuthState>(
+      appBar: const CustomAppBar(title: 'Reset Password'),
+      body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is ForgotPasswordInitSuccess) {
             setState(() => _otpSent = true);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('OTP sent to your phone')));
+            CustomSnackbar.showSuccess(context, 'OTP sent to your phone');
           } else if (state is ForgotPasswordSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset successful. Please login.')));
-            Navigator.pop(context);
+            CustomSnackbar.showSuccess(context, 'Password reset successful. Please login.');
+            context.go('/login');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            CustomSnackbar.showError(context, state.message);
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
-                ),
-                const SizedBox(height: 16),
-                if (_otpSent) ...[
-                  CustomTextField(
-                    controller: _otpController,
-                    label: 'OTP Code',
-                    keyboardType: TextInputType.number,
-                    validator: (v) => v!.length != 4 ? 'Enter 4-digit OTP' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: _newPasswordController,
-                    label: 'New Password',
-                    obscureText: true,
-                    validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
-                  ),
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   const SizedBox(height: 24),
-                  CustomButton(onPressed: _verifyReset, child: const Text('Reset Password')),
-                ] else ...[
-                  const SizedBox(height: 24),
-                  CustomButton(onPressed: _sendResetOTP, child: const Text('Send Reset OTP')),
+                  CustomTextField(
+                    controller: _phoneController,
+                    label: 'Phone Number',
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                  ),
+                  if (_otpSent) ...[
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: _otpController,
+                      label: 'OTP Code',
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => v!.length != 4 ? 'Enter 4-digit OTP' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: _newPasswordController,
+                      label: 'New Password',
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      onPressed: _verifyReset,
+                      isLoading: isLoading,
+                      label: 'Reset Password',
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      onPressed: _sendResetOTP,
+                      isLoading: isLoading,
+                      label: 'Send Reset OTP',
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

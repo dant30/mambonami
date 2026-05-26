@@ -1,1 +1,1 @@
-﻿// Buyer cart_page
+﻿// mobile/lib/features/buyer/pages/cart_page.dart

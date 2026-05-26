@@ -1,7 +1,8 @@
-﻿// Buyer product_catalog_page
+﻿// mobile/lib/features/buyer/pages/product_catalog_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../widgets/product_grid_tile.dart';
@@ -23,7 +24,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Products')),
+      appBar: const CustomAppBar(title: 'Products'),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state is ProductLoading) {
