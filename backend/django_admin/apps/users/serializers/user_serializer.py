@@ -203,7 +203,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'phone', 'username', 'email', 'role',
+            'id', 'phone', 'username', 'email', 'first_name', 'last_name', 'role',
             'is_phone_verified', 'date_joined', 'farm_profile', 'transport_profile',
         )
 

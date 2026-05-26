@@ -12,8 +12,24 @@ class NotificationRepository {
     try {
       final response = await _apiClient.dio.get('/api/notifications/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => NotificationModel.fromJson(json)).toList();
+        final dynamic raw = response.data;
+        List<dynamic> items = [];
+        if (raw is List) {
+          items = raw;
+        } else if (raw is Map<String, dynamic>) {
+          // DRF pagination returns { count, next, previous, results: [...] }
+          if (raw.containsKey('results') && raw['results'] is List) {
+            items = raw['results'] as List<dynamic>;
+          } else if (raw.containsKey('data') && raw['data'] is List) {
+            items = raw['data'] as List<dynamic>;
+          } else {
+            // Fallback: try to find first List value
+            final firstList = raw.values.firstWhere((v) => v is List, orElse: () => null);
+            if (firstList is List) items = firstList;
+          }
+        }
+
+        return items.map((json) => NotificationModel.fromJson(json as Map<String, dynamic>)).toList();
       }
       throw Exception('Failed to fetch notifications');
     } catch (e) {

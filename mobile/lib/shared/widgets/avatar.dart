@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 class Avatar extends StatelessWidget {
   final String? imageUrl;
+  final File? imageFile;
   final String? firstName;
   final String? secondName;
   final String? lastName;
@@ -13,6 +15,7 @@ class Avatar extends StatelessWidget {
   const Avatar({
     super.key,
     this.imageUrl,
+    this.imageFile,
     this.firstName,
     this.secondName,
     this.lastName,
@@ -55,17 +58,21 @@ class Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final decorationImage = imageFile != null
+        ? DecorationImage(image: FileImage(imageFile!), fit: BoxFit.cover)
+        : imageUrl != null && imageUrl!.isNotEmpty
+            ? DecorationImage(image: NetworkImage(imageUrl!), fit: BoxFit.cover)
+            : null;
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
         shape: BoxShape.circle,
-        image: imageUrl != null && imageUrl!.isNotEmpty
-            ? DecorationImage(image: NetworkImage(imageUrl!), fit: BoxFit.cover)
-            : null,
+        image: decorationImage,
       ),
-      child: imageUrl == null || imageUrl!.isEmpty
+      child: decorationImage == null
           ? Center(
               child: Text(
                 _getInitials(),
