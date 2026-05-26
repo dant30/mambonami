@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
+import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -78,14 +79,43 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
+          final summaryCard = Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Phone: ${widget.phone}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Role: ${widget.role.replaceAll('_', ' ')}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          );
+
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 24),
-                  CustomTextField(
+                  AuthPageHeader(
+                    title: 'Verify your account',
+                    subtitle: 'Enter the OTP sent to your phone and complete the form below to finish registration.',
+                    leading: summaryCard,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [                  CustomTextField(
                     controller: _otpController,
                     label: 'OTP Code',
                     keyboardType: TextInputType.number,
@@ -129,7 +159,12 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                     },
                   ),
                   if (widget.role == 'farmer') ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Farmer details',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 12),
                     CustomTextField(
                       controller: _farmGpsController,
                       label: 'Farm GPS (lat,lng)',
@@ -146,7 +181,12 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                     ),
                   ],
                   if (widget.role == 'transport_provider') ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Transport provider details',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 12),
                     CustomTextField(
                       controller: _vehicleTypeController,
                       label: 'Vehicle Type (motorcycle/pickup/lorry/van)',
@@ -165,7 +205,10 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                   CustomButton(
                     onPressed: _verify,
                     isLoading: isLoading,
-                    label: 'Verify & Register',
+                    label: 'Complete registration',
+                  ),
+                      ],
+                    ),
                   ),
                 ],
               ),

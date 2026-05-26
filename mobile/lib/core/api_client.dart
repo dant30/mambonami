@@ -13,7 +13,7 @@ class ApiClient {
 
   ApiClient() {
     _dio = Dio(BaseOptions(
-      baseUrl: kApiBaseUrl,
+      baseUrl: getApiBaseUrl(),
       connectTimeout: kApiConnectTimeout,
       receiveTimeout: kApiReceiveTimeout,
       headers: {'Content-Type': 'application/json'},

@@ -5,6 +5,8 @@ from core.throttling import BurstThrottle
 from ..serializers import (
     RegisterInitSerializer,
     VerifyOTPSerializer,
+    PasswordResetInitSerializer,
+    PasswordResetVerifySerializer,
     UserDetailSerializer,
     LoginSerializer,
 )
@@ -38,6 +40,30 @@ class VerifyOTPView(generics.CreateAPIView):
             {'user': UserDetailSerializer(user).data, 'tokens': tokens},
             status=status.HTTP_201_CREATED,
         )
+
+
+class PasswordResetInitView(generics.GenericAPIView):
+    serializer_class = PasswordResetInitSerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class PasswordResetVerifyView(generics.GenericAPIView):
+    serializer_class = PasswordResetVerifySerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
 
 
 class CustomTokenObtainPairView(generics.GenericAPIView):

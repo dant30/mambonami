@@ -13,6 +13,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final bool enabled;
+  final bool autofocus;
   final int? maxLines;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
@@ -31,8 +32,7 @@ class CustomTextField extends StatelessWidget {
     this.errorText,
     this.prefixIcon,
     this.suffixIcon,
-    this.enabled = true,
-    this.maxLines = 1,
+    this.enabled = true,    this.autofocus = false,    this.maxLines = 1,
     this.onChanged,
     this.onFieldSubmitted,
     this.textCapitalization = TextCapitalization.none,
@@ -50,6 +50,7 @@ class CustomTextField extends StatelessWidget {
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
       enabled: enabled,
+      autofocus: autofocus,
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label ?? labelText,

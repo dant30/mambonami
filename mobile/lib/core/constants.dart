@@ -1,9 +1,18 @@
 ﻿// mobile/lib/core/constants.dart
 
+import 'dart:io' show Platform;
+
 const String kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8000',
+  defaultValue: '',
 );
+
+String getApiBaseUrl() {
+  if (kApiBaseUrl.isNotEmpty) return kApiBaseUrl;
+  if (Platform.isIOS) return 'http://127.0.0.1:8000';
+  if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+  return 'http://127.0.0.1:8000';
+}
 
 // Auth endpoints
 const String kRegisterInitEndpoint = '/api/users/register/init/';

@@ -9,6 +9,8 @@ import '../../core/api_client.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import '../../shared/widgets/app_drawer.dart';
 import '../../shared/widgets/app_navigation.dart';
+import '../../shared/widgets/avatar.dart';
+import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_snackbar.dart';
@@ -23,10 +25,17 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
 	final _usernameController = TextEditingController();
 	final _emailController = TextEditingController();
-	final _displayNameController = TextEditingController();
+	final _firstNameController = TextEditingController();
+	final _secondNameController = TextEditingController();
+	final _lastNameController = TextEditingController();
 	final _phoneController = TextEditingController();
 	final _formKey = GlobalKey<FormState>();
 	bool _loading = true;
+	String? _profileImageUrl;
+	String? _firstName;
+	String? _secondName;
+	String? _lastName;
+	String? _username;
 
 	final AuthRepository _authRepository = GetIt.I<AuthRepository>();
 
@@ -42,8 +51,17 @@ class _ProfilePageState extends State<ProfilePage> {
 			final profile = await _authRepository.getProfile();
 			_usernameController.text = profile['username']?.toString() ?? '';
 			_emailController.text = profile['email']?.toString() ?? '';
-			_displayNameController.text = profile['display_name']?.toString() ?? profile['full_name']?.toString() ?? '';
+			_firstNameController.text = profile['first_name']?.toString() ?? '';
+			_secondNameController.text = profile['second_name']?.toString() ?? '';
+			_lastNameController.text = profile['last_name']?.toString() ?? '';
 			_phoneController.text = profile['phone']?.toString() ?? (context.read<AuthBloc>().state is AuthAuthenticated ? (context.read<AuthBloc>().state as AuthAuthenticated).phone : '');
+			setState(() {
+				_profileImageUrl = profile['profile_image']?.toString();
+				_firstName = profile['first_name']?.toString();
+				_secondName = profile['second_name']?.toString();
+				_lastName = profile['last_name']?.toString();
+				_username = profile['username']?.toString();
+			});
 		} catch (e) {
 			CustomSnackbar.showError(context, 'Failed to load profile: ${e.toString()}');
 		} finally {
@@ -59,7 +77,9 @@ class _ProfilePageState extends State<ProfilePage> {
 			final payload = {
 				'username': _usernameController.text.trim(),
 				'email': _emailController.text.trim(),
-				'display_name': _displayNameController.text.trim(),
+				'first_name': _firstNameController.text.trim(),
+				'second_name': _secondNameController.text.trim(),
+				'last_name': _lastNameController.text.trim(),
 			};
 			await api.dio.patch(kProfileEndpoint, data: payload);
 			CustomSnackbar.showSuccess(context, 'Profile updated');
@@ -75,7 +95,9 @@ class _ProfilePageState extends State<ProfilePage> {
 	void dispose() {
 		_usernameController.dispose();
 		_emailController.dispose();
-		_displayNameController.dispose();
+		_firstNameController.dispose();
+		_secondNameController.dispose();
+		_lastNameController.dispose();
 		_phoneController.dispose();
 		super.dispose();
 	}
@@ -94,13 +116,48 @@ class _ProfilePageState extends State<ProfilePage> {
 								key: _formKey,
 								child: Column(
 									children: [
+										Center(
+											child: Avatar(
+												imageUrl: _profileImageUrl,
+												firstName: _firstName,
+												secondName: _secondName,
+												lastName: _lastName,
+												username: _username,
+												size: 80,
+											),
+										),
+										const SizedBox(height: 24),
+										SectionHeader(
+											title: 'Personal Information',
+											padding: EdgeInsets.zero,
+										),
+										const SizedBox(height: 16),
 										CustomTextField(
-											controller: _displayNameController,
-											label: 'Full name',
+											controller: _firstNameController,
+											label: 'First Name',
 											textInputAction: TextInputAction.next,
 											validator: (v) => v == null || v.isEmpty ? 'Required' : null,
 										),
 										const SizedBox(height: 12),
+										CustomTextField(
+											controller: _secondNameController,
+											label: 'Second Name (Middle Name)',
+											textInputAction: TextInputAction.next,
+										),
+										const SizedBox(height: 12),
+										CustomTextField(
+											controller: _lastNameController,
+											label: 'Last Name',
+											textInputAction: TextInputAction.next,
+											validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+										),
+										const SizedBox(height: 20),
+										SectionHeader(
+											title: 'Account Settings',
+											padding: EdgeInsets.zero,
+										),
+										const SizedBox(height: 16),
+
 										CustomTextField(
 											controller: _usernameController,
 											label: 'Username',
@@ -125,7 +182,13 @@ class _ProfilePageState extends State<ProfilePage> {
 											keyboardType: TextInputType.phone,
 											enabled: false,
 										),
-										const SizedBox(height: 20),
+										const SizedBox(height: 24),
+										SectionHeader(
+											title: 'Actions',
+											padding: EdgeInsets.zero,
+										),
+										const SizedBox(height: 16),
+
 										CustomButton(onPressed: _saveProfile, isLoading: _loading, label: 'Save Changes'),
 										const SizedBox(height: 12),
 										CustomButton(

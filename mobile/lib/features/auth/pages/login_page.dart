@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
+import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -49,42 +50,56 @@ class _LoginPageState extends State<LoginPage> {
           final isLoading = state is AuthLoading;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 48),
-                  CustomTextField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                  AuthPageHeader(
+                    title: 'Welcome back',
+                    subtitle: 'Sign in with your phone number to continue to your account.',
                   ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    validator: (v) => v!.isEmpty ? 'Required' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    onPressed: _login,
-                    isLoading: isLoading,
-                    label: 'Login',
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.go('/forgot-password'),
-                    child: const Text('Forgot password?'),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go('/register'),
-                    child: const Text('Create an account'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          controller: _phoneController,
+                          label: 'Phone Number',
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          obscureText: true,
+                          textInputAction: TextInputAction.done,
+                          validator: (v) => v!.isEmpty ? 'Required' : null,
+                        ),
+                        const SizedBox(height: 24),
+                        CustomButton(
+                          onPressed: _login,
+                          isLoading: isLoading,
+                          label: 'Login',
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () => context.go('/forgot-password'),
+                              child: const Text('Forgot password?'),
+                            ),
+                            TextButton(
+                              onPressed: () => context.go('/register'),
+                              child: const Text('Create account'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

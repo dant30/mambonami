@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
+import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -61,34 +62,53 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
           final isLoading = state is AuthLoading;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 48),
-                  CustomTextField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                  AuthPageHeader(
+                    title: 'Create your account',
+                    subtitle: 'Enter your phone number and choose a role to receive a verification code.',
                   ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedRole,
-                    decoration: const InputDecoration(labelText: 'I am a...'),
-                    items: _roles.map((role) {
-                      return DropdownMenuItem(value: role['value'], child: Text(role['label']!));
-                    }).toList(),
-                    onChanged: (val) => setState(() => _selectedRole = val ?? _selectedRole),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    onPressed: _sendOTP,
-                    isLoading: isLoading,
-                    label: 'Send OTP',
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          controller: _phoneController,
+                          label: 'Phone Number',
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          decoration: const InputDecoration(labelText: 'I am a...'),
+                          items: _roles.map((role) {
+                            return DropdownMenuItem(value: role['value'], child: Text(role['label']!));
+                          }).toList(),
+                          onChanged: (val) => setState(() => _selectedRole = val ?? _selectedRole),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Choose the role that best matches how you will use the app.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 24),
+                        CustomButton(
+                          onPressed: _sendOTP,
+                          isLoading: isLoading,
+                          label: 'Send OTP',
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () => context.go('/login'),
+                          child: const Text('Already have an account? Login'),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

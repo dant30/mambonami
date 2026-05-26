@@ -137,6 +137,65 @@ class VerifyOTPSerializer(serializers.Serializer):
         return user
 
 
+class PasswordResetInitSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=15)
+
+    def validate_phone(self, value):
+        validate_phone_number(value)
+        return value
+
+    def save(self):
+        phone = self.validated_data['phone']
+        if User.objects.filter(phone=phone).exists():
+            otp = generate_otp()
+            RedisCache.set(f'password_reset_otp:{phone}', otp, timeout=settings.OTP_EXPIRY_SECONDS)
+            RedisCache.set(f'password_reset_attempts:{phone}', 0, timeout=settings.OTP_EXPIRY_SECONDS)
+            send_otp_message(phone, otp)
+        return {'message': 'If an account exists for this phone, a reset OTP has been sent.'}
+
+
+class PasswordResetVerifySerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=15)
+    otp = serializers.CharField(max_length=4)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate_phone(self, value):
+        validate_phone_number(value)
+        if not User.objects.filter(phone=value).exists():
+            raise serializers.ValidationError('User with this phone does not exist.')
+        return value
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+
+        attempts_key = f'password_reset_attempts:{attrs['phone']}'
+        attempts = RedisCache.get(attempts_key) or 0
+        max_attempts = getattr(settings, 'OTP_MAX_ATTEMPTS', 3)
+        if attempts >= max_attempts:
+            RedisCache.delete(attempts_key)
+            RedisCache.delete(f'password_reset_otp:{attrs['phone']}')
+            raise serializers.ValidationError({'otp': 'Maximum OTP attempts exceeded. Please request a new code.'})
+
+        cached_otp = RedisCache.get(f'password_reset_otp:{attrs['phone']}')
+        if not cached_otp or cached_otp != attrs['otp']:
+            RedisCache.set(attempts_key, attempts + 1, timeout=settings.OTP_EXPIRY_SECONDS)
+            raise serializers.ValidationError({'otp': 'Invalid or expired OTP.'})
+
+        RedisCache.delete(attempts_key)
+        return attrs
+
+    def save(self):
+        phone = self.validated_data['phone']
+        password = self.validated_data['new_password']
+        user = User.objects.get(phone=phone)
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        RedisCache.delete(f'password_reset_otp:{phone}')
+        return user
+
+
 class UserDetailSerializer(serializers.ModelSerializer):
     farm_profile = serializers.SerializerMethodField()
     transport_profile = serializers.SerializerMethodField()
