@@ -4,6 +4,8 @@ import '../../core/api_client.dart';
 import '../models/trip.dart';
 import '../dtos/trip_dto.dart';
 
+final getIt = GetIt.instance;
+
 class TripRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
 

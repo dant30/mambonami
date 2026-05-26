@@ -36,6 +36,8 @@ class CartItemDto {
   };
 }
 
+final getIt = GetIt.instance;
+
 class OrderRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
 
@@ -68,11 +70,11 @@ class OrderRepository {
   }
 
   // Farmer endpoints
-  Future<List<Order>> fetchFarmerSubOrders() async {
+  Future<List<SubOrder>> fetchFarmerSubOrders() async {
     try {
       final response = await _apiClient.dio.get('/api/orders/farmer/suborders/');
       final List<dynamic> data = response.data;
-      return data.map((json) => Order.fromJson(json)).toList();
+      return data.map((json) => SubOrder.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
     }

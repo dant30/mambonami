@@ -45,7 +45,7 @@
     'status': status,
     'created_at': createdAt.toIso8601String(),
     'read_at': readAt?.toIso8601String(),
-  }
+  };
 
   bool get isRead => status == 'read';
   bool get isUnread => !isRead;

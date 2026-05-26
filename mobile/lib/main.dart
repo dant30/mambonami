@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/api_client.dart';
 import 'core/secure_storage.dart';
 import 'core/notification_service.dart';
@@ -21,18 +19,26 @@ import 'blocs/order/order_bloc.dart';
 import 'blocs/trip/trip_bloc.dart';
 import 'blocs/notification/notification_bloc.dart';
 import 'blocs/theme/theme_bloc.dart';
-import 'blocs/connectivity/connectivity_bloc.dart';
 
 final getIt = GetIt.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await setupDependencies();
+
+  bool firebaseAvailable = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseAvailable = true;
+  } catch (error, stackTrace) {
+    debugPrint('Firebase unavailable; continuing without push notifications: $error');
+    debugPrint(stackTrace.toString());
+  }
+
+  await setupDependencies(firebaseAvailable);
   runApp(MyApp());
 }
 
-Future<void> setupDependencies() async {
+Future<void> setupDependencies(bool firebaseAvailable) async {
   // Core
   getIt.registerSingleton<SecureStorage>(SecureStorage());
   getIt.registerSingleton<ApiClient>(ApiClient());
@@ -43,16 +49,18 @@ Future<void> setupDependencies() async {
   getIt.registerSingleton<OrderRepository>(OrderRepository());
   getIt.registerSingleton<TripRepository>(TripRepository());
   getIt.registerSingleton<NotificationRepository>(NotificationRepository());
-  
-  // Initialize notification service
-  final notificationService = NotificationService();
-  await notificationService.init();
-  getIt.registerSingleton<NotificationService>(notificationService);
-  
+
   // BLoCs
   getIt.registerLazySingleton<NotificationBloc>(() => NotificationBloc(
     notificationRepository: getIt<NotificationRepository>(),
   ));
+
+  // Initialize notification service when Firebase is available.
+  if (firebaseAvailable) {
+    final notificationService = NotificationService();
+    await notificationService.init();
+    getIt.registerSingleton<NotificationService>(notificationService);
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -65,7 +73,6 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
-        BlocProvider(create: (_) => ConnectivityBloc()),
         BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>(), secureStorage: getIt<SecureStorage>())),
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),

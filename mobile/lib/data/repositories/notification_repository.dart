@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../models/notification.dart';
 
+final getIt = GetIt.instance;
+
 class NotificationRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
 

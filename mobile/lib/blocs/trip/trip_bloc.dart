@@ -2,6 +2,7 @@
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/trip_repository.dart';
 import '../../data/dtos/trip_dto.dart';
+import '../../data/models/trip.dart';
 
 part 'trip_event.dart';
 part 'trip_state.dart';

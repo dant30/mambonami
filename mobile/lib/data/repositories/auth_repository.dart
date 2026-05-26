@@ -5,6 +5,8 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/secure_storage.dart';
 
+final getIt = GetIt.instance;
+
 class AuthRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
   final SecureStorage _secureStorage = getIt<SecureStorage>();

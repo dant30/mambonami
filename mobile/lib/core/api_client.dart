@@ -5,6 +5,8 @@ import 'secure_storage.dart';
 import 'logger.dart';
 import 'constants.dart';
 
+final getIt = GetIt.instance;
+
 class ApiClient {
   late final Dio _dio;
   bool _isRefreshing = false;
@@ -54,7 +56,6 @@ class ApiClient {
                   extra: options.extra,
                   followRedirects: options.followRedirects,
                   listFormat: options.listFormat,
-                  maxBodyLength: options.maxBodyLength,
                   maxRedirects: options.maxRedirects,
                   receiveDataWhenStatusError: options.receiveDataWhenStatusError,
                   receiveTimeout: options.receiveTimeout,

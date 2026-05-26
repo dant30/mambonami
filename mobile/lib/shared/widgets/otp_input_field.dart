@@ -1,4 +1,3 @@
-// lib/shared/widgets/otp_input_field.dart
 import 'package:flutter/material.dart';
 
 class OtpInputField extends StatelessWidget {
@@ -17,11 +16,14 @@ class OtpInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(length, (index) => _buildPinBox(index)),
+      children: List.generate(
+        length,
+        (index) => _buildPinBox(context, index),
+      ),
     );
   }
 
-  Widget _buildPinBox(int index) {
+  Widget _buildPinBox(BuildContext context, int index) {
     return Container(
       width: 50,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -32,12 +34,11 @@ class OtpInputField extends StatelessWidget {
         keyboardType: TextInputType.number,
         onChanged: (value) {
           if (value.isNotEmpty && index < length - 1) {
-            FocusScope.of(Get.context!).nextFocus();
+            FocusScope.of(context).nextFocus();
           }
           if (value.isEmpty && index > 0) {
-            FocusScope.of(Get.context!).previousFocus();
+            FocusScope.of(context).previousFocus();
           }
-          // collect all values and call onCompleted
         },
         decoration: const InputDecoration(
           border: OutlineInputBorder(),

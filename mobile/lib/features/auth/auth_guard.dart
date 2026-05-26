@@ -41,7 +41,7 @@ class AuthGuard extends StatelessWidget {
 
     if (authState is AuthUnauthenticated || authState is AuthInitial || authState is AuthError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted && GoRouter.of(context).location != fallbackPath) {
+        if (context.mounted && GoRouterState.of(context).uri.toString() != fallbackPath) {
           context.go(fallbackPath);
         }
       });

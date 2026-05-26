@@ -4,6 +4,8 @@ import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../models/product.dart';
 
+final getIt = GetIt.instance;
+
 class ProductRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
 

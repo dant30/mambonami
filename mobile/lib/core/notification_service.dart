@@ -1,9 +1,12 @@
 ﻿import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import '../core/constants.dart';
 import '../blocs/notification/notification_bloc.dart';
 import '../data/models/notification.dart';
+
+final getIt = GetIt.instance;
 
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -13,35 +16,39 @@ class NotificationService {
   Future<void> init() async {
     if (_isInitialized) return;
 
-    // Request permissions
-    await _fcm.requestPermission();
-    
-    // Get FCM token and send to backend
-    final token = await _fcm.getToken();
-    if (token != null) {
-      // TODO: Send token to your backend (store in user's fcm_token field)
-      print('FCM Token: $token');
+    try {
+      // Request permissions
+      await _fcm.requestPermission();
+
+      // Get FCM token and send to backend
+      final token = await _fcm.getToken();
+      if (token != null) {
+        debugPrint('FCM Token: $token');
+      }
+
+      // Setup local notifications for when app is in foreground
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosSettings = DarwinInitializationSettings();
+      const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+      await _localNotifications.initialize(settings: settings);
+
+      // Listen to messages while app is in foreground
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+      // Handle when app is opened from a terminated state
+      RemoteMessage? initialMessage = await _fcm.getInitialMessage();
+      if (initialMessage != null) {
+        _handleMessage(initialMessage);
+      }
+
+      // Handle when app is in background and user taps notification
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+
+      _isInitialized = true;
+    } catch (error, stackTrace) {
+      debugPrint('NotificationService initialization failed: $error');
+      debugPrint(stackTrace.toString());
     }
-
-    // Setup local notifications for when app is in foreground
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-    const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
-    await _localNotifications.initialize(settings);
-
-    // Listen to messages while app is in foreground
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    
-    // Handle when app is opened from a terminated state
-    RemoteMessage? initialMessage = await _fcm.getInitialMessage();
-    if (initialMessage != null) {
-      _handleMessage(initialMessage);
-    }
-
-    // Handle when app is in background and user taps notification
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-
-    _isInitialized = true;
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -92,10 +99,10 @@ class NotificationService {
     const iosDetails = DarwinNotificationDetails();
     const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
     await _localNotifications.show(
-      notification.id,
-      notification.title,
-      notification.body,
-      details,
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      notificationDetails: details,
     );
   }
 }
