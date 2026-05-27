@@ -1,0 +1,237 @@
+web/
+├── Dockerfile
+├── package.json
+├── pnpm-lock.yaml
+├── .env.example
+├── .prettierrc
+├── .eslintrc.js
+├── vitest.config.ts
+├── babel.config.js
+├── index.html
+├── tsconfig.json
+├── tailwind.config.ts
+├── postcss.config.js
+│
+├── public/
+│   ├── icons/
+│   │   ├── favicon.ico
+│   │   ├── logo192.png
+│   │   └── logo512.png
+│   ├── manifest.json
+│   ├── service-worker.js
+│   └── offline.html
+│
+└── src/
+    ├── main.tsx
+    ├── App.tsx
+    ├── index.css
+    │
+    ├── styles/
+    │   ├── global.css
+    │   ├── variables.css
+    │   ├── animations.css
+    │   └── components.css
+    │
+    ├── core/
+    │   ├── api/
+    │   │   ├── endpoints.ts
+    │   │   ├── client.ts
+    │   │   └── types.ts
+    │   ├── context/
+    │   │   ├── ThemeContext.tsx
+    │   │   ├── AuthContext.tsx
+    │   │   └── NotificationContext.tsx
+    │   ├── hooks/
+    │   │   ├── useAuth.ts
+    │   │   ├── useLocalStorage.ts
+    │   │   ├── useDebounce.ts
+    │   │   └── useWebSocket.ts      # optional live updates
+    │   ├── utils/
+    │   │   ├── formatters.ts
+    │   │   ├── validators.ts
+    │   │   └── constants.ts
+    │   ├── locale/
+    │   │   ├── en.json
+    │   │   └── sw.json
+    │   ├── storage/
+    │   │   ├── index.ts
+    │   │   ├── secureStorage.ts
+    │   │   └── types.ts
+    │   └── types/
+    │       ├── user.ts
+    │       ├── order.ts
+    │       ├── product.ts
+    │       ├── trip.ts
+    │       ├── payout.ts
+    │       ├── dispute.ts
+    │       └── api.ts
+    │
+    ├── router/
+    │   ├── index.tsx
+    │   ├── public.routes.tsx
+    │   ├── guarded.routes.tsx
+    │   ├── PublicRoute.tsx
+    │   └── GuardedRoute.tsx
+    │
+    ├── features/
+    │   ├── auth/
+    │   │   ├── pages/
+    │   │   │   ├── Login.tsx
+    │   │   │   ├── Register.tsx
+    │   │   │   ├── ForgotPassword.tsx
+    │   │   │   └── Profile.tsx
+    │   │   ├── services/
+    │   │   │   └── authService.ts
+    │   │   ├── types/
+    │   │   │   └── index.ts
+    │   │   ├── hooks/
+    │   │   │   └── useAuthForm.ts
+    │   │   └── stores/
+    │   │       └── authStore.ts
+    │   │
+    │   ├── orders/
+    │   │   ├── pages/
+    │   │   │   ├── OrderList.tsx
+    │   │   │   ├── OrderDetail.tsx
+    │   │   │   └── CreateOrder.tsx
+    │   │   ├── services/
+    │   │   │   └── orderService.ts
+    │   │   ├── types/
+    │   │   │   └── index.ts
+    │   │   ├── hooks/
+    │   │   │   ├── useOrders.ts
+    │   │   │   └── useOrderStatus.ts
+    │   │   └── stores/
+    │   │       └── orderStore.ts
+    │   │
+    │   ├── products/
+    │   │   ├── pages/
+    │   │   │   ├── ProductList.tsx
+    │   │   │   ├── ProductDetail.tsx
+    │   │   │   ├── ProductCreate.tsx
+    │   │   │   └── ProductEdit.tsx
+    │   │   ├── services/
+    │   │   │   └── productService.ts
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── transport/
+    │   │   ├── pages/
+    │   │   │   ├── ProviderList.tsx
+    │   │   │   ├── ProviderDetail.tsx
+    │   │   │   ├── ProviderApproval.tsx      # admin approval
+    │   │   │   └── ProviderTrips.tsx
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── disputes/
+    │   │   ├── pages/
+    │   │   │   ├── DisputeList.tsx
+    │   │   │   ├── DisputeDetail.tsx
+    │   │   │   └── DisputeResolution.tsx     # admin panel
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── payouts/
+    │   │   ├── pages/
+    │   │   │   ├── PayoutList.tsx
+    │   │   │   └── PayoutDetail.tsx
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── analytics/
+    │   │   ├── pages/
+    │   │   │   ├── Dashboard.tsx
+    │   │   │   ├── Reports.tsx
+    │   │   │   └── ExportData.tsx
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── admin/
+    │   │   ├── pages/
+    │   │   │   ├── FarmerApproval.tsx
+    │   │   │   ├── DisputeResolution.tsx
+    │   │   │   ├── AuditLog.tsx
+    │   │   │   ├── NotificationsList.tsx
+    │   │   │   ├── UserManagement.tsx
+    │   │   │   └── Settings.tsx
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   ├── retailer/                         # future B2B bulk ordering
+    │   │   ├── pages/
+    │   │   │   ├── RetailerDashboard.tsx
+    │   │   │   ├── BulkOrder.tsx
+    │   │   │   └── InvoiceList.tsx
+    │   │   ├── services/
+    │   │   ├── types/
+    │   │   ├── hooks/
+    │   │   └── stores/
+    │   │
+    │   └── not-found/
+    │       └── NotFound.tsx
+    │
+    ├── shared/
+    │   ├── components/
+    │   │   ├── ui/                           # 50+ atomic components
+    │   │   │   ├── Button.tsx
+    │   │   │   ├── Card.tsx
+    │   │   │   ├── Input.tsx
+    │   │   │   ├── Modal.tsx
+    │   │   │   ├── Dropdown.tsx
+    │   │   │   ├── Chevron.tsx
+    │   │   │   ├── Spinner.tsx
+    │   │   │   ├── Tabs.tsx
+    │   │   │   ├── Tooltip.tsx
+    │   │   │   ├── Avatar.tsx
+    │   │   │   ├── Badge.tsx
+    │   │   │   ├── Alert.tsx
+    │   │   │   ├── ProgressBar.tsx
+    │   │   │   ├── Loader.tsx
+    │   │   │   ├── Toast.tsx
+    │   │   │   ├── Switch.tsx
+    │   │   │   ├── Checkbox.tsx
+    │   │   │   ├── Radio.tsx
+    │   │   │   ├── Select.tsx
+    │   │   │   ├── Textarea.tsx
+    │   │   │   ├── DatePicker.tsx
+    │   │   │   ├── TimePicker.tsx
+    │   │   │   ├── FileUpload.tsx
+    │   │   │   ├── ImageUpload.tsx
+    │   │   │   ├── Pagination.tsx
+    │   │   │   ├── Skeleton.tsx
+    │   │   │   └── ...
+    │   │   ├── tables/
+    │   │   │   ├── DataTable.tsx
+    │   │   │   ├── Column.tsx
+    │   │   │   └── Pagination.tsx
+    │   │   ├── charts/
+    │   │   │   ├── LineChart.tsx
+    │   │   │   ├── BarChart.tsx
+    │   │   │   ├── PieChart.tsx
+    │   │   │   └── MetricsCard.tsx
+    │   │   └── forms/
+    │   │       ├── Form.tsx
+    │   │       ├── FormInput.tsx
+    │   │       ├── FormSelect.tsx
+    │   │       └── FormValidation.ts
+    │   │
+    │   └── layout/
+    │       ├── MainLayout.tsx
+    │       ├── Sidebar.tsx
+    │       ├── Header.tsx
+    │       ├── Footer.tsx
+    │       └── FloatingActionButton.tsx
+    │
+    └── index.css

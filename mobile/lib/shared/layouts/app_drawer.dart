@@ -70,6 +70,11 @@ class AppDrawer extends StatelessWidget {
           title: 'Products',
           route: '/products',
           allowedRoles: ['buyer', 'retailer']),
+        _DrawerItem(
+          icon: Icons.inventory,
+          title: 'My Products',
+          route: '/farmer/products',
+          allowedRoles: ['farmer']),
       _DrawerItem(
           icon: Icons.list_alt,
           title: 'My Orders',

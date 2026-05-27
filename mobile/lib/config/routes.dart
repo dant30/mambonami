@@ -19,6 +19,11 @@ import '../features/buyer/pages/cart_page.dart';
 import '../features/buyer/pages/checkout_page.dart';
 import '../features/buyer/pages/dispute_page.dart';
 import '../data/models/product.dart';
+import '../features/farmer/pages/product_list_page.dart';
+import '../features/farmer/pages/product_create_page.dart';
+import '../features/farmer/pages/product_edit_page.dart';
+import '../features/farmer/pages/order_requests_page.dart';
+import '../features/farmer/pages/earnings_page.dart';
 import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart';
 import '../features/common/support_page.dart';
@@ -70,6 +75,48 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: ['farmer'],
           child: FarmerDashboard(),
+        ),
+      ),
+      GoRoute(
+        path: '/farmer/products',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['farmer'],
+          child: ProductListPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/farmer/products/create',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['farmer'],
+          child: ProductCreatePage(),
+        ),
+      ),
+      GoRoute(
+        path: '/farmer/products/:uuid/edit',
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          final extra = state.extra;
+          Product? product;
+          if (extra is Product) product = extra;
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing product id')));
+          return AuthGuard(
+            allowedRoles: ['farmer'],
+            child: ProductEditPage(productUuid: uuid, initialProduct: product),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/farmer/order-requests',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['farmer'],
+          child: OrderRequestsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/farmer/earnings',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['farmer'],
+          child: EarningsPage(),
         ),
       ),
       GoRoute(
