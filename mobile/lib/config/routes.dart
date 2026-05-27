@@ -10,7 +10,7 @@ import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
-import '../features/common/notifications_page.dart';
+import '../features/notifications/pages/notifications_page.dart';
 import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart';
 import '../features/common/support_page.dart';

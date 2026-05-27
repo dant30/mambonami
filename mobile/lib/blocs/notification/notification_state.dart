@@ -10,8 +10,17 @@ class NotificationLoading extends NotificationState {}
 class NotificationLoaded extends NotificationState {
   final List<NotificationModel> notifications;
   final int unreadCount;
-  const NotificationLoaded(this.notifications, this.unreadCount);
-  @override List<Object> get props => [notifications, unreadCount];
+  final bool hasMore;
+  final String? nextPageUrl;
+
+  const NotificationLoaded(
+    this.notifications,
+    this.unreadCount, {
+    this.hasMore = false,
+    this.nextPageUrl,
+  });
+
+  @override List<Object?> get props => [notifications, unreadCount, hasMore, nextPageUrl];
 }
 class NotificationError extends NotificationState {
   final String message;
