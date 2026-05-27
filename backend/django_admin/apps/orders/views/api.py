@@ -48,6 +48,23 @@ class OrderDetailView(generics.RetrieveAPIView):
             return Order.objects.filter(assigned_provider=user.transport_profile)
         return Order.objects.none()
 
+class OrderListView(generics.ListAPIView):
+    """List orders for the authenticated user."""
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Order.objects.all()
+        if user.role == 'buyer':
+            return Order.objects.filter(buyer=user)
+        if user.role == 'farmer':
+            return Order.objects.filter(sub_orders__farmer=user.farmer_profile).distinct()
+        if user.role == 'transport_provider':
+            return Order.objects.filter(assigned_provider=user.transport_profile)
+        return Order.objects.none()
+
 class FarmerConfirmSubOrderView(APIView):
     """Farmer confirms or rejects a sub‑order."""
     permission_classes = [permissions.IsAuthenticated, IsFarmerForSubOrder]

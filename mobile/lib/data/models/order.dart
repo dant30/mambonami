@@ -1,6 +1,5 @@
 ﻿// lib/data/models/order.dart
 import 'package:equatable/equatable.dart';
-import 'product.dart';
 
 class Order extends Equatable {
   final int id;
@@ -35,19 +34,19 @@ class Order extends Equatable {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      uuid: json['uuid'],
-      totalAmount: (json['total_amount'] as num).toDouble(),
-      deliveryFee: (json['delivery_fee'] as num).toDouble(),
-      platformCommission: (json['platform_commission'] as num).toDouble(),
-      status: json['status'],
-      accountNumber: json['account_number'],
-      deliveryAddress: json['delivery_address'],
-      scheduledDate: DateTime.parse(json['scheduled_date']),
-      scheduledTimeWindow: json['scheduled_time_window'],
-      assignedProviderName: json['assigned_provider_name'],
-      subOrders: (json['sub_orders'] as List).map((e) => SubOrder.fromJson(e)).toList(),
-      createdAt: DateTime.parse(json['created_at']),
+      id: parseInt(json['id']),
+      uuid: parseString(json['uuid']),
+      totalAmount: parseDouble(json['total_amount']),
+      deliveryFee: parseDouble(json['delivery_fee']),
+      platformCommission: parseDouble(json['platform_commission']),
+      status: parseString(json['status']),
+      accountNumber: json['account_number'] != null ? parseString(json['account_number']) : null,
+      deliveryAddress: parseString(json['delivery_address']),
+      scheduledDate: parseDate(json['scheduled_date']),
+      scheduledTimeWindow: parseString(json['scheduled_time_window']),
+      assignedProviderName: _parseAssignedProviderName(json),
+      subOrders: parseSubOrders(json['sub_orders']),
+      createdAt: parseDate(json['created_at']),
     );
   }
 
@@ -82,14 +81,14 @@ class SubOrder extends Equatable {
 
   factory SubOrder.fromJson(Map<String, dynamic> json) {
     return SubOrder(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      farmerId: json['farmer_id'] is int ? json['farmer_id'] : int.parse(json['farmer_id'].toString()),
-      farmerName: json['farmer_name'],
-      status: json['status'],
-      subtotal: (json['subtotal'] as num).toDouble(),
-      items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
-      confirmedAt: json['confirmed_at'] != null ? DateTime.parse(json['confirmed_at']) : null,
-      readyAt: json['ready_at'] != null ? DateTime.parse(json['ready_at']) : null,
+      id: parseInt(json['id']),
+      farmerId: parseInt(json['farmer'] ?? json['farmer_id']),
+      farmerName: _parseFarmerName(json),
+      status: parseString(json['status']),
+      subtotal: parseDouble(json['subtotal']),
+      items: parseOrderItems(json['items']),
+      confirmedAt: json['confirmed_at'] != null ? parseDate(json['confirmed_at']) : null,
+      readyAt: json['ready_at'] != null ? parseDate(json['ready_at']) : null,
     );
   }
 
@@ -118,14 +117,110 @@ class OrderItem extends Equatable {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      productId: json['product_id'] is int ? json['product_id'] : int.parse(json['product_id'].toString()),
-      productName: json['product_name'],
-      quantity: (json['quantity'] as num).toDouble(),
-      unitPrice: (json['unit_price'] as num).toDouble(),
-      totalPrice: (json['total_price'] as num).toDouble(),
+      productId: parseInt(json['product'] ?? json['product_id']),
+      productName: _parseProductName(json),
+      quantity: parseDouble(json['quantity']),
+      unitPrice: parseDouble(json['unit_price']),
+      totalPrice: parseDouble(json['total_price']),
     );
   }
 
   @override
   List<Object?> get props => [productId, productName];
+}
+
+String parseString(dynamic value) {
+  if (value is String) return value;
+  if (value == null) return '';
+  return value.toString();
+}
+
+int parseInt(dynamic value) {
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value) ?? 0;
+  if (value is double) return value.toInt();
+  if (value == null) return 0;
+  return int.tryParse(value.toString()) ?? 0;
+}
+
+double parseDouble(dynamic value) {
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  if (value == null) return 0.0;
+  return double.tryParse(value.toString()) ?? 0.0;
+}
+
+DateTime parseDate(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.parse(value);
+  if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+  throw FormatException('Unable to parse date: $value');
+}
+
+List<SubOrder> parseSubOrders(dynamic value) {
+  if (value is List) {
+    return value.map((item) => SubOrder.fromJson(item as Map<String, dynamic>)).toList();
+  }
+  if (value is Map<String, dynamic>) {
+    final nested = value['results'] ?? value['data'] ?? [];
+    return parseSubOrders(nested);
+  }
+  return [];
+}
+
+List<OrderItem> parseOrderItems(dynamic value) {
+  if (value is List) {
+    return value.map((item) => OrderItem.fromJson(item as Map<String, dynamic>)).toList();
+  }
+  if (value is Map<String, dynamic>) {
+    final nested = value['results'] ?? value['data'] ?? [];
+    return parseOrderItems(nested);
+  }
+  return [];
+}
+
+String _parseFarmerName(Map<String, dynamic> json) {
+  final farmerName = parseString(json['farmer_name']);
+  if (farmerName.isNotEmpty) return farmerName;
+
+  final farmerPhone = parseString(json['farmer_phone']);
+  if (farmerPhone.isNotEmpty) return 'Farmer $farmerPhone';
+
+  if (json['farmer'] != null) return 'Farmer ${parseString(json['farmer'])}';
+
+  return 'Unknown farmer';
+}
+
+String _parseProductName(Map<String, dynamic> json) {
+  final productDetail = json['product_detail'];
+  if (productDetail is Map<String, dynamic>) {
+    final name = parseString(productDetail['name']);
+    if (name.isNotEmpty) return name;
+  }
+
+  final fallback = parseString(json['product_name']);
+  if (fallback.isNotEmpty) return fallback;
+
+  return parseString(json['product']);
+}
+
+String? _parseAssignedProviderName(Map<String, dynamic> json) {
+  final assignedProviderName = parseString(json['assigned_provider_name']);
+  if (assignedProviderName.isNotEmpty) return assignedProviderName;
+
+  final assignedProvider = json['assigned_provider'];
+  if (assignedProvider is Map<String, dynamic>) {
+    final name = parseString(assignedProvider['name']);
+    if (name.isNotEmpty) return name;
+
+    final uuid = parseString(assignedProvider['uuid']);
+    if (uuid.isNotEmpty) return uuid;
+
+    final phone = parseString(assignedProvider['phone']);
+    if (phone.isNotEmpty) return phone;
+  }
+
+  if (assignedProvider != null) return assignedProvider.toString();
+  return null;
 }

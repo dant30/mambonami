@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../data/models/order.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -22,7 +23,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Orders')),
+      appBar: const CustomAppBar(
+        title: 'My Orders',
+        showNotificationAction: true,
+      ),
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading) return const Center(child: CircularProgressIndicator());
@@ -41,7 +45,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   return ListTile(
                     title: Text(o.uuid),
                     subtitle: Text('${o.status} • ${o.createdAt.toLocal().toString().split('.').first}'),
-                    trailing: Text('${o.totalAmount.toStringAsFixed(2)}'),
+                    trailing: Text(o.totalAmount.toStringAsFixed(2)),
                     onTap: () => context.go('/order/${o.uuid}'),
                   );
                 },

@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordHidden = true;
 
   @override
   void dispose() {
@@ -55,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AuthPageHeader(
+                  const AuthPageHeader(
                     title: 'Welcome back',
                     subtitle: 'Sign in with your phone number to continue to your account.',
                   ),
@@ -74,9 +75,17 @@ class _LoginPageState extends State<LoginPage> {
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password',
-                          obscureText: true,
+                          obscureText: _isPasswordHidden,
                           textInputAction: TextInputAction.done,
                           validator: (v) => v!.isEmpty ? 'Required' : null,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordHidden ? Icons.visibility : Icons.visibility_off,
+                            ),
+                            onPressed: () => setState(() {
+                              _isPasswordHidden = !_isPasswordHidden;
+                            }),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         CustomButton(

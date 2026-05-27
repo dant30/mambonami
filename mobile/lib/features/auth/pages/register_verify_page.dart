@@ -31,9 +31,17 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
   final _emailController = TextEditingController();
   final _farmGpsController = TextEditingController();
   final _mpesaController = TextEditingController();
-  final _vehicleTypeController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordHidden = true;
+  bool _isConfirmPasswordHidden = true;
+  String _selectedVehicleType = 'Motorcycle';
+  static const List<String> _vehicleTypes = [
+    'Motorcycle',
+    'Pickup',
+    'Lorry',
+    'Van',
+  ];
 
   @override
   void dispose() {
@@ -44,7 +52,6 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
     _emailController.dispose();
     _farmGpsController.dispose();
     _mpesaController.dispose();
-    _vehicleTypeController.dispose();
     _licensePlateController.dispose();
     super.dispose();
   }
@@ -59,7 +66,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
             role: widget.role,
             farmGps: widget.role == 'farmer' ? _farmGpsController.text.trim() : null,
             mpesaNumber: widget.role == 'farmer' ? _mpesaController.text.trim() : null,
-            vehicleType: widget.role == 'transport_provider' ? _vehicleTypeController.text.trim() : null,
+            vehicleType: widget.role == 'transport_provider' ? _selectedVehicleType : null,
             licensePlate: widget.role == 'transport_provider' ? _licensePlateController.text.trim() : null,
           ));
     }
@@ -82,7 +89,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
           final summaryCard = Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -133,17 +140,29 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                   CustomTextField(
                     controller: _passwordController,
                     label: 'Password',
-                    obscureText: true,
+                    obscureText: _isPasswordHidden,
                     textInputAction: TextInputAction.next,
                     validator: (v) => v!.length < 6 ? 'Min 6 chars' : null,
+                    suffixIcon: IconButton(
+                      icon: Icon(_isPasswordHidden ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() {
+                        _isPasswordHidden = !_isPasswordHidden;
+                      }),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   CustomTextField(
                     controller: _confirmPasswordController,
                     label: 'Confirm Password',
-                    obscureText: true,
+                    obscureText: _isConfirmPasswordHidden,
                     textInputAction: TextInputAction.next,
                     validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
+                    suffixIcon: IconButton(
+                      icon: Icon(_isConfirmPasswordHidden ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() {
+                        _isConfirmPasswordHidden = !_isConfirmPasswordHidden;
+                      }),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   CustomTextField(
@@ -187,11 +206,26 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _vehicleTypeController,
-                      label: 'Vehicle Type (motorcycle/pickup/lorry/van)',
-                      textInputAction: TextInputAction.next,
-                      validator: (v) => v!.isEmpty ? 'Required for transport providers' : null,
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedVehicleType,
+                      decoration: const InputDecoration(
+                        labelText: 'Vehicle Type',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                        ),
+                        filled: true,
+                      ),
+                      items: _vehicleTypes
+                          .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedVehicleType = value;
+                          });
+                        }
+                      },
+                      validator: (value) => value == null || value.isEmpty ? 'Required for transport providers' : null,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(

@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import '../../../blocs/order_tracking/order_tracking_bloc.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../blocs/notification/notification_bloc.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
 
 class OrderTrackingPage extends StatelessWidget {
 	final String orderUuid;
@@ -16,7 +17,10 @@ class OrderTrackingPage extends StatelessWidget {
 			create: (_) => OrderTrackingBloc(orderRepository: getIt<OrderRepository>())..add(FetchOrderTracking(orderUuid)),
 			child: Builder(builder: (context) {
 				return Scaffold(
-					appBar: AppBar(title: const Text('Order Tracking')),
+					appBar: const CustomAppBar(
+    title: 'Order Tracking',
+    showNotificationAction: true,
+),
 					body: MultiBlocListener(
 						listeners: [
 							BlocListener<NotificationBloc, NotificationState>(
@@ -58,7 +62,7 @@ class OrderTrackingPage extends StatelessWidget {
 												...order.subOrders.expand((s) => s.items.map((i) => ListTile(
 															title: Text(i.productName),
 															subtitle: Text('Qty: ${i.quantity}'),
-															trailing: Text('${i.totalPrice.toStringAsFixed(2)}'),
+															trailing: Text(i.totalPrice.toStringAsFixed(2)),
 														))),
 												const Divider(),
 												Text('Suborders', style: Theme.of(context).textTheme.titleMedium),

@@ -43,8 +43,8 @@ class OrderRepository {
 
   Future<Map<String, dynamic>> createOrder(CreateOrderRequest request) async {
     try {
-      final response = await _apiClient.dio.post('/api/orders/', data: request.toJson());
-      return response.data;
+      final response = await _apiClient.dio.post('/api/orders/cart/create-order/', data: request.toJson());
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw _handleError(e);
     }
@@ -53,8 +53,8 @@ class OrderRepository {
   Future<List<Order>> fetchMyOrders() async {
     try {
       final response = await _apiClient.dio.get('/api/orders/');
-      final List<dynamic> data = response.data;
-      return data.map((json) => Order.fromJson(json)).toList();
+      final List<dynamic> data = _extractList(response.data);
+      return data.map((json) => Order.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -73,8 +73,8 @@ class OrderRepository {
   Future<List<SubOrder>> fetchFarmerSubOrders() async {
     try {
       final response = await _apiClient.dio.get('/api/orders/farmer/suborders/');
-      final List<dynamic> data = response.data;
-      return data.map((json) => SubOrder.fromJson(json)).toList();
+      final List<dynamic> data = _extractList(response.data);
+      return data.map((json) => SubOrder.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -100,8 +100,8 @@ class OrderRepository {
   Future<List<Order>> fetchAvailableOrders() async {
     try {
       final response = await _apiClient.dio.get('/api/logistics/orders/available/');
-      final List<dynamic> data = response.data;
-      return data.map((json) => Order.fromJson(json)).toList();
+      final List<dynamic> data = _extractList(response.data);
+      return data.map((json) => Order.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -131,6 +131,19 @@ class OrderRepository {
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  List<dynamic> _extractList(dynamic responseData) {
+    if (responseData is List) {
+      return responseData;
+    }
+    if (responseData is Map<String, dynamic>) {
+      final items = responseData['results'] ?? responseData['data'] ?? responseData['orders'];
+      if (items is List) {
+        return items;
+      }
+    }
+    return [];
   }
 
   String _handleError(dynamic error) {

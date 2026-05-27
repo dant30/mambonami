@@ -4,6 +4,7 @@ from .views import api
 
 urlpatterns = [
     # Order creation & retrieval
+    path('', api.OrderListView.as_view(), name='order-list'),
     path('cart/create-order/', api.CartCreateOrderView.as_view(), name='create-order'),
     path('<uuid:uuid>/', api.OrderDetailView.as_view(), name='order-detail'),
 
