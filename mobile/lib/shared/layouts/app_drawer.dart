@@ -122,10 +122,18 @@ class AppDrawer extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Avatar(
-                    username: username.isNotEmpty ? username : phone,
-                    size: 60,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Avatar(
+                      username: username.isNotEmpty ? username : phone,
+                      size: 80,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
