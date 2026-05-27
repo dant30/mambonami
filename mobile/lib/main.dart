@@ -9,6 +9,7 @@ import 'core/notification_service.dart';
 import 'config/routes.dart';
 import 'config/theme.dart';
 import 'data/repositories/auth_repository.dart';
+import 'data/repositories/cart_repository.dart';
 import 'data/repositories/product_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'data/repositories/trip_repository.dart';
@@ -45,6 +46,7 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   
   // Repositories
   getIt.registerSingleton<AuthRepository>(AuthRepository());
+  getIt.registerSingleton<CartRepository>(CartRepository());
   getIt.registerSingleton<ProductRepository>(ProductRepository());
   getIt.registerSingleton<OrderRepository>(OrderRepository());
   getIt.registerSingleton<TripRepository>(TripRepository());

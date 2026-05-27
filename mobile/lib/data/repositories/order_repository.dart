@@ -138,9 +138,14 @@ class OrderRepository {
       return responseData;
     }
     if (responseData is Map<String, dynamic>) {
-      final items = responseData['results'] ?? responseData['data'] ?? responseData['orders'];
-      if (items is List) {
-        return items;
+      final candidates = ['results', 'data', 'orders', 'items', 'products'];
+      for (final key in candidates) {
+        final value = responseData[key];
+        if (value is List) return value;
+        if (value is Map<String, dynamic>) {
+          final nested = _extractList(value);
+          if (nested.isNotEmpty) return nested;
+        }
       }
     }
     return [];

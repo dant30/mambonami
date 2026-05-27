@@ -17,8 +17,8 @@ class ProductRepository {
 
       final response = await _apiClient.dio.get('/api/products/', queryParameters: queryParams);
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => Product.fromJson(json)).toList();
+        final List<dynamic> data = _extractList(response.data);
+        return data.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
       }
       throw Exception('Failed to fetch products');
     } catch (e) {
@@ -68,6 +68,24 @@ class ProductRepository {
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  List<dynamic> _extractList(dynamic responseData) {
+    if (responseData is List) {
+      return responseData;
+    }
+    if (responseData is Map<String, dynamic>) {
+      final candidates = ['results', 'data', 'products', 'items', 'orders'];
+      for (final key in candidates) {
+        final value = responseData[key];
+        if (value is List) return value;
+        if (value is Map<String, dynamic>) {
+          final nested = _extractList(value);
+          if (nested.isNotEmpty) return nested;
+        }
+      }
+    }
+    return [];
   }
 
   String _handleError(dynamic error) {

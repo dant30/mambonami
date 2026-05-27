@@ -13,6 +13,12 @@ import '../features/transport/pages/provider_dashboard.dart';
 import '../features/notifications/pages/notifications_page.dart';
 import '../features/buyer/pages/order_tracking_page.dart';
 import '../features/buyer/pages/order_history_page.dart';
+import '../features/buyer/pages/product_catalog_page.dart';
+import '../features/buyer/pages/product_detail_page.dart';
+import '../features/buyer/pages/cart_page.dart';
+import '../features/buyer/pages/checkout_page.dart';
+import '../features/buyer/pages/dispute_page.dart';
+import '../data/models/product.dart';
 import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart';
 import '../features/common/support_page.dart';
@@ -85,6 +91,48 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: ['buyer', 'retailer'],
           child: OrderHistoryPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/products',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer'],
+          child: ProductCatalogPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/product/:uuid',
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          final extra = state.extra;
+          Product? product;
+          if (extra is Product) product = extra;
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing product id')));
+          return AuthGuard(
+            allowedRoles: ['buyer', 'retailer'],
+            child: ProductDetailPage(productUuid: uuid, initialProduct: product),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/cart',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer'],
+          child: CartPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/checkout',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer'],
+          child: CheckoutPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/dispute',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer'],
+          child: DisputePage(),
         ),
       ),
       GoRoute(

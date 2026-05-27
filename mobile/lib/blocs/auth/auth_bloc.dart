@@ -11,7 +11,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final SecureStorage secureStorage;
 
-  AuthBloc({required this.authRepository, required this.secureStorage}) : super(AuthInitial()) {
+  AuthBloc({required this.authRepository, required this.secureStorage})
+      : super(AuthInitial()) {
     on<RegisterInitEvent>(_onRegisterInit);
     on<RegisterVerifyEvent>(_onRegisterVerify);
     on<LoginEvent>(_onLogin);
@@ -21,7 +22,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
-  Future<void> _onRegisterInit(RegisterInitEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onRegisterInit(
+      RegisterInitEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authRepository.registerInit(event.phone, event.role);
@@ -31,7 +33,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onRegisterVerify(RegisterVerifyEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onRegisterVerify(
+      RegisterVerifyEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.registerVerify(
@@ -45,7 +48,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         vehicleType: event.vehicleType,
         licensePlate: event.licensePlate,
       );
-      emit(AuthAuthenticated(user['role'], event.phone));
+      emit(AuthAuthenticated(user['role'], event.phone,
+          user['username'] as String? ?? event.username));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -55,7 +59,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await authRepository.login(event.phone, event.password);
-      emit(AuthAuthenticated(user['role'], event.phone));
+      emit(AuthAuthenticated(
+          user['role'], event.phone, user['username'] as String?));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -66,7 +71,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthUnauthenticated());
   }
 
-  Future<void> _onForgotPasswordInit(ForgotPasswordInitEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onForgotPasswordInit(
+      ForgotPasswordInitEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authRepository.forgotPasswordInit(event.phone);
@@ -76,28 +82,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onForgotPasswordVerify(ForgotPasswordVerifyEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onForgotPasswordVerify(
+      ForgotPasswordVerifyEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await authRepository.forgotPasswordVerify(event.phone, event.otp, event.newPassword);
+      await authRepository.forgotPasswordVerify(
+          event.phone, event.otp, event.newPassword);
       emit(ForgotPasswordSuccess());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onCheckAuthStatus(
+      CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
     try {
       // Verify token by fetching profile from backend. If this succeeds,
       // token is valid; otherwise handle as unauthenticated.
       final profile = await authRepository.getProfile();
-      final role = profile['role'] as String? ?? await secureStorage.getUserRole();
-      final phone = profile['phone'] as String? ?? await secureStorage.getUserPhone();
+      final role =
+          profile['role'] as String? ?? await secureStorage.getUserRole();
+      final phone =
+          profile['phone'] as String? ?? await secureStorage.getUserPhone();
+      final username = profile['username'] as String?;
       if (role != null && phone != null) {
         // Ensure secure storage has the latest values
         await secureStorage.saveUserRole(role);
         await secureStorage.saveUserPhone(phone);
-        emit(AuthAuthenticated(role, phone));
+        emit(AuthAuthenticated(role, phone, username));
         return;
       }
     } catch (e) {
