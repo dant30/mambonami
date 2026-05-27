@@ -2,9 +2,9 @@
 import 'package:get_it/get_it.dart';
 
 import '../../core/api_client.dart';
-import '../../shared/widgets/app_drawer.dart';
-import '../../shared/widgets/app_navigation.dart';
-import '../../shared/widgets/custom_app_bar.dart';
+import '../../shared/layouts/app_drawer.dart';
+import '../../shared/layouts/app_navigation.dart';
+import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_snackbar.dart';

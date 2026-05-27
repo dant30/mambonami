@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../blocs/theme/theme_bloc.dart';
-import '../../shared/widgets/app_drawer.dart';
-import '../../shared/widgets/app_navigation.dart';
-import '../../shared/widgets/custom_app_bar.dart';
+import '../../shared/layouts/app_drawer.dart';
+import '../../shared/layouts/app_navigation.dart';
+import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_snackbar.dart';
 

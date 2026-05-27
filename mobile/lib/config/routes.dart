@@ -11,6 +11,8 @@ import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
 import '../features/notifications/pages/notifications_page.dart';
+import '../features/buyer/pages/order_tracking_page.dart';
+import '../features/buyer/pages/order_history_page.dart';
 import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart';
 import '../features/common/support_page.dart';
@@ -79,6 +81,13 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: '/orders',
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['buyer', 'retailer'],
+          child: OrderHistoryPage(),
+        ),
+      ),
+      GoRoute(
         path: '/profile',
         builder: (_, __) => const AuthGuard(
           allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
@@ -98,6 +107,17 @@ class AppRouter {
           allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
           child: SupportPage(),
         ),
+      ),
+      GoRoute(
+        path: '/order/:uuid',
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing order id')));
+          return AuthGuard(
+            allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+            child: OrderTrackingPage(orderUuid: uuid),
+          );
+        },
       ),
     ],
   );

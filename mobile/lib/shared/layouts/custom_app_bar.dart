@@ -1,11 +1,13 @@
 ﻿// mobile/lib/shared/widgets/custom_app_bar.dart
 import 'package:flutter/material.dart';
+import '../widgets/notification_badge.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
   final Widget? leading;
   final List<Widget>? actions;
+  final bool showNotificationAction;
   final Color? backgroundColor;
   final bool centerTitle;
   final double elevation;
@@ -16,6 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showBackButton = true,
     this.leading,
     this.actions,
+    this.showNotificationAction = false,
     this.backgroundColor,
     this.centerTitle = true,
     this.elevation = 0,
@@ -39,7 +42,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   onPressed: () => Navigator.of(context).pop(),
                 )
               : null),
-      actions: actions,
+      actions: [
+        if (actions != null) ...actions!,
+        if (showNotificationAction) const Padding(padding: EdgeInsets.only(right: 8.0), child: SizedBox(width: 44, child: Center(child: NotificationBadge()))),
+      ],
     );
   }
 

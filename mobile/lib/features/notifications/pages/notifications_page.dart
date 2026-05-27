@@ -1,9 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../blocs/notification/notification_bloc.dart';
-import '../../../shared/widgets/custom_app_bar.dart';
-import '../../../shared/widgets/app_drawer.dart';
-import '../../../shared/widgets/app_navigation.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/app_navigation.dart';
 import '../widgets/notification_tile.dart';
 
 class NotificationsPage extends StatelessWidget {

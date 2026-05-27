@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
-import '../../../shared/widgets/app_drawer.dart';
-import '../../../shared/widgets/app_navigation.dart';
-import '../../../shared/widgets/custom_app_bar.dart';
+import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
 
 class BuyerDashboard extends StatelessWidget {
   const BuyerDashboard({super.key});
@@ -9,7 +9,7 @@ class BuyerDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Buyer Dashboard'),
+      appBar: const CustomAppBar(title: 'Buyer Dashboard', showNotificationAction: true),
       drawer: const AppDrawer(),
       body: const Center(
         child: Text('Buyer dashboard is under construction.'),

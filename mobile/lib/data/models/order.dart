@@ -35,7 +35,7 @@ class Order extends Equatable {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       uuid: json['uuid'],
       totalAmount: (json['total_amount'] as num).toDouble(),
       deliveryFee: (json['delivery_fee'] as num).toDouble(),
@@ -82,8 +82,8 @@ class SubOrder extends Equatable {
 
   factory SubOrder.fromJson(Map<String, dynamic> json) {
     return SubOrder(
-      id: json['id'],
-      farmerId: json['farmer_id'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
+      farmerId: json['farmer_id'] is int ? json['farmer_id'] : int.parse(json['farmer_id'].toString()),
       farmerName: json['farmer_name'],
       status: json['status'],
       subtotal: (json['subtotal'] as num).toDouble(),
@@ -118,7 +118,7 @@ class OrderItem extends Equatable {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      productId: json['product_id'],
+      productId: json['product_id'] is int ? json['product_id'] : int.parse(json['product_id'].toString()),
       productName: json['product_name'],
       quantity: (json['quantity'] as num).toDouble(),
       unitPrice: (json['unit_price'] as num).toDouble(),

@@ -23,7 +23,7 @@
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       uuid: json['uuid'],
       channel: json['channel'],
       title: json['title'],
