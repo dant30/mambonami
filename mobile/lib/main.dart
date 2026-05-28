@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/api_client.dart';
 import 'core/secure_storage.dart';
 import 'core/notification_service.dart';
+import 'core/deep_link_auth_listener.dart';
 import 'config/routes.dart';
 import 'config/theme.dart';
 import 'data/repositories/auth_repository.dart';
@@ -90,6 +91,12 @@ class MyApp extends StatelessWidget {
             themeMode: themeState.themeMode,
             routerConfig: _router,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              return DeepLinkAuthListener(
+                router: _router,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),

@@ -25,36 +25,70 @@ def create_payout(order, recipient_user, amount, recipient_type) -> Payout:
 def release_payment(order_id: int):
     """
     Main entry point: called when delivery is confirmed.
-    Releases funds to farmer and transport provider.
+    Releases funds to farmer(s) and transport provider.
+    
+    Payment breakdown:
+    - Farmer gets: product subtotal - platform commission (8%)
+    - Transport provider gets: (agreed_fee + waiting_surcharge) * 80%
+    - Platform keeps: product platform commission + transport provider 20% commission
     """
     from apps.orders.models import Order
     from apps.users.models import FarmerProfile, TransportProviderProfile
 
-    order = Order.objects.select_related('trip').get(id=order_id)
+    order = Order.objects.select_related('trip', 'trip__provider').get(id=order_id)
     if order.status != 'delivered':   # should be set after OTP verification
         logger.warning(f"Order {order_id} not delivered, cannot release payment")
         return
 
     # Check float balance (optional: can be skipped if we trust float)
     balance = get_estimated_float_balance()
-    total_payout = order.total_amount - (order.platform_commission)  # farmer + delivery fee share
-    if balance < total_payout:
-        logger.critical(f"Low float balance for order {order_id}: {balance} < {total_payout}")
-        raise FloatInsufficientError("PayBill float insufficient for payout")
-
-    # 1. Payout to farmer
-    farmer_profile = order.farmer_profile
-    farmer_amount = order.subtotal - order.platform_commission  # subtotal - 8% (example)
-    if farmer_amount > 0:
-        farmer_payout = create_payout(order, farmer_profile.user, farmer_amount, 'farmer')
-        _execute_payout(farmer_payout)
-
-    # 2. Payout to transport provider
+    
+    # Calculate total payout needed
+    farmer_payouts_total = Decimal('0')
+    provider_payout_amount = Decimal('0')
+    
+    # Calculate farmer payouts (from each sub_order)
+    for sub_order in order.sub_orders.all():
+        farmer_amount = sub_order.subtotal * (Decimal('1') - Decimal('0.08'))  # 8% commission
+        farmer_payouts_total += farmer_amount
+    
+    # Calculate transport provider payout
     trip = order.trip
     if trip and trip.provider:
-        provider_amount = order.delivery_fee * Decimal('0.8')  # provider gets 80%
-        provider_payout = create_payout(order, trip.provider.user, provider_amount, 'transport_provider')
+        # Total delivery fee = agreed fee + waiting surcharge
+        total_trip_fee = trip.agreed_fee + trip.waiting_surcharge
+        provider_payout_amount = total_trip_fee * Decimal('0.80')  # Provider gets 80%
+    
+    total_payout = farmer_payouts_total + provider_payout_amount
+    
+    if balance < total_payout:
+        logger.critical(
+            f"Low float balance for order {order_id}: {balance} < {total_payout}"
+        )
+        raise FloatInsufficientError("PayBill float insufficient for payout")
+
+    # 1. Payout to each farmer
+    for sub_order in order.sub_orders.all():
+        farmer_profile = sub_order.farmer
+        farmer_amount = sub_order.subtotal * (Decimal('1') - Decimal('0.08'))
+        if farmer_amount > 0:
+            farmer_payout = create_payout(order, farmer_profile.user, farmer_amount, 'farmer')
+            _execute_payout(farmer_payout)
+            logger.info(
+                f"Scheduled payout to farmer {farmer_profile.user.phone}: "
+                f"KES {farmer_amount} (sub_order: {sub_order.id})"
+            )
+
+    # 2. Payout to transport provider
+    if trip and trip.provider and provider_payout_amount > 0:
+        provider_payout = create_payout(order, trip.provider.user, provider_payout_amount, 'transport_provider')
         _execute_payout(provider_payout)
+        logger.info(
+            f"Scheduled payout to provider {trip.provider.user.phone}: "
+            f"KES {provider_payout_amount} "
+            f"(trip fee: KES {trip.agreed_fee + trip.waiting_surcharge})"
+        )
+
 
 def _execute_payout(payout: Payout):
     """Send B2C request and update payout record."""

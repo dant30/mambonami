@@ -91,6 +91,20 @@ class TransportProviderProfile(BaseModel):
     )
     rating = models.FloatField(default=5.0)
     total_deliveries = models.PositiveIntegerField(default=0)
+    
+    # Dynamic pricing parameters (provider-specific)
+    base_rate_per_km = models.DecimalField(
+        max_digits=5, decimal_places=2, default=25.00,
+        help_text="Provider's base rate in KES per km"
+    )
+    waiting_grace_minutes = models.PositiveIntegerField(
+        default=15,
+        help_text="Minutes allowed before waiting surcharge starts"
+    )
+    waiting_rate_per_min = models.DecimalField(
+        max_digits=5, decimal_places=2, default=2.00,
+        help_text="Extra KES per minute after grace period"
+    )
 
     class Meta:
         db_table = 'transport_provider_profiles'

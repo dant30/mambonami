@@ -30,8 +30,19 @@ class Trip(BaseModel):
     delivery_photo = models.ImageField(upload_to='trips/delivery/', blank=True, null=True)
 
     # Timestamps
+    arrived_at_farm = models.DateTimeField(null=True, blank=True, help_text="When provider arrived at pickup")
     picked_up_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+    
+    # Fee tracking
+    agreed_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Total delivery fee (before commission) agreed at assignment"
+    )
+    waiting_surcharge = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Additional waiting time charge (added after pickup)"
+    )
 
     # OTP (generated per delivery)
     otp_code = models.CharField(max_length=6, blank=True)

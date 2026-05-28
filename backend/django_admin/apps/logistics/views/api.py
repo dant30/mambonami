@@ -3,10 +3,14 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from decimal import Decimal
 from ..models import Trip
 from ..serializers import TripSerializer, TripAssignSerializer, TripPickupSerializer, TripDeliverSerializer, OTPVerifySerializer
-from ..services.matching import find_nearest_providers, assign_provider_to_order
+from ..services.matching import assign_provider_to_order
+from ..services.fee_calculator import calculate_waiting_surcharge
 from ..services.otp_service import generate_otp, verify_otp
 from apps.orders.models import Order
 from apps.users.permissions import IsTransportProvider, IsBuyer, IsAdmin
@@ -30,6 +34,79 @@ class AssignToMeView(generics.GenericAPIView):
         provider = request.user.transport_profile
         trip = assign_provider_to_order(order, provider)
         return Response(TripSerializer(trip).data, status=status.HTTP_201_CREATED)
+
+
+class TripArriveAtFarmView(generics.GenericAPIView):
+    """Provider marks arrival at farm to start waiting time tracking."""
+    permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
+    
+    def post(self, request, trip_uuid):
+        trip = get_object_or_404(
+            Trip, 
+            uuid=trip_uuid, 
+            provider=request.user.transport_profile,
+            status='assigned'
+        )
+        trip.arrived_at_farm = timezone.now()
+        trip.save(update_fields=['arrived_at_farm'])
+        
+        return Response(
+            {
+                'message': 'Arrived at farm',
+                'arrived_at': trip.arrived_at_farm,
+                'waiting_grace_minutes': trip.provider.waiting_grace_minutes
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class TripPickupView(generics.GenericAPIView):
+    """Provider marks pickup, calculates waiting surcharge if applicable."""
+    permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = TripPickupSerializer
+    
+    def post(self, request, trip_uuid):
+        trip = get_object_or_404(
+            Trip,
+            uuid=trip_uuid,
+            provider=request.user.transport_profile,
+            status='assigned'
+        )
+        
+        serializer = TripPickupSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        # Calculate waiting time if arrived_at_farm is set
+        waiting_surcharge = Decimal('0.00')
+        if trip.arrived_at_farm:
+            waiting_minutes = int(
+                (timezone.now() - trip.arrived_at_farm).total_seconds() / 60
+            )
+            waiting_surcharge = calculate_waiting_surcharge(
+                trip.provider,
+                waiting_minutes
+            )
+        
+        # Update trip
+        trip.pickup_lat = serializer.validated_data.get('pickup_lat', trip.pickup_lat)
+        trip.pickup_lng = serializer.validated_data.get('pickup_lng', trip.pickup_lng)
+        trip.pickup_photo = serializer.validated_data.get('pickup_photo', trip.pickup_photo)
+        trip.waiting_surcharge = waiting_surcharge
+        trip.status = 'picked_up'
+        trip.picked_up_at = timezone.now()
+        trip.save()
+        
+        return Response(
+            {
+                'message': 'Pickup recorded',
+                'waiting_surcharge': str(waiting_surcharge),
+                'total_fee': str(trip.agreed_fee + waiting_surcharge),
+                'status': 'picked_up'
+            },
+            status=status.HTTP_200_OK
+        )
+
 
 class ProviderTripListView(generics.ListAPIView):
     """List trips assigned to the authenticated provider."""

@@ -45,11 +45,48 @@ class FarmerProfileAdmin(admin.ModelAdmin):
 
 @admin.register(TransportProviderProfile)
 class TransportProviderProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'vehicle_type', 'deposit_paid', 'is_approved', 'rating')
+    list_display = (
+        'user', 'vehicle_type', 'capacity_kg', 'base_rate_per_km',
+        'deposit_paid', 'is_approved', 'rating'
+    )
     list_filter = ('vehicle_type', 'deposit_paid', 'is_approved')
     search_fields = ('user__phone', 'license_plate')
-    actions = ['approve_provider']
+    fieldsets = (
+        ('Provider Info', {
+            'fields': ('user', 'vehicle_type', 'license_plate', 'driver_license')
+        }),
+        ('Capacity', {
+            'fields': ('capacity_kg',),
+        }),
+        ('Dynamic Pricing', {
+            'fields': (
+                'base_rate_per_km', 'waiting_grace_minutes', 'waiting_rate_per_min'
+            ),
+            'description': 'Configure provider-specific delivery fee parameters'
+        }),
+        ('Status', {
+            'fields': ('deposit_paid', 'is_approved')
+        }),
+        ('Performance', {
+            'fields': ('rating', 'total_deliveries'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ('rating', 'total_deliveries')
+    actions = ['approve_provider', 'reset_rates_to_defaults']
 
     def approve_provider(self, request, queryset):
         queryset.update(is_approved=True)
     approve_provider.short_description = 'Approve transport providers'
+
+    def reset_rates_to_defaults(self, request, queryset):
+        """Reset provider rates to vehicle type defaults."""
+        from apps.logistics.services.fee_calculator import get_default_rates_for_vehicle_type
+        
+        for provider in queryset:
+            defaults = get_default_rates_for_vehicle_type(provider.vehicle_type)
+            provider.base_rate_per_km = defaults['base_rate_per_km']
+            provider.waiting_grace_minutes = defaults['waiting_grace_minutes']
+            provider.waiting_rate_per_min = defaults['waiting_rate_per_min']
+            provider.save()
+    reset_rates_to_defaults.short_description = 'Reset rates to vehicle type defaults'

@@ -82,7 +82,7 @@ class OrderRepository {
 
   Future<void> confirmSubOrder(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/confirm/');
+      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/confirm/', data: {'action': 'confirm'});
     } catch (e) {
       throw _handleError(e);
     }
@@ -91,6 +91,15 @@ class OrderRepository {
   Future<void> markSubOrderReady(int subOrderId) async {
     try {
       await _apiClient.dio.post('/api/orders/suborders/$subOrderId/ready/');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<SubOrder> fetchFarmerSubOrder(int subOrderId) async {
+    try {
+      final response = await _apiClient.dio.get('/api/orders/farmer/suborders/$subOrderId/');
+      return SubOrder.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw _handleError(e);
     }
@@ -154,8 +163,13 @@ class OrderRepository {
   String _handleError(dynamic error) {
     if (error is DioException) {
       final data = error.response?.data;
-      if (data != null && data['detail'] != null) return data['detail'];
-      if (data != null && data['error'] != null) return data['error'];
+      if (data != null) {
+        if (data is Map<String, dynamic>) {
+          if (data['detail'] != null) return data['detail'];
+          if (data['error'] != null) return data['error'];
+        }
+        if (data is String) return data;
+      }
       return 'Network error: ${error.message}';
     }
     return error.toString();

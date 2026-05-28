@@ -7,15 +7,8 @@ from django.core.exceptions import ValidationError
 from apps.orders.models import Order, SubOrder, OrderItem
 from apps.products.models import Product
 from apps.paybill.services.account_number import generate_account_number
-
-def calculate_delivery_fee(distance_km: float, total_weight_kg: float, vehicle_type: str = None) -> Decimal:
-    """MVP: base fee 50 KES/km, plus weight surcharge."""
-    base = Decimal(str(distance_km)) * Decimal('50')
-    if total_weight_kg > 50:
-        base += Decimal('200')      # bulky surcharge
-    if vehicle_type == 'lorry':
-        base += Decimal('300')      # extra for large vehicles
-    return base
+from apps.logistics.services.geolocation import haversine
+from apps.logistics.services.fee_calculator import calculate_delivery_fee as calculate_delivery_fee_estimate
 
 @transaction.atomic
 def create_order_from_cart(buyer, cart_data: dict) -> Order:
@@ -23,6 +16,8 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     cart_data structure:
     {
         'delivery_address': str,
+        'delivery_lat': Decimal,
+        'delivery_lng': Decimal,
         'scheduled_date': date,
         'scheduled_time_window': str,
         'items': [
@@ -34,6 +29,8 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     """
     grouped = cart_data['grouped_products']
     delivery_address = cart_data['delivery_address']
+    delivery_lat = cart_data['delivery_lat']
+    delivery_lng = cart_data['delivery_lng']
     scheduled_date = cart_data['scheduled_date']
     scheduled_time_window = cart_data['scheduled_time_window']
 
@@ -44,6 +41,8 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         delivery_fee=0,
         platform_commission=0,
         delivery_address=delivery_address,
+        delivery_lat=delivery_lat,
+        delivery_lng=delivery_lng,
         scheduled_date=scheduled_date,
         scheduled_time_window=scheduled_time_window,
         status='placed'
@@ -56,6 +55,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     total_order_amount = Decimal('0')
     total_delivery_fee = Decimal('0')
     total_platform_commission = Decimal('0')
+    total_weight_kg = Decimal('0')
 
     # 3. Create sub‑orders and items
     for farmer_id, products_with_qty in grouped.items():
@@ -66,6 +66,11 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
             quantity = item['quantity']
             line_total = product.price_per_unit * quantity
             sub_total += line_total
+            
+            # Calculate weight if product has weight_per_unit
+            if hasattr(product, 'weight_per_unit') and product.weight_per_unit:
+                total_weight_kg += product.weight_per_unit * quantity
+            
             items_list.append(OrderItem(
                 product=product,
                 quantity=quantity,
@@ -93,10 +98,23 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         total_order_amount += sub_total
         total_platform_commission += commission
 
-    # 4. Calculate delivery fee (simplified – real distance from farm cluster to buyer)
-    # For MVP, use a default distance of 10 km
-    total_weight = Decimal('0')   # you would sum product weights if available
-    delivery_fee = calculate_delivery_fee(distance_km=10, total_weight_kg=float(total_weight))
+    # 4. Calculate delivery fee estimate from pickup to delivery
+    delivery_distance = Decimal('10')
+    try:
+        from apps.logistics.services.matching import get_pickup_location
+        pickup_location = get_pickup_location(order)
+        if pickup_location and delivery_lat is not None and delivery_lng is not None:
+            delivery_distance = Decimal(str(haversine(
+                pickup_location[0], pickup_location[1],
+                float(delivery_lat), float(delivery_lng)
+            )))
+    except Exception:
+        delivery_distance = Decimal('10')
+
+    delivery_fee = calculate_delivery_fee_estimate(
+        distance_km=float(delivery_distance),
+        total_weight_kg=float(total_weight_kg)
+    )
 
     total_order_amount += delivery_fee
     total_delivery_fee = delivery_fee
@@ -105,6 +123,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     order.total_amount = total_order_amount
     order.delivery_fee = total_delivery_fee
     order.platform_commission = total_platform_commission
-    order.save(update_fields=['total_amount', 'delivery_fee', 'platform_commission'])
+    order.total_weight_kg = total_weight_kg
+    order.save(update_fields=['total_amount', 'delivery_fee', 'platform_commission', 'total_weight_kg'])
 
     return order

@@ -1,6 +1,7 @@
 ﻿# django_admin/apps/products/serializers/product_serializer.py
 # backend/django_admin/apps/products/serializers/product_serializer.py
 from rest_framework import serializers
+from decimal import Decimal
 from django.utils import timezone
 from datetime import date
 from ..models import Product, ProductCategory
@@ -23,6 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'category', 'category_detail', 'name', 'variety', 'price_per_unit',
             'available_quantity', 'unit', 'harvest_date', 'shelf_life_days',
             'remaining_shelf_life', 'is_active', 'image', 'description',
+            'pickup_lat', 'pickup_lng',
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'uuid', 'created_at', 'updated_at')
@@ -45,10 +47,21 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'category', 'name', 'variety', 'price_per_unit', 'available_quantity',
-            'unit', 'harvest_date', 'shelf_life_days', 'image', 'description', 'is_active'
+            'unit', 'harvest_date', 'shelf_life_days', 'image', 'description', 'is_active',
+            'pickup_lat', 'pickup_lng'
         )
 
     def validate_harvest_date(self, value):
         if value > date.today():
             raise serializers.ValidationError("Harvest date cannot be in the future.")
+        return value
+
+    def validate_pickup_lat(self, value):
+        if value < Decimal('-12.0') or value > Decimal('5.0'):
+            raise serializers.ValidationError("Pickup latitude is out of expected bounds.")
+        return value
+
+    def validate_pickup_lng(self, value):
+        if value < Decimal('34.0') or value > Decimal('42.0'):
+            raise serializers.ValidationError("Pickup longitude is out of expected bounds.")
         return value

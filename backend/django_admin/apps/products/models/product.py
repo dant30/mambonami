@@ -25,6 +25,18 @@ class Product(BaseModel):
     # Optional: image, description, organic flag, etc.
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     description = models.TextField(blank=True)
+    
+    # Pickup location (GPS)
+    pickup_lat = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True, blank=True,
+        help_text="Latitude of harvest/pickup location"
+    )
+    pickup_lng = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True, blank=True,
+        help_text="Longitude of harvest/pickup location"
+    )
 
     class Meta:
         db_table = 'products'

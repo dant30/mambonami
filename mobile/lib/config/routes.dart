@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/auth/auth_guard.dart';
+import '../core/deep_link_handler.dart';
 import 'route_paths.dart';
 import '../features/auth/pages/login_page.dart';
 import '../features/auth/pages/register_init_page.dart';
@@ -35,23 +36,7 @@ import '../blocs/auth/auth_bloc.dart';
 class AppRouter {
   late final GoRouter router = GoRouter(
     initialLocation: RoutePaths.login,
-    redirect: (context, state) {
-      final authState = context.read<AuthBloc>().state;
-      if (authState is AuthAuthenticated) {
-        final role = authState.role;
-        if (state.uri.path.startsWith('/$role')) return null;
-        if (state.uri.path == RoutePaths.login || state.uri.path == RoutePaths.register || state.uri.path.startsWith('${RoutePaths.register}/')) {
-          return '/$role';
-        }
-        return null;
-      } else if (authState is AuthUnauthenticated) {
-        if (state.uri.path == RoutePaths.login || state.uri.path == RoutePaths.register || state.uri.path.startsWith('${RoutePaths.register}/')) {
-          return null;
-        }
-        return RoutePaths.login;
-      }
-      return null;
-    },
+    redirect: (context, state) => _handleDeepLinksAndAuth(context, state),
     routes: [
       GoRoute(path: RoutePaths.login, builder: (_, __) => const LoginPage()),
       GoRoute(path: RoutePaths.register, builder: (_, __) => const RegisterInitPage()),
@@ -129,11 +114,16 @@ class AppRouter {
           final extra = state.extra;
           SubOrder? subOrder;
           if (extra is SubOrder) subOrder = extra;
-          if (id == null) return const Scaffold(body: Center(child: Text('Missing order request id')));
-          if (subOrder == null) return const Scaffold(body: Center(child: Text('Order request details are unavailable.')));
+          if (id == null) {
+            return const Scaffold(body: Center(child: Text('Missing order request id')));
+          }
+          final subOrderId = int.tryParse(id);
+          if (subOrderId == null) {
+            return const Scaffold(body: Center(child: Text('Invalid order request id')));
+          }
           return AuthGuard(
             allowedRoles: ['farmer'],
-            child: OrderDetailPage(subOrder: subOrder),
+            child: OrderDetailPage(subOrderId: subOrderId, initialSubOrder: subOrder),
           );
         },
       ),
@@ -234,4 +224,62 @@ class AppRouter {
       ),
     ],
   );
+
+  /// Handle deep links and authentication redirects
+  /// Deep links are parsed from incoming URIs (from notifications, app links, etc.)
+  /// and routed appropriately based on user authentication state and deep link type
+  String? _handleDeepLinksAndAuth(BuildContext context, GoRouterState state) {
+    final authState = context.read<AuthBloc>().state;
+    
+    // First, try to parse deep link from the incoming URI
+    final deepLinkInfo = DeepLinkHandler.parseUri(state.uri);
+    if (deepLinkInfo.type != DeepLinkType.unknown) {
+      // User must be authenticated to access deep-linked content
+      if (authState is AuthAuthenticated) {
+        final routePath = deepLinkInfo.toRoutePath();
+        if (routePath != null) {
+          debugPrint('[AppRouter] Deep link redirect to: $routePath');
+          return routePath;
+        }
+      } else if (authState is AuthUnauthenticated) {
+        // Not authenticated; store deep link and redirect to login
+        _storedDeepLink = deepLinkInfo;
+        debugPrint('[AppRouter] Stored deep link for post-login redirect');
+        return RoutePaths.login;
+      }
+    }
+
+    // Standard authentication redirects
+    if (authState is AuthAuthenticated) {
+      final role = authState.role;
+      if (state.uri.path.startsWith('/$role')) return null;
+      if (state.uri.path == RoutePaths.login ||
+          state.uri.path == RoutePaths.register ||
+          state.uri.path.startsWith('${RoutePaths.register}/')) {
+        return '/$role';
+      }
+      return null;
+    } else if (authState is AuthUnauthenticated) {
+      if (state.uri.path == RoutePaths.login ||
+          state.uri.path == RoutePaths.register ||
+          state.uri.path.startsWith('${RoutePaths.register}/')) {
+        return null;
+      }
+      return RoutePaths.login;
+    }
+    return null;
+  }
+
+  /// Get stored deep link (used after successful authentication)
+  DeepLinkInfo? getStoredDeepLink() {
+    return _storedDeepLink;
+  }
+
+  /// Clear stored deep link after navigation
+  void clearStoredDeepLink() {
+    _storedDeepLink = null;
+  }
+
+  /// Static variable to store deep link for post-login redirect
+  static DeepLinkInfo? _storedDeepLink;
 }

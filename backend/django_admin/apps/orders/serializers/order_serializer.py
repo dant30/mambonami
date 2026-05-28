@@ -35,17 +35,30 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'uuid', 'buyer', 'buyer_phone', 'total_amount', 'delivery_fee',
             'platform_commission', 'status', 'account_number', 'delivery_address',
+            'delivery_lat', 'delivery_lng', 'total_weight_kg',
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
             'sub_orders', 'created_at', 'paid_at', 'delivered_at'
         )
         read_only_fields = ('id', 'uuid', 'account_number', 'status', 'created_at', 'paid_at', 'delivered_at')
 
 class OrderCreateSerializer(serializers.Serializer):
-    """Create order from cart items."""
+    """Create order from cart items with delivery location."""
     delivery_address = serializers.CharField()
+    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Latitude of delivery location")
+    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Longitude of delivery location")
     scheduled_date = serializers.DateField()
     scheduled_time_window = serializers.CharField(max_length=50)
     items = CartItemSerializer(many=True)
+
+    def validate_delivery_lat(self, value):
+        if value < Decimal('-12.0') or value > Decimal('5.0'):
+            raise serializers.ValidationError("Delivery latitude is out of expected bounds.")
+        return value
+
+    def validate_delivery_lng(self, value):
+        if value < Decimal('34.0') or value > Decimal('42.0'):
+            raise serializers.ValidationError("Delivery longitude is out of expected bounds.")
+        return value
 
     def validate(self, attrs):
         # Ensure all products exist and are active
@@ -53,9 +66,16 @@ class OrderCreateSerializer(serializers.Serializer):
         products = Product.objects.filter(uuid__in=product_uuids, is_active=True)
         if len(products) != len(product_uuids):
             raise serializers.ValidationError("One or more products are invalid or inactive.")
-        # Group by farmer
+        # Build lookup of products by UUID for merging quantities
+        product_lookup = {p.uuid: p for p in products}
+        # Group by farmer, preserving quantity per item
         farmer_map = {}
-        for product in products:
-            farmer_map[product.farmer_id] = farmer_map.get(product.farmer_id, []) + [product]
+        for item in attrs['items']:
+            prod = product_lookup.get(item['product_uuid'])
+            if not prod:
+                raise serializers.ValidationError("One or more products are invalid or inactive.")
+            farmer_products = farmer_map.get(prod.farmer_id, [])
+            farmer_products.append({'product': prod, 'quantity': item['quantity']})
+            farmer_map[prod.farmer_id] = farmer_products
         attrs['grouped_products'] = farmer_map
         return attrs

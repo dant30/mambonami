@@ -65,6 +65,25 @@ class OrderListView(generics.ListAPIView):
             return Order.objects.filter(assigned_provider=user.transport_profile)
         return Order.objects.none()
 
+class FarmerSubOrdersView(generics.ListAPIView):
+    """List suborders for the authenticated farmer."""
+    serializer_class = SubOrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role != 'farmer':
+            return SubOrder.objects.none()
+        return SubOrder.objects.filter(farmer=user.farmer_profile)
+
+class FarmerSubOrderDetailView(generics.RetrieveAPIView):
+    """Retrieve a single suborder for the authenticated farmer."""
+    queryset = SubOrder.objects.all()
+    serializer_class = SubOrderSerializer
+    permission_classes = [permissions.IsAuthenticated, IsFarmerForSubOrder]
+    lookup_field = 'id'
+    lookup_url_kwarg = 'suborder_id'
+
 class FarmerConfirmSubOrderView(APIView):
     """Farmer confirms or rejects a sub‑order."""
     permission_classes = [permissions.IsAuthenticated, IsFarmerForSubOrder]

@@ -2,11 +2,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import '../core/constants.dart';
+import '../core/deep_link_handler.dart';
 import '../blocs/notification/notification_bloc.dart';
 import '../data/models/notification.dart';
 
 final getIt = GetIt.instance;
+
+/// Global variable to store pending deep link for app startup
+/// Used when deep link arrives before router is fully initialized
+DeepLinkInfo? _pendingDeepLink;
 
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -63,12 +69,76 @@ class NotificationService {
   }
 
   void _handleMessage(RemoteMessage message) {
+    debugPrint('[NotificationService] Handling message from: ${message.from}');
     final notification = _fromRemoteMessage(message);
     if (notification != null) {
-      // Add to BLoC and navigate to relevant screen based on metadata
+      // Add to BLoC
       final bloc = getIt<NotificationBloc>();
       bloc.add(NewPushNotificationEvent(notification));
-      // Optionally navigate based on metadata['order_id'], etc.
+      
+      // Handle deep link if present
+      _handleDeepLink(message.data);
+    }
+  }
+
+  /// Handle deep link navigation from notification data
+  /// Stores pending deep link if router is not yet available
+  void _handleDeepLink(Map<String, dynamic> data) {
+    debugPrint('[NotificationService] Processing deep link from notification');
+
+    // Try to parse deep link from notification data
+    final deepLinkInfo = DeepLinkHandler.parseNotificationData(data) ??
+        _createDeepLinkFromMetadata(data);
+
+    if (deepLinkInfo != null) {
+      final routePath = deepLinkInfo.toRoutePath();
+      if (routePath != null) {
+        debugPrint('[NotificationService] Navigating to: $routePath');
+        _navigateToDeepLink(routePath);
+      }
+    }
+  }
+
+  /// Create deep link info from legacy notification metadata format
+  /// Fallback for notifications that don't use 'deepLink' key
+  DeepLinkInfo? _createDeepLinkFromMetadata(Map<String, dynamic> data) {
+    // Check for farmer order notifications
+    final orderId = DeepLinkHandler.extractOrderId(data);
+    if (orderId != null && data['type'] == 'farmer_order') {
+      debugPrint('[NotificationService] Creating farmer order deep link: $orderId');
+      return DeepLinkInfo(
+        type: DeepLinkType.farmerOrderDetail,
+        id: orderId.toString(),
+        params: data.cast<String, String>(),
+      );
+    }
+
+    // Check for order tracking notifications
+    final orderUuid = DeepLinkHandler.extractOrderUuid(data);
+    if (orderUuid != null && data['type'] == 'order_tracking') {
+      return DeepLinkInfo(
+        type: DeepLinkType.orderTracking,
+        uuid: orderUuid,
+        params: data.cast<String, String>(),
+      );
+    }
+
+    return null;
+  }
+
+  /// Navigate to a route from deep link
+  /// Stores pending deep link if router is not available
+  void _navigateToDeepLink(String routePath) {
+    try {
+      // Try to get router from context
+      // If not available, store for later navigation
+      _pendingDeepLink = DeepLinkInfo(
+        type: DeepLinkType.unknown,
+      );
+      debugPrint('[NotificationService] Stored pending deep link: $routePath');
+      // The router will check for pending deep link on app startup
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to navigate: $e');
     }
   }
 

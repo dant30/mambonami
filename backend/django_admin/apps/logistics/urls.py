@@ -8,6 +8,8 @@ urlpatterns = [
     path('orders/<int:order_id>/assign/', api.AssignToMeView.as_view(), name='assign-to-me'),
     path('my-trips/', api.ProviderTripListView.as_view(), name='my-trips'),
     path('my-trips/<uuid:uuid>/', api.ProviderTripDetailView.as_view(), name='trip-detail'),
+    path('my-trips/<uuid:trip_uuid>/arrive/', api.TripArriveAtFarmView.as_view(), name='trip-arrive'),
+    path('my-trips/<uuid:trip_uuid>/pickup/', api.TripPickupView.as_view(), name='trip-pickup'),
     path('my-trips/<uuid:trip_uuid>/generate-otp/', api.GenerateOTPView.as_view(), name='generate-otp'),
     
     # Buyer endpoint

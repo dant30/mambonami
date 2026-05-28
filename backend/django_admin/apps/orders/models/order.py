@@ -29,6 +29,22 @@ class Order(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cart')
     account_number = models.CharField(max_length=50, unique=True, blank=True, db_index=True)
     delivery_address = models.TextField()
+    delivery_lat = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude of delivery destination"
+    )
+    delivery_lng = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude of delivery destination"
+    )
+    total_weight_kg = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Sum of product weights in kg"
+    )
     scheduled_date = models.DateField()
     scheduled_time_window = models.CharField(max_length=50, help_text="e.g., 10:00-12:00")
     # Transport provider (assigned after all farmers ready)

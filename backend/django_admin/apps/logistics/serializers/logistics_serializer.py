@@ -14,10 +14,11 @@ class TripSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'uuid', 'order', 'order_detail', 'provider', 'provider_detail',
             'status', 'pickup_lat', 'pickup_lng', 'delivery_lat', 'delivery_lng',
+            'agreed_fee', 'waiting_surcharge',
             'pickup_photo', 'delivery_photo', 'picked_up_at', 'delivered_at',
             'otp_code', 'otp_expires_at', 'otp_attempts', 'created_at', 'updated_at'
         )
-        read_only_fields = ('id', 'uuid', 'created_at', 'updated_at', 'otp_code', 'otp_expires_at')
+        read_only_fields = ('id', 'uuid', 'created_at', 'updated_at', 'otp_code', 'otp_expires_at', 'agreed_fee', 'waiting_surcharge')
 
     def get_provider_detail(self, obj):
         if obj.provider:

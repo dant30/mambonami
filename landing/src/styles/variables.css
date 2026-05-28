@@ -1,0 +1,7 @@
+﻿:root {
+  --color-primary: #2E7D32;
+  --color-primary-dark: #1B5E20;
+  --color-secondary: #FFA000;
+  --color-secondary-dark: #FF8F00;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}

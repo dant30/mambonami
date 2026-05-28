@@ -7,6 +7,8 @@ urlpatterns = [
     path('', api.OrderListView.as_view(), name='order-list'),
     path('cart/create-order/', api.CartCreateOrderView.as_view(), name='create-order'),
     path('<uuid:uuid>/', api.OrderDetailView.as_view(), name='order-detail'),
+    path('farmer/suborders/', api.FarmerSubOrdersView.as_view(), name='farmer-suborders'),
+    path('farmer/suborders/<int:suborder_id>/', api.FarmerSubOrderDetailView.as_view(), name='farmer-suborder-detail'),
 
     # Farmer actions
     path('suborder/<int:suborder_id>/confirm/', api.FarmerConfirmSubOrderView.as_view(), name='farmer-confirm'),
