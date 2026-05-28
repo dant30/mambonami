@@ -1,4 +1,6 @@
 ﻿
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
@@ -38,9 +40,23 @@ class ProductRepository {
     }
   }
 
+  Future<List<ProductCategory>> getCategories() async {
+    try {
+      final response = await _apiClient.dio.get('/api/products/categories/');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = _extractList(response.data);
+        return data.map((json) => ProductCategory.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      throw Exception('Failed to fetch categories');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<Product> createProduct(Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.dio.post('/api/products/farmer/products/', data: data);
+      final payload = _buildFormData(data);
+      final response = await _apiClient.dio.post('/api/products/farmer/products/', data: payload);
       if (response.statusCode == 201) {
         return Product.fromJson(response.data);
       }
@@ -52,7 +68,8 @@ class ProductRepository {
 
   Future<Product> updateProduct(String uuid, Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.dio.patch('/api/products/farmer/products/$uuid/', data: data);
+      final payload = _buildFormData(data);
+      final response = await _apiClient.dio.patch('/api/products/farmer/products/$uuid/', data: payload);
       if (response.statusCode == 200) {
         return Product.fromJson(response.data);
       }
@@ -86,6 +103,29 @@ class ProductRepository {
       }
     }
     return [];
+  }
+
+  FormData _buildFormData(Map<String, dynamic> data) {
+    final formData = FormData();
+
+    for (final entry in data.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (value == null) continue;
+      if (value is File) {
+        formData.files.add(MapEntry(
+          key,
+          MultipartFile.fromFileSync(
+            value.path,
+            filename: value.path.split(Platform.pathSeparator).last,
+          ),
+        ));
+      } else {
+        formData.fields.add(MapEntry(key, value.toString()));
+      }
+    }
+
+    return formData;
   }
 
   String _handleError(dynamic error) {

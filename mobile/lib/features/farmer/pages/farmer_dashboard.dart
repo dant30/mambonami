@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
@@ -45,28 +46,28 @@ class FarmerDashboard extends StatelessWidget {
                     label: 'My Products',
                     description: 'View and manage your catalog',
                     color: Theme.of(context).colorScheme.primary,
-                    onTap: () => context.go('/farmer/products'),
+                    onTap: () => context.go(RoutePaths.farmerProducts),
                   ),
                   _DashboardCard(
                     icon: Icons.add_circle_outline,
                     label: 'Add Product',
                     description: 'Create a new listing',
                     color: Theme.of(context).colorScheme.secondary,
-                    onTap: () => context.go('/farmer/products/create'),
+                    onTap: () => context.go(RoutePaths.farmerProductCreate),
                   ),
                   _DashboardCard(
                     icon: Icons.shopping_cart_outlined,
                     label: 'Order Requests',
                     description: 'Confirm and fulfill orders',
                     color: Colors.orange.shade700,
-                    onTap: () => context.go('/farmer/order-requests'),
+                    onTap: () => context.go(RoutePaths.farmerOrderRequests),
                   ),
                   _DashboardCard(
                     icon: Icons.show_chart_outlined,
                     label: 'Earnings',
                     description: 'Track your revenue',
                     color: Colors.green.shade700,
-                    onTap: () => context.go('/farmer/earnings'),
+                    onTap: () => context.go(RoutePaths.farmerEarnings),
                   ),
                 ],
               ),

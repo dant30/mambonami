@@ -1,17 +1,360 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/product/product_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
+import '../../../data/repositories/product_repository.dart';
+import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/utils/image_picker_helper.dart';
 
-class ProductEditPage extends StatelessWidget {
-	final String productUuid;
-	final Product? initialProduct;
+class ProductEditPage extends StatefulWidget {
+  final String productUuid;
+  final Product? initialProduct;
 
-	const ProductEditPage({super.key, required this.productUuid, this.initialProduct});
+  const ProductEditPage({super.key, required this.productUuid, this.initialProduct});
 
-	@override
-	Widget build(BuildContext context) {
-		return Scaffold(
-			appBar: AppBar(title: const Text('Edit Product')),
-			body: Center(child: Text('Edit product $productUuid (placeholder)')),
-		);
-	}
+  @override
+  State<ProductEditPage> createState() => _ProductEditPageState();
+}
+
+class _ProductEditPageState extends State<ProductEditPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _categoryController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _varietyController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _quantityController = TextEditingController();
+  final _unitController = TextEditingController();
+  final _shelfLifeController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  DateTime _harvestDate = DateTime.now();
+  bool _isActive = true;
+  File? _selectedImage;
+  bool _isLoadingCategories = true;
+  List<ProductCategory> _categories = [];
+  ProductCategory? _selectedCategory;
+
+  Product? _product;
+  bool _hasInitializedForm = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+    if (widget.initialProduct != null) {
+      _product = widget.initialProduct;
+      _initializeForm(widget.initialProduct!);
+      _hasInitializedForm = true;
+    } else {
+      context.read<ProductBloc>().add(FetchProductDetailEvent(widget.productUuid));
+    }
+  }
+
+  @override
+  void dispose() {
+    _categoryController.dispose();
+    _nameController.dispose();
+    _varietyController.dispose();
+    _priceController.dispose();
+    _quantityController.dispose();
+    _unitController.dispose();
+    _shelfLifeController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final repository = GetIt.instance<ProductRepository>();
+      final categories = await repository.getCategories();
+      setState(() {
+        _categories = categories;
+        _isLoadingCategories = false;
+        if (_product != null) {
+          _selectedCategory = _categories.firstWhere(
+            (category) => category.id == _product!.category.id,
+            orElse: () => _selectedCategory ?? _categories.first,
+          );
+        }
+      });
+    } catch (_) {
+      setState(() {
+        _categories = [];
+        _isLoadingCategories = false;
+      });
+    }
+  }
+
+  void _initializeForm(Product product) {
+    _categoryController.text = product.category.id.toString();
+    _nameController.text = product.name;
+    _varietyController.text = product.variety ?? '';
+    _priceController.text = product.pricePerUnit.toStringAsFixed(2);
+    _quantityController.text = product.availableQuantity.toStringAsFixed(2);
+    _unitController.text = product.unit;
+    _shelfLifeController.text = product.shelfLifeDays.toString();
+    _descriptionController.text = product.description ?? '';
+    _harvestDate = product.harvestDate;
+    _isActive = product.isActive;
+    _selectedImage = null;
+    _selectedCategory = product.category;
+  }
+
+  Future<void> _pickImage() async {
+    final file = await ImagePickerHelper.showImageSourceDialog(context);
+    if (file == null) return;
+    setState(() {
+      _selectedImage = file;
+    });
+  }
+
+  Future<void> _selectHarvestDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _harvestDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _harvestDate = picked;
+      });
+    }
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final categoryId = _selectedCategory?.id ?? int.tryParse(_categoryController.text.trim());
+    final price = double.tryParse(_priceController.text.trim());
+    final quantity = double.tryParse(_quantityController.text.trim());
+    final shelfLife = int.tryParse(_shelfLifeController.text.trim());
+
+    if (categoryId == null || price == null || quantity == null || shelfLife == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter valid category, price, quantity, and shelf life values.')),
+      );
+      return;
+    }
+
+    final updatedData = <String, dynamic>{
+      'category': categoryId,
+      'name': _nameController.text.trim(),
+      'variety': _varietyController.text.trim().isEmpty ? null : _varietyController.text.trim(),
+      'price_per_unit': price,
+      'available_quantity': quantity,
+      'unit': _unitController.text.trim(),
+      'harvest_date': _harvestDate.toIso8601String().split(' ').first,
+      'shelf_life_days': shelfLife,
+      'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      'is_active': _isActive,
+      if (_selectedImage != null) 'image': _selectedImage,
+    };
+
+    context.read<ProductBloc>().add(UpdateProductEvent(widget.productUuid, updatedData));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<ProductBloc, ProductState>(
+      listener: (context, state) {
+        if (state is ProductDetailLoaded && !_hasInitializedForm) {
+          _product = state.product;
+          _initializeForm(state.product);
+          _hasInitializedForm = true;
+          setState(() {});
+        }
+
+        if (state is ProductUpdated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('"${state.product.displayName}" updated successfully.')),
+          );
+          context.go(RoutePaths.farmerProducts);
+        }
+
+        if (state is ProductError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is ProductLoading;
+        if (!_hasInitializedForm && _product == null) {
+          if (state is ProductLoading) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (state is ProductError) {
+            return Scaffold(
+              appBar: const CustomAppBar(title: 'Edit Product'),
+              body: Center(child: Text(state.message)),
+            );
+          }
+        }
+
+        return Scaffold(
+          appBar: const CustomAppBar(title: 'Edit Product'),
+          drawer: const AppDrawer(),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Update product details and pricing',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 20),
+                  if (_isLoadingCategories)
+                    const LinearProgressIndicator()
+                  else if (_categories.isNotEmpty)
+                    DropdownButtonFormField<ProductCategory>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(labelText: 'Category'),
+                      items: _categories
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category.name),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: isLoading
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedCategory = value;
+                                _categoryController.text = value?.id.toString() ?? '';
+                              });
+                            },
+                      validator: (_) => _selectedCategory == null ? 'Select a category' : null,
+                    )
+                  else
+                    TextFormField(
+                      controller: _categoryController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Category ID', hintText: 'Enter backend category ID'),
+                      validator: (value) => value == null || value.trim().isEmpty ? 'Category is required' : null,
+                    ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Product name'),
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Product name is required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _varietyController,
+                    decoration: const InputDecoration(labelText: 'Variety (optional)'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _priceController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Price per unit'),
+                          validator: (value) => value == null || value.trim().isEmpty ? 'Price is required' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Available quantity'),
+                          validator: (value) => value == null || value.trim().isEmpty ? 'Quantity is required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _unitController,
+                    decoration: const InputDecoration(labelText: 'Unit (e.g. kg, crate)'),
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Unit is required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _shelfLifeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Shelf life (days)'),
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Shelf life is required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: isLoading ? null : _selectHarvestDate,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Harvest date',
+                          hintText: _harvestDate.toLocal().toString().split(' ').first,
+                          suffixIcon: const Icon(Icons.calendar_month),
+                        ),
+                        validator: (_) => _harvestDate == null ? 'Select a harvest date' : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: const InputDecoration(labelText: 'Description (optional)'),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Product photo', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: isLoading ? null : _pickImage,
+                    icon: const Icon(Icons.photo_camera),
+                    label: const Text('Upload image'),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_selectedImage != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.file(_selectedImage!, height: 200, fit: BoxFit.cover),
+                    )
+                  else if (_product?.imageUrl != null && _product!.imageUrl!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(_product!.imageUrl!, height: 200, fit: BoxFit.cover),
+                    )
+                  else
+                    Text(
+                      'No image selected yet.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Active listing'),
+                    subtitle: const Text('Allow buyers to see this product'),
+                    value: _isActive,
+                    onChanged: isLoading ? null : (value) => setState(() => _isActive = value),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _submit,
+                    child: isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Update product'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
