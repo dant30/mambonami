@@ -5,8 +5,8 @@ export function FloatingContact() {
   const [open, setOpen] = useState(false);
 
   const actions = [
-    { Icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/254724167076", color: "bg-[#25D366]" },
-    { Icon: Phone, label: "Call us", href: "tel:+254724167076", color: "bg-primary" },
+    { Icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/254700000000", color: "bg-[#25D366]" },
+    { Icon: Phone, label: "Call us", href: "tel:+254700000000", color: "bg-primary" },
     { Icon: Mail, label: "Email", href: "mailto:hello@mambonami.com", color: "bg-secondary" },
   ];
 
