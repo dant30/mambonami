@@ -1,0 +1,35 @@
+﻿@import './variables.css';
+@import './animations.css';
+@import './components.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'tw-animate-css';
+
+/* Custom variant for dark mode selector */
+@custom-variant dark (&:is(.dark *));
+
+/* Reset border colors across all elements */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}

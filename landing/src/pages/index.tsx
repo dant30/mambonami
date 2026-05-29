@@ -3,12 +3,12 @@ import { ArrowRight, Sprout, ShoppingBasket, Truck, ShieldCheck, Star, Quote, St
 import heroImg from "@/assets/hero-farm.jpg";
 import farmerImg from "@/assets/farmer.jpg";
 import produceImg from "@/assets/produce.jpg";
-import { Particles } from "@/components/site/Particles";
+import { Particles } from "@/components/layout/Particles";
 import { useCountUp } from "@/hooks/use-count-up";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
-export const Route = createFileRoute("/_site/")({
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "MAMBONAMI — Fresh from Farm to Table" },
