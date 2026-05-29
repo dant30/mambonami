@@ -72,18 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "Farm Fresh Connect" },
       { name: "description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
+      { property: "og:title", content: "Farm Fresh Connect" },
       { property: "og:description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:title", content: "Farm Fresh Connect" },
       { name: "twitter:description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d1a952d-3b93-4c43-8dfa-7c06534ffcc9/id-preview-310a655b--245e26c4-f024-47ce-852e-6e5cab7b9d6f.lovable.app-1780046619177.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d1a952d-3b93-4c43-8dfa-7c06534ffcc9/id-preview-310a655b--245e26c4-f024-47ce-852e-6e5cab7b9d6f.lovable.app-1780046619177.png" },
     ],
     links: [
       {
