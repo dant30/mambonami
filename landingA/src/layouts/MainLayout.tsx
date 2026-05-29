@@ -1,7 +1,7 @@
 ﻿import { Outlet } from 'react-router-dom'
 import Header from '../components/sections/Header'
 import Footer from '../components/sections/Footer'
-import FloatingButton from '../components/ui/FloatingButton'
+import FloatingButton from '../components/sections/FloatingButton'
 
 function MainLayout() {
   return (

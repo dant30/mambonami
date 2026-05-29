@@ -8,7 +8,7 @@ from apps.orders.models import Order, SubOrder, OrderItem
 from apps.products.models import Product
 from apps.paybill.services.account_number import generate_account_number
 from apps.logistics.services.geolocation import haversine
-from apps.logistics.services.fee_calculator import calculate_delivery_fee as calculate_delivery_fee_estimate
+from apps.logistics.services.fee_calculator import estimate_fee as calculate_delivery_fee_estimate
 
 @transaction.atomic
 def create_order_from_cart(buyer, cart_data: dict) -> Order:
