@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/themes/app_theme_extension.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/greeting_header.dart';
@@ -35,6 +37,7 @@ class BuyerDashboard extends StatelessWidget {
             const SizedBox(height: 24),
             Expanded(
               child: GridView.count(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
                 crossAxisCount: 2,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
@@ -44,25 +47,25 @@ class BuyerDashboard extends StatelessWidget {
                     icon: Icons.shopping_bag_outlined,
                     title: 'Browse Products',
                     subtitle: 'Discover fresh goods',
-                    onTap: () => context.go('/products'),
+                    onTap: () => context.go(RoutePaths.products),
                   ),
                   _DashboardCard(
                     icon: Icons.receipt_long,
                     title: 'My Orders',
                     subtitle: 'Track order history',
-                    onTap: () => context.go('/orders'),
+                    onTap: () => context.go(RoutePaths.orders),
                   ),
                   _DashboardCard(
                     icon: Icons.support_agent,
                     title: 'Support',
                     subtitle: 'Submit a request',
-                    onTap: () => context.go('/support'),
+                    onTap: () => context.go(RoutePaths.support),
                   ),
                   _DashboardCard(
                     icon: Icons.notifications_none,
                     title: 'Notifications',
                     subtitle: 'Latest updates',
-                    onTap: () => context.go('/notifications'),
+                    onTap: () => context.go(RoutePaths.notifications),
                   ),
                 ],
               ),
@@ -102,11 +105,15 @@ class _DashboardCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: Theme.of(context).extension<AppThemeExtension>() != null
+                    ? BoxDecoration(
+                        gradient: Theme.of(context).extension<AppThemeExtension>()!.heroGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      )
+                    : BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                 padding: const EdgeInsets.all(12),
                 child: Icon(icon,
                     size: 28, color: Theme.of(context).colorScheme.primary),

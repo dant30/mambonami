@@ -23,7 +23,7 @@ class BottomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: backgroundColor,
       selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.textTheme.bodySmall?.color?.withAlpha(180) ?? Colors.grey,
+      unselectedItemColor: theme.textTheme.bodySmall?.color?.withAlpha(180) ?? theme.colorScheme.onSurface.withOpacity(0.6),
       selectedLabelStyle: theme.textTheme.bodySmall,
       unselectedLabelStyle: theme.textTheme.bodySmall,
       showUnselectedLabels: true,

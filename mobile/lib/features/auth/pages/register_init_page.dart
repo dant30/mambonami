@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -48,7 +49,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
         listener: (context, state) {
           if (state is RegisterInitSuccess) {
             context.go(
-              '/register/verify',
+              RoutePaths.registerVerify,
               extra: {
                 'phone': _phoneController.text.trim(),
                 'role': _selectedRole,
@@ -104,7 +105,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () => context.go('/login'),
+                          onPressed: () => context.go(RoutePaths.login),
                           child: const Text('Already have an account? Login'),
                         ),
                       ],

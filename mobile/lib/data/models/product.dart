@@ -15,12 +15,20 @@ class ProductCategory {
   });
 
   factory ProductCategory.fromJson(Map<String, dynamic> json) {
+    bool parseBool(dynamic v) {
+      if (v is bool) return v;
+      if (v == null) return false;
+      if (v is num) return v != 0;
+      final s = v.toString().toLowerCase();
+      return s == 'true' || s == '1' || s == 'yes';
+    }
+
     return ProductCategory(
       id: json['id'],
       code: json['code'],
       name: json['name'],
       baseUnit: json['base_unit'],
-      isActive: json['is_active'],
+      isActive: parseBool(json['is_active']),
     );
   }
 
@@ -53,6 +61,9 @@ class Product {
   final String? description;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double? pickupLat;
+  final double? pickupLng;
+  final double weightPerUnit;
 
   Product({
     required this.id,
@@ -74,9 +85,30 @@ class Product {
     this.description,
     required this.createdAt,
     required this.updatedAt,
+    this.pickupLat,
+    this.pickupLng,
+    this.weightPerUnit = 0.0,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    double? parseNullableDouble(dynamic v) {
+      if (v == null) return null;
+      try {
+        return double.parse(v.toString());
+      } catch (_) {
+        return null;
+      }
+    }
+
+    double parseDoubleDefault(dynamic v, double def) {
+      if (v == null) return def;
+      try {
+        return double.parse(v.toString());
+      } catch (_) {
+        return def;
+      }
+    }
+
     return Product(
       id: json['id'],
       uuid: json['uuid'],
@@ -92,11 +124,21 @@ class Product {
       harvestDate: DateTime.parse(json['harvest_date']),
       shelfLifeDays: json['shelf_life_days'],
       remainingShelfLife: json['remaining_shelf_life'],
-      isActive: json['is_active'],
+      isActive: (() {
+        final v = json['is_active'];
+        if (v is bool) return v;
+        if (v == null) return false;
+        if (v is num) return v != 0;
+        final s = v.toString().toLowerCase();
+        return s == 'true' || s == '1' || s == 'yes';
+      })(),
       imageUrl: json['image'],
       description: json['description'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      pickupLat: parseNullableDouble(json['pickup_lat']),
+      pickupLng: parseNullableDouble(json['pickup_lng']),
+      weightPerUnit: parseDoubleDefault(json['weight_per_unit'], 0.0),
     );
   }
 

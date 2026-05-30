@@ -24,7 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'category', 'category_detail', 'name', 'variety', 'price_per_unit',
             'available_quantity', 'unit', 'harvest_date', 'shelf_life_days',
             'remaining_shelf_life', 'is_active', 'image', 'description',
-            'pickup_lat', 'pickup_lng',
+            'pickup_lat', 'pickup_lng', 'weight_per_unit',
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'uuid', 'created_at', 'updated_at')
@@ -64,4 +64,9 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_pickup_lng(self, value):
         if value < Decimal('34.0') or value > Decimal('42.0'):
             raise serializers.ValidationError("Pickup longitude is out of expected bounds.")
+        return value
+
+    def validate_weight_per_unit(self, value):
+        if value < Decimal('0'):
+            raise serializers.ValidationError("Weight per unit must be non-negative.")
         return value

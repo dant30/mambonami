@@ -19,6 +19,11 @@ class Product(BaseModel):
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     available_quantity = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
     unit = models.CharField(max_length=20, help_text="kg, piece, litre, tray, bunch")
+    weight_per_unit = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0,
+        validators=[MinValueValidator(0)],
+        help_text="Weight in kg for one unit (e.g., 0.5 for half kg, 2.0 for 2kg sack)"
+    )
     harvest_date = models.DateField(help_text="Date when product was harvested/packed")
     shelf_life_days = models.PositiveIntegerField(default=3, help_text="Remaining shelf life in days")
     is_active = models.BooleanField(default=True, help_text="Visible for purchase")

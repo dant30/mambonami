@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/notification/notification_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../config/route_paths.dart';
 
 class NotificationBadge extends StatefulWidget {
   final double size;
@@ -47,7 +48,7 @@ class _NotificationBadgeState extends State<NotificationBadge> with SingleTicker
         if (state is NotificationLoaded) unread = state.unreadCount;
 
         return GestureDetector(
-          onTap: () => context.go('/notifications'),
+          onTap: () => context.go(RoutePaths.notifications),
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -65,7 +66,7 @@ class _NotificationBadgeState extends State<NotificationBadge> with SingleTicker
                       ? Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: Theme.of(context).colorScheme.secondary, borderRadius: BorderRadius.circular(12)),
-                          child: Text(unread > 99 ? '99+' : unread.toString(), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                          child: Text(unread > 99 ? '99+' : unread.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSecondary, fontSize: 11, fontWeight: FontWeight.w700)),
                         )
                       : const SizedBox.shrink(),
                 ),

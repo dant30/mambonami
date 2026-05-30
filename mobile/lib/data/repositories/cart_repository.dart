@@ -9,6 +9,7 @@ class CartRepository {
   int get itemCount => items.value.fold(0, (count, item) => count + item.quantity.toInt());
   double get totalQuantity => items.value.fold(0.0, (sum, item) => sum + item.quantity);
   double get subtotal => items.value.fold(0.0, (sum, item) => sum + item.lineTotal);
+  double get totalWeightKg => items.value.fold(0.0, (sum, item) => sum + (item.product.weightPerUnit * item.quantity));
 
   void addProduct(Product product, double quantity) {
     if (quantity <= 0) return;

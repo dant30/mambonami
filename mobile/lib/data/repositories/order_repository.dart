@@ -6,12 +6,16 @@ import '../models/order.dart';
 class CreateOrderRequest {
   final List<CartItemDto> items;
   final String deliveryAddress;
+  final double deliveryLat;
+  final double deliveryLng;
   final String scheduledDate;
   final String scheduledTimeWindow;
 
   CreateOrderRequest({
     required this.items,
     required this.deliveryAddress,
+    required this.deliveryLat,
+    required this.deliveryLng,
     required this.scheduledDate,
     required this.scheduledTimeWindow,
   });
@@ -19,19 +23,21 @@ class CreateOrderRequest {
   Map<String, dynamic> toJson() => {
     'items': items.map((e) => e.toJson()).toList(),
     'delivery_address': deliveryAddress,
+    'delivery_lat': deliveryLat,
+    'delivery_lng': deliveryLng,
     'scheduled_date': scheduledDate,
     'scheduled_time_window': scheduledTimeWindow,
   };
 }
 
 class CartItemDto {
-  final int productId;
+  final String productUuid;
   final double quantity;
 
-  CartItemDto({required this.productId, required this.quantity});
+  CartItemDto({required this.productUuid, required this.quantity});
 
   Map<String, dynamic> toJson() => {
-    'product_id': productId,
+    'product_uuid': productUuid,
     'quantity': quantity,
   };
 }

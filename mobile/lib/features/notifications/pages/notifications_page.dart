@@ -27,6 +27,7 @@ class NotificationsPage extends StatelessWidget {
                 },
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: 8 + MediaQuery.of(context).padding.bottom),
                   children: const [SizedBox(height: 200), Center(child: Text('No notifications'))],
                 ),
               );
@@ -36,7 +37,7 @@ class NotificationsPage extends StatelessWidget {
                 context.read<NotificationBloc>().add(FetchNotificationsEvent());
               },
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.fromLTRB(0, 8, 0, 8 + MediaQuery.of(context).padding.bottom),
                 itemCount: state.notifications.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {

@@ -53,7 +53,12 @@ class _SettingsPageState extends State<SettingsPage> {
 			body: _loading
 					? const Center(child: CircularProgressIndicator())
 					: ListView(
-							padding: const EdgeInsets.all(16),
+							padding: EdgeInsets.fromLTRB(
+								16,
+								16,
+								16,
+								16 + MediaQuery.of(context).padding.bottom,
+							),
 							children: [
 								const Text('Appearance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
 								const SizedBox(height: 8),

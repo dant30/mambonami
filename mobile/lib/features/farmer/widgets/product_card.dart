@@ -68,13 +68,13 @@ class FarmerProductCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: product.isActive ? Colors.green.withOpacity(0.12) : Colors.grey.withOpacity(0.16),
+                          color: product.isActive ? Theme.of(context).colorScheme.primary.withOpacity(0.12) : Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           product.isActive ? 'Active' : 'Inactive',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: product.isActive ? Colors.green.shade700 : Colors.grey.shade700,
+                                color: product.isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                 fontWeight: FontWeight.w700,
                               ),
                         ),

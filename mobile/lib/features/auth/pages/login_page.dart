@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -42,7 +43,14 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/${state.role}');
+            final role = state.role;
+            if (role == 'farmer') {
+              context.go(RoutePaths.farmerDashboard);
+            } else if (role == 'transport_provider') {
+              context.go(RoutePaths.transportProviderDashboard);
+            } else {
+              context.go(RoutePaths.buyerDashboard);
+            }
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }
@@ -98,11 +106,11 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             TextButton(
-                              onPressed: () => context.go('/forgot-password'),
+                              onPressed: () => context.go(RoutePaths.forgotPassword),
                               child: const Text('Forgot password?'),
                             ),
                             TextButton(
-                              onPressed: () => context.go('/register'),
+                              onPressed: () => context.go(RoutePaths.register),
                               child: const Text('Create account'),
                             ),
                           ],

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/product/product_bloc.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/cart_repository.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 
@@ -123,6 +124,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           const SizedBox(height: 20),
           _buildInfoRow(context, 'Price', '${product.pricePerUnit.toStringAsFixed(2)} per ${product.unit}'),
           _buildInfoRow(context, 'Available', '${product.availableQuantity.toStringAsFixed(2)} ${product.unit}'),
+          _buildInfoRow(context, 'Weight per unit', '${product.weightPerUnit.toStringAsFixed(2)} kg'),
+          if (product.pickupLat != null && product.pickupLng != null)
+            _buildInfoRow(context, 'Pickup location', '${product.pickupLat!.toStringAsFixed(5)}, ${product.pickupLng!.toStringAsFixed(5)}'),
           _buildInfoRow(context, 'Farmer', product.farmerName.isNotEmpty ? product.farmerName : product.farmerPhone),
           _buildInfoRow(context, 'Harvested', product.harvestDate.toLocal().toString().split(' ').first),
           _buildInfoRow(context, 'Shelf life', '${product.remainingShelfLife} days remaining'),
@@ -142,7 +146,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   content: Text('Added ${product.displayName} to cart.'),
                   action: SnackBarAction(
                     label: 'View cart',
-                    onPressed: () => context.go('/cart'),
+                    onPressed: () => context.go(RoutePaths.cart),
                   ),
                 ),
               );

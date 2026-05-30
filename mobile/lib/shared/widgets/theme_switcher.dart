@@ -1,3 +1,4 @@
+// lib/shared/widgets/theme_switcher.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/theme/theme_bloc.dart';

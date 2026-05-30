@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -94,7 +95,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             CustomSnackbar.showSuccess(context, 'OTP sent to your phone. Check your messages.');
           } else if (state is ForgotPasswordSuccess) {
             CustomSnackbar.showSuccess(context, 'Password reset successful. Please login.');
-            context.go('/login');
+            context.go(RoutePaths.login);
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }
@@ -186,10 +187,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       label: 'Send Reset OTP',
                     ),
                     const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Back to login'),
-                    ),
+                        TextButton(
+                          onPressed: () => context.go(RoutePaths.login),
+                          child: const Text('Back to login'),
+                        ),
                   ],
                       ],
                     ),

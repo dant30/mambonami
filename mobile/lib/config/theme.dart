@@ -10,9 +10,20 @@ export '../blocs/theme/theme_bloc.dart';
 
 /// Build a ThemeData that uses Google Fonts and Material 3.
 ThemeData buildTheme(ThemeData themeData) {
+  final baseText = GoogleFonts.interTextTheme(themeData.textTheme);
+  final themed = baseText.copyWith(
+    displayLarge: GoogleFonts.fraunces(textStyle: baseText.displayLarge),
+    displayMedium: GoogleFonts.fraunces(textStyle: baseText.displayMedium),
+    displaySmall: GoogleFonts.fraunces(textStyle: baseText.displaySmall),
+    headlineLarge: GoogleFonts.fraunces(textStyle: baseText.headlineLarge),
+    headlineMedium: GoogleFonts.fraunces(textStyle: baseText.headlineMedium),
+    headlineSmall: GoogleFonts.fraunces(textStyle: baseText.headlineSmall),
+    titleLarge: GoogleFonts.fraunces(textStyle: baseText.titleLarge),
+  );
+
   return themeData.copyWith(
-    textTheme: GoogleFonts.poppinsTextTheme(themeData.textTheme),
-    primaryTextTheme: GoogleFonts.poppinsTextTheme(themeData.primaryTextTheme),
+    textTheme: themed,
+    primaryTextTheme: GoogleFonts.interTextTheme(themeData.primaryTextTheme),
     useMaterial3: true,
   );
 }

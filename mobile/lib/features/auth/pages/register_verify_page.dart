@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -35,12 +36,12 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
-  String _selectedVehicleType = 'Motorcycle';
+  String _selectedVehicleType = 'motorcycle';
   static const List<String> _vehicleTypes = [
-    'Motorcycle',
-    'Pickup',
-    'Lorry',
-    'Van',
+    'motorcycle',
+    'pickup',
+    'lorry',
+    'van',
   ];
 
   @override
@@ -79,7 +80,15 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/${state.role}');
+            final role = state.role;
+            if (role == 'farmer') {
+              context.go(RoutePaths.farmerDashboard);
+            } else if (role == 'transport_provider') {
+              context.go(RoutePaths.transportProviderDashboard);
+            } else {
+              // buyers and retailers
+              context.go(RoutePaths.buyerDashboard);
+            }
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }
@@ -207,7 +216,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: _selectedVehicleType,
+                      value: _selectedVehicleType,
                       decoration: const InputDecoration(
                         labelText: 'Vehicle Type',
                         border: OutlineInputBorder(
@@ -216,7 +225,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         filled: true,
                       ),
                       items: _vehicleTypes
-                          .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                          .map((type) => DropdownMenuItem(value: type, child: Text(type[0].toUpperCase() + type.substring(1))))
                           .toList(),
                       onChanged: (value) {
                         if (value != null) {

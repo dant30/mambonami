@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import '../../../blocs/order_tracking/order_tracking_bloc.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../blocs/notification/notification_bloc.dart';
@@ -46,11 +47,44 @@ class OrderTrackingPage extends StatelessWidget {
 									return RefreshIndicator(
 										onRefresh: () async => context.read<OrderTrackingBloc>().add(RefreshOrderTracking()),
 										child: ListView(
-											padding: const EdgeInsets.all(16),
+											padding: EdgeInsets.fromLTRB(
+												16,
+												16,
+												16,
+												16 + MediaQuery.of(context).padding.bottom,
+											),
 											children: [
 												Text('Order: ${order.uuid}', style: Theme.of(context).textTheme.titleLarge),
 												const SizedBox(height: 12),
 												Text('Status: ${order.status}', style: Theme.of(context).textTheme.bodyLarge),
+												const SizedBox(height: 12),
+												Text('Delivery address', style: Theme.of(context).textTheme.titleMedium),
+												const SizedBox(height: 6),
+												Text(order.deliveryAddress),
+												const SizedBox(height: 12),
+												Row(
+													mainAxisAlignment: MainAxisAlignment.spaceBetween,
+													children: [
+														Text('Total weight', style: Theme.of(context).textTheme.bodyLarge),
+														Text('${order.totalWeightKg.toStringAsFixed(2)} kg'),
+													],
+												),
+												const SizedBox(height: 8),
+												Row(
+													mainAxisAlignment: MainAxisAlignment.spaceBetween,
+													children: [
+														Text('Delivery lat', style: Theme.of(context).textTheme.bodyLarge),
+														Text(order.deliveryLat.toStringAsFixed(6)),
+													],
+												),
+												const SizedBox(height: 4),
+												Row(
+													mainAxisAlignment: MainAxisAlignment.spaceBetween,
+													children: [
+														Text('Delivery lng', style: Theme.of(context).textTheme.bodyLarge),
+														Text(order.deliveryLng.toStringAsFixed(6)),
+													],
+												),
 												const SizedBox(height: 12),
 												if (order.assignedProviderName != null) ...[
 													Text('Provider: ${order.assignedProviderName}'),
@@ -69,7 +103,7 @@ class OrderTrackingPage extends StatelessWidget {
 												...order.subOrders.map((s) => ListTile(
 															title: Text(s.farmerName),
 															subtitle: Text('Status: ${s.status}'),
-															trailing: s.readyAt != null ? const Icon(Icons.check_circle, color: Colors.green) : null,
+															trailing: s.readyAt != null ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) : null,
 														)),
 												const SizedBox(height: 20),
 												ElevatedButton.icon(

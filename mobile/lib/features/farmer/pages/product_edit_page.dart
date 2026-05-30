@@ -346,8 +346,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
                   ElevatedButton(
                     onPressed: isLoading ? null : _submit,
                     child: isLoading
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Update product'),
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
+                      : const Text('Update product'),
                   ),
                 ],
               ),

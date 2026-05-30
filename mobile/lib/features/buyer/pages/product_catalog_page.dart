@@ -77,7 +77,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                     return const EmptyState(message: 'No matching products found');
                   }
                   return GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + MediaQuery.of(context).padding.bottom),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 0.78,

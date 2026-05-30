@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../data/models/order.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 
@@ -45,7 +46,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             return RefreshIndicator(
               onRefresh: () async => context.read<OrderBloc>().add(FetchMyOrdersEvent()),
               child: ListView.separated(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemCount: orders.length,
                 itemBuilder: (context, index) {
@@ -68,7 +69,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => context.go('/order/${order.uuid}'),
+        onTap: () => context.go(RoutePaths.orderTrackingPath(order.uuid)),
+
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -94,7 +96,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 children: [
                   Text('${order.subOrders.length} seller(s)', style: Theme.of(context).textTheme.bodyMedium),
                   const Spacer(),
-                  Text('₦${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('₦${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text('${order.totalWeightKg.toStringAsFixed(2)} kg', style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -106,7 +115,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   Widget _buildStatusChip(String status) {
     final display = status.replaceAll('_', ' ').toUpperCase();
-    final color = _statusColor(status);
+    final color = _statusColor(context, status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
@@ -117,18 +126,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(BuildContext context, String status) {
     switch (status.toLowerCase()) {
       case 'delivered':
-        return Colors.green;
+        return Theme.of(context).colorScheme.primary;
       case 'paid_escrow':
       case 'confirmed':
-        return Colors.blue;
+        return Theme.of(context).colorScheme.secondary;
       case 'pending':
       case 'processing':
-        return Colors.orange;
+        return Theme.of(context).colorScheme.secondary;
       case 'cancelled':
-        return Colors.red;
+        return Theme.of(context).colorScheme.error;
       default:
         return Theme.of(context).colorScheme.primary;
     }

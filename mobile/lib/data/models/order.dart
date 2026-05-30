@@ -10,6 +10,9 @@ class Order extends Equatable {
   final String status;
   final String? accountNumber;
   final String deliveryAddress;
+  final double deliveryLat;
+  final double deliveryLng;
+  final double totalWeightKg;
   final DateTime scheduledDate;
   final String scheduledTimeWindow;
   final String? assignedProviderName;
@@ -25,6 +28,9 @@ class Order extends Equatable {
     required this.status,
     this.accountNumber,
     required this.deliveryAddress,
+    required this.deliveryLat,
+    required this.deliveryLng,
+    required this.totalWeightKg,
     required this.scheduledDate,
     required this.scheduledTimeWindow,
     this.assignedProviderName,
@@ -42,6 +48,9 @@ class Order extends Equatable {
       status: parseString(json['status']),
       accountNumber: json['account_number'] != null ? parseString(json['account_number']) : null,
       deliveryAddress: parseString(json['delivery_address']),
+      deliveryLat: parseDouble(json['delivery_lat'] ?? json['delivery_latitude']),
+      deliveryLng: parseDouble(json['delivery_lng'] ?? json['delivery_longitude']),
+      totalWeightKg: parseDouble(json['total_weight_kg']),
       scheduledDate: parseDate(json['scheduled_date']),
       scheduledTimeWindow: parseString(json['scheduled_time_window']),
       assignedProviderName: _parseAssignedProviderName(json),

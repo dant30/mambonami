@@ -1,49 +1,61 @@
-﻿// mobile/lib/shared//themes/dark_theme.dart
+﻿// mobile/lib/shared/themes/dark_theme.dart
 import 'package:flutter/material.dart';
-
-const Color primaryGreenDark = Color(0xFF81C784);
-const Color accentOrangeDark = Color(0xFFFFB74D);
-const Color backgroundDark = Color(0xFF121212);
-const Color surfaceDark = Color(0xFF1E1E1E);
-const Color errorDark = Color(0xFFEF5350);
+import 'app_colors.dart';
+import 'app_gradients.dart';
+import 'app_shadows.dart';
+import 'app_theme_extension.dart';
 
 ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
-  primaryColor: primaryGreenDark,
-  scaffoldBackgroundColor: backgroundDark,
-  colorScheme: const ColorScheme.dark(
-    primary: primaryGreenDark,
-    secondary: accentOrangeDark,
-    error: errorDark,
-    surface: surfaceDark,
+  primaryColor: AppColors.primaryDark,
+  scaffoldBackgroundColor: AppColors.backgroundDark,
+  colorScheme: ColorScheme.dark(
+    primary: AppColors.primaryDark,
+    onPrimary: AppColors.primaryForegroundDark,
+    secondary: AppColors.secondaryDark,
+    onSecondary: AppColors.secondaryForegroundDark,
+    background: AppColors.backgroundDark,
+    onBackground: AppColors.foregroundDark,
+    surface: AppColors.cardDark,
+    onSurface: AppColors.foregroundDark,
+    error: AppColors.destructiveDark,
+    onError: AppColors.destructiveForegroundDark,
   ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: surfaceDark,
-    foregroundColor: Colors.white,
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.cardDark,
+    foregroundColor: AppColors.foregroundDark,
     elevation: 0,
     centerTitle: true,
   ),
   inputDecorationTheme: InputDecorationTheme(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
     filled: true,
-    fillColor: surfaceDark,
+    fillColor: AppColors.inputDark,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: primaryGreenDark,
-      foregroundColor: Colors.black,
+      backgroundColor: AppColors.primaryDark,
+      foregroundColor: AppColors.primaryForegroundDark,
       minimumSize: const Size(double.infinity, 48),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
   ),
   textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(foregroundColor: primaryGreenDark),
+    style: TextButton.styleFrom(foregroundColor: AppColors.primaryDark),
   ),
   cardTheme: CardThemeData(
     elevation: 2,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     margin: const EdgeInsets.all(8),
-    color: surfaceDark,
+    color: AppColors.cardDark,
   ),
-  fontFamily: 'Poppins',
+  extensions: <ThemeExtension<dynamic>>[
+    AppThemeExtension(
+      heroGradient: AppGradients.hero,
+      warmGradient: AppGradients.warm,
+      softShadow: AppShadows.soft,
+      glowShadow: AppShadows.glow,
+      ringColor: AppColors.ringDark,
+    ),
+  ],
 );

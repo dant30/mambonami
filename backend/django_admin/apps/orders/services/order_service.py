@@ -68,8 +68,12 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
             sub_total += line_total
             
             # Calculate weight if product has weight_per_unit
-            if hasattr(product, 'weight_per_unit') and product.weight_per_unit:
-                total_weight_kg += product.weight_per_unit * quantity
+            weight_per_unit = getattr(product, 'weight_per_unit', None) or 0
+            try:
+                total_weight_kg += Decimal(str(weight_per_unit)) * Decimal(str(quantity))
+            except Exception:
+                # Fallback: ignore weight contribution if conversion fails
+                pass
             
             items_list.append(OrderItem(
                 product=product,

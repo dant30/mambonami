@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/themes/app_theme_extension.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/greeting_header.dart';
@@ -36,6 +37,7 @@ class FarmerDashboard extends StatelessWidget {
             const SizedBox(height: 24),
             Expanded(
               child: GridView.count(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
@@ -59,14 +61,14 @@ class FarmerDashboard extends StatelessWidget {
                     icon: Icons.shopping_cart_outlined,
                     label: 'Order Requests',
                     description: 'Confirm and fulfill orders',
-                    color: Colors.orange.shade700,
+                    color: Theme.of(context).colorScheme.secondary,
                     onTap: () => context.go(RoutePaths.farmerOrderRequests),
                   ),
                   _DashboardCard(
                     icon: Icons.show_chart_outlined,
                     label: 'Earnings',
                     description: 'Track your revenue',
-                    color: Colors.green.shade700,
+                    color: Theme.of(context).colorScheme.primary,
                     onTap: () => context.go(RoutePaths.farmerEarnings),
                   ),
                 ],
@@ -109,10 +111,15 @@ class _DashboardCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.16),
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                decoration: Theme.of(context).extension<AppThemeExtension>() != null
+                    ? BoxDecoration(
+                        gradient: Theme.of(context).extension<AppThemeExtension>()!.heroGradient,
+                        borderRadius: BorderRadius.circular(14),
+                      )
+                    : BoxDecoration(
+                        color: color.withOpacity(0.16),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                 padding: const EdgeInsets.all(12),
                 child: Icon(icon, size: 28, color: color),
               ),

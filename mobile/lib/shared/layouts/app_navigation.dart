@@ -3,37 +3,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
+import '../../config/route_paths.dart';
 import 'bottom_nav_bar.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({super.key});
 
   int _selectedIndex(String location) {
-    if (location.startsWith('/buyer') || location.startsWith('/farmer') || location.startsWith('/transport_provider')) {
+    if (location.startsWith(RoutePaths.buyerDashboard) || location.startsWith(RoutePaths.farmerDashboard) || location.startsWith(RoutePaths.transportProviderDashboard)) {
       return 0;
     }
-    if (location.startsWith('/notifications')) return 1;
-    if (location.startsWith('/support')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith(RoutePaths.notifications)) return 1;
+    if (location.startsWith(RoutePaths.support)) return 2;
+    if (location.startsWith(RoutePaths.profile)) return 3;
     return 0;
   }
 
   void _handleTap(BuildContext context, int index) {
     final authState = context.read<AuthBloc>().state;
-    final homeRoute = authState is AuthAuthenticated ? '/${authState.role}' : '/login';
+    String homeRoute = RoutePaths.login;
+    if (authState is AuthAuthenticated) {
+      if (authState.role == 'buyer') homeRoute = RoutePaths.buyerDashboard;
+      if (authState.role == 'farmer') homeRoute = RoutePaths.farmerDashboard;
+      if (authState.role == 'transport_provider') homeRoute = RoutePaths.transportProviderDashboard;
+    }
 
     switch (index) {
       case 0:
         context.go(homeRoute);
         break;
       case 1:
-        context.go('/notifications');
+        context.go(RoutePaths.notifications);
         break;
       case 2:
-        context.go('/support');
+        context.go(RoutePaths.support);
         break;
       case 3:
-        context.go('/profile');
+        context.go(RoutePaths.profile);
         break;
     }
   }

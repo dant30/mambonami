@@ -15,12 +15,12 @@ class OrderRequestCard extends StatelessWidget {
   Color _statusColor(BuildContext context) {
     switch (subOrder.status.toLowerCase()) {
       case 'ready':
-        return Colors.green.shade700;
+        return Theme.of(context).colorScheme.primary;
       case 'confirmed':
-        return Colors.blue.shade700;
+        return Theme.of(context).colorScheme.secondary;
       case 'pending':
       default:
-        return Colors.orange.shade700;
+        return Theme.of(context).colorScheme.secondary;
     }
   }
 

@@ -124,7 +124,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           body: Stack(
             children: [
               ListView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.of(context).padding.bottom,
+                ),
                 children: [
                   Text('Order #${_subOrder!.id}', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 12),

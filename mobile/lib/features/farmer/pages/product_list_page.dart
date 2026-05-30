@@ -118,21 +118,26 @@ class _ProductListPageState extends State<ProductListPage> {
             onRefresh: () async {
               _fetchProducts();
             },
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return FarmerProductCard(
-                  product: product,
-                  onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
-                  onDelete: () => _confirmDelete(product),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bottomInset = MediaQuery.of(context).padding.bottom + 56.0; // account for system inset and possible bottom nav
+                return GridView.builder(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return FarmerProductCard(
+                      product: product,
+                      onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+                      onDelete: () => _confirmDelete(product),
+                    );
+                  },
                 );
               },
             ),

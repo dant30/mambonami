@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -48,35 +50,53 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Future<void> _submitOrder() async {
     final cartRepository = GetIt.instance<CartRepository>();
     final orderRepository = GetIt.instance<OrderRepository>();
+    final messenger = ScaffoldMessenger.of(context);
 
     if (!_formKey.currentState!.validate() || _scheduledDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please complete the checkout form.')));
+      messenger.showSnackBar(const SnackBar(content: Text('Please complete the checkout form.')));
       return;
     }
 
     if (cartRepository.items.value.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
+      messenger.showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
       return;
     }
 
     setState(() => _isSubmitting = true);
     try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        messenger.showSnackBar(const SnackBar(content: Text('Location permission is required to place the order.')));
+        if (mounted) setState(() => _isSubmitting = false);
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+      if (!mounted) return;
+
       final request = CreateOrderRequest(
         items: cartRepository.items.value
-            .map((item) => CartItemDto(productId: item.product.id, quantity: item.quantity))
+            .map((item) => CartItemDto(productUuid: item.product.uuid, quantity: item.quantity))
             .toList(),
         deliveryAddress: _addressController.text.trim(),
+        deliveryLat: position.latitude,
+        deliveryLng: position.longitude,
         scheduledDate: DateFormat('yyyy-MM-dd').format(_scheduledDate!),
         scheduledTimeWindow: _timeWindowController.text.trim(),
       );
       await orderRepository.createOrder(request);
       cartRepository.clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order placed successfully.')));
+      messenger.showSnackBar(const SnackBar(content: Text('Order placed successfully.')));
       if (mounted) {
-        context.go('/orders');
+        context.go(RoutePaths.orders);
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to place order: $error')));
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text('Unable to place order: $error')));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -107,6 +127,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   Text('Items: ${cartRepository.itemCount}'),
                   const SizedBox(height: 8),
                   Text('Subtotal: ₦${cartRepository.subtotal.toStringAsFixed(2)}'),
+                  const SizedBox(height: 8),
+                  Text('Total weight: ${cartRepository.totalWeightKg.toStringAsFixed(2)} kg'),
                   const SizedBox(height: 24),
                   Form(
                     key: _formKey,

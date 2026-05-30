@@ -28,7 +28,7 @@ class RatingStars extends StatelessWidget {
         } else {
           icon = Icons.star_border;
         }
-        return Icon(icon, size: size, color: color ?? Colors.amber);
+        return Icon(icon, size: size, color: color ?? Theme.of(context).colorScheme.secondary);
       }),
     );
   }

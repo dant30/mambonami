@@ -16,15 +16,15 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: notification.isRead ? Colors.white : Colors.blue.shade50,
+      color: notification.isRead ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.primary.withOpacity(0.06),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 22,
-          backgroundColor: notification.isRead ? Colors.grey.shade300 : Colors.blue.shade600,
+          backgroundColor: notification.isRead ? Theme.of(context).colorScheme.surfaceVariant : Theme.of(context).colorScheme.primary,
           child: Icon(
             notification.isRead ? Icons.notifications_none : Icons.notifications,
-            color: notification.isRead ? Colors.grey.shade700 : Colors.white,
+            color: notification.isRead ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7) : Theme.of(context).colorScheme.onPrimary,
           ),
         ),
         title: Text(
@@ -51,7 +51,7 @@ class NotificationTile extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: Theme.of(context).colorScheme.surfaceVariant,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -76,9 +76,9 @@ class NotificationTile extends StatelessWidget {
               ),
             Text(
               _formatDate(notification.createdAt),
-              style: TextStyle(
+                style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
           ],

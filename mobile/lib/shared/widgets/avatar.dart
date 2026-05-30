@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 class Avatar extends StatelessWidget {
   final String? imageUrl;
@@ -41,17 +42,17 @@ class Avatar extends StatelessWidget {
     
     // Generate color from initials
     final initials = _getInitials();
-    if (initials.isEmpty) return Colors.grey;
-    
+    if (initials.isEmpty) return AppColors.inputLight;
+
     final colors = [
-      Colors.blue,
-      Colors.purple,
-      Colors.green,
-      Colors.orange,
-      Colors.red,
-      Colors.teal,
-      Colors.indigo,
-      Colors.pink,
+      AppColors.primaryLight,
+      AppColors.secondaryLight,
+      AppColors.destructiveLight,
+      AppColors.foregroundLight,
+      AppColors.cardLight,
+      AppColors.inputLight,
+      AppColors.ringLight,
+      AppColors.primaryDark,
     ];
     return colors[initials.hashCode % colors.length];
   }
@@ -78,7 +79,7 @@ class Avatar extends StatelessWidget {
                 _getInitials(),
                 style: textStyle ??
                     Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                         ),
               ),

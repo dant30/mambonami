@@ -1,7 +1,10 @@
 ﻿import 'package:flutter/material.dart';
+import '../../../shared/themes/app_shadows.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_theme_extension.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../../data/models/cart_item.dart';
@@ -64,9 +67,7 @@ class _CheckoutSummary extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12),
-        ],
+        boxShadow: Theme.of(context).extension<AppThemeExtension>()?.softShadow ?? AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,9 +89,17 @@ class _CheckoutSummary extends StatelessWidget {
               Text('₦${cartRepository.subtotal.toStringAsFixed(2)}'),
             ],
           ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Estimated weight'),
+              Text('${cartRepository.totalWeightKg.toStringAsFixed(2)} kg'),
+            ],
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.push('/checkout'),
+            onPressed: () => context.push(RoutePaths.checkout),
             child: const Text('Proceed to Checkout'),
           ),
         ],

@@ -1,50 +1,61 @@
 ﻿// mobile/lib/shared/themes/light_theme.dart
 import 'package:flutter/material.dart';
-
-const Color primaryGreen = Color(0xFF2E7D32);
-const Color primaryLight = Color(0xFF60AD5E);
-const Color primaryDark = Color(0xFF005005);
-const Color accentOrange = Color(0xFFFF9800);
-const Color backgroundLight = Color(0xFFF5F5F5);
-const Color surfaceLight = Colors.white;
-const Color errorLight = Color(0xFFD32F2F);
+import 'app_colors.dart';
+import 'app_gradients.dart';
+import 'app_shadows.dart';
+import 'app_theme_extension.dart';
 
 ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
-  primaryColor: primaryGreen,
-  scaffoldBackgroundColor: backgroundLight,
-  colorScheme: const ColorScheme.light(
-    primary: primaryGreen,
-    secondary: accentOrange,
-    error: errorLight,
-    surface: surfaceLight,
+  primaryColor: AppColors.primaryLight,
+  scaffoldBackgroundColor: AppColors.backgroundLight,
+  colorScheme: ColorScheme.light(
+    primary: AppColors.primaryLight,
+    onPrimary: AppColors.primaryForegroundLight,
+    secondary: AppColors.secondaryLight,
+    onSecondary: AppColors.secondaryForegroundLight,
+    background: AppColors.backgroundLight,
+    onBackground: AppColors.foregroundLight,
+    surface: AppColors.cardLight,
+    onSurface: AppColors.foregroundLight,
+    error: AppColors.destructiveLight,
+    onError: AppColors.destructiveForegroundLight,
   ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: primaryGreen,
-    foregroundColor: Colors.white,
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.primaryLight,
+    foregroundColor: AppColors.primaryForegroundLight,
     elevation: 2,
     centerTitle: true,
   ),
   inputDecorationTheme: InputDecorationTheme(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
     filled: true,
-    fillColor: surfaceLight,
+    fillColor: AppColors.inputLight,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: primaryGreen,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.primaryLight,
+      foregroundColor: AppColors.primaryForegroundLight,
       minimumSize: const Size(double.infinity, 48),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
   ),
   textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(foregroundColor: primaryGreen),
+    style: TextButton.styleFrom(foregroundColor: AppColors.primaryLight),
   ),
   cardTheme: CardThemeData(
     elevation: 2,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     margin: const EdgeInsets.all(8),
+    color: AppColors.cardLight,
   ),
-  fontFamily: 'Poppins',
+  extensions: <ThemeExtension<dynamic>>[
+    AppThemeExtension(
+      heroGradient: AppGradients.hero,
+      warmGradient: AppGradients.warm,
+      softShadow: AppShadows.soft,
+      glowShadow: AppShadows.glow,
+      ringColor: AppColors.ringLight,
+    ),
+  ],
 );

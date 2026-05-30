@@ -161,9 +161,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.primary,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: 2),
                                 ),
-                                child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                                child: Icon(Icons.edit, color: Theme.of(context).colorScheme.onPrimary, size: 18),
                               ),
                             ),
                           ),
@@ -236,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     CustomButton(
                       onPressed: _confirmLogout,
                       label: 'Log out',
-                      color: Colors.redAccent,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ],
                 ),

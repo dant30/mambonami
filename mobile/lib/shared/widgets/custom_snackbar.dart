@@ -23,14 +23,14 @@ class CustomSnackbar {
   }
 
   static void showSuccess(BuildContext context, String message) {
-    show(context, message, backgroundColor: Colors.green);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.primary);
   }
 
   static void showError(BuildContext context, String message) {
-    show(context, message, backgroundColor: Colors.red);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.error);
   }
 
   static void showInfo(BuildContext context, String message) {
-    show(context, message, backgroundColor: Colors.blue);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.secondary);
   }
 }

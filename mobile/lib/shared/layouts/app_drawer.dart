@@ -103,8 +103,8 @@ class AppDrawer extends StatelessWidget {
             borderRadius: BorderRadius.circular(12)),
         child: Text(
           count > 99 ? '99+' : count.toString(),
-          style: const TextStyle(
-              color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary, fontSize: 12, fontWeight: FontWeight.w600),
         ),
       );
     }
@@ -132,7 +132,7 @@ class AppDrawer extends StatelessWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: 2),
                     ),
                     child: Avatar(
                       username: username.isNotEmpty ? username : phone,

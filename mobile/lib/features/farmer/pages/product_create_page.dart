@@ -287,8 +287,8 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                   ElevatedButton(
                     onPressed: isSaving ? null : _submit,
                     child: isSaving
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Create product'),
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
+                      : const Text('Create product'),
                   ),
                 ],
               ),

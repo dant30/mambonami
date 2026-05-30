@@ -11,13 +11,13 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'variety', 'farmer', 'category', 'price_per_unit', 'available_quantity', 'is_active')
+    list_display = ('name', 'variety', 'farmer', 'category', 'price_per_unit', 'available_quantity', 'weight_per_unit', 'is_active')
     list_filter = ('category', 'is_active', 'harvest_date')
     search_fields = ('name', 'variety', 'farmer__user__phone', 'farmer__user__username')
     readonly_fields = ('uuid', 'created_at', 'updated_at')
     fieldsets = (
         (None, {'fields': ('farmer', 'category', 'name', 'variety', 'description', 'image')}),
-        ('Pricing & Inventory', {'fields': ('price_per_unit', 'available_quantity', 'unit')}),
+        ('Pricing & Inventory', {'fields': ('price_per_unit', 'available_quantity', 'unit', 'weight_per_unit')}),
         ('Harvest Info', {'fields': ('harvest_date', 'shelf_life_days')}),
         ('Status', {'fields': ('is_active',)}),
         ('System', {'fields': ('uuid', 'created_at', 'updated_at')}),

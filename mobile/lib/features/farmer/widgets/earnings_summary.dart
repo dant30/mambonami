@@ -49,15 +49,15 @@ class EarningsSummary extends StatelessWidget {
           children: [
             _buildMetric(context, 'Orders', totalOrders.toString()),
             const SizedBox(width: 12),
-            _buildMetric(context, 'Confirmed', confirmedOrders.toString(), color: Colors.blue.shade50),
+            _buildMetric(context, 'Confirmed', confirmedOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.06)),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildMetric(context, 'Ready', readyOrders.toString(), color: Colors.green.shade50),
+            _buildMetric(context, 'Ready', readyOrders.toString(), color: Theme.of(context).colorScheme.primary.withOpacity(0.06)),
             const SizedBox(width: 12),
-            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Colors.orange.shade50),
+            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.06)),
           ],
         ),
       ],
