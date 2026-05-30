@@ -103,6 +103,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         builder: (context, state) {
           final isLoading = state is AuthLoading;
           return SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
             child: Form(
               key: _formKey,
               child: Column(

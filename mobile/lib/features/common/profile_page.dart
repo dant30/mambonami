@@ -117,8 +117,8 @@ class _ProfilePageState extends State<ProfilePage> {
       bottomNavigationBar: const AppBottomNavigationBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+                : SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
               child: Form(
                 key: _formKey,
                 child: Column(

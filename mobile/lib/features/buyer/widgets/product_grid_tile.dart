@@ -22,27 +22,25 @@ class ProductGridTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Flexible(
-              flex: 3,
-              child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                  ? AspectRatio(
-                      aspectRatio: 4 / 3,
-                      child: Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, size: 48)),
-                      ),
-                    )
-                  : Container(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                      child: const Center(child: Icon(Icons.shopping_basket, size: 42)),
+            product.imageUrl != null && product.imageUrl!.isNotEmpty
+                ? AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: Image.network(
+                      product.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, size: 48)),
                     ),
-            ),
+                  )
+                : Container(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    height: 120,
+                    child: const Center(child: Icon(Icons.shopping_basket, size: 42)),
+                  ),
             Expanded(
-              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -53,7 +51,7 @@ class ProductGridTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${product.pricePerUnit.toStringAsFixed(2)} per ${product.unit}',
+                      'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
                       style: Theme.of(context).textTheme.bodyMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

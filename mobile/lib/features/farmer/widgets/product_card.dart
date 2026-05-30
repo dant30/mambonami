@@ -45,67 +45,77 @@ class FarmerProductCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
                 child: const Center(child: Icon(Icons.grass, size: 42)),
               ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.displayName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '₦${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.displayName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Flexible(
+                      child: Text(
+                        'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    ),
+                    const SizedBox(height: 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: product.isActive ? Theme.of(context).colorScheme.primary.withOpacity(0.12) : Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           product.isActive ? 'Active' : 'Inactive',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                 color: product.isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
                               ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${product.availableQuantity.toStringAsFixed(2)} ${product.unit} available',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton.icon(
-                          onPressed: onEdit ?? () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
-                          icon: const Icon(Icons.edit, size: 18),
-                          label: const Text('Edit'),
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Flexible(
+                      child: Text(
+                        '${product.availableQuantity.toStringAsFixed(0)} avail',
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (onDelete != null)
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          color: Theme.of(context).colorScheme.error,
-                          tooltip: 'Delete product',
-                          onPressed: onDelete,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          icon: const Icon(Icons.edit, size: 16),
+                          onPressed: onEdit ?? () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
                         ),
-                    ],
-                  ),
-                ],
+                        if (onDelete != null)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.delete_outline, size: 16),
+                            color: Theme.of(context).colorScheme.error,
+                            onPressed: onDelete,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

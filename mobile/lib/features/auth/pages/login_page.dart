@@ -59,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
           final isLoading = state is AuthLoading;
 
           return SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
             child: Form(
               key: _formKey,
               child: Column(

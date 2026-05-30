@@ -86,7 +86,7 @@ class _CheckoutSummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Subtotal'),
-              Text('₦${cartRepository.subtotal.toStringAsFixed(2)}'),
+              Text('Ksh ${cartRepository.subtotal.toStringAsFixed(2)}'),
             ],
           ),
           const SizedBox(height: 8),

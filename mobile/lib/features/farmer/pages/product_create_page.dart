@@ -148,7 +148,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
           appBar: const CustomAppBar(title: 'Create Product'),
           drawer: const AppDrawer(),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
             child: Form(
               key: _formKey,
               child: Column(

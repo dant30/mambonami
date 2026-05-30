@@ -73,7 +73,7 @@ class _EarningsPageState extends State<EarningsPage> {
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
                             title: Text('Order #${subOrder.id}'),
-                            subtitle: Text('${subOrder.items.length} item(s) • ₦${subOrder.subtotal.toStringAsFixed(2)}'),
+                            subtitle: Text('${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
                             trailing: Text(subOrder.status.toUpperCase()),
                           ),
                         ),

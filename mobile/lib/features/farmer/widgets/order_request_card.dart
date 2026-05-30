@@ -77,7 +77,7 @@ class OrderRequestCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text('${subOrder.items.length} item(s)', style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 8),
-              Text('Subtotal: ₦${subOrder.subtotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium),
+              Text('Subtotal: Ksh ${subOrder.subtotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 12),
               Text(
                 subOrder.items.map((item) => '${item.quantity.toStringAsFixed(0)}x ${item.productName}').join(', '),

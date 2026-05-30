@@ -43,7 +43,7 @@ class EarningsSummary extends StatelessWidget {
       children: [
         Text('Earnings snapshot', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
-        _buildMetric(context, 'Total revenue', '₦${totalRevenue.toStringAsFixed(2)}'),
+        _buildMetric(context, 'Total revenue', 'Ksh ${totalRevenue.toStringAsFixed(2)}'),
         const SizedBox(height: 12),
         Row(
           children: [

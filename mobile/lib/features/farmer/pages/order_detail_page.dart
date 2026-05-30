@@ -146,7 +146,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   Text('Subtotal', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Text(
-                    '₦${_subOrder!.subtotal.toStringAsFixed(2)}',
+                    'Ksh ${_subOrder!.subtotal.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -158,8 +158,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     (item) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(item.productName),
-                      subtitle: Text('${item.quantity.toStringAsFixed(0)} × ₦${item.unitPrice.toStringAsFixed(2)}'),
-                      trailing: Text('₦${item.totalPrice.toStringAsFixed(2)}'),
+                      subtitle: Text('${item.quantity.toStringAsFixed(0)} × Ksh ${item.unitPrice.toStringAsFixed(2)}'),
+                      trailing: Text('Ksh ${item.totalPrice.toStringAsFixed(2)}'),
                     ),
                   ),
                   const SizedBox(height: 24),

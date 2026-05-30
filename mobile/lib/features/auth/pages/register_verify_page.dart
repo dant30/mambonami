@@ -118,6 +118,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
           );
 
           return SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
             child: Form(
               key: _formKey,
               child: Column(

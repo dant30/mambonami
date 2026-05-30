@@ -57,7 +57,7 @@ class CartItemWidget extends StatelessWidget {
                 children: [
                   Text(item.product.displayName, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 6),
-                  Text('₦${item.product.pricePerUnit.toStringAsFixed(2)} / ${item.product.unit}', style: theme.textTheme.bodyMedium),
+                  Text('Ksh ${item.product.pricePerUnit.toStringAsFixed(2)} / ${item.product.unit}', style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -83,7 +83,7 @@ class CartItemWidget extends StatelessWidget {
               children: [
                 IconButton(onPressed: onRemove, icon: const Icon(Icons.delete_outline)),
                 const SizedBox(height: 8),
-                Text('₦${item.lineTotal.toStringAsFixed(2)}', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                Text('Ksh ${item.lineTotal.toStringAsFixed(2)}', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
               ],
             ),
           ],

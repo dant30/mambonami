@@ -99,7 +99,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('₦${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('Ksh ${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Text('${order.totalWeightKg.toStringAsFixed(2)} kg', style: Theme.of(context).textTheme.bodySmall),
                     ],

@@ -23,6 +23,8 @@ enum DeepLinkType {
   farmerOrderDetail,
   orderTracking,
   productDetail,
+  productCatalog,
+  farmerProductList,
   disputeDetail,
   farmerDashboard,
   buyerDashboard,
@@ -51,6 +53,10 @@ class DeepLinkInfo {
         return uuid != null ? RoutePaths.orderTrackingPath(uuid!) : null;
       case DeepLinkType.productDetail:
         return uuid != null ? RoutePaths.productDetailPath(uuid!) : null;
+      case DeepLinkType.productCatalog:
+        return RoutePaths.products;
+      case DeepLinkType.farmerProductList:
+        return RoutePaths.farmerProducts;
       case DeepLinkType.farmerDashboard:
         return RoutePaths.farmerDashboard;
       case DeepLinkType.buyerDashboard:
@@ -79,7 +85,7 @@ class DeepLinkHandler {
     debugPrint('[DeepLinkHandler] Parsing URI: $uri');
 
     // Handle scheme validation
-    if (uri.scheme != 'mambonami' && uri.scheme != 'http' && uri.scheme != 'https') {
+    if (uri.scheme.isNotEmpty && uri.scheme != 'mambonami' && uri.scheme != 'http' && uri.scheme != 'https') {
       debugPrint('[DeepLinkHandler] Unsupported scheme: ${uri.scheme}');
       return DeepLinkInfo(type: DeepLinkType.unknown);
     }
@@ -105,6 +111,12 @@ class DeepLinkHandler {
       }
     }
 
+    // Route farmer products list: /farmer/products
+    if (pathSegments.length == 2 && pathSegments[0] == 'farmer' && pathSegments[1] == 'products') {
+      debugPrint('[DeepLinkHandler] Detected farmer product list');
+      return DeepLinkInfo(type: DeepLinkType.farmerProductList, params: uri.queryParameters);
+    }
+
     // Route order tracking: /orders/uuid
     if (pathSegments.length >= 2 && pathSegments[0] == 'orders') {
       final uuid = pathSegments[1];
@@ -125,6 +137,12 @@ class DeepLinkHandler {
         uuid: uuid,
         params: uri.queryParameters,
       );
+    }
+
+    // Route product catalog: /products
+    if (pathSegments.length == 1 && pathSegments[0] == 'products') {
+      debugPrint('[DeepLinkHandler] Detected product catalog');
+      return DeepLinkInfo(type: DeepLinkType.productCatalog, params: uri.queryParameters);
     }
 
     // Route dispute details: /disputes/uuid

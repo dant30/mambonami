@@ -80,7 +80,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + MediaQuery.of(context).padding.bottom),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.78,
+                      childAspectRatio: 0.70,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),

@@ -119,6 +119,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return Padding(
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -126,7 +127,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   const SizedBox(height: 12),
                   Text('Items: ${cartRepository.itemCount}'),
                   const SizedBox(height: 8),
-                  Text('Subtotal: ₦${cartRepository.subtotal.toStringAsFixed(2)}'),
+                  Text('Subtotal: Ksh ${cartRepository.subtotal.toStringAsFixed(2)}'),
                   const SizedBox(height: 8),
                   Text('Total weight: ${cartRepository.totalWeightKg.toStringAsFixed(2)} kg'),
                   const SizedBox(height: 24),

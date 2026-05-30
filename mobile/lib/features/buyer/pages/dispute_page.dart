@@ -39,6 +39,7 @@ class _DisputePageState extends State<DisputePage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
