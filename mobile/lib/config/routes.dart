@@ -1,5 +1,4 @@
-﻿// mobile/lib/config/routes.dart
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/auth/auth_guard.dart';
@@ -12,6 +11,12 @@ import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
+import '../features/transport/pages/available_orders_page.dart';
+import '../features/transport/pages/my_trips_page.dart';
+import '../features/transport/pages/trip_detail_page.dart';
+import '../features/transport/pages/pickup_page.dart';
+import '../features/transport/pages/delivery_page.dart';
+import '../features/transport/pages/earnings_page.dart';
 import '../features/notifications/pages/notifications_page.dart';
 import '../features/buyer/pages/order_tracking_page.dart';
 import '../features/buyer/pages/order_history_page.dart';
@@ -221,6 +226,60 @@ class AppRouter {
             child: OrderTrackingPage(orderUuid: uuid),
           );
         },
+      ),
+      GoRoute(
+        path: RoutePaths.availableOrders,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['transport_provider'],
+          child: AvailableOrdersPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.myTrips,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['transport_provider'],
+          child: MyTripsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.tripDetail,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          return AuthGuard(
+            allowedRoles: ['transport_provider'],
+            child: TripDetailPage(tripUuid: uuid),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.pickup,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          return AuthGuard(
+            allowedRoles: ['transport_provider'],
+            child: PickupPage(tripUuid: uuid),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.delivery,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          return AuthGuard(
+            allowedRoles: ['transport_provider'],
+            child: DeliveryPage(tripUuid: uuid),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.transportEarnings,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: ['transport_provider'],
+          child: TransportEarningsPage(),
+        ),
       ),
     ],
   );

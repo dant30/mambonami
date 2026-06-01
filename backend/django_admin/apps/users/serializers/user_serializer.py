@@ -117,21 +117,19 @@ class VerifyOTPSerializer(serializers.Serializer):
         )
 
         if user.role == 'farmer':
-            FarmerProfile.objects.create(
-                user=user,
-                farm_gps=farm_gps or '',
-                mpesa_number=mpesa_number or user.phone,
-                coop_verified=False,
-            )
+            farmer_profile, _ = FarmerProfile.objects.get_or_create(user=user)
+            farmer_profile.farm_gps = farm_gps or ''
+            farmer_profile.mpesa_number = mpesa_number or user.phone
+            farmer_profile.coop_verified = False
+            farmer_profile.save(update_fields=['farm_gps', 'mpesa_number', 'coop_verified'])
         elif user.role == 'transport_provider':
-            TransportProviderProfile.objects.create(
-                user=user,
-                vehicle_type=vehicle_type or '',
-                license_plate=license_plate or '',
-                driver_license=driver_license or '',
-                deposit_paid=False,
-                is_approved=False,
-            )
+            transport_profile, _ = TransportProviderProfile.objects.get_or_create(user=user)
+            transport_profile.vehicle_type = vehicle_type or ''
+            transport_profile.license_plate = license_plate or ''
+            transport_profile.driver_license = driver_license or ''
+            transport_profile.deposit_paid = False
+            transport_profile.is_approved = False
+            transport_profile.save(update_fields=['vehicle_type', 'license_plate', 'driver_license', 'deposit_paid', 'is_approved'])
 
         delete_otp(validated_data['phone'])
         return user
