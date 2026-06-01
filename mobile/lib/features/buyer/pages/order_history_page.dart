@@ -69,7 +69,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => context.go(RoutePaths.orderTrackingPath(order.uuid)),
+        onTap: () => context.push(RoutePaths.orderTrackingPath(order.uuid)),
 
         child: Padding(
           padding: const EdgeInsets.all(16),

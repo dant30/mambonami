@@ -46,7 +46,7 @@ class _MyTripsPageState extends State<MyTripsPage> {
                   return TripCard(
                     trip: trip,
                     onTap: () {
-                      context.go(RoutePaths.tripDetailPath(trip.uuid));
+                      context.push(RoutePaths.tripDetailPath(trip.uuid));
                     },
                   );
                 },

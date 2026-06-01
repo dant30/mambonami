@@ -26,7 +26,8 @@ class ProviderDashboard extends StatelessWidget {
       ),
       drawer: const AppDrawer(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,7 +49,10 @@ class ProviderDashboard extends StatelessWidget {
       children: [
         Text(
           'Quick Access',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -62,25 +66,25 @@ class ProviderDashboard extends StatelessWidget {
               title: 'Available Orders',
               icon: Icons.shopping_bag,
               color: Colors.blue,
-              onTap: () => context.go(RoutePaths.availableOrders),
+              onTap: () => context.push(RoutePaths.availableOrders),
             ),
             _QuickAccessCard(
               title: 'My Trips',
               icon: Icons.route,
               color: Colors.orange,
-              onTap: () => context.go(RoutePaths.myTrips),
+              onTap: () => context.push(RoutePaths.myTrips),
             ),
             _QuickAccessCard(
               title: 'Earnings',
               icon: Icons.attach_money,
               color: Colors.green,
-              onTap: () => context.go(RoutePaths.transportEarnings),
+              onTap: () => context.push(RoutePaths.transportEarnings),
             ),
             _QuickAccessCard(
               title: 'Profile',
               icon: Icons.person,
               color: Colors.purple,
-              onTap: () => context.go(RoutePaths.profile),
+              onTap: () => context.push(RoutePaths.profile),
             ),
           ],
         ),
@@ -94,11 +98,15 @@ class ProviderDashboard extends StatelessWidget {
       children: [
         Text(
           'Today\'s Overview',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -158,7 +166,10 @@ class _QuickAccessCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -181,7 +192,10 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(

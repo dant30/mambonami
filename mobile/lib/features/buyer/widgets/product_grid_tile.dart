@@ -18,7 +18,7 @@ class ProductGridTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
-        onTap: () => context.go(RoutePaths.productDetailPath(product.uuid), extra: product),
+        onTap: () => context.push(RoutePaths.productDetailPath(product.uuid), extra: product),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

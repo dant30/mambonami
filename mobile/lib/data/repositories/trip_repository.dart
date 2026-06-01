@@ -11,9 +11,12 @@ class TripRepository {
 
   Future<List<Trip>> getAvailableOrders() async {
     try {
-      final response = await _apiClient.dio.get('/api/logistics/orders/available/');
-      final List<dynamic> data = response.data;
-      return data.map((json) => Trip.fromJson(json)).toList();
+      final response =
+          await _apiClient.dio.get('/api/logistics/orders/available/');
+      final List<dynamic> data = _extractList(response.data);
+      return data
+          .map((json) => Trip.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -21,7 +24,8 @@ class TripRepository {
 
   Future<Trip> assignToMe(int orderId) async {
     try {
-      final response = await _apiClient.dio.post('/api/logistics/orders/$orderId/assign/');
+      final response =
+          await _apiClient.dio.post('/api/logistics/orders/$orderId/assign/');
       return Trip.fromJson(response.data);
     } catch (e) {
       throw _handleError(e);
@@ -31,8 +35,10 @@ class TripRepository {
   Future<List<Trip>> getMyTrips() async {
     try {
       final response = await _apiClient.dio.get('/api/logistics/my-trips/');
-      final List<dynamic> data = response.data;
-      return data.map((json) => Trip.fromJson(json)).toList();
+      final List<dynamic> data = _extractList(response.data);
+      return data
+          .map((json) => Trip.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -40,7 +46,8 @@ class TripRepository {
 
   Future<Trip> getTripDetail(String uuid) async {
     try {
-      final response = await _apiClient.dio.get('/api/logistics/my-trips/$uuid/');
+      final response =
+          await _apiClient.dio.get('/api/logistics/my-trips/$uuid/');
       return Trip.fromJson(response.data);
     } catch (e) {
       throw _handleError(e);
@@ -61,7 +68,8 @@ class TripRepository {
 
   Future<GenerateOtpResponse> generateOtp(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('/api/logistics/my-trips/$tripUuid/generate-otp/');
+      final response = await _apiClient.dio
+          .post('/api/logistics/my-trips/$tripUuid/generate-otp/');
       return GenerateOtpResponse.fromJson(response.data);
     } catch (e) {
       throw _handleError(e);
@@ -70,10 +78,29 @@ class TripRepository {
 
   Future<void> verifyOtp(String tripUuid, String otp) async {
     try {
-      await _apiClient.dio.post('/api/logistics/trips/$tripUuid/verify-otp/', data: {'otp': otp});
+      await _apiClient.dio.post('/api/logistics/trips/$tripUuid/verify-otp/',
+          data: {'otp': otp});
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  List<dynamic> _extractList(dynamic responseData) {
+    if (responseData is List) {
+      return responseData;
+    }
+    if (responseData is Map<String, dynamic>) {
+      final candidates = ['results', 'data', 'orders', 'items'];
+      for (final key in candidates) {
+        final value = responseData[key];
+        if (value is List) return value;
+        if (value is Map<String, dynamic>) {
+          final nested = _extractList(value);
+          if (nested.isNotEmpty) return nested;
+        }
+      }
+    }
+    return [];
   }
 
   String _handleError(dynamic error) {

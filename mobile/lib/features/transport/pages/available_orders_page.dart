@@ -52,7 +52,7 @@ class _AvailableOrdersPageState extends State<AvailableOrdersPage> {
                       );
                       Future.delayed(const Duration(seconds: 1), () {
                         if (mounted) {
-                          context.go(RoutePaths.tripDetailPath(trip.uuid));
+                          context.push(RoutePaths.tripDetailPath(trip.uuid));
                         }
                       });
                     },
