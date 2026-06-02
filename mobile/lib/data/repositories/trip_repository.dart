@@ -1,4 +1,6 @@
-﻿import 'package:dio/dio.dart';
+﻿// mobile/lib/data/repositories/trip_repository.dart
+import 'package:dio/dio.dart';
+import 'dart:io';
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../models/trip.dart';
@@ -56,11 +58,68 @@ class TripRepository {
 
   Future<Trip> markPickup(String uuid, TripPickupDto data) async {
     try {
-      final response = await _apiClient.dio.patch(
-        '/api/logistics/my-trips/$uuid/',
-        data: data.toJson(),
-      );
+      final endpoint = '/api/logistics/my-trips/$uuid/pickup/';
+      if (data.photoPath != null) {
+        final form = FormData();
+        final payload = data.toJson();
+        // Add non-file fields
+        payload.forEach((k, v) {
+          if (k != 'pickup_photo' && v != null)
+            form.fields.add(MapEntry(k, v.toString()));
+        });
+        // Attach file
+        final file = File(data.photoPath!);
+        form.files.add(MapEntry(
+          'pickup_photo',
+          MultipartFile.fromFileSync(file.path,
+              filename: file.path.split(Platform.pathSeparator).last),
+        ));
+
+        await _apiClient.dio.post(endpoint, data: form);
+      } else {
+        await _apiClient.dio.post(endpoint, data: data.toJson());
+      }
+
+      return await getTripDetail(uuid);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Trip> markDelivery(String uuid, TripDeliveryDto data) async {
+    try {
+      if (data.photoPath != null) {
+        final form = FormData();
+        final payload = data.toJson();
+        payload.forEach((k, v) {
+          if (k != 'delivery_photo' && v != null)
+            form.fields.add(MapEntry(k, v.toString()));
+        });
+        final file = File(data.photoPath!);
+        form.files.add(MapEntry(
+          'delivery_photo',
+          MultipartFile.fromFileSync(file.path,
+              filename: file.path.split(Platform.pathSeparator).last),
+        ));
+
+        final response = await _apiClient.dio
+            .patch('/api/logistics/my-trips/$uuid/', data: form);
+        return Trip.fromJson(response.data);
+      }
+
+      final response = await _apiClient.dio
+          .patch('/api/logistics/my-trips/$uuid/', data: data.toJson());
       return Trip.fromJson(response.data);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<TripArriveResponse> arriveAtFarm(String tripUuid) async {
+    try {
+      final response = await _apiClient.dio
+          .post('/api/logistics/my-trips/$tripUuid/arrive/');
+      return TripArriveResponse.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw _handleError(e);
     }

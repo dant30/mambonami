@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/config/routes.dart
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/auth/auth_guard.dart';

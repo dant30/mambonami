@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/features/transport/widgets/trip_card.dart
+import 'package:flutter/material.dart';
 import '../../../data/models/trip.dart';
 
 class TripCard extends StatelessWidget {

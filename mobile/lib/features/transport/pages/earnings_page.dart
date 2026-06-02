@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/features/transport/pages/earnings_page.dart
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../blocs/trip/trip_bloc.dart';

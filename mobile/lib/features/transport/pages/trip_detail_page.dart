@@ -1,3 +1,4 @@
+// mobile/lib/features/transport/pages/trip_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,8 @@ class TripDetailPage extends StatefulWidget {
 }
 
 class _TripDetailPageState extends State<TripDetailPage> {
+  int? _waitingGraceMinutes;
+
   @override
   void initState() {
     super.initState();
@@ -26,14 +29,32 @@ class _TripDetailPageState extends State<TripDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(title: 'Trip Details'),
-      body: BlocBuilder<TripBloc, TripState>(
+      body: BlocConsumer<TripBloc, TripState>(
+        listener: (context, state) {
+          if (state is ArriveAtFarmSuccess) {
+            _waitingGraceMinutes = state.response.waitingGraceMinutes;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${state.response.message}. Grace period: ${state.response.waitingGraceMinutes ?? 0} minutes.',
+                ),
+              ),
+            );
+            context.read<TripBloc>().add(FetchTripDetailEvent(widget.tripUuid));
+          } else if (state is TripError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
         builder: (context, state) {
           if (state is TripLoading) {
             return const LoadingIndicator();
           } else if (state is TripDetailLoaded) {
             final trip = state.trip;
             return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(
+                  16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -64,7 +85,11 @@ class _TripDetailPageState extends State<TripDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Status',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -80,6 +105,55 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            if (trip.agreedFee != null)
+              Row(
+                children: [
+                  Icon(Icons.attach_money, size: 20, color: Colors.green[700]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Agreed fee: ${trip.agreedFee?.toStringAsFixed(2)}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            if (trip.waitingSurcharge != null && trip.waitingSurcharge! > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.timer, size: 20, color: Colors.orange[700]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Waiting surcharge: ${trip.waitingSurcharge?.toStringAsFixed(2)}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            if (_waitingGraceMinutes != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.timelapse, size: 20, color: Colors.blue[700]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Grace window: $_waitingGraceMinutes mins',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -94,7 +168,11 @@ class _TripDetailPageState extends State<TripDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Locations', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Locations',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -104,7 +182,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pickup', style: Theme.of(context).textTheme.labelSmall),
+                      Text('Pickup',
+                          style: Theme.of(context).textTheme.labelSmall),
                       Text(
                         '${trip.pickupLat?.toStringAsFixed(2)}, ${trip.pickupLng?.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.bodySmall,
@@ -123,7 +202,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Delivery', style: Theme.of(context).textTheme.labelSmall),
+                      Text('Delivery',
+                          style: Theme.of(context).textTheme.labelSmall),
                       Text(
                         '${trip.deliveryLat?.toStringAsFixed(2)}, ${trip.deliveryLng?.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.bodySmall,
@@ -147,7 +227,11 @@ class _TripDetailPageState extends State<TripDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Timeline', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Timeline',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             if (trip.pickedUpAt != null)
               Row(
@@ -166,7 +250,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.check_circle_outline, size: 20, color: Colors.blue),
+                  Icon(Icons.check_circle_outline,
+                      size: 20, color: Colors.blue),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -184,24 +269,40 @@ class _TripDetailPageState extends State<TripDetailPage> {
   }
 
   Widget _buildActionButtons(BuildContext context, var trip) {
-    return Row(
-      children: [
-        if (trip.status == 'assigned')
-          Expanded(
+    if (trip.status == 'assigned') {
+      return Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () =>
+                  context.read<TripBloc>().add(ArriveAtFarmEvent(trip.uuid)),
+              child: const Text('Arrived at Farm'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
             child: ElevatedButton(
               onPressed: () => context.go(RoutePaths.pickupPath(trip.uuid)),
               child: const Text('Start Pickup'),
             ),
           ),
-        if (trip.status == 'picked_up')
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => context.go(RoutePaths.deliveryPath(trip.uuid)),
-              child: const Text('Start Delivery'),
-            ),
-          ),
-      ],
-    );
+        ],
+      );
+    }
+
+    if (trip.status == 'picked_up') {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => context.go(RoutePaths.deliveryPath(trip.uuid)),
+          child: const Text('Start Delivery'),
+        ),
+      );
+    }
+
+    return const SizedBox();
   }
 
   Color _getStatusColor(String status) {

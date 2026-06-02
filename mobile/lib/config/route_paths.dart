@@ -1,3 +1,4 @@
+// mobile/lib/config/route_paths.dart
 class RoutePaths {
   static const login = '/login';
   static const register = '/register';

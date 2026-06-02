@@ -1,3 +1,4 @@
+// mobile/lib/data/dtos/trip_dto.dart
 class TripPickupDto {
   final double? latitude;
   final double? longitude;
@@ -46,4 +47,23 @@ class VerifyOtpRequest {
   VerifyOtpRequest(this.otp);
 
   Map<String, dynamic> toJson() => {'otp': otp};
+}
+
+class TripArriveResponse {
+  final String message;
+  final DateTime? arrivedAt;
+  final int? waitingGraceMinutes;
+
+  TripArriveResponse(
+      {required this.message, this.arrivedAt, this.waitingGraceMinutes});
+
+  factory TripArriveResponse.fromJson(Map<String, dynamic> json) {
+    return TripArriveResponse(
+      message: json['message']?.toString() ?? '',
+      arrivedAt: json['arrived_at'] != null
+          ? DateTime.parse(json['arrived_at'])
+          : null,
+      waitingGraceMinutes: json['waiting_grace_minutes'] as int?,
+    );
+  }
 }

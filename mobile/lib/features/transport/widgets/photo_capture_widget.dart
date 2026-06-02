@@ -1,5 +1,7 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/features/transport/widgets/photo_capture_widget.dart
+import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class PhotoCaptureWidget extends StatefulWidget {
   final String title;
@@ -118,10 +120,47 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
   }
 
   void _selectPhoto() {
-    // TODO: Implement photo selection using image_picker or camera
-    // For now, this is a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Photo selection to be implemented')),
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final picker = ImagePicker();
+                  final XFile? picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+                  if (picked != null) {
+                    setState(() => _selectedPhoto = File(picked.path));
+                    widget.onPhotoSelected(_selectedPhoto);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final picker = ImagePicker();
+                  final XFile? picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+                  if (picked != null) {
+                    setState(() => _selectedPhoto = File(picked.path));
+                    widget.onPhotoSelected(_selectedPhoto);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: const Text('Cancel'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

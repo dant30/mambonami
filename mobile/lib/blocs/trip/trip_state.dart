@@ -1,4 +1,5 @@
-﻿part of 'trip_bloc.dart';
+﻿// mobile/lib/blocs/trip/trip_state.dart
+part of 'trip_bloc.dart';
 
 abstract class TripState extends Equatable {
   const TripState();
@@ -37,6 +38,18 @@ class PickupMarked extends TripState {
   final Trip trip;
   const PickupMarked(this.trip);
   @override List<Object> get props => [trip];
+}
+
+class DeliveryMarked extends TripState {
+  final Trip trip;
+  const DeliveryMarked(this.trip);
+  @override List<Object> get props => [trip];
+}
+
+class ArriveAtFarmSuccess extends TripState {
+  final TripArriveResponse response;
+  const ArriveAtFarmSuccess(this.response);
+  @override List<Object?> get props => [response.message, response.arrivedAt, response.waitingGraceMinutes];
 }
 
 class OtpGenerated extends TripState {

@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import '../../../config/route_paths.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/widgets/loading_indicator.dart';
-import '../../../shared/widgets/empty_state.dart';
 import '../../../data/models/cart_item.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../../data/repositories/order_repository.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/loading_indicator.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -104,64 +106,89 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final cartRepository = GetIt.instance<CartRepository>();
     final dateText = _scheduledDate == null ? 'Choose delivery date' : DateFormat.yMMMd().format(_scheduledDate!);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Checkout', showNotificationAction: true),
+      appBar: const CustomAppBar(title: 'Checkout', showNotificationAction: true, showBackButton: true),
       body: ValueListenableBuilder<List<CartItem>>(
         valueListenable: cartRepository.items,
         builder: (context, items, _) {
           if (items.isEmpty) {
-            return const EmptyState(message: 'Add items to your cart before checkout.');
+            return const EmptyState(
+              title: 'Cart is empty',
+              description: 'Add items to your cart before completing checkout.',
+            );
           }
 
           return Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
             child: SingleChildScrollView(
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Order summary', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 12),
-                  Text('Items: ${cartRepository.itemCount}'),
-                  const SizedBox(height: 8),
-                  Text('Subtotal: Ksh ${cartRepository.subtotal.toStringAsFixed(2)}'),
-                  const SizedBox(height: 8),
-                  Text('Total weight: ${cartRepository.totalWeightKg.toStringAsFixed(2)} kg'),
-                  const SizedBox(height: 24),
-                  Form(
-                    key: _formKey,
+                  CustomCard(
+                    padding: const EdgeInsets.all(20),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextFormField(
-                          controller: _addressController,
-                          decoration: const InputDecoration(labelText: 'Delivery address'),
-                          validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery address' : null,
-                        ),
+                        Text('Order summary', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 16),
-                        TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(labelText: 'Delivery date', hintText: dateText),
-                          onTap: _selectDate,
-                          validator: (_) => _scheduledDate == null ? 'Choose a delivery date' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _timeWindowController,
-                          decoration: const InputDecoration(labelText: 'Preferred time window', hintText: 'e.g. 9am - 12pm'),
-                          validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery window' : null,
-                        ),
-                        const SizedBox(height: 24),
-                        _isSubmitting
-                            ? const Center(child: LoadingIndicator())
-                            : ElevatedButton(
-                                onPressed: _submitOrder,
-                                child: const Text('Place Order'),
-                              ),
+                        _summaryRow('Items', cartRepository.itemCount.toString()),
+                        const SizedBox(height: 10),
+                        _summaryRow('Subtotal', 'Ksh ${cartRepository.subtotal.toStringAsFixed(2)}'),
+                        const SizedBox(height: 10),
+                        _summaryRow('Weight', '${cartRepository.totalWeightKg.toStringAsFixed(2)} kg'),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  CustomCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('Delivery details', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _addressController,
+                            decoration: const InputDecoration(labelText: 'Delivery address'),
+                            validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery address' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: AbsorbPointer(
+                              child: TextFormField(
+                                readOnly: true,
+                                decoration: InputDecoration(
+                                  labelText: 'Delivery date',
+                                  hintText: dateText,
+                                  suffixIcon: const Icon(Icons.calendar_today),
+                                ),
+                                validator: (_) => _scheduledDate == null ? 'Choose a delivery date' : null,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _timeWindowController,
+                            decoration: const InputDecoration(labelText: 'Preferred time window', hintText: 'e.g. 9am - 12pm'),
+                            validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery window' : null,
+                          ),
+                          const SizedBox(height: 24),
+                          _isSubmitting
+                              ? const Center(child: LoadingIndicator())
+                              : CustomButton(
+                                  label: 'Place order',
+                                  onPressed: _submitOrder,
+                                ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -169,6 +196,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75))),
+          Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+        ],
       ),
     );
   }

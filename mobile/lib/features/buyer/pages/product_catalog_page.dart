@@ -7,6 +7,7 @@ import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/cart_action_button.dart';
 import '../widgets/product_grid_tile.dart';
 
 class ProductCatalogPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Products', showNotificationAction: true),
+      appBar: CustomAppBar(title: 'Products', showNotificationAction: true, actions: const [CartActionButton()]),
       drawer: const AppDrawer(),
       body: Column(
         children: [

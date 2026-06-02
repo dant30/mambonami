@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/cart_action_button.dart';
 
 class DisputePage extends StatefulWidget {
   const DisputePage({super.key});
@@ -35,7 +36,7 @@ class _DisputePageState extends State<DisputePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Report a Dispute', showNotificationAction: true),
+      appBar: CustomAppBar(title: 'Dispute', showNotificationAction: true, showBackButton: true, actions: const [CartActionButton()]),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(

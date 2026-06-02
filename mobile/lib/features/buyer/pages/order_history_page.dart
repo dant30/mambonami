@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../blocs/order/order_bloc.dart';
-import '../../../data/models/order.dart';
 import '../../../config/route_paths.dart';
+import '../../../data/models/order.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/cart_action_button.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -25,9 +28,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'My Orders',
+      appBar: CustomAppBar(
+        title: 'Order History',
         showNotificationAction: true,
+        showBackButton: true,
+        actions: const [CartActionButton()],
       ),
       drawer: const AppDrawer(),
       body: BlocBuilder<OrderBloc, OrderState>(
@@ -41,7 +46,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           if (state is MyOrdersLoaded) {
             final orders = state.orders;
             if (orders.isEmpty) {
-              return const Center(child: Text('No orders yet'));
+              return const Center(child: Text('You have no orders yet.'));
             }
             return RefreshIndicator(
               onRefresh: () async => context.read<OrderBloc>().add(FetchMyOrdersEvent()),
@@ -64,51 +69,41 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   Widget _buildOrderCard(BuildContext context, Order order) {
     final date = DateFormat('MMM d, yyyy • hh:mm a').format(order.createdAt.toLocal());
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => context.push(RoutePaths.orderTrackingPath(order.uuid)),
-
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return CustomCard(
+      onTap: () => context.push(RoutePaths.orderTrackingPath(order.uuid)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Order #${order.id}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  _buildStatusChip(order.status),
-                ],
+              Expanded(
+                child: Text(
+                  'Order #${order.id}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
-              const SizedBox(height: 12),
-              Text(date, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 8),
-              Text(order.deliveryAddress, maxLines: 2, overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 12),
-              Row(
+              _buildStatusChip(order.status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(date, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+          const SizedBox(height: 10),
+          Text(order.deliveryAddress, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: Text('${order.subOrders.length} seller(s)', style: Theme.of(context).textTheme.bodyMedium)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${order.subOrders.length} seller(s)', style: Theme.of(context).textTheme.bodyMedium),
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Ksh ${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Text('${order.totalWeightKg.toStringAsFixed(2)} kg', style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
+                  Text('Ksh ${order.totalAmount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  Text('${order.totalWeightKg.toStringAsFixed(2)} kg', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -135,7 +130,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         return Theme.of(context).colorScheme.secondary;
       case 'pending':
       case 'processing':
-        return Theme.of(context).colorScheme.secondary;
+        return Theme.of(context).colorScheme.primary.withOpacity(0.9);
       case 'cancelled':
         return Theme.of(context).colorScheme.error;
       default:

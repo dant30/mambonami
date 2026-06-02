@@ -1,4 +1,5 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+﻿// mobile/lib/blocs/trip/trip_bloc.dart
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/trip_repository.dart';
 import '../../data/dtos/trip_dto.dart';
@@ -16,11 +17,14 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     on<FetchMyTripsEvent>(_onFetchMyTrips);
     on<FetchTripDetailEvent>(_onFetchTripDetail);
     on<MarkPickupEvent>(_onMarkPickup);
+    on<MarkDeliveryEvent>(_onMarkDelivery);
+    on<ArriveAtFarmEvent>(_onArriveAtFarm);
     on<GenerateOtpEvent>(_onGenerateOtp);
     on<VerifyOtpEvent>(_onVerifyOtp);
   }
 
-  Future<void> _onFetchAvailableOrders(FetchAvailableOrdersEvent event, Emitter<TripState> emit) async {
+  Future<void> _onFetchAvailableOrders(
+      FetchAvailableOrdersEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final orders = await tripRepository.getAvailableOrders();
@@ -30,7 +34,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onAssignOrder(AssignOrderEvent event, Emitter<TripState> emit) async {
+  Future<void> _onAssignOrder(
+      AssignOrderEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final trip = await tripRepository.assignToMe(event.orderId);
@@ -40,7 +45,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onFetchMyTrips(FetchMyTripsEvent event, Emitter<TripState> emit) async {
+  Future<void> _onFetchMyTrips(
+      FetchMyTripsEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final trips = await tripRepository.getMyTrips();
@@ -50,7 +56,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onFetchTripDetail(FetchTripDetailEvent event, Emitter<TripState> emit) async {
+  Future<void> _onFetchTripDetail(
+      FetchTripDetailEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final trip = await tripRepository.getTripDetail(event.tripUuid);
@@ -60,7 +67,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onMarkPickup(MarkPickupEvent event, Emitter<TripState> emit) async {
+  Future<void> _onMarkPickup(
+      MarkPickupEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final dto = TripPickupDto(
@@ -75,7 +83,35 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onGenerateOtp(GenerateOtpEvent event, Emitter<TripState> emit) async {
+  Future<void> _onMarkDelivery(
+      MarkDeliveryEvent event, Emitter<TripState> emit) async {
+    emit(TripLoading());
+    try {
+      final dto = TripDeliveryDto(
+        latitude: event.latitude,
+        longitude: event.longitude,
+        photoPath: event.photoPath,
+      );
+      final trip = await tripRepository.markDelivery(event.tripUuid, dto);
+      emit(DeliveryMarked(trip));
+    } catch (e) {
+      emit(TripError(e.toString()));
+    }
+  }
+
+  Future<void> _onArriveAtFarm(
+      ArriveAtFarmEvent event, Emitter<TripState> emit) async {
+    emit(TripLoading());
+    try {
+      final response = await tripRepository.arriveAtFarm(event.tripUuid);
+      emit(ArriveAtFarmSuccess(response));
+    } catch (e) {
+      emit(TripError(e.toString()));
+    }
+  }
+
+  Future<void> _onGenerateOtp(
+      GenerateOtpEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       final result = await tripRepository.generateOtp(event.tripUuid);
@@ -85,7 +121,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     }
   }
 
-  Future<void> _onVerifyOtp(VerifyOtpEvent event, Emitter<TripState> emit) async {
+  Future<void> _onVerifyOtp(
+      VerifyOtpEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
       await tripRepository.verifyOtp(event.tripUuid, event.otp);
