@@ -16,11 +16,13 @@ import 'data/repositories/product_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'data/repositories/trip_repository.dart';
 import 'data/repositories/notification_repository.dart';
+import 'data/repositories/dispute_repository.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/product/product_bloc.dart';
 import 'blocs/order/order_bloc.dart';
 import 'blocs/trip/trip_bloc.dart';
 import 'blocs/notification/notification_bloc.dart';
+import 'blocs/dispute/dispute_bloc.dart';
 import 'blocs/theme/theme_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -53,6 +55,7 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   getIt.registerSingleton<OrderRepository>(OrderRepository());
   getIt.registerSingleton<TripRepository>(TripRepository());
   getIt.registerSingleton<NotificationRepository>(NotificationRepository());
+  getIt.registerSingleton<DisputeRepository>(DisputeRepository());
 
   // BLoCs
   getIt.registerLazySingleton<NotificationBloc>(() => NotificationBloc(
@@ -81,6 +84,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),
         BlocProvider(create: (_) => TripBloc(tripRepository: getIt<TripRepository>())),
+        BlocProvider(create: (_) => DisputeBloc(disputeRepository: getIt<DisputeRepository>())),
         BlocProvider(create: (_) => getIt<NotificationBloc>()..add(FetchNotificationsEvent())),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(

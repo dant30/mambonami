@@ -53,33 +53,60 @@ class _EarningsPageState extends State<EarningsPage> {
             final readyCount = subOrders.where((o) => o.isReady).length;
             final pendingCount = subOrders.where((o) => o.isPending).length;
 
-            return RefreshIndicator(
-              onRefresh: _refresh,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
-                children: [
-                  EarningsSummary(
-                    totalRevenue: totalRevenue,
-                    totalOrders: subOrders.length,
-                    confirmedOrders: confirmedCount,
-                    readyOrders: readyCount,
-                    pendingOrders: pendingCount,
+            return Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  const SizedBox(height: 24),
-                  Text('Recent order requests', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 12),
-                  ...subOrders.take(5).map(
-                        (subOrder) => Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            title: Text('Order #${subOrder.id}'),
-                            subtitle: Text('${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
-                            trailing: Text(subOrder.status.toUpperCase()),
-                          ),
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Earnings', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 6),
+                      Text('Overview of your farm revenue', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + MediaQuery.of(context).padding.bottom),
+                      children: [
+                        EarningsSummary(
+                          totalRevenue: totalRevenue,
+                          totalOrders: subOrders.length,
+                          confirmedOrders: confirmedCount,
+                          readyOrders: readyCount,
+                          pendingOrders: pendingCount,
                         ),
-                      ),
-                ],
-              ),
+                        const SizedBox(height: 24),
+                        Text('Recent order requests', style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 12),
+                        ...subOrders.take(5).map(
+                              (subOrder) => Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  title: Text('Order #${subOrder.id}'),
+                                  subtitle: Text('${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
+                                  trailing: Text(subOrder.status.toUpperCase()),
+                                ),
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             );
           }
 

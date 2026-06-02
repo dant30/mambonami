@@ -66,20 +66,49 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
-      final response = await _apiClient.dio.post(kLoginEndpoint, data: {
-        'phone': phone,
-        'password': password,
-      });
-      if (response.statusCode == 200) {
-        final tokens = response.data;
-        await _secureStorage.saveTokens(tokens['access'], tokens['refresh']);
-        // After login, fetch user profile to get role
-        final user = await getProfile();
-        await _secureStorage.saveUserRole(user['role']);
-        await _secureStorage.saveUserPhone(phone);
-        return user;
+      final response = await _apiClient.dio.post(
+        kLoginEndpoint,
+        data: {'phone': phone, 'password': password},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Login failed with status ${response.statusCode}');
       }
-      throw Exception('Login failed');
+
+      // Validate response structure
+      if (response.data is! Map<String, dynamic>) {
+        throw Exception('Invalid response format from server');
+      }
+
+      final responseData = response.data as Map<String, dynamic>;
+
+      // Extract tokens
+      if (responseData['tokens'] == null || responseData['tokens'] is! Map) {
+        throw Exception('Missing or invalid tokens in response');
+      }
+      final tokens = responseData['tokens'] as Map<String, dynamic>;
+
+      if (tokens['access'] == null || tokens['refresh'] == null) {
+        throw Exception('Missing access or refresh token');
+      }
+
+      // Extract user data
+      if (responseData['user'] == null || responseData['user'] is! Map) {
+        throw Exception('Missing or invalid user data in response');
+      }
+      final user = responseData['user'] as Map<String, dynamic>;
+
+      // Validate required user fields
+      if (user['role'] == null || user['phone'] == null) {
+        throw Exception('Missing required user fields (role or phone)');
+      }
+
+      // Save tokens and user info to secure storage
+      await _secureStorage.saveTokens(tokens['access'] as String, tokens['refresh'] as String);
+      await _secureStorage.saveUserRole(user['role'] as String);
+      await _secureStorage.saveUserPhone(user['phone'] as String);
+
+      return user;
     } catch (e) {
       throw _handleError(e);
     }
@@ -128,15 +157,47 @@ class AuthRepository {
 
   String _handleError(dynamic error) {
     if (error is DioException) {
+      final statusCode = error.response?.statusCode;
       final data = error.response?.data;
-      if (data != null && data['detail'] != null) {
-        return data['detail'];
+
+      // Log error details for debugging
+      print('AuthRepository Error - Status: $statusCode, Type: ${error.type}');
+      if (data != null) {
+        print('Error Response: $data');
       }
-      if (data != null && data['error'] != null) {
-        return data['error'];
+
+      // Handle specific HTTP status codes
+      switch (statusCode) {
+        case 400:
+          return data?['detail'] ?? 'Invalid phone or password format';
+        case 401:
+          return data?['detail'] ?? 'Invalid phone number or password';
+        case 409:
+          return data?['detail'] ?? 'User already exists';
+        case 429:
+          return 'Too many login attempts. Please try again later.';
+        case 500:
+        case 502:
+        case 503:
+          return 'Server error. Please try again later.';
+        default:
+          if (data != null) {
+            if (data is Map && data['detail'] != null) {
+              return data['detail'];
+            }
+            if (data is Map && data['error'] != null) {
+              return data['error'];
+            }
+          }
+          return 'Network error: ${error.message}';
       }
-      return 'Network error: ${error.message}';
     }
+    
+    // Handle validation errors from response parsing
+    if (error is Exception) {
+      print('AuthRepository Exception: ${error.toString()}');
+    }
+    
     return error.toString();
   }
 }

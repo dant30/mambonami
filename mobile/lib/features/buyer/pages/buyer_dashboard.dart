@@ -6,9 +6,7 @@ import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/cart_action_button.dart';
-import '../../../shared/widgets/greeting_header.dart';
 
 class BuyerDashboard extends StatelessWidget {
   const BuyerDashboard({super.key});
@@ -26,7 +24,7 @@ class BuyerDashboard extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Buyer Dashboard',
         showNotificationAction: true,
-        showBackButton: false,
+        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(context).openDrawer()),
         actions: const [CartActionButton()],
       ),
       drawer: const AppDrawer(),
@@ -64,11 +62,13 @@ class BuyerDashboard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    CustomButton(
-                      label: 'Browse products',
+                    ElevatedButton(
                       onPressed: () => context.push(RoutePaths.products),
-                      color: Colors.white,
-                      textColor: theme.colorScheme.primary,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: theme.colorScheme.primary,
+                      ),
+                      child: const Text('Browse products'),
                     ),
                   ],
                 ),
@@ -144,6 +144,8 @@ class _DashboardCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 6,
+        shadowColor: Theme.of(context).shadowColor.withOpacity(0.12),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),

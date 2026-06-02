@@ -21,9 +21,10 @@ class ProviderDashboard extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Transport Provider',
         showNotificationAction: true,
+        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(context).openDrawer()),
       ),
       drawer: const AppDrawer(),
       body: SingleChildScrollView(
@@ -148,6 +149,8 @@ class _QuickAccessCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 6,
+        shadowColor: Theme.of(context).shadowColor.withOpacity(0.12),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),

@@ -19,16 +19,16 @@ class EarningsSummary extends StatelessWidget {
   Widget _buildMetric(BuildContext context, String label, String value, {Color? color}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: color ?? Theme.of(context).colorScheme.surfaceVariant,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 8),
+            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 10),
             Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           ],
         ),
@@ -41,23 +41,23 @@ class EarningsSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Earnings snapshot', style: Theme.of(context).textTheme.titleLarge),
+        Text('Earnings snapshot', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 16),
-        _buildMetric(context, 'Total revenue', 'Ksh ${totalRevenue.toStringAsFixed(2)}'),
-        const SizedBox(height: 12),
+        _buildMetric(context, 'Total revenue', 'Ksh ${totalRevenue.toStringAsFixed(2)}', color: Theme.of(context).colorScheme.primaryContainer),
+        const SizedBox(height: 14),
         Row(
           children: [
-            _buildMetric(context, 'Orders', totalOrders.toString()),
+            _buildMetric(context, 'Orders', totalOrders.toString(), color: Theme.of(context).colorScheme.surfaceVariant),
             const SizedBox(width: 12),
-            _buildMetric(context, 'Confirmed', confirmedOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.06)),
+            _buildMetric(context, 'Confirmed', confirmedOrders.toString(), color: Theme.of(context).colorScheme.secondaryContainer),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(
           children: [
-            _buildMetric(context, 'Ready', readyOrders.toString(), color: Theme.of(context).colorScheme.primary.withOpacity(0.06)),
+            _buildMetric(context, 'Ready', readyOrders.toString(), color: Theme.of(context).colorScheme.primary.withOpacity(0.12)),
             const SizedBox(width: 12),
-            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.06)),
+            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.12)),
           ],
         ),
       ],

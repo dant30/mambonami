@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import '../../../blocs/notification/notification_bloc.dart';
 import '../../../blocs/order_tracking/order_tracking_bloc.dart';
-import '../../../config/route_paths.dart';
+
 import '../../../data/repositories/order_repository.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/custom_button.dart';

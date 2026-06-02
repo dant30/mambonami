@@ -154,11 +154,27 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Add a new product to your farmer catalog',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Add a new product', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 6),
+                        Text('Fill details and publish to your catalog', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
                   if (_isLoadingCategories)
                     const LinearProgressIndicator()
                   else if (_categories.isNotEmpty)

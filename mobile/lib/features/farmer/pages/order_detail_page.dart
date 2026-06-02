@@ -7,6 +7,7 @@ import '../../../data/models/order.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -131,18 +132,40 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   16 + MediaQuery.of(context).padding.bottom,
                 ),
                 children: [
-                  Text('Order #${_subOrder!.id}', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Chip(
-                        label: Text(_subOrder!.status.toUpperCase()),
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      const SizedBox(width: 12),
-                      Text('Farmer: ${_subOrder!.farmerName}'),
-                    ],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: Text('Order #${_subOrder!.id}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800))),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(_subOrder!.status.toUpperCase(), style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Farmer: ${_subOrder!.farmerName}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 6),
                   Text('Subtotal', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Text(

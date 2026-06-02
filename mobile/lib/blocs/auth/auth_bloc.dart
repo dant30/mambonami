@@ -37,6 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       RegisterVerifyEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
+      print('AuthBloc: Starting registration verification for phone ${event.phone}');
       final user = await authRepository.registerVerify(
         phone: event.phone,
         otp: event.otp,
@@ -48,9 +49,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         vehicleType: event.vehicleType,
         licensePlate: event.licensePlate,
       );
-      emit(AuthAuthenticated(user['role'], event.phone,
+      
+      // Validate user data
+      if (user['role'] == null || user['phone'] == null) {
+        throw Exception('Invalid user data from registration: missing role or phone');
+      }
+      
+      print('AuthBloc: Registration successful for role ${user['role']}');
+      emit(AuthAuthenticated(
+          user['role'] as String, 
+          event.phone,
           user['username'] as String? ?? event.username));
     } catch (e) {
+      print('AuthBloc: Registration verification failed: $e');
       emit(AuthError(e.toString()));
     }
   }
@@ -58,10 +69,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
+      print('AuthBloc: Starting login for phone ${event.phone}');
       final user = await authRepository.login(event.phone, event.password);
+      
+      // Validate user data
+      if (user['role'] == null || user['phone'] == null) {
+        throw Exception('Invalid user data: missing role or phone');
+      }
+      
+      print('AuthBloc: Login successful for role ${user['role']}');
       emit(AuthAuthenticated(
-          user['role'], event.phone, user['username'] as String?));
+          user['role'] as String, 
+          event.phone, 
+          user['username'] as String?));
     } catch (e) {
+      print('AuthBloc: Login failed with error: $e');
       emit(AuthError(e.toString()));
     }
   }

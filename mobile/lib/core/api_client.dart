@@ -16,6 +16,7 @@ class ApiClient {
       baseUrl: getApiBaseUrl(),
       connectTimeout: kApiConnectTimeout,
       receiveTimeout: kApiReceiveTimeout,
+      sendTimeout: kApiReceiveTimeout,  // Add send timeout
       headers: {'Content-Type': 'application/json'},
     ));
     _addInterceptors();
@@ -80,34 +81,42 @@ class ApiClient {
   }
 
   Future<bool> _refreshToken() async {
-    if (_isRefreshing) return false;
+    if (_isRefreshing) {
+      AppLogger.debug('Token refresh already in progress, skipping');
+      return false;
+    }
     _isRefreshing = true;
     try {
       final refreshToken = await getIt<SecureStorage>().getRefreshToken();
       if (refreshToken == null) {
-        AppLogger.warning('No refresh token available');
+        AppLogger.warning('No refresh token available - user must re-login');
         return false;
       }
 
+      AppLogger.debug('Attempting to refresh access token');
       final response = await _dio.post(
         kRefreshTokenEndpoint,
         data: {'refresh': refreshToken},
-      );
+      ).timeout(kApiReceiveTimeout);
 
       if (response.statusCode == 200) {
         final access = response.data['access'] as String?;
         final refresh = response.data['refresh'] as String?;
-        if (access != null) {
-          await getIt<SecureStorage>().saveTokens(access, refresh ?? refreshToken);
-          AppLogger.info('Token refresh succeeded');
-          return true;
+        
+        if (access == null) {
+          AppLogger.error('Token refresh response missing access token');
+          return false;
         }
+        
+        await getIt<SecureStorage>().saveTokens(access, refresh ?? refreshToken);
+        AppLogger.info('Token refresh succeeded');
+        return true;
       }
 
-      AppLogger.warning('Refresh token endpoint returned ${response.statusCode}');
+      AppLogger.warning('Token refresh returned status ${response.statusCode}');
       return false;
     } catch (error, stackTrace) {
-      AppLogger.error('Token refresh request failed', error: error, stackTrace: stackTrace);
+      AppLogger.error('Token refresh failed', error: error, stackTrace: stackTrace);
       return false;
     } finally {
       _isRefreshing = false;

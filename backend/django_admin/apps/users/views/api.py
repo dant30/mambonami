@@ -79,8 +79,15 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
         user = authenticate_user(phone, password)
         if not user:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         tokens = get_tokens_for_user(user)
-        return Response(tokens, status=status.HTTP_200_OK)
+        user_data = UserDetailSerializer(user).data
+        
+        # Return both tokens and user data in a single response
+        return Response(
+            {'tokens': tokens, 'user': user_data},
+            status=status.HTTP_200_OK
+        )
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):

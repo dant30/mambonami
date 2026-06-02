@@ -55,17 +55,44 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
               );
             }
 
-            return RefreshIndicator(
-              onRefresh: _refresh,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                itemBuilder: (context, index) {
-                  final subOrder = subOrders[index];
-                  return OrderRequestCard(subOrder: subOrder, onTap: () => _openDetail(subOrder));
-                },
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemCount: subOrders.length,
-              ),
+            return Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Order Requests', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 6),
+                      Text('Confirm and fulfill incoming farm orders', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      itemBuilder: (context, index) {
+                        final subOrder = subOrders[index];
+                        return OrderRequestCard(subOrder: subOrder, onTap: () => _openDetail(subOrder));
+                      },
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemCount: subOrders.length,
+                    ),
+                  ),
+                ),
+              ],
             );
           }
 

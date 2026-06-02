@@ -114,33 +114,61 @@ class _ProductListPageState extends State<ProductListPage> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              _fetchProducts();
-            },
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final bottomInset = MediaQuery.of(context).padding.bottom + 56.0; // account for system inset and possible bottom nav
-                return GridView.builder(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.65,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    return FarmerProductCard(
-                      product: product,
-                      onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
-                      onDelete: () => _confirmDelete(product),
-                    );
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('My Products', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 6),
+                    Text('Manage your catalog and listings', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _fetchProducts();
                   },
-                );
-              },
-            ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bottomInset = MediaQuery.of(context).padding.bottom + 56.0; // account for system inset and possible bottom nav
+                      return GridView.builder(
+                        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.65,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          return FarmerProductCard(
+                            product: product,
+                            onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+                            onDelete: () => _confirmDelete(product),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

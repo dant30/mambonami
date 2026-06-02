@@ -6,7 +6,7 @@ import '../../../data/models/cart_item.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../../features/buyer/widgets/cart_item.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/themes/app_theme_extension.dart';
+
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';

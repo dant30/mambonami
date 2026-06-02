@@ -2,45 +2,7 @@
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../models/order.dart';
-
-class CreateOrderRequest {
-  final List<CartItemDto> items;
-  final String deliveryAddress;
-  final double deliveryLat;
-  final double deliveryLng;
-  final String scheduledDate;
-  final String scheduledTimeWindow;
-
-  CreateOrderRequest({
-    required this.items,
-    required this.deliveryAddress,
-    required this.deliveryLat,
-    required this.deliveryLng,
-    required this.scheduledDate,
-    required this.scheduledTimeWindow,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'items': items.map((e) => e.toJson()).toList(),
-    'delivery_address': deliveryAddress,
-    'delivery_lat': deliveryLat,
-    'delivery_lng': deliveryLng,
-    'scheduled_date': scheduledDate,
-    'scheduled_time_window': scheduledTimeWindow,
-  };
-}
-
-class CartItemDto {
-  final String productUuid;
-  final double quantity;
-
-  CartItemDto({required this.productUuid, required this.quantity});
-
-  Map<String, dynamic> toJson() => {
-    'product_uuid': productUuid,
-    'quantity': quantity,
-  };
-}
+import '../dtos/order_dto.dart';
 
 final getIt = GetIt.instance;
 
@@ -88,7 +50,7 @@ class OrderRepository {
 
   Future<void> confirmSubOrder(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/confirm/', data: {'action': 'confirm'});
+      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/confirm/', data: {'action': 'confirm'});
     } catch (e) {
       throw _handleError(e);
     }
@@ -96,7 +58,7 @@ class OrderRepository {
 
   Future<void> markSubOrderReady(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/ready/');
+      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/ready/');
     } catch (e) {
       throw _handleError(e);
     }

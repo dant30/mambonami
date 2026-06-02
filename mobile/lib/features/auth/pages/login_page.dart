@@ -32,7 +32,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(LoginEvent(_phoneController.text.trim(), _passwordController.text));
+      final phone = _phoneController.text.trim();
+      final password = _passwordController.text;
+      print('LoginPage: Attempting login with phone: $phone');
+      context.read<AuthBloc>().add(LoginEvent(phone, password));
     }
   }
 
@@ -44,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             final role = state.role;
+            print('LoginPage: Navigation triggered for role: $role');
             if (role == 'farmer') {
               context.go(RoutePaths.farmerDashboard);
             } else if (role == 'transport_provider') {
@@ -52,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
               context.go(RoutePaths.buyerDashboard);
             }
           } else if (state is AuthError) {
+            print('LoginPage: Auth error - ${state.message}');
             CustomSnackbar.showError(context, state.message);
           }
         },
