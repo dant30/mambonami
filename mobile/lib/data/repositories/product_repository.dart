@@ -4,12 +4,21 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
+import '../../core/constants.dart';
+import '../local/database_helper.dart';
 import '../models/product.dart';
 
 final getIt = GetIt.instance;
 
 class ProductRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
+  final DatabaseHelper _databaseHelper = getIt<DatabaseHelper>();
+
+  /// Attempt to load products from local DB cache
+  Future<List<Product>> getCachedProducts({String? categoryCode, int? farmerId}) async {
+    final records = await _databaseHelper.getRecords(kProductTable);
+    return records.map((r) => Product.fromJson(r)).toList();
+  }
 
   Future<List<Product>> getProducts({String? categoryCode, int? farmerId}) async {
     try {
@@ -20,10 +29,27 @@ class ProductRepository {
       final response = await _apiClient.dio.get('/api/products/', queryParameters: queryParams);
       if (response.statusCode == 200) {
         final List<dynamic> data = _extractList(response.data);
-        return data.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+        final products = data.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+
+        // persist each product into local DB for offline access with TTL
+        for (final p in products) {
+          try {
+            await _databaseHelper.insertOrUpdateRecord(kProductTable, p.uuid, p.toJson(), ttl: kProductCacheTTL);
+          } catch (_) {}
+        }
+
+        return products;
       }
+
+      // Fallback: return cached products when network failed
+      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId);
+      if (cached.isNotEmpty) return cached;
+
       throw Exception('Failed to fetch products');
     } catch (e) {
+      // On error return cached products if available
+      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId);
+      if (cached.isNotEmpty) return cached;
       throw _handleError(e);
     }
   }
@@ -32,10 +58,21 @@ class ProductRepository {
     try {
       final response = await _apiClient.dio.get('/api/products/$uuid/');
       if (response.statusCode == 200) {
-        return Product.fromJson(response.data);
+        final product = Product.fromJson(response.data as Map<String, dynamic>);
+        try {
+          await _databaseHelper.insertOrUpdateRecord(kProductTable, uuid, product.toJson(), ttl: kProductCacheTTL);
+        } catch (_) {}
+        return product;
       }
+
+      // Try cached
+      final record = await _databaseHelper.getRecord(kProductTable, uuid);
+      if (record != null) return Product.fromJson(record);
+
       throw Exception('Product not found');
     } catch (e) {
+      final record = await _databaseHelper.getRecord(kProductTable, uuid);
+      if (record != null) return Product.fromJson(record);
       throw _handleError(e);
     }
   }
@@ -58,7 +95,11 @@ class ProductRepository {
       final payload = _buildFormData(data);
       final response = await _apiClient.dio.post('/api/products/farmer/products/', data: payload);
       if (response.statusCode == 201) {
-        return Product.fromJson(response.data);
+        final product = Product.fromJson(response.data);
+        try {
+          await _databaseHelper.insertOrUpdateRecord(kProductTable, product.uuid, product.toJson(), ttl: kProductCacheTTL);
+        } catch (_) {}
+        return product;
       }
       throw Exception('Failed to create product');
     } catch (e) {
@@ -71,7 +112,11 @@ class ProductRepository {
       final payload = _buildFormData(data);
       final response = await _apiClient.dio.patch('/api/products/farmer/products/$uuid/', data: payload);
       if (response.statusCode == 200) {
-        return Product.fromJson(response.data);
+        final product = Product.fromJson(response.data);
+        try {
+          await _databaseHelper.insertOrUpdateRecord(kProductTable, uuid, product.toJson(), ttl: kProductCacheTTL);
+        } catch (_) {}
+        return product;
       }
       throw Exception('Failed to update product');
     } catch (e) {
@@ -82,6 +127,9 @@ class ProductRepository {
   Future<void> deleteProduct(String uuid) async {
     try {
       await _apiClient.dio.delete('/api/products/farmer/products/$uuid/');
+      try {
+        await _databaseHelper.deleteRecord(kProductTable, uuid);
+      } catch (_) {}
     } catch (e) {
       throw _handleError(e);
     }

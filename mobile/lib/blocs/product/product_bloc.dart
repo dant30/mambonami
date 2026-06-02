@@ -19,6 +19,17 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   Future<void> _onFetchProducts(FetchProductsEvent event, Emitter<ProductState> emit) async {
     emit(ProductLoading());
+    // Emit cached products immediately if available, then refresh
+    try {
+      final cached = await productRepository.getCachedProducts(
+        categoryCode: event.categoryCode,
+        farmerId: event.farmerId,
+      );
+      if (cached.isNotEmpty) {
+        emit(ProductLoaded(cached));
+      }
+    } catch (_) {}
+
     try {
       final products = await productRepository.getProducts(
         categoryCode: event.categoryCode,
@@ -26,7 +37,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       );
       emit(ProductLoaded(products));
     } catch (e) {
-      emit(ProductError(e.toString()));
+      // If we already emitted cached list above, avoid replacing with an error
+      if (state is! ProductLoaded) {
+        emit(ProductError(e.toString()));
+      }
     }
   }
 

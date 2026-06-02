@@ -199,7 +199,19 @@ class _ProductEditPageState extends State<ProductEditPage> {
         }
 
         return Scaffold(
-          appBar: const CustomAppBar(title: 'Edit Product'),
+          appBar: CustomAppBar(
+            title: 'Edit Product',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: () {
+                if (Navigator.of(context).canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RoutePaths.farmerProducts);
+                }
+              },
+            ),
+          ),
           drawer: const AppDrawer(),
           body: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
@@ -212,7 +224,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -233,7 +245,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     const LinearProgressIndicator()
                   else if (_categories.isNotEmpty)
                     DropdownButtonFormField<ProductCategory>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(labelText: 'Category'),
                       items: _categories
                           .map(
@@ -316,7 +328,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                           hintText: _harvestDate.toLocal().toString().split(' ').first,
                           suffixIcon: const Icon(Icons.calendar_month),
                         ),
-                        validator: (_) => _harvestDate == null ? 'Select a harvest date' : null,
+                        validator: (_) => null,
                       ),
                     ),
                   ),

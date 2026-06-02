@@ -10,6 +10,8 @@ import 'core/notification_service.dart';
 import 'core/deep_link_auth_listener.dart';
 import 'config/routes.dart';
 import 'config/theme.dart';
+import 'data/local/cache_manager.dart';
+import 'data/local/database_helper.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/cart_repository.dart';
 import 'data/repositories/product_repository.dart';
@@ -47,10 +49,15 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   // Core
   getIt.registerSingleton<SecureStorage>(SecureStorage());
   getIt.registerSingleton<ApiClient>(ApiClient());
+  getIt.registerSingleton<CacheManager>(CacheManager.instance);
+  getIt.registerSingleton<DatabaseHelper>(DatabaseHelper.instance);
+  await CacheManager.instance.init();
+  await DatabaseHelper.instance.init();
   
   // Repositories
   getIt.registerSingleton<AuthRepository>(AuthRepository());
   getIt.registerSingleton<CartRepository>(CartRepository());
+  await getIt<CartRepository>().init();
   getIt.registerSingleton<ProductRepository>(ProductRepository());
   getIt.registerSingleton<OrderRepository>(OrderRepository());
   getIt.registerSingleton<TripRepository>(TripRepository());

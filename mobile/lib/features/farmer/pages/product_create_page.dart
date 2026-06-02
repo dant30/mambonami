@@ -145,7 +145,11 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
       builder: (context, state) {
         final isSaving = state is ProductLoading;
         return Scaffold(
-          appBar: const CustomAppBar(title: 'Create Product'),
+          appBar: const CustomAppBar(
+            title: 'Create Product',
+            showBackButton: true,
+            fallbackRoute: RoutePaths.farmerProducts,
+          ),
           drawer: const AppDrawer(),
           body: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
@@ -262,7 +266,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                           hintText: _harvestDate.toLocal().toString().split(' ').first,
                           suffixIcon: const Icon(Icons.calendar_month),
                         ),
-                        validator: (_) => _harvestDate == null ? 'Select a harvest date' : null,
+                        validator: (_) => null,
                       ),
                     ),
                   ),

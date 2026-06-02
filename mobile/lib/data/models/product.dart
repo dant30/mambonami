@@ -142,5 +142,30 @@ class Product {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'uuid': uuid,
+    'farmer': farmerId,
+    'farmer_phone': farmerPhone,
+    'farmer_name': farmerName,
+    'category_detail': category.toJson(),
+    'name': name,
+    'variety': variety,
+    'price_per_unit': pricePerUnit,
+    'available_quantity': availableQuantity,
+    'unit': unit,
+    'harvest_date': harvestDate.toIso8601String(),
+    'shelf_life_days': shelfLifeDays,
+    'remaining_shelf_life': remainingShelfLife,
+    'is_active': isActive,
+    'image': imageUrl,
+    'description': description,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+    'pickup_lat': pickupLat,
+    'pickup_lng': pickupLng,
+    'weight_per_unit': weightPerUnit,
+  };
+
   String get displayName => variety != null && variety!.isNotEmpty ? '$name ($variety)' : name;
 }

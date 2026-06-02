@@ -1,5 +1,6 @@
 ﻿// mobile/lib/shared/widgets/custom_app_bar.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/notification_badge.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -11,6 +12,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
   final bool centerTitle;
   final double elevation;
+  final String? fallbackRoute;
+  final VoidCallback? fallbackOnPressed;
 
   const CustomAppBar({
     super.key,
@@ -22,6 +25,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor,
     this.centerTitle = true,
     this.elevation = 0,
+    this.fallbackRoute,
+    this.fallbackOnPressed,
   });
 
   @override
@@ -36,10 +41,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: backgroundColor ?? theme.colorScheme.primary,
       elevation: elevation,
       leading: leading ??
-          (showBackButton && Navigator.of(context).canPop()
+          ((showBackButton && (Navigator.of(context).canPop() || fallbackOnPressed != null || fallbackRoute != null))
               ? IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                      return;
+                    }
+                    if (fallbackOnPressed != null) {
+                      fallbackOnPressed!();
+                      return;
+                    }
+                    if (fallbackRoute != null) {
+                      context.go(fallbackRoute!);
+                    }
+                  },
                 )
               : null),
       actions: [

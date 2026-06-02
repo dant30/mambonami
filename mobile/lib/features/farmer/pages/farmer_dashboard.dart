@@ -29,7 +29,13 @@ class FarmerDashboard extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: CustomAppBar(title: 'Farmer Dashboard', showNotificationAction: true, leading: IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(context).openDrawer())),
+      appBar: CustomAppBar(
+        title: 'Farmer Dashboard',
+        showNotificationAction: true,
+        leading: Builder(
+          builder: (ctx) => IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(ctx).openDrawer()),
+        ),
+      ),
       drawer: const AppDrawer(),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),

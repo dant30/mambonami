@@ -3,11 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../blocs/order/order_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -105,7 +105,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
         if (_loadingError != null) {
           return Scaffold(
-            appBar: const CustomAppBar(title: 'Order Request Details'),
+              appBar: const CustomAppBar(
+                title: 'Order Request Details',
+                showBackButton: true,
+                fallbackRoute: RoutePaths.farmerOrderRequests,
+              ),
             drawer: const AppDrawer(),
             body: Center(child: Text(_loadingError!)),
           );
@@ -113,14 +117,22 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
         if (_subOrder == null) {
           return const Scaffold(
-            appBar: CustomAppBar(title: 'Order Request Details'),
+            appBar: CustomAppBar(
+              title: 'Order Request Details',
+              showBackButton: true,
+              fallbackRoute: RoutePaths.farmerOrderRequests,
+            ),
             drawer: AppDrawer(),
             body: Center(child: LoadingIndicator()),
           );
         }
 
         return Scaffold(
-          appBar: const CustomAppBar(title: 'Order Request Details'),
+          appBar: const CustomAppBar(
+            title: 'Order Request Details',
+            showBackButton: true,
+            fallbackRoute: RoutePaths.farmerOrderRequests,
+          ),
           drawer: const AppDrawer(),
           body: Stack(
             children: [

@@ -1,8 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../blocs/theme/theme_bloc.dart';
+import '../../core/constants.dart';
+import '../../data/local/cache_manager.dart';
+import '../../data/local/database_helper.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';
 import '../../shared/layouts/custom_app_bar.dart';
@@ -27,16 +29,15 @@ class _SettingsPageState extends State<SettingsPage> {
 	}
 
 	Future<void> _loadPrefs() async {
-		final prefs = await SharedPreferences.getInstance();
+		final enabled = await CacheManager.instance.getBool(kNotificationsEnabledKey);
 		setState(() {
-			_notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+			_notificationsEnabled = enabled ?? true;
 			_loading = false;
 		});
 	}
 
 	Future<void> _saveNotifications(bool enabled) async {
-		final prefs = await SharedPreferences.getInstance();
-		await prefs.setBool('notifications_enabled', enabled);
+		await CacheManager.instance.saveBool(kNotificationsEnabledKey, enabled);
 		setState(() => _notificationsEnabled = enabled);
 		CustomSnackbar.showSuccess(context, enabled ? 'Notifications enabled' : 'Notifications disabled');
 	}
@@ -88,8 +89,8 @@ class _SettingsPageState extends State<SettingsPage> {
 								CustomButton(
 									onPressed: () async {
 										// Example: clear cached app data
-										final prefs = await SharedPreferences.getInstance();
-										await prefs.clear();
+										await CacheManager.instance.clear();
+										await DatabaseHelper.instance.clearAll();
 										CustomSnackbar.showSuccess(context, 'Local settings cleared');
 									},
 									label: 'Clear local data',

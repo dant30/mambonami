@@ -24,7 +24,9 @@ class ProviderDashboard extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Transport Provider',
         showNotificationAction: true,
-        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(context).openDrawer()),
+        leading: Builder(
+          builder: (ctx) => IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(ctx).openDrawer()),
+        ),
       ),
       drawer: const AppDrawer(),
       body: SingleChildScrollView(

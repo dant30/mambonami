@@ -31,3 +31,13 @@ const String kNotificationChannelName = 'MAMBONAMI Notifications';
 const Duration kApiConnectTimeout = Duration(seconds: 30);
 const Duration kApiReceiveTimeout = Duration(seconds: 30);
 
+// Local cache keys
+const String kThemeModeKey = 'theme_mode';
+const String kNotificationsEnabledKey = 'notifications_enabled';
+const String kCachedProfileKey = 'cached_user_profile';
+const String kUserTable = 'users';
+const String kProductTable = 'products';
+const String kCartItemTable = 'cart_items';
+// Product cache TTL
+const Duration kProductCacheTTL = Duration(hours: 6);
+

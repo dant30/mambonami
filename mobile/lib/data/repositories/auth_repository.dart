@@ -4,12 +4,20 @@ import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/secure_storage.dart';
+import '../local/cache_manager.dart';
+import '../local/database_helper.dart';
 
 final getIt = GetIt.instance;
 
 class AuthRepository {
   final ApiClient _apiClient = getIt<ApiClient>();
   final SecureStorage _secureStorage = getIt<SecureStorage>();
+  final CacheManager _cacheManager = CacheManager.instance;
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+
+  Future<Map<String, dynamic>?> getCachedProfile() async {
+    return await _cacheManager.getJson(kCachedProfileKey);
+  }
 
   Future<void> registerInit(String phone, String role) async {
     try {
@@ -53,10 +61,13 @@ class AuthRepository {
       final response = await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
       if (response.statusCode == 201) {
         final tokens = response.data['tokens'];
+        final user = response.data['user'] as Map<String, dynamic>;
         await _secureStorage.saveTokens(tokens['access'], tokens['refresh']);
         await _secureStorage.saveUserRole(role);
         await _secureStorage.saveUserPhone(phone);
-        return response.data['user'];
+        await _cacheManager.saveJson(kCachedProfileKey, user);
+        await _databaseHelper.insertOrUpdateRecord(kUserTable, phone, user);
+        return user;
       }
       throw Exception('Registration failed');
     } catch (e) {
@@ -107,6 +118,8 @@ class AuthRepository {
       await _secureStorage.saveTokens(tokens['access'] as String, tokens['refresh'] as String);
       await _secureStorage.saveUserRole(user['role'] as String);
       await _secureStorage.saveUserPhone(user['phone'] as String);
+      await _cacheManager.saveJson(kCachedProfileKey, user);
+      await _databaseHelper.insertOrUpdateRecord(kUserTable, user['phone'] as String, user);
 
       return user;
     } catch (e) {
@@ -117,8 +130,27 @@ class AuthRepository {
   Future<Map<String, dynamic>> getProfile() async {
     try {
       final response = await _apiClient.dio.get(kProfileEndpoint);
-      return response.data;
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        final profile = response.data as Map<String, dynamic>;
+        await _cacheManager.saveJson(kCachedProfileKey, profile);
+        final userId = profile['phone'] as String?;
+        if (userId != null) {
+          await _databaseHelper.insertOrUpdateRecord(kUserTable, userId, profile);
+        }
+        return profile;
+      }
+
+      final cached = await getCachedProfile();
+      if (cached != null) {
+        return cached;
+      }
+
+      throw Exception('Failed to load profile');
     } catch (e) {
+      final cached = await getCachedProfile();
+      if (cached != null) {
+        return cached;
+      }
       throw _handleError(e);
     }
   }
@@ -153,6 +185,8 @@ class AuthRepository {
 
   Future<void> logout() async {
     await _secureStorage.clearAll();
+    await _cacheManager.remove(kCachedProfileKey);
+    await _databaseHelper.clearTable(kUserTable);
   }
 
   String _handleError(dynamic error) {

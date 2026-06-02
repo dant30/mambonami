@@ -24,7 +24,12 @@ class BuyerDashboard extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Buyer Dashboard',
         showNotificationAction: true,
-        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(context).openDrawer()),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         actions: const [CartActionButton()],
       ),
       drawer: const AppDrawer(),

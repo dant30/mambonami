@@ -36,7 +36,12 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Order Requests', showNotificationAction: true),
+      appBar: const CustomAppBar(
+        title: 'Order Requests',
+        showNotificationAction: true,
+        showBackButton: true,
+        fallbackRoute: RoutePaths.farmerDashboard,
+      ),
       drawer: const AppDrawer(),
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {

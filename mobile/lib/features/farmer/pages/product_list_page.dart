@@ -44,6 +44,7 @@ class _ProductListPageState extends State<ProductListPage> {
       },
     );
 
+    if (!mounted) return;
     if (confirmed == true) {
       context.read<ProductBloc>().add(DeleteProductEvent(product.uuid));
     }
@@ -58,6 +59,16 @@ class _ProductListPageState extends State<ProductListPage> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'My Products',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go(RoutePaths.farmerDashboard);
+            }
+          },
+        ),
         showNotificationAction: true,
         actions: [
           IconButton(
@@ -122,7 +133,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/local/cache_manager.dart';
+import '../../core/constants.dart';
 
 // Theme state
 class ThemeState {
@@ -26,14 +27,13 @@ class ThemeCubit extends Cubit<ThemeState> {
   }
 
   Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('theme_mode') ?? 2; // 0: light, 1: dark, 2: system
+    final storedIndex = await CacheManager.instance.getInt(kThemeModeKey);
+    final index = storedIndex ?? 2; // 0: light, 1: dark, 2: system
     final mode = ThemeMode.values[index.clamp(0, 2)];
     emit(ThemeState(themeMode: mode));
   }
 
   Future<void> _saveTheme(ThemeMode mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('theme_mode', mode.index);
+    await CacheManager.instance.saveInt(kThemeModeKey, mode.index);
   }
 }
