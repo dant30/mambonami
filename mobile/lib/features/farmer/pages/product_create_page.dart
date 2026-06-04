@@ -162,7 +162,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -183,7 +183,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                     const LinearProgressIndicator()
                   else if (_categories.isNotEmpty)
                     DropdownButtonFormField<ProductCategory>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(labelText: 'Category'),
                       items: _categories
                           .map(

@@ -60,8 +60,11 @@ class _EarningsPageState extends State<EarningsPage> {
             final currentWeekOrders = _countOrders(subOrders, _isInCurrentWeek);
             final currentMonthOrders = _countOrders(subOrders, _isInCurrentMonth);
             final confirmedCount = subOrders.where((o) => o.isConfirmed).length;
+            final confirmedRevenue = _calculateRevenue(subOrders, (o) => o.isConfirmed);
             final readyCount = subOrders.where((o) => o.isReady).length;
+            final readyRevenue = _calculateRevenue(subOrders, (o) => o.isReady);
             final pendingCount = subOrders.where((o) => o.isPending).length;
+            final pendingRevenue = _calculateRevenue(subOrders, (o) => o.isPending);
 
             return RefreshIndicator(
               onRefresh: _refresh,
@@ -123,11 +126,11 @@ class _EarningsPageState extends State<EarningsPage> {
                           Divider(color: Colors.grey.withValues(alpha: 0.2)),
                           _buildPeriodRow('This Month', currentMonthOrders, currentMonthRevenue, context),
                           Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Confirmed Orders', confirmedCount.toString(), 'Ksh ${totalRevenue.toStringAsFixed(2)}', context),
+                          _buildBreakdownRow('Confirmed Orders', confirmedCount.toString(), 'Ksh ${confirmedRevenue.toStringAsFixed(2)}', context),
                           Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Ready Orders', readyCount.toString(), 'Ksh 0', context),
+                          _buildBreakdownRow('Ready Orders', readyCount.toString(), 'Ksh ${readyRevenue.toStringAsFixed(2)}', context),
                           Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Pending Orders', pendingCount.toString(), 'Ksh 0', context),
+                          _buildBreakdownRow('Pending Orders', pendingCount.toString(), 'Ksh ${pendingRevenue.toStringAsFixed(2)}', context),
                         ],
                       ),
                     ),

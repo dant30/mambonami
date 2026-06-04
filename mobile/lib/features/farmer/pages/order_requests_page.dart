@@ -67,7 +67,7 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
                   margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

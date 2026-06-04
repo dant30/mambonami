@@ -149,7 +149,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.78)],
+                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -165,7 +165,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.12),
+                                color: Colors.white.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(_subOrder!.status.toUpperCase(), style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
@@ -222,9 +222,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       child: const Text('Mark Ready'),
                     ),
                   if (_subOrder!.isReady)
-                    ElevatedButton(
+                    const ElevatedButton(
                       onPressed: null,
-                      child: const Text('Order Ready'),
+                      child: Text('Order Ready'),
                     ),
                 ],
               ),
