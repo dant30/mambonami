@@ -3,7 +3,7 @@ export const DataTable: React.FC<{ columns: any[]; data: any[] }> = ({ columns, 
   return (
     <table className="min-w-full">
       <thead>
-        <tr>{columns.map(col => <th key={col.key}>{col.title}</th>)}
+        <tr>{columns.map(col => <th key={col.key}>{col.title}</th>)}</tr>
       </thead>
       <tbody>
         {data.map((row, i) => (

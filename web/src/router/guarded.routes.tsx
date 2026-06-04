@@ -8,6 +8,7 @@ import DisputeList from '../features/disputes/pages/DisputeList';
 import PayoutList from '../features/payouts/pages/PayoutList';
 import FarmerApproval from '../features/admin/pages/FarmerApproval';
 import AuditLog from '../features/admin/pages/AuditLog';
+import Profile from '../features/auth/pages/Profile';
 
 export const guardedRoutes: RouteObject[] = [
   {
@@ -20,6 +21,7 @@ export const guardedRoutes: RouteObject[] = [
       { path: 'transport', element: <ProviderList /> },
       { path: 'disputes', element: <DisputeList /> },
       { path: 'payouts', element: <PayoutList /> },
+      { path: 'profile', element: <Profile /> },
       { path: 'admin/farmer-approval', element: <FarmerApproval /> },
       { path: 'admin/audit-log', element: <AuditLog /> },
     ],

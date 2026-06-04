@@ -1,5 +1,10 @@
 ﻿import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../core/hooks/useAuth';
+
 export const GuardedRoute = () => {
-  const token = localStorage.getItem('access_token');
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Checking authentication...</div>;
+  }
+  return user ? <Outlet /> : <Navigate to="/login" replace />;
 };

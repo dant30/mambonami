@@ -1,4 +1,86 @@
-﻿export default function Profile() {
-  return <div>Profile</div>;
+﻿import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '../../../core/hooks/useAuth';
+import { apiClient } from '../../../core/api/client';
+import { AUTH_ENDPOINTS } from '../../../core/api/endpoints';
+import Button from '../../../shared/components/ui/Button';
+import Input from '../../../shared/components/ui/Input';
+import Label from '../../../shared/components/ui/Label';
+import Alert from '../../../shared/components/ui/Alert';
+
+const profileSchema = z.object({
+  username: z.string().optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  email: z.string().email('Enter a valid email').optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
+export default function Profile() {
+  const { user, refreshProfile } = useAuth();
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      username: user?.username ?? '',
+      first_name: user?.first_name ?? '',
+      last_name: user?.last_name ?? '',
+      email: user?.email ?? '',
+    },
+  });
+
+  const onSubmit = async (values: ProfileFormValues) => {
+    setMessage(null);
+    setError(null);
+    try {
+      await apiClient.patch(AUTH_ENDPOINTS.profile, values);
+      setMessage('Your profile has been updated.');
+      refreshProfile();
+    } catch (err) {
+      setError('Unable to save profile. Please try again later.');
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-lg p-6 bg-white rounded-xl shadow-sm">
+      <h1 className="text-2xl font-semibold mb-4">Profile</h1>
+      {message ? <Alert>{message}</Alert> : null}
+      {error ? <Alert variant="destructive">{error}</Alert> : null}
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        <div>
+          <Label htmlFor="username">Username</Label>
+          <Input id="username" type="text" {...register('username')} />
+          {errors.username ? <p className="text-sm text-red-600 mt-1">{errors.username.message}</p> : null}
+        </div>
+        <div>
+          <Label htmlFor="first_name">First Name</Label>
+          <Input id="first_name" type="text" {...register('first_name')} />
+          {errors.first_name ? <p className="text-sm text-red-600 mt-1">{errors.first_name.message}</p> : null}
+        </div>
+        <div>
+          <Label htmlFor="last_name">Last Name</Label>
+          <Input id="last_name" type="text" {...register('last_name')} />
+          {errors.last_name ? <p className="text-sm text-red-600 mt-1">{errors.last_name.message}</p> : null}
+        </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" {...register('email')} />
+          {errors.email ? <p className="text-sm text-red-600 mt-1">{errors.email.message}</p> : null}
+        </div>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? 'Saving...' : 'Save profile'}
+        </Button>
+      </form>
+    </div>
+  );
 }
 
