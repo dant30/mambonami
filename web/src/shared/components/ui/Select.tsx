@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { cn } from '../../../lib/utils';
 
 interface Option {
   value: string;
@@ -9,10 +10,14 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options?: Option[];
 }
 
-export default function Select({ options = [], className = '', children, ...props }: SelectProps) {
-  return (
+const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  ({ options = [], className = '', children, ...props }, ref) => (
     <select
-      className={`w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${className}`}
+      ref={ref}
+      className={cn(
+        'w-full appearance-none rounded-2xl border border-border bg-input px-4 py-3 pr-10 text-sm text-foreground shadow-soft transition duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring',
+        className,
+      )}
       {...props}
     >
       {children}
@@ -22,6 +27,10 @@ export default function Select({ options = [], className = '', children, ...prop
         </option>
       ))}
     </select>
-  );
-}
+  ),
+);
+
+Select.displayName = 'Select';
+
+export default Select;
 

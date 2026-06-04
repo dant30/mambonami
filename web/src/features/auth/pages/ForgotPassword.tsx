@@ -11,6 +11,7 @@ import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
 import Label from '../../../shared/components/ui/Label';
 import Alert from '../../../shared/components/ui/Alert';
+import Card from '../../../shared/components/ui/Card';
 
 const initSchema = z.object({
   phone: z.string().nonempty('Phone is required').min(9, 'Enter a valid phone number'),
@@ -36,6 +37,8 @@ export default function ForgotPassword() {
   const [phase, setPhase] = useState<'init' | 'verify'>('init');
   const [savedPhone, setSavedPhone] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -77,57 +80,119 @@ export default function ForgotPassword() {
     }
   };
 
-  if (phase === 'verify') {
-    return (
-      <div className="mx-auto max-w-md p-6 bg-white rounded-xl shadow-sm">
-        <h1 className="text-2xl font-semibold mb-4">Reset Password</h1>
-        {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
-        <form className="space-y-4" onSubmit={handleVerifySubmit(onVerifySubmit)}>
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" type="tel" readOnly defaultValue={savedPhone} {...verifyRegister('phone')} />
-          </div>
-          <div>
-            <Label htmlFor="otp_code">OTP Code</Label>
-            <Input id="otp_code" type="text" placeholder="Enter OTP code" {...verifyRegister('otp_code')} />
-            {verifyErrors.otp_code ? <p className="text-sm text-red-600 mt-1">{verifyErrors.otp_code.message}</p> : null}
-          </div>
-          <div>
-            <Label htmlFor="new_password">New Password</Label>
-            <Input id="new_password" type="password" placeholder="New password" {...verifyRegister('new_password')} />
-            {verifyErrors.new_password ? <p className="text-sm text-red-600 mt-1">{verifyErrors.new_password.message}</p> : null}
-          </div>
-          <div>
-            <Label htmlFor="confirm_password">Confirm Password</Label>
-            <Input id="confirm_password" type="password" placeholder="Confirm password" {...verifyRegister('confirm_password')} />
-            {verifyErrors.confirm_password ? <p className="text-sm text-red-600 mt-1">{verifyErrors.confirm_password.message}</p> : null}
-          </div>
-          <Button type="submit" disabled={isVerifying} className="w-full">
-            {isVerifying ? 'Resetting...' : 'Reset password'}
-          </Button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-md p-6 bg-white rounded-xl shadow-sm">
-      <h1 className="text-2xl font-semibold mb-4">Forgot Password</h1>
-      {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
-      <form className="space-y-4" onSubmit={handleSubmit(onInitSubmit)}>
-        <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" type="tel" placeholder="Enter your phone" {...register('phone')} />
-          {errors.phone ? <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p> : null}
-        </div>
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Send code...' : 'Send reset code'}
-        </Button>
-      </form>
-      <div className="mt-4 text-sm text-slate-600">
-        <p>
-          Remembered your password? <Link to="/login" className="text-blue-600 hover:underline">Sign in</Link>
-        </p>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
+      <div className="mx-auto max-w-4xl">
+        <Card className="grid gap-8 lg:grid-cols-[0.95fr_0.85fr] p-8 border border-slate-800 bg-slate-950/95 shadow-soft">
+          <div className="space-y-5">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-sky-300/80">Security first</p>
+              <h1 className="text-3xl font-semibold">Reset your password</h1>
+              <p className="mt-3 text-sm text-slate-300">
+                Securely update your password using a code sent to your phone. You’ll be able to log in again once the reset is complete.
+              </p>
+            </div>
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/80 p-5">
+              <p className="text-sm font-semibold text-slate-100">Need help?</p>
+              <p className="mt-2 text-sm text-slate-300">
+                If you don’t receive an OTP, check your phone number and try again. Contact support if the issue persists.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
+            {phase === 'init' ? (
+              <form className="space-y-5" onSubmit={handleSubmit(onInitSubmit)}>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="0712 345 678"
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...register('phone')}
+                  />
+                  {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  variant="default"
+                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                >
+                  {isSubmitting ? 'Sending code...' : 'Send reset code'}
+                </Button>
+                <p className="text-sm text-slate-300">
+                  Remembered your password?{' '}
+                  <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100">
+                    Sign in
+                  </Link>
+                </p>
+              </form>
+            ) : (
+              <form className="space-y-5" onSubmit={handleVerifySubmit(onVerifySubmit)}>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input id="phone" type="tel" readOnly defaultValue={savedPhone} {...verifyRegister('phone')} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="otp_code">OTP Code</Label>
+                  <Input id="otp_code" type="text" placeholder="Enter OTP code" {...verifyRegister('otp_code')} />
+                  {verifyErrors.otp_code ? <p className="text-sm text-destructive mt-1">{verifyErrors.otp_code.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new_password">New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="new_password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="New password"
+                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      {...verifyRegister('new_password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  {verifyErrors.new_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.new_password.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm_password">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm_password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirm password"
+                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      {...verifyRegister('confirm_password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
+                    >
+                      {showConfirmPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  {verifyErrors.confirm_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.confirm_password.message}</p> : null}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isVerifying}
+                  variant="default"
+                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                >
+                  {isVerifying ? 'Resetting...' : 'Reset password'}
+                </Button>
+              </form>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

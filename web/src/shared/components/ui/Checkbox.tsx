@@ -1,18 +1,19 @@
 ﻿import React from 'react';
+import { cn } from '../../../lib/utils';
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(({ label, className = '', ...props }, ref) => (
-  <label className="inline-flex items-center gap-2">
+  <label className={cn('inline-flex items-center gap-3 text-sm text-foreground', className)}>
     <input
       ref={ref}
       type="checkbox"
-      className={`h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 ${className}`}
+      className="h-5 w-5 rounded-lg border border-border bg-input text-primary shadow-sm transition duration-200 focus:ring-2 focus:ring-ring focus:outline-none"
       {...props}
     />
-    {label ? <span className="text-sm text-slate-700">{label}</span> : null}
+    {label ? <span>{label}</span> : null}
   </label>
 ));
 

@@ -10,8 +10,10 @@ import {
 } from '../services/authService';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
+import Select from '../../../shared/components/ui/Select';
 import Label from '../../../shared/components/ui/Label';
 import Alert from '../../../shared/components/ui/Alert';
+import Card from '../../../shared/components/ui/Card';
 
 const initSchema = z.object({
   phone: z.string().nonempty('Phone is required').min(9, 'Enter a valid phone number'),
@@ -46,6 +48,8 @@ export default function Register() {
   const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [savedPhone, setSavedPhone] = useState('');
   const [savedRole, setSavedRole] = useState<'buyer' | 'farmer' | 'transport_provider'>('buyer');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -94,75 +98,195 @@ export default function Register() {
     }
   };
 
-  if (phase === 'verify') {
-    return (
-      <div className="mx-auto max-w-md p-6 bg-white rounded-xl shadow-sm">
-        <h1 className="text-2xl font-semibold mb-4">Verify Registration</h1>
-        {serverMessage ? <Alert variant="destructive">{serverMessage}</Alert> : null}
-        <form className="space-y-4" onSubmit={handleVerifySubmit(onVerifySubmit)}>
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" type="tel" readOnly defaultValue={savedPhone} {...verifyRegister('phone')} />
-          </div>
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Input id="role" readOnly defaultValue={savedRole} {...verifyRegister('role')} />
-          </div>
-          <div>
-            <Label htmlFor="otp_code">OTP Code</Label>
-            <Input id="otp_code" type="text" placeholder="Enter OTP" {...verifyRegister('otp_code')} />
-            {verifyErrors.otp_code ? <p className="text-sm text-red-600 mt-1">{verifyErrors.otp_code.message}</p> : null}
-          </div>
-          <div>
-            <Label htmlFor="username">Username</Label>
-            <Input id="username" type="text" placeholder="Choose a username" {...verifyRegister('username')} />
-            {verifyErrors.username ? <p className="text-sm text-red-600 mt-1">{verifyErrors.username.message}</p> : null}
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Create a password" {...verifyRegister('password')} />
-            {verifyErrors.password ? <p className="text-sm text-red-600 mt-1">{verifyErrors.password.message}</p> : null}
-          </div>
-          <div>
-            <Label htmlFor="confirm_password">Confirm Password</Label>
-            <Input id="confirm_password" type="password" placeholder="Confirm your password" {...verifyRegister('confirm_password')} />
-            {verifyErrors.confirm_password ? <p className="text-sm text-red-600 mt-1">{verifyErrors.confirm_password.message}</p> : null}
-          </div>
-          <Button type="submit" disabled={isVerifying} className="w-full">
-            {isVerifying ? 'Completing registration...' : 'Complete registration'}
-          </Button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-md p-6 bg-white rounded-xl shadow-sm">
-      <h1 className="text-2xl font-semibold mb-4">Register</h1>
-      {serverMessage ? <Alert variant="destructive">{serverMessage}</Alert> : null}
-      <form className="space-y-4" onSubmit={handleSubmit(onInitSubmit)}>
-        <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" type="tel" placeholder="Enter your phone" {...register('phone')} />
-          {errors.phone ? <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p> : null}
-        </div>
-        <div>
-          <Label htmlFor="role">Role</Label>
-          <select id="role" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" {...register('role')}>
-            <option value="buyer">Buyer</option>
-            <option value="farmer">Farmer</option>
-            <option value="transport_provider">Transport Provider</option>
-          </select>
-          {errors.role ? <p className="text-sm text-red-600 mt-1">{errors.role.message}</p> : null}
-        </div>
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Sending OTP...' : 'Send verification code'}
-        </Button>
-      </form>
-      <div className="mt-4 text-sm text-slate-600">
-        <p>
-          Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Sign in</Link>
-        </p>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <Card className="border border-slate-800 bg-slate-900/95 p-8 shadow-soft backdrop-blur-xl">
+          <div className="space-y-3">
+          <p className="text-sm uppercase tracking-[0.25em] text-sky-300/80">Create your account</p>
+          <h1 className="text-3xl font-semibold">Register for MAMBONAMI</h1>
+          <p className="text-sm text-slate-300">
+              Begin with a quick registration step then verify your account using the OTP code we send. Your admin experience starts after verification.
+            </p>
+          </div>
+        </Card>
+
+        <Card className="grid gap-8 lg:grid-cols-[0.94fr_0.86fr] p-8 border border-slate-800 bg-slate-950/95 shadow-soft">
+          <div className="space-y-6">
+            {phase === 'init' ? (
+              <div>
+                <h2 className="text-2xl font-semibold">Step 1 — Phone and role</h2>
+                <p className="mt-2 text-sm text-slate-300">
+                  We will send a verification code to your phone before completing registration.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-2xl font-semibold">Step 2 — Verify and finish</h2>
+                <p className="mt-2 text-sm text-slate-300">
+                  Enter your verification code and create a password for your secure admin profile.
+                </p>
+              </div>
+            )}
+
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/80 p-5">
+              <p className="text-sm font-semibold text-slate-100">Registration tips</p>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+                <li>Use a valid phone number so you can receive the OTP code.</li>
+                <li>Create a password you can remember, but don’t reuse it elsewhere.</li>
+                <li>Complete the verification step immediately for faster access.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            {serverMessage ? <Alert variant="destructive">{serverMessage}</Alert> : null}
+            {phase === 'init' ? (
+              <form className="space-y-5" onSubmit={handleSubmit(onInitSubmit)}>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="0712 345 678"
+                    autoComplete="tel"
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...register('phone')}
+                  />
+                  {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    id="role"
+                    options={[
+                      { value: 'buyer', label: 'Buyer' },
+                      { value: 'farmer', label: 'Farmer' },
+                      { value: 'transport_provider', label: 'Transport Provider' },
+                    ]}
+                    className="bg-slate-900 border-slate-700 text-slate-100"
+                    {...register('role')}
+                  />
+                  {errors.role ? <p className="text-sm text-destructive mt-1">{errors.role.message}</p> : null}
+                </div>
+                <Button
+                  type="submit"
+                  variant="default"
+                  disabled={isSubmitting}
+                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                >
+                  {isSubmitting ? 'Sending OTP...' : 'Send verification code'}
+                </Button>
+                <p className="text-sm text-slate-300">
+                  Already have an account?{' '}
+                  <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100">
+                    Sign in
+                  </Link>
+                </p>
+              </form>
+            ) : (
+              <form className="space-y-5" onSubmit={handleVerifySubmit(onVerifySubmit)}>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    readOnly
+                    defaultValue={savedPhone}
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...verifyRegister('phone')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Input
+                    id="role"
+                    readOnly
+                    defaultValue={savedRole}
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...verifyRegister('role')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="otp_code">OTP Code</Label>
+                  <Input
+                    id="otp_code"
+                    type="text"
+                    placeholder="Enter OTP"
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...verifyRegister('otp_code')}
+                  />
+                  {verifyErrors.otp_code ? <p className="text-sm text-destructive mt-1">{verifyErrors.otp_code.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Choose a username"
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    {...verifyRegister('username')}
+                  />
+                  {verifyErrors.username ? <p className="text-sm text-destructive mt-1">{verifyErrors.username.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Create a password"
+                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      {...verifyRegister('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  {verifyErrors.password ? <p className="text-sm text-destructive mt-1">{verifyErrors.password.message}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm_password">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm_password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirm your password"
+                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      {...verifyRegister('confirm_password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
+                    >
+                      {showConfirmPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  {verifyErrors.confirm_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.confirm_password.message}</p> : null}
+                </div>
+                <Button
+                  type="submit"
+                  variant="default"
+                  disabled={isVerifying}
+                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                >
+                  {isVerifying ? 'Completing registration...' : 'Complete registration'}
+                </Button>
+                <p className="text-sm text-slate-300">
+                  Already registered?{' '}
+                  <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100">
+                    Sign in
+                  </Link>
+                </p>
+              </form>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

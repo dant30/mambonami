@@ -1,4 +1,6 @@
 
+import { cn } from '../../../lib/utils';
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -9,22 +11,27 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="rounded-md border border-slate-300 bg-white px-3 py-1 text-sm text-slate-700 disabled:opacity-50"
+        className="rounded-2xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
         Prev
       </button>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-2">
         {pages.map((page) => (
           <button
             key={page}
             type="button"
             onClick={() => onPageChange(page)}
-            className={`rounded-md px-3 py-1 text-sm ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'}`}
+            className={cn(
+              'rounded-2xl px-4 py-2 text-sm font-medium transition',
+              page === currentPage
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-foreground hover:bg-muted/80',
+            )}
           >
             {page}
           </button>
@@ -34,7 +41,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         type="button"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="rounded-md border border-slate-300 bg-white px-3 py-1 text-sm text-slate-700 disabled:opacity-50"
+        className="rounded-2xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
         Next
       </button>

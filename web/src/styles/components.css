@@ -154,7 +154,7 @@
 }
 /* Component Styles – Buttons, Cards, Glassmorphism, Lifts */
 
-@utility btn-primary {
+.btn-primary {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
   padding: 0.75rem 1.5rem;
@@ -166,7 +166,7 @@
   background-color: var(--color-primary-dark);
 }
 
-@utility btn-secondary {
+.btn-secondary {
   background-color: var(--color-secondary);
   color: var(--color-secondary-foreground);
   padding: 0.75rem 1.5rem;
@@ -178,7 +178,7 @@
   background-color: var(--color-secondary-dark, oklch(0.7 0.14 75));
 }
 
-@utility container-custom {
+.container-custom {
   max-width: 100%;
   margin: 0 auto;
   padding-left: 1rem;
@@ -198,23 +198,23 @@
 }
 
 /* Gradients */
-@utility bg-gradient-hero {
+.bg-gradient-hero {
   background-image: var(--gradient-hero);
 }
-@utility bg-gradient-warm {
+.bg-gradient-warm {
   background-image: var(--gradient-warm);
 }
 
 /* Shadows */
-@utility shadow-soft {
+.shadow-soft {
   box-shadow: var(--shadow-soft);
 }
-@utility shadow-glow {
+.shadow-glow {
   box-shadow: var(--shadow-glow);
 }
 
 /* Hover lift */
-@utility hover-lift {
+.hover-lift {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .hover-lift:hover {
@@ -223,21 +223,21 @@
 }
 
 /* Glassmorphism */
-@utility glass {
+.glass {
   background: color-mix(in oklab, white 12%, transparent);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid color-mix(in oklab, white 22%, transparent);
 }
 
-@utility glass-dark {
+.glass-dark {
   background: color-mix(in oklab, black 28%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid color-mix(in oklab, white 14%, transparent);
 }
 
-@utility glass-card {
+.glass-card {
   background: color-mix(in oklab, var(--color-card) 70%, transparent);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);

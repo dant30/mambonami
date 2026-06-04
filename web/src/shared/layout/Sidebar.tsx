@@ -20,11 +20,11 @@ export default function Sidebar() {
   const { user } = useAuth();
 
   return (
-    <aside className="w-72 shrink-0 border-r border-slate-200 bg-slate-950 text-slate-100">
-      <div className="px-6 py-5 border-b border-slate-800">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Workspace</p>
-        <h2 className="mt-3 text-xl font-semibold text-white">MAMBONAMI</h2>
-        {user ? <p className="mt-2 text-sm text-slate-400">{user.username || user.phone}</p> : null}
+    <aside className="w-72 shrink-0 border-r border-emerald-200 bg-gradient-to-b from-emerald-50 to-green-50 text-slate-900">
+      <div className="px-6 py-5 border-b border-emerald-200">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-600">Workspace</p>
+        <h2 className="mt-3 text-xl font-semibold text-emerald-900">MAMBONAMI</h2>
+        {user ? <p className="mt-2 text-sm text-emerald-700">{user.username || user.phone}</p> : null}
       </div>
 
       <nav className="px-3 py-4">
@@ -36,7 +36,7 @@ export default function Sidebar() {
               end={item.path === '/'}
               className={({ isActive }) =>
                 `block rounded-xl px-4 py-3 text-sm font-medium transition ${
-                  isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  isActive ? 'bg-emerald-100 text-emerald-900 font-semibold' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-900'
                 }`
               }
             >
@@ -45,8 +45,8 @@ export default function Sidebar() {
           ))}
         </div>
 
-        <div className="mt-6 border-t border-slate-800 pt-4">
-          <p className="px-4 text-xs uppercase tracking-[0.24em] text-slate-500">Admin</p>
+        <div className="mt-6 border-t border-emerald-200 pt-4">
+          <p className="px-4 text-xs uppercase tracking-[0.24em] text-emerald-600">Admin</p>
           <div className="mt-2 space-y-1">
             {adminItems.map((item) => (
               <NavLink
@@ -54,7 +54,7 @@ export default function Sidebar() {
                 to={item.path}
                 className={({ isActive }) =>
                   `block rounded-xl px-4 py-3 text-sm font-medium transition ${
-                    isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    isActive ? 'bg-emerald-100 text-emerald-900 font-semibold' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-900'
                   }`
                 }
               >

@@ -1,19 +1,22 @@
 ﻿import React from 'react';
+import { cn } from '../../../lib/utils';
 
 interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'success' | 'warning' | 'destructive';
 }
 
 const variantStyles = {
-  default: 'bg-blue-50 border border-blue-200 text-blue-900',
-  destructive: 'bg-red-50 border border-red-200 text-red-900',
+  default: 'border border-border bg-muted/50 text-foreground',
+  success: 'border border-emerald-200 bg-emerald-100 text-emerald-900',
+  warning: 'border border-amber-200 bg-amber-100 text-amber-900',
+  destructive: 'border border-destructive/20 bg-destructive/10 text-destructive',
 };
 
 export default function Alert({ variant = 'default', className = '', children, ...props }: AlertProps) {
   return (
     <div
-      role="alert"
-      className={`rounded-lg px-4 py-3 text-sm shadow-sm ${variantStyles[variant]} ${className}`}
+      role="status"
+      className={cn('rounded-3xl px-4 py-4 text-sm shadow-soft', variantStyles[variant], className)}
       {...props}
     >
       {children}

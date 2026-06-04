@@ -1,11 +1,15 @@
 ﻿import React from 'react';
+import { cn } from '../../../lib/utils';
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 export default function Textarea({ className = '', ...props }: TextareaProps) {
   return (
     <textarea
-      className={`min-h-[100px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${className}`}
+      className={cn(
+        'min-h-[120px] w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-soft transition duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring resize-vertical',
+        className,
+      )}
       {...props}
     />
   );

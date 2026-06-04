@@ -1,1 +1,59 @@
-﻿<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1></body></html>
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAMBONAMI Offline</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+      }
+      .card {
+        max-width: 420px;
+        width: 100%;
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(226, 232, 240, 0.12);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.3);
+      }
+      h1 {
+        margin: 0 0 1rem;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0 0 1rem;
+        color: #94a3b8;
+        line-height: 1.8;
+      }
+      a {
+        display: inline-flex;
+        padding: 0.75rem 1.25rem;
+        border-radius: 9999px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>You're offline</h1>
+      <p>
+        MAMBONAMI is currently unavailable because your network connection is offline.
+        Please retry once your connection returns.
+      </p>
+      <a href="/">Return to home</a>
+    </div>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { cn } from '../../../lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'secondary' | 'destructive' | 'ghost';
@@ -6,15 +7,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles = {
-  default: 'bg-blue-600 text-white hover:bg-blue-700',
-  secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-  destructive: 'bg-red-600 text-white hover:bg-red-700',
-  ghost: 'bg-transparent text-slate-900 hover:bg-slate-100',
+  default: 'bg-primary text-primary-foreground hover:bg-primary/95',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/90',
+  destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+  ghost: 'bg-transparent text-foreground hover:bg-muted/80',
 };
 
 const sizeStyles = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
+  sm: 'px-3 py-2 text-sm',
+  md: 'px-4 py-2.5 text-sm',
   lg: 'px-5 py-3 text-base',
 };
 
@@ -22,7 +23,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'default', size = 'md', className = '', ...props }, ref) => (
     <button
       ref={ref}
-      className={`inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={cn(
+        'inline-flex items-center justify-center rounded-2xl font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 shadow-soft',
+        variantStyles[variant],
+        sizeStyles[size],
+        className,
+      )}
       {...props}
     />
   ),
