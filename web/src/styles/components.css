@@ -1,1 +1,245 @@
-﻿/* components.css placeholder */
+﻿/* Button Components */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--input);
+}
+
+/* Card Components */
+.card {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.card-header {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.card-body {
+  margin: 1rem 0;
+}
+
+.card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Form Components */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--input);
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px rgba(69, 130, 180, 0.1);
+}
+
+/* Badge Components */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.badge-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.badge-destructive {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+/* Alert Components */
+.alert {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.alert-info {
+  background-color: oklch(0.95 0.01 240);
+  border-color: oklch(0.75 0.08 240);
+  color: oklch(0.45 0.13 240);
+}
+
+.alert-success {
+  background-color: oklch(0.95 0.01 140);
+  border-color: oklch(0.75 0.08 140);
+  color: oklch(0.45 0.13 140);
+}
+
+.alert-warning {
+  background-color: oklch(0.95 0.01 70);
+  border-color: oklch(0.75 0.08 70);
+  color: oklch(0.45 0.13 70);
+}
+
+.alert-destructive {
+  background-color: oklch(0.95 0.01 20);
+  border-color: oklch(0.75 0.08 20);
+  color: oklch(0.45 0.13 20);
+}
+/* Component Styles – Buttons, Cards, Glassmorphism, Lifts */
+
+@utility btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+@utility btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+.btn-secondary:hover {
+  background-color: var(--color-secondary-dark, oklch(0.7 0.14 75));
+}
+
+@utility container-custom {
+  max-width: 100%;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container-custom {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container-custom {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Gradients */
+@utility bg-gradient-hero {
+  background-image: var(--gradient-hero);
+}
+@utility bg-gradient-warm {
+  background-image: var(--gradient-warm);
+}
+
+/* Shadows */
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Hover lift */
+@utility hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Glassmorphism */
+@utility glass {
+  background: color-mix(in oklab, white 12%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid color-mix(in oklab, white 22%, transparent);
+}
+
+@utility glass-dark {
+  background: color-mix(in oklab, black 28%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid color-mix(in oklab, white 14%, transparent);
+}
+
+@utility glass-card {
+  background: color-mix(in oklab, var(--color-card) 70%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
