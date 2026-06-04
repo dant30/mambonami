@@ -5,7 +5,7 @@ import Footer from './Footer';
 
 export default function MainLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-green-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
       <div className="flex min-h-screen">
         <div className="sticky top-0 h-screen overflow-y-auto">
           <Sidebar />

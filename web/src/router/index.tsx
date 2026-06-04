@@ -5,6 +5,7 @@ import { useAuth } from '../core/hooks/useAuth';
 export default function AppRouter() {
   const { loading, user } = useAuth();
   const routes = user ? guardedRoutes : publicRoutes;
+  const element = useRoutes(routes);
 
   if (loading) {
     return (
@@ -14,5 +15,5 @@ export default function AppRouter() {
     );
   }
 
-  return useRoutes(routes);
+  return element;
 }

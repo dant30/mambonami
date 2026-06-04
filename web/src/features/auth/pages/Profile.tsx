@@ -51,35 +51,37 @@ export default function Profile() {
   };
 
   return (
-    <div className="mx-auto max-w-lg p-6 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-soft">
-      <h1 className="text-2xl font-semibold mb-4 text-white">Profile</h1>
-      {message ? <Alert>{message}</Alert> : null}
-      {error ? <Alert variant="destructive">{error}</Alert> : null}
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" type="text" className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500" {...register('username')} />
-          {errors.username ? <p className="text-sm text-red-600 mt-1">{errors.username.message}</p> : null}
-        </div>
-        <div>
-          <Label htmlFor="first_name">First Name</Label>
-          <Input id="first_name" type="text" className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500" {...register('first_name')} />
-          {errors.first_name ? <p className="text-sm text-red-600 mt-1">{errors.first_name.message}</p> : null}
-        </div>
-        <div>
-          <Label htmlFor="last_name">Last Name</Label>
-          <Input id="last_name" type="text" className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500" {...register('last_name')} />
-          {errors.last_name ? <p className="text-sm text-red-600 mt-1">{errors.last_name.message}</p> : null}
-        </div>
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500" {...register('email')} />
-          {errors.email ? <p className="text-sm text-red-600 mt-1">{errors.email.message}</p> : null}
-        </div>
-        <Button type="submit" disabled={isSubmitting} variant="default" className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500">
-          {isSubmitting ? 'Saving...' : 'Save profile'}
-        </Button>
-      </form>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-green-50 text-slate-900 p-6 md:p-12 dark:text-slate-100">
+      <div className="mx-auto max-w-lg p-6 bg-white/90 text-slate-900 rounded-2xl border border-emerald-200 shadow-soft backdrop-blur-sm dark:bg-slate-950/95 dark:text-slate-100 dark:border-slate-700">
+        <h1 className="text-2xl font-semibold mb-4 text-emerald-900 dark:text-emerald-200">Profile</h1>
+        {message ? <Alert>{message}</Alert> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" type="text" className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500" {...register('username')} />
+            {errors.username ? <p className="text-sm text-red-600 mt-1">{errors.username.message}</p> : null}
+          </div>
+          <div>
+            <Label htmlFor="first_name">First Name</Label>
+            <Input id="first_name" type="text" className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500" {...register('first_name')} />
+            {errors.first_name ? <p className="text-sm text-red-600 mt-1">{errors.first_name.message}</p> : null}
+          </div>
+          <div>
+            <Label htmlFor="last_name">Last Name</Label>
+            <Input id="last_name" type="text" className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500" {...register('last_name')} />
+            {errors.last_name ? <p className="text-sm text-red-600 mt-1">{errors.last_name.message}</p> : null}
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500" {...register('email')} />
+            {errors.email ? <p className="text-sm text-red-600 mt-1">{errors.email.message}</p> : null}
+          </div>
+          <Button type="submit" disabled={isSubmitting} variant="default" className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500">
+            {isSubmitting ? 'Saving...' : 'Save profile'}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

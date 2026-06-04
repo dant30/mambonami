@@ -99,11 +99,11 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-green-50 text-slate-900 p-6 md:p-12">
       <div className="mx-auto max-w-5xl space-y-8">
-        <Card className="border border-slate-800 bg-slate-900/95 p-8 shadow-soft backdrop-blur-xl">
+        <Card className="border border-slate-200 bg-white/95 p-8 shadow-soft backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95">
           <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.25em] text-sky-300/80">Create your account</p>
+          <p className="text-sm uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-200">Create your account</p>
           <h1 className="text-3xl font-semibold">Register for MAMBONAMI</h1>
           <p className="text-sm text-slate-300">
               Begin with a quick registration step then verify your account using the OTP code we send. Your admin experience starts after verification.
@@ -111,7 +111,7 @@ export default function Register() {
           </div>
         </Card>
 
-        <Card className="grid gap-8 lg:grid-cols-[0.94fr_0.86fr] p-8 border border-slate-800 bg-slate-950/95 shadow-soft">
+        <Card className="grid gap-8 lg:grid-cols-[0.94fr_0.86fr] p-8 border border-slate-200 bg-white/95 shadow-soft dark:border-slate-700 dark:bg-slate-950/95">
           <div className="space-y-6">
             {phase === 'init' ? (
               <div>
@@ -129,8 +129,8 @@ export default function Register() {
               </div>
             )}
 
-            <div className="rounded-3xl border border-slate-700 bg-slate-900/80 p-5">
-              <p className="text-sm font-semibold text-slate-100">Registration tips</p>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900/80">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Registration tips</p>
               <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
                 <li>Use a valid phone number so you can receive the OTP code.</li>
                 <li>Create a password you can remember, but don’t reuse it elsewhere.</li>
@@ -150,7 +150,7 @@ export default function Register() {
                     type="tel"
                     placeholder="0712 345 678"
                     autoComplete="tel"
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...register('phone')}
                   />
                   {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
@@ -164,7 +164,7 @@ export default function Register() {
                       { value: 'farmer', label: 'Farmer' },
                       { value: 'transport_provider', label: 'Transport Provider' },
                     ]}
-                    className="bg-slate-900 border-slate-700 text-slate-100"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...register('role')}
                   />
                   {errors.role ? <p className="text-sm text-destructive mt-1">{errors.role.message}</p> : null}
@@ -173,13 +173,13 @@ export default function Register() {
                   type="submit"
                   variant="default"
                   disabled={isSubmitting}
-                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
                 >
                   {isSubmitting ? 'Sending OTP...' : 'Send verification code'}
                 </Button>
                 <p className="text-sm text-slate-300">
                   Already have an account?{' '}
-                  <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100">
+                  <Link to="/login" className="font-semibold text-emerald-300 hover:text-emerald-100">
                     Sign in
                   </Link>
                 </p>
@@ -193,7 +193,7 @@ export default function Register() {
                     type="tel"
                     readOnly
                     defaultValue={savedPhone}
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('phone')}
                   />
                 </div>
@@ -203,7 +203,7 @@ export default function Register() {
                     id="role"
                     readOnly
                     defaultValue={savedRole}
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('role')}
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function Register() {
                     id="otp_code"
                     type="text"
                     placeholder="Enter OTP"
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('otp_code')}
                   />
                   {verifyErrors.otp_code ? <p className="text-sm text-destructive mt-1">{verifyErrors.otp_code.message}</p> : null}
@@ -224,7 +224,7 @@ export default function Register() {
                     id="username"
                     type="text"
                     placeholder="Choose a username"
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('username')}
                   />
                   {verifyErrors.username ? <p className="text-sm text-destructive mt-1">{verifyErrors.username.message}</p> : null}
@@ -236,7 +236,7 @@ export default function Register() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Create a password"
-                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                       {...verifyRegister('password')}
                     />
                     <button
@@ -256,7 +256,7 @@ export default function Register() {
                       id="confirm_password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
-                      className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                      className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                       {...verifyRegister('confirm_password')}
                     />
                     <button
@@ -273,13 +273,13 @@ export default function Register() {
                   type="submit"
                   variant="default"
                   disabled={isVerifying}
-                  className="w-full bg-sky-600 text-white shadow-soft hover:bg-sky-500"
+                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
                 >
                   {isVerifying ? 'Completing registration...' : 'Complete registration'}
                 </Button>
                 <p className="text-sm text-slate-300">
                   Already registered?{' '}
-                  <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100">
+                  <Link to="/login" className="font-semibold text-emerald-300 hover:text-emerald-100">
                     Sign in
                   </Link>
                 </p>
