@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
-import { UserProfile } from '../api/types';
+import { UserProfile } from '../api';
 import { getToken, removeToken, setToken } from '../storage/secureStorage';
 
 interface AuthContextType {

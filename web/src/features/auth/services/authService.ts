@@ -1,6 +1,6 @@
 ﻿import { apiClient } from '../../../core/api/client';
 import { AUTH_ENDPOINTS } from '../../../core/api/endpoints';
-import { LoginResponse } from '../../../core/api/types';
+import { LoginResponse } from '../../../core/api';
 
 const localAdminCredentials = {
   phone: '0724167076',

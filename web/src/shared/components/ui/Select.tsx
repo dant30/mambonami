@@ -1,36 +1,61 @@
-﻿import React from 'react';
+﻿import * as React from 'react';
 import { cn } from '../../../lib/utils';
+import { CustomSelect } from './CustomSelect';
 
-interface Option {
-  value: string;
-  label: string;
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+  options?: Array<{ value: string; label: string }>;
+  error?: string;
+  icon?: React.ReactNode;
+  uiSize?: 'sm' | 'md';
+  label?: string;
 }
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  options?: Option[];
-}
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  ({ className, options = [], error, value, onChange, icon, uiSize, label, ...props }, ref) => {
+    if (options && options.length > 0) {
+      return (
+        <div className="w-full">
+          {label && <span className="form-label mb-1.5 block">{label}</span>}
+          <CustomSelect
+            options={options.map((opt) => ({ id: opt.value, label: opt.label }))}
+            value={(value as string | number) ?? ''}
+            onChange={(val) => {
+              if (onChange) {
+                onChange({
+                  target: { value: val },
+                  currentTarget: { value: val },
+                } as any);
+              }
+            }}
+            error={error}
+            icon={icon}
+            size={uiSize}
+          />
+        </div>
+      );
+    }
 
-const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ options = [], className = '', children, ...props }, ref) => (
-    <select
-      ref={ref}
-      className={cn(
-        'w-full appearance-none rounded-2xl border border-border bg-input px-4 py-3 pr-10 text-sm text-foreground shadow-soft transition duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  ),
+    return (
+      <div className="w-full">
+        {label && <span className="form-label mb-1.5 block">{label}</span>}
+        <select
+          ref={ref}
+          className={cn('form-select h-11 px-3.5 text-[15px]', error && 'border-danger focus:ring-danger/20', className)}
+          value={value}
+          onChange={onChange}
+          {...props}
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        {error && <p className="form-error mt-1">{error}</p>}
+      </div>
+    );
+  }
 );
-
 Select.displayName = 'Select';
-
 export default Select;
 

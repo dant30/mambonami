@@ -41,13 +41,14 @@ export default {
       fontFamily: {
         display: ['Fraunces', 'Georgia', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'float': 'float 4s ease-in-out infinite',
+        float: 'float 4s ease-in-out infinite',
         'fade-in-up': 'fade-in-up 0.7s ease-out both',
         'fade-in': 'fade-in 0.4s ease-out both',
         'ping-slow': 'ping-slow 2.2s cubic-bezier(0,0,0.2,1) infinite',
-        'marquee': 'marquee 30s linear infinite',
+        marquee: 'marquee 30s linear infinite',
       },
       keyframes: {
         float: {
@@ -74,6 +75,7 @@ export default {
       boxShadow: {
         soft: 'var(--shadow-soft)',
         glow: 'var(--shadow-glow)',
+        card: '0 24px 54px rgba(15, 23, 42, 0.08)',
       },
     },
   },
