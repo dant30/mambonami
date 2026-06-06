@@ -5,9 +5,13 @@ import '../../../blocs/order/order_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
 import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/earnings_widgets.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/role_dashboard_widgets.dart';
 
 class EarningsPage extends StatefulWidget {
   const EarningsPage({super.key});
@@ -40,7 +44,7 @@ class _EarningsPageState extends State<EarningsPage> {
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading || state is OrderInitial) {
-            return const LoadingIndicator();
+            return const LoadingIndicator(message: 'Loading farm earnings');
           }
 
           if (state is FarmerSubOrdersLoaded) {
@@ -48,165 +52,127 @@ class _EarningsPageState extends State<EarningsPage> {
             if (subOrders.isEmpty) {
               return EmptyState(
                 title: 'No earnings yet',
-                description: 'Your farm has not received any orders yet. Start by adding products and fulfilling order requests.',
+                description:
+                    'Your farm has not received any orders yet. Start by adding products and fulfilling order requests.',
                 buttonText: 'Refresh',
                 onButtonPressed: _refresh,
               );
             }
 
-            final totalRevenue = subOrders.fold<double>(0.0, (sum, order) => sum + order.subtotal);
-            final currentWeekRevenue = _calculateRevenue(subOrders, _isInCurrentWeek);
-            final currentMonthRevenue = _calculateRevenue(subOrders, _isInCurrentMonth);
+            final totalRevenue =
+                subOrders.fold<double>(0.0, (sum, order) => sum + order.subtotal);
+            final currentWeekRevenue =
+                _calculateRevenue(subOrders, _isInCurrentWeek);
+            final currentMonthRevenue =
+                _calculateRevenue(subOrders, _isInCurrentMonth);
             final currentWeekOrders = _countOrders(subOrders, _isInCurrentWeek);
-            final currentMonthOrders = _countOrders(subOrders, _isInCurrentMonth);
+            final currentMonthOrders =
+                _countOrders(subOrders, _isInCurrentMonth);
             final confirmedCount = subOrders.where((o) => o.isConfirmed).length;
-            final confirmedRevenue = _calculateRevenue(subOrders, (o) => o.isConfirmed);
+            final confirmedRevenue =
+                _calculateRevenue(subOrders, (o) => o.isConfirmed);
             final readyCount = subOrders.where((o) => o.isReady).length;
             final readyRevenue = _calculateRevenue(subOrders, (o) => o.isReady);
             final pendingCount = subOrders.where((o) => o.isPending).length;
-            final pendingRevenue = _calculateRevenue(subOrders, (o) => o.isPending);
+            final pendingRevenue =
+                _calculateRevenue(subOrders, (o) => o.isPending);
 
             return RefreshIndicator(
               onRefresh: _refresh,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.green.withValues(alpha: 0.1),
-                            Colors.green.withValues(alpha: 0.05),
-                          ],
+              child: AppScreen(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EarningsHero(
+                      label: 'Farm earnings',
+                      amount: 'Ksh ${totalRevenue.toStringAsFixed(2)}',
+                      icon: Icons.agriculture_outlined,
+                      stats: [
+                        DashboardStat(
+                          label: 'Confirmed',
+                          value: confirmedCount.toString(),
+                          icon: Icons.verified_outlined,
                         ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Total Earnings', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Ksh ${totalRevenue.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildEarningsStat('Confirmed', confirmedCount.toString(), context),
-                                Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
-                                _buildEarningsStat('Ready', readyCount.toString(), context),
-                              ],
-                            ),
-                          ],
+                        DashboardStat(
+                          label: 'Ready',
+                          value: readyCount.toString(),
+                          icon: Icons.inventory_2_outlined,
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text('Breakdown', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildPeriodRow('This Week', currentWeekOrders, currentWeekRevenue, context),
-                          Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildPeriodRow('This Month', currentMonthOrders, currentMonthRevenue, context),
-                          Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Confirmed Orders', confirmedCount.toString(), 'Ksh ${confirmedRevenue.toStringAsFixed(2)}', context),
-                          Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Ready Orders', readyCount.toString(), 'Ksh ${readyRevenue.toStringAsFixed(2)}', context),
-                          Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                          _buildBreakdownRow('Pending Orders', pendingCount.toString(), 'Ksh ${pendingRevenue.toStringAsFixed(2)}', context),
-                        ],
-                      ),
+                    const SizedBox(height: 18),
+                    EarningsBreakdownCard(
+                      title: 'Breakdown',
+                      rows: [
+                        EarningsBreakdownRow(
+                          label: 'This Week',
+                          count: '$currentWeekOrders order(s)',
+                          amount: 'Ksh ${currentWeekRevenue.toStringAsFixed(2)}',
+                          icon: Icons.date_range_outlined,
+                        ),
+                        EarningsBreakdownRow(
+                          label: 'This Month',
+                          count: '$currentMonthOrders order(s)',
+                          amount: 'Ksh ${currentMonthRevenue.toStringAsFixed(2)}',
+                          icon: Icons.calendar_month_outlined,
+                        ),
+                        EarningsBreakdownRow(
+                          label: 'Confirmed Orders',
+                          count: '$confirmedCount order(s)',
+                          amount: 'Ksh ${confirmedRevenue.toStringAsFixed(2)}',
+                          icon: Icons.verified_outlined,
+                        ),
+                        EarningsBreakdownRow(
+                          label: 'Ready Orders',
+                          count: '$readyCount order(s)',
+                          amount: 'Ksh ${readyRevenue.toStringAsFixed(2)}',
+                          icon: Icons.inventory_2_outlined,
+                        ),
+                        EarningsBreakdownRow(
+                          label: 'Pending Orders',
+                          count: '$pendingCount order(s)',
+                          amount: 'Ksh ${pendingRevenue.toStringAsFixed(2)}',
+                          icon: Icons.pending_actions_outlined,
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text('Recent order requests', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 12),
-                  ...subOrders.take(5).map(
-                        (subOrder) => Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            title: Text('Order #${subOrder.id}'),
-                            subtitle: Text('${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
-                            trailing: Text(subOrder.status.toUpperCase()),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Recent order requests',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...subOrders.take(5).map(
+                          (subOrder) => Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              title: Text('Order #${subOrder.id}'),
+                              subtitle: Text(
+                                  '${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
+                              trailing: Text(
+                                subOrder.status.toUpperCase(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w900),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                ],
+                  ],
+                ),
               ),
             );
           }
 
           if (state is OrderError) {
-            return Center(child: Text(state.message));
+            return AppErrorWidget(message: state.message);
           }
 
           return const Center(child: Text('Unable to load earnings.'));
         },
-      ),
-    );
-  }
-
-  Widget _buildEarningsStat(String label, String value, BuildContext context) {
-    return Column(
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
-        const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
-  Widget _buildBreakdownRow(String label, String count, String amount, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-              Text(count, style: Theme.of(context).textTheme.labelSmall),
-            ],
-          ),
-          Text(amount, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodRow(String label, int count, double amount, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-              Text('$count orders', style: Theme.of(context).textTheme.labelSmall),
-            ],
-          ),
-          Text('Ksh ${amount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-        ],
       ),
     );
   }
