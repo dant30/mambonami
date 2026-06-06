@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -18,6 +18,7 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
   final TextCapitalization textCapitalization;
+  final String? helperText;
 
   const CustomTextField({
     super.key,
@@ -32,14 +33,18 @@ class CustomTextField extends StatelessWidget {
     this.errorText,
     this.prefixIcon,
     this.suffixIcon,
-    this.enabled = true,    this.autofocus = false,    this.maxLines = 1,
+    this.enabled = true,
+    this.autofocus = false,
+    this.maxLines = 1,
     this.onChanged,
     this.onFieldSubmitted,
     this.textCapitalization = TextCapitalization.none,
+    this.helperText,
   }) : assert(label != null || labelText != null, 'Provide label or labelText');
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -55,14 +60,21 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label ?? labelText,
         hintText: hintText,
+        helperText: helperText,
         errorText: errorText,
-        prefixIcon: prefixIcon,
+        prefixIcon: prefixIcon == null
+            ? null
+            : IconTheme(
+                data: IconThemeData(
+                  color: theme.colorScheme.primary,
+                  size: 21,
+                ),
+                child: prefixIcon!,
+              ),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Theme.of(context).colorScheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
+        fillColor: theme.inputDecorationTheme.fillColor ??
+            theme.colorScheme.surface.withValues(alpha: 0.9),
       ),
     );
   }

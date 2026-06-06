@@ -11,13 +11,15 @@ class OrderTrackingBloc extends Bloc<OrderTrackingEvent, OrderTrackingState> {
   // GetIt available via getIt if needed
   String? _currentUuid;
 
-  OrderTrackingBloc({required this.orderRepository}) : super(OrderTrackingInitial()) {
+  OrderTrackingBloc({required this.orderRepository})
+      : super(OrderTrackingInitial()) {
     on<FetchOrderTracking>(_onFetch);
     on<RefreshOrderTracking>(_onRefresh);
     on<NotificationAffectsOrder>(_onNotification);
   }
 
-  Future<void> _onFetch(FetchOrderTracking event, Emitter<OrderTrackingState> emit) async {
+  Future<void> _onFetch(
+      FetchOrderTracking event, Emitter<OrderTrackingState> emit) async {
     emit(OrderTrackingLoading());
     _currentUuid = event.uuid;
     try {
@@ -28,7 +30,8 @@ class OrderTrackingBloc extends Bloc<OrderTrackingEvent, OrderTrackingState> {
     }
   }
 
-  Future<void> _onRefresh(RefreshOrderTracking event, Emitter<OrderTrackingState> emit) async {
+  Future<void> _onRefresh(
+      RefreshOrderTracking event, Emitter<OrderTrackingState> emit) async {
     final uuid = _currentUuid;
     if (uuid == null) return;
     emit(OrderTrackingLoading());
@@ -40,7 +43,8 @@ class OrderTrackingBloc extends Bloc<OrderTrackingEvent, OrderTrackingState> {
     }
   }
 
-  Future<void> _onNotification(NotificationAffectsOrder event, Emitter<OrderTrackingState> emit) async {
+  Future<void> _onNotification(
+      NotificationAffectsOrder event, Emitter<OrderTrackingState> emit) async {
     final currentState = state;
     if (currentState is OrderTrackingLoaded) {
       final notif = event.notification;
@@ -74,6 +78,10 @@ class OrderTrackingBloc extends Bloc<OrderTrackingEvent, OrderTrackingState> {
       status: status,
       accountNumber: o.accountNumber,
       deliveryAddress: o.deliveryAddress,
+      deliveryStreet: o.deliveryStreet,
+      deliveryCity: o.deliveryCity,
+      deliveryPostalCode: o.deliveryPostalCode,
+      deliveryLandmark: o.deliveryLandmark,
       deliveryLat: o.deliveryLat,
       deliveryLng: o.deliveryLng,
       totalWeightKg: o.totalWeightKg,

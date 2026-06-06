@@ -25,20 +25,32 @@ class CustomIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
+    final effectiveRadius = borderRadius.clamp(0, 8).toDouble();
+    final button = Material(
+      color:
+          backgroundColor ?? theme.colorScheme.surface.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(effectiveRadius),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Container(
-          padding: padding,
+        borderRadius: BorderRadius.circular(effectiveRadius),
+        child: DecoratedBox(
           decoration: BoxDecoration(
-            color: backgroundColor ?? theme.colorScheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(borderRadius),
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            border: Border.all(color: theme.colorScheme.outline),
           ),
-          child: Icon(icon, size: size, color: iconColor ?? theme.colorScheme.onSurfaceVariant),
+          child: Padding(
+            padding: padding,
+            child: Icon(
+              icon,
+              size: size,
+              color: iconColor ?? theme.colorScheme.primary,
+            ),
+          ),
         ),
       ),
     );
+
+    if (tooltip == null) return button;
+    return Tooltip(message: tooltip!, child: button);
   }
 }

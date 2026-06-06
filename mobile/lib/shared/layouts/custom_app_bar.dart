@@ -1,4 +1,4 @@
-﻿// mobile/lib/shared/layouts/custom_app_bar.dart
+// mobile/lib/shared/layouts/custom_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/notification_badge.dart';
@@ -35,15 +35,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(
         title,
-        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: theme.colorScheme.onSurface,
+        ),
       ),
       centerTitle: centerTitle,
-      backgroundColor: backgroundColor ?? theme.colorScheme.primary,
+      backgroundColor: backgroundColor ?? theme.colorScheme.surface,
+      foregroundColor: theme.colorScheme.onSurface,
       elevation: elevation,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       leading: leading ??
-          ((showBackButton && (Navigator.of(context).canPop() || fallbackOnPressed != null || fallbackRoute != null))
+          ((showBackButton &&
+                  (Navigator.of(context).canPop() ||
+                      fallbackOnPressed != null ||
+                      fallbackRoute != null))
               ? IconButton(
-                  icon: const Icon(Icons.arrow_back_ios),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    foregroundColor: theme.colorScheme.onSurface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
                   onPressed: () {
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
@@ -61,7 +76,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               : null),
       actions: [
         if (actions != null) ...actions!,
-        if (showNotificationAction) const Padding(padding: EdgeInsets.only(right: 8.0), child: SizedBox(width: 44, child: Center(child: NotificationBadge()))),
+        if (showNotificationAction)
+          const Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child:
+                SizedBox(width: 44, child: Center(child: NotificationBadge())),
+          ),
       ],
     );
   }

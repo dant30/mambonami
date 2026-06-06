@@ -25,13 +25,39 @@ class GreetingHeader extends StatelessWidget {
     final displayName = (name != null && name!.isNotEmpty) ? name! : 'there';
     final theme = Theme.of(context);
     final style = textStyle ??
-        theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700);
+        theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: theme.colorScheme.onSurface,
+        );
 
     return Padding(
       padding: padding,
-      child: Text(
-        '${_greeting()}, $displayName',
-        style: style,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.colorScheme.outline),
+            ),
+            child: Icon(
+              Icons.waving_hand_outlined,
+              color: theme.colorScheme.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '${_greeting()}, $displayName',
+              style: style,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

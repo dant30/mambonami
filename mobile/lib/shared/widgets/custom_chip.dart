@@ -24,13 +24,23 @@ class CustomChip extends StatelessWidget {
     return Chip(
       avatar: avatar,
       label: Text(label),
-      backgroundColor: color ?? theme.chipTheme.backgroundColor,
+      backgroundColor: color ??
+          (selected
+              ? theme.colorScheme.primary.withValues(alpha: 0.12)
+              : theme.chipTheme.backgroundColor),
       labelStyle: TextStyle(
-        color: textColor ?? theme.chipTheme.labelStyle?.color,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        color: textColor ??
+            (selected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface),
+        fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
       ),
       onDeleted: onDeleted,
-      side: selected ? BorderSide(color: theme.colorScheme.primary) : null,
+      side: BorderSide(
+        color: selected ? theme.colorScheme.primary : theme.colorScheme.outline,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
     );
   }
 }

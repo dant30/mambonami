@@ -13,10 +13,27 @@ class CustomDialog {
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (_) => AlertDialog(
-        title: Text(title, style: theme.textTheme.titleLarge),
-        content: Text(message, style: theme.textTheme.bodyMedium),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        icon: _DialogIcon(
+          icon: Icons.info_outline,
+          color: theme.colorScheme.primary,
+        ),
+        title: Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          message,
+          style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+          textAlign: TextAlign.center,
+        ),
         actions: [
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.pop(context),
             child: Text(buttonText),
           ),
@@ -38,8 +55,25 @@ class CustomDialog {
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (_) => AlertDialog(
-        title: Text(title, style: theme.textTheme.titleLarge),
-        content: Text(message, style: theme.textTheme.bodyMedium),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        icon: _DialogIcon(
+          icon: Icons.help_outline,
+          color: theme.colorScheme.primary,
+        ),
+        title: Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          message,
+          style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+          textAlign: TextAlign.center,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -51,6 +85,26 @@ class CustomDialog {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DialogIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _DialogIcon({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(icon, color: color, size: 28),
     );
   }
 }

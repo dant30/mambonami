@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/route_paths.dart';
+import '../../config/role_routes.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/widgets/custom_button.dart';
@@ -40,9 +41,12 @@ class AuthGuard extends StatelessWidget {
       return const UnauthorizedPage();
     }
 
-    if (authState is AuthUnauthenticated || authState is AuthInitial || authState is AuthError) {
+    if (authState is AuthUnauthenticated ||
+        authState is AuthInitial ||
+        authState is AuthError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted && GoRouterState.of(context).uri.toString() != fallbackPath) {
+        if (context.mounted &&
+            GoRouterState.of(context).uri.toString() != fallbackPath) {
           context.go(fallbackPath);
         }
       });
@@ -73,8 +77,13 @@ class UnauthorizedPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.login),
-              label: 'Go to Login',
+              onPressed: () {
+                final authState = context.read<AuthBloc>().state;
+                final role =
+                    authState is AuthAuthenticated ? authState.role : null;
+                context.go(AppRole.homePathFor(role));
+              },
+              label: 'Go to Home',
             ),
           ],
         ),

@@ -1,4 +1,4 @@
-﻿// mobile/lib/features/transport/widgets/order_offer_card.dart
+// mobile/lib/features/transport/widgets/order_offer_card.dart
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:geolocator/geolocator.dart';
@@ -31,8 +31,9 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
 
   Future<void> _computeDistance() async {
     try {
-      if (widget.trip.pickupLat == null || widget.trip.pickupLng == null)
+      if (widget.trip.pickupLat == null || widget.trip.pickupLng == null) {
         return;
+      }
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
       LocationPermission permission = await Geolocator.checkPermission();
@@ -71,10 +72,9 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
   @override
   Widget build(BuildContext context) {
     final trip = widget.trip;
+    final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -89,15 +89,18 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                     children: [
                       Text(
                         'Order #${trip.order}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Status: ${trip.status}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.62),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
@@ -112,7 +115,10 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                     ),
                   ),
                   backgroundColor:
-                      _getStatusColor(trip.status).withOpacity(0.1),
+                      _getStatusColor(trip.status).withValues(alpha: 0.1),
+                  side: BorderSide(
+                    color: _getStatusColor(trip.status).withValues(alpha: 0.22),
+                  ),
                 ),
               ],
             ),
@@ -122,19 +128,23 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Icon(Icons.location_on, size: 18, color: Colors.green),
+                    Icon(Icons.trip_origin,
+                        size: 18, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Pickup: (${trip.pickupLat?.toStringAsFixed(2)}, ${trip.pickupLng?.toStringAsFixed(2)})',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (_distanceKm != null) ...[
                       const SizedBox(width: 8),
                       Text('${_distanceKm!.toStringAsFixed(1)} km',
-                          style: Theme.of(context).textTheme.bodySmall),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.primary,
+                          )),
                     ]
                   ],
                 ),
@@ -142,12 +152,13 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
             if (trip.deliveryLat != null && trip.deliveryLng != null)
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 18, color: Colors.red),
+                  Icon(Icons.location_on,
+                      size: 18, color: theme.colorScheme.error),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Delivery: (${trip.deliveryLat?.toStringAsFixed(2)}, ${trip.deliveryLng?.toStringAsFixed(2)})',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -159,15 +170,14 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Icon(Icons.attach_money,
-                        size: 18, color: Colors.green[700]),
+                    Icon(Icons.payments_outlined,
+                        size: 18, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
                       'Fee: ${trip.agreedFee?.toStringAsFixed(2)}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ],
                 ),
@@ -186,7 +196,7 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: widget.onAccept,
-                    child: const Text('Accept'),
+                    child: const Text('Accept order'),
                   ),
                 ),
               ],
@@ -206,7 +216,7 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
       case 'picked_up':
         return Colors.purple;
       case 'delivered':
-        return Colors.green;
+        return const Color(0xFF138A4A);
       case 'cancelled':
         return Colors.red;
       default:

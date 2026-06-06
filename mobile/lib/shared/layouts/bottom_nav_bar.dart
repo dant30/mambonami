@@ -1,4 +1,4 @@
-﻿// mobile/lib/shared/layouts/bottom_nav_bar.dart
+// mobile/lib/shared/layouts/bottom_nav_bar.dart
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -16,24 +16,28 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final backgroundColor = theme.bottomAppBarTheme.color ?? theme.colorScheme.surfaceContainerHighest;
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: backgroundColor,
-      selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.textTheme.bodySmall?.color?.withAlpha(180) ?? theme.colorScheme.onSurface.withOpacity(0.6),
-      selectedLabelStyle: theme.textTheme.bodySmall,
-      unselectedLabelStyle: theme.textTheme.bodySmall,
-      showUnselectedLabels: true,
-      items: items.map((item) {
-        return BottomNavigationBarItem(
-          icon: Icon(item.icon),
-          activeIcon: Icon(item.activeIcon ?? item.icon),
-          label: item.label,
-        );
-      }).toList(),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.7)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: NavigationBar(
+          selectedIndex: currentIndex,
+          onDestinationSelected: onTap,
+          destinations: items.map((item) {
+            return NavigationDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.activeIcon ?? item.icon),
+              label: item.label,
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

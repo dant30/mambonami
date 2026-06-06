@@ -1,12 +1,16 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/role_dashboard_widgets.dart';
 
 class FarmerDashboard extends StatelessWidget {
   const FarmerDashboard({super.key});
@@ -25,51 +29,92 @@ class FarmerDashboard extends StatelessWidget {
         title: 'Farmer Dashboard',
         showNotificationAction: true,
         leading: Builder(
-          builder: (ctx) => IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(ctx).openDrawer()),
+          builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer()),
         ),
       ),
       drawer: const AppDrawer(),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+      body: AppScreen(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GreetingHeader(name: username),
+            const SizedBox(height: 10),
+            RoleHeroCard(
+              title: 'Farm operations',
+              subtitle:
+                  'Manage listings, prepare order requests, and keep earnings visible in one focused workspace.',
+              icon: Icons.agriculture_outlined,
+              gradient: AppGradients.field,
+              actions: [
+                HeroActionButton(
+                  label: 'Add Product',
+                  icon: Icons.add_rounded,
+                  onTap: () => context.push(RoutePaths.farmerProductCreate),
+                ),
+                HeroActionButton(
+                  label: 'Requests',
+                  icon: Icons.assignment_turned_in_outlined,
+                  onTap: () => context.push(RoutePaths.farmerOrderRequests),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
+            const DashboardStatStrip(
+              stats: [
+                DashboardStat(
+                  label: 'Listings',
+                  value: 'Active',
+                  icon: Icons.inventory_2_outlined,
+                ),
+                DashboardStat(
+                  label: 'Requests',
+                  value: 'Open',
+                  icon: Icons.task_alt_outlined,
+                ),
+                DashboardStat(
+                  label: 'Revenue',
+                  value: 'Ready',
+                  icon: Icons.show_chart_rounded,
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
               childAspectRatio: 0.92,
               children: [
-                _DashboardCard(
+                DashboardActionTile(
                   icon: Icons.inventory_outlined,
-                  label: 'My Products',
-                  description: 'View and manage your catalog',
-                  color: Colors.blue,
+                  title: 'My Products',
+                  subtitle: 'Manage catalog',
+                  accentColor: AppColors.farmerAccent,
                   onTap: () => context.push(RoutePaths.farmerProducts),
                 ),
-                _DashboardCard(
+                DashboardActionTile(
                   icon: Icons.add_circle_outline,
-                  label: 'Add Product',
-                  description: 'Create a new listing',
-                  color: Colors.orange,
+                  title: 'Add Product',
+                  subtitle: 'Create listing',
+                  accentColor: AppColors.secondaryLight,
                   onTap: () => context.push(RoutePaths.farmerProductCreate),
                 ),
-                _DashboardCard(
+                DashboardActionTile(
                   icon: Icons.shopping_cart_outlined,
-                  label: 'Order Requests',
-                  description: 'Confirm and fulfill orders',
-                  color: Colors.green,
+                  title: 'Order Requests',
+                  subtitle: 'Confirm and fulfill',
+                  accentColor: AppColors.buyerAccent,
                   onTap: () => context.push(RoutePaths.farmerOrderRequests),
                 ),
-                _DashboardCard(
+                DashboardActionTile(
                   icon: Icons.show_chart_outlined,
-                  label: 'Earnings',
-                  description: 'Track farm revenue',
-                  color: Colors.purple,
+                  title: 'Earnings',
+                  subtitle: 'Track revenue',
+                  accentColor: Colors.purple,
                   onTap: () => context.push(RoutePaths.farmerEarnings),
                 ),
               ],
@@ -78,65 +123,6 @@ class FarmerDashboard extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: const AppBottomNavigationBar(),
-    );
-  }
-}
-
-class _DashboardCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String description;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _DashboardCard({
-    required this.icon,
-    required this.label,
-    required this.description,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 6,
-      shadowColor: theme.shadowColor.withValues(alpha: 0.12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.06)],
-            ),
-          ),
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 16),
-              Text(label, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              Text(description, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
-              const Spacer(),
-              Row(
-                children: [
-                  Text('Manage now', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary)),
-                  const SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_ios, size: 14, color: theme.colorScheme.primary),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

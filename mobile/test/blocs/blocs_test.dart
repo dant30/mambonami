@@ -1,1 +1,5 @@
-﻿// Bloc tests
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('Bloc tests', () {});
+}

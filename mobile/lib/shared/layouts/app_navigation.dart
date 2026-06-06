@@ -5,13 +5,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
 import '../../config/route_paths.dart';
+import '../../config/role_routes.dart';
 import 'bottom_nav_bar.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({super.key});
 
   int _selectedIndex(String location) {
-    if (location.startsWith(RoutePaths.buyerDashboard) || location.startsWith(RoutePaths.farmerDashboard) || location.startsWith(RoutePaths.transportProviderDashboard)) {
+    if (location.startsWith(RoutePaths.buyerDashboard) ||
+        location.startsWith(RoutePaths.farmerDashboard) ||
+        location.startsWith(RoutePaths.transportProviderDashboard)) {
       return 0;
     }
     if (location.startsWith(RoutePaths.notifications)) return 1;
@@ -24,9 +27,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     final authState = context.read<AuthBloc>().state;
     String homeRoute = RoutePaths.login;
     if (authState is AuthAuthenticated) {
-      if (authState.role == 'buyer') homeRoute = RoutePaths.buyerDashboard;
-      if (authState.role == 'farmer') homeRoute = RoutePaths.farmerDashboard;
-      if (authState.role == 'transport_provider') homeRoute = RoutePaths.transportProviderDashboard;
+      homeRoute = AppRole.homePathFor(authState.role);
     }
 
     switch (index) {
@@ -53,10 +54,20 @@ class AppBottomNavigationBar extends StatelessWidget {
       currentIndex: _selectedIndex(location),
       onTap: (index) => _handleTap(context, index),
       items: const [
-        BottomNavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
-        BottomNavItem(icon: Icons.notifications_outlined, activeIcon: Icons.notifications, label: 'Notifications'),
-        BottomNavItem(icon: Icons.support_agent_outlined, activeIcon: Icons.support_agent, label: 'Support'),
-        BottomNavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
+        BottomNavItem(
+            icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
+        BottomNavItem(
+            icon: Icons.notifications_outlined,
+            activeIcon: Icons.notifications,
+            label: 'Notifications'),
+        BottomNavItem(
+            icon: Icons.support_agent_outlined,
+            activeIcon: Icons.support_agent,
+            label: 'Support'),
+        BottomNavItem(
+            icon: Icons.person_outline,
+            activeIcon: Icons.person,
+            label: 'Profile'),
       ],
     );
   }

@@ -1,13 +1,17 @@
-﻿// mobile/lib/features/transport/pages/provider_dashboard.dart
+// mobile/lib/features/transport/pages/provider_dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/role_dashboard_widgets.dart';
 
 class ProviderDashboard extends StatelessWidget {
   const ProviderDashboard({super.key});
@@ -25,20 +29,40 @@ class ProviderDashboard extends StatelessWidget {
         title: 'Transport Provider',
         showNotificationAction: true,
         leading: Builder(
-          builder: (ctx) => IconButton(icon: const Icon(Icons.menu), onPressed: () => Scaffold.of(ctx).openDrawer()),
+          builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer()),
         ),
       ),
       drawer: const AppDrawer(),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+      body: AppScreen(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GreetingHeader(name: username),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
+            RoleHeroCard(
+              title: 'Delivery control',
+              subtitle:
+                  'Claim available orders, manage pickup flow, and complete delivery verification with confidence.',
+              icon: Icons.local_shipping_outlined,
+              gradient: AppGradients.logistics,
+              actions: [
+                HeroActionButton(
+                  label: 'Available',
+                  icon: Icons.inventory_2_outlined,
+                  onTap: () => context.push(RoutePaths.availableOrders),
+                ),
+                HeroActionButton(
+                  label: 'My Trips',
+                  icon: Icons.route_outlined,
+                  onTap: () => context.push(RoutePaths.myTrips),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
             _buildQuickAccessCards(context),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             _buildStatsSection(context),
           ],
         ),
@@ -51,13 +75,11 @@ class ProviderDashboard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Access',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        Text('Quick Access',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w900)),
         const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
@@ -65,29 +87,34 @@ class ProviderDashboard extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
+          childAspectRatio: 0.92,
           children: [
-            _QuickAccessCard(
+            DashboardActionTile(
               title: 'Available Orders',
+              subtitle: 'Claim pickups',
               icon: Icons.shopping_bag,
-              color: Colors.blue,
+              accentColor: AppColors.providerAccent,
               onTap: () => context.push(RoutePaths.availableOrders),
             ),
-            _QuickAccessCard(
+            DashboardActionTile(
               title: 'My Trips',
+              subtitle: 'Active routes',
               icon: Icons.route,
-              color: Colors.orange,
+              accentColor: AppColors.buyerAccent,
               onTap: () => context.push(RoutePaths.myTrips),
             ),
-            _QuickAccessCard(
+            DashboardActionTile(
               title: 'Earnings',
+              subtitle: 'Provider income',
               icon: Icons.attach_money,
-              color: Colors.green,
+              accentColor: AppColors.farmerAccent,
               onTap: () => context.push(RoutePaths.transportEarnings),
             ),
-            _QuickAccessCard(
+            DashboardActionTile(
               title: 'Profile',
+              subtitle: 'Account details',
               icon: Icons.person,
-              color: Colors.purple,
+              accentColor: Colors.purple,
               onTap: () => context.push(RoutePaths.profile),
             ),
           ],
@@ -100,113 +127,30 @@ class ProviderDashboard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Today\'s Overview',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        Text('Today\'s Overview',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w900)),
         const SizedBox(height: 12),
-        Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _StatItem(label: 'Trips', value: '0'),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.grey.withOpacity(0.3),
-                ),
-                _StatItem(label: 'Earnings', value: 'Ksh 0'),
-              ],
+        const DashboardStatStrip(
+          stats: [
+            DashboardStat(
+              label: 'Trips',
+              value: '0',
+              icon: Icons.route_outlined,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickAccessCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _QuickAccessCard({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 6,
-        shadowColor: Theme.of(context).shadowColor.withOpacity(0.12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withOpacity(0.1),
-                color.withOpacity(0.05),
-              ],
+            DashboardStat(
+              label: 'Earnings',
+              value: 'Ksh 0',
+              icon: Icons.payments_outlined,
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 36, color: color),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
+            DashboardStat(
+              label: 'Status',
+              value: 'Ready',
+              icon: Icons.verified_outlined,
+            ),
+          ],
         ),
       ],
     );

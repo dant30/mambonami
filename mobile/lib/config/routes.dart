@@ -1,4 +1,4 @@
-﻿// mobile/lib/config/routes.dart
+// mobile/lib/config/routes.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,6 +38,7 @@ import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart';
 import '../features/common/support_page.dart';
 import '../blocs/auth/auth_bloc.dart';
+import 'role_routes.dart';
 
 class AppRouter {
   late final GoRouter router = GoRouter(
@@ -45,43 +46,51 @@ class AppRouter {
     redirect: (context, state) => _handleDeepLinksAndAuth(context, state),
     routes: [
       GoRoute(path: RoutePaths.login, builder: (_, __) => const LoginPage()),
-      GoRoute(path: RoutePaths.register, builder: (_, __) => const RegisterInitPage()),
+      GoRoute(
+          path: RoutePaths.register,
+          builder: (_, __) => const RegisterInitPage()),
       GoRoute(
         path: RoutePaths.registerVerify,
         builder: (context, state) {
           final extra = state.extra;
-          if (extra is Map<String, String> && extra.containsKey('phone') && extra.containsKey('role')) {
-            return RegisterVerifyPage(phone: extra['phone']!, role: extra['role']!);
+          if (extra is Map<String, String> &&
+              extra.containsKey('phone') &&
+              extra.containsKey('role')) {
+            return RegisterVerifyPage(
+                phone: extra['phone']!, role: extra['role']!);
           }
-          return const Scaffold(body: Center(child: Text('Missing registration data.')));
+          return const Scaffold(
+              body: Center(child: Text('Missing registration data.')));
         },
       ),
-      GoRoute(path: RoutePaths.forgotPassword, builder: (_, __) => const ForgotPasswordPage()),
+      GoRoute(
+          path: RoutePaths.forgotPassword,
+          builder: (_, __) => const ForgotPasswordPage()),
       GoRoute(
         path: RoutePaths.buyerDashboard,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: BuyerDashboard(),
         ),
       ),
       GoRoute(
         path: RoutePaths.farmerDashboard,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['farmer'],
+          allowedRoles: AppRole.farmerRoles,
           child: FarmerDashboard(),
         ),
       ),
       GoRoute(
         path: RoutePaths.farmerProducts,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['farmer'],
+          allowedRoles: AppRole.farmerRoles,
           child: ProductListPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.farmerProductCreate,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['farmer'],
+          allowedRoles: AppRole.farmerRoles,
           child: ProductCreatePage(),
         ),
       ),
@@ -92,9 +101,11 @@ class AppRouter {
           final extra = state.extra;
           Product? product;
           if (extra is Product) product = extra;
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing product id')));
+          if (uuid == null)
+            return const Scaffold(
+                body: Center(child: Text('Missing product id')));
           return AuthGuard(
-            allowedRoles: ['farmer'],
+            allowedRoles: AppRole.farmerRoles,
             child: ProductEditPage(productUuid: uuid, initialProduct: product),
           );
         },
@@ -102,14 +113,14 @@ class AppRouter {
       GoRoute(
         path: RoutePaths.farmerOrderRequests,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['farmer'],
+          allowedRoles: AppRole.farmerRoles,
           child: OrderRequestsPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.farmerEarnings,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['farmer'],
+          allowedRoles: AppRole.farmerRoles,
           child: EarningsPage(),
         ),
       ),
@@ -121,43 +132,46 @@ class AppRouter {
           SubOrder? subOrder;
           if (extra is SubOrder) subOrder = extra;
           if (id == null) {
-            return const Scaffold(body: Center(child: Text('Missing order request id')));
+            return const Scaffold(
+                body: Center(child: Text('Missing order request id')));
           }
           final subOrderId = int.tryParse(id);
           if (subOrderId == null) {
-            return const Scaffold(body: Center(child: Text('Invalid order request id')));
+            return const Scaffold(
+                body: Center(child: Text('Invalid order request id')));
           }
           return AuthGuard(
-            allowedRoles: ['farmer'],
-            child: OrderDetailPage(subOrderId: subOrderId, initialSubOrder: subOrder),
+            allowedRoles: AppRole.farmerRoles,
+            child: OrderDetailPage(
+                subOrderId: subOrderId, initialSubOrder: subOrder),
           );
         },
       ),
       GoRoute(
         path: RoutePaths.transportProviderDashboard,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['transport_provider'],
+          allowedRoles: AppRole.transportProviderRoles,
           child: ProviderDashboard(),
         ),
       ),
       GoRoute(
         path: RoutePaths.notifications,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          allowedRoles: AppRole.operationalRoles,
           child: NotificationsPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.orders,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: OrderHistoryPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.products,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: ProductCatalogPage(),
         ),
       ),
@@ -168,52 +182,55 @@ class AppRouter {
           final extra = state.extra;
           Product? product;
           if (extra is Product) product = extra;
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing product id')));
+          if (uuid == null)
+            return const Scaffold(
+                body: Center(child: Text('Missing product id')));
           return AuthGuard(
-            allowedRoles: ['buyer', 'retailer'],
-            child: ProductDetailPage(productUuid: uuid, initialProduct: product),
+            allowedRoles: AppRole.buyerRoles,
+            child:
+                ProductDetailPage(productUuid: uuid, initialProduct: product),
           );
         },
       ),
       GoRoute(
         path: RoutePaths.cart,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: CartPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.checkout,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: CheckoutPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.dispute,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer'],
+          allowedRoles: AppRole.buyerRoles,
           child: DisputePage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.profile,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          allowedRoles: AppRole.operationalRoles,
           child: ProfilePage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.settings,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          allowedRoles: AppRole.operationalRoles,
           child: SettingsPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.support,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+          allowedRoles: AppRole.operationalRoles,
           child: SupportPage(),
         ),
       ),
@@ -221,9 +238,11 @@ class AppRouter {
         path: RoutePaths.orderTracking,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing order id')));
+          if (uuid == null)
+            return const Scaffold(
+                body: Center(child: Text('Missing order id')));
           return AuthGuard(
-            allowedRoles: ['buyer', 'retailer', 'farmer', 'transport_provider'],
+            allowedRoles: AppRole.operationalRoles,
             child: OrderTrackingPage(orderUuid: uuid),
           );
         },
@@ -231,14 +250,14 @@ class AppRouter {
       GoRoute(
         path: RoutePaths.availableOrders,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['transport_provider'],
+          allowedRoles: AppRole.transportProviderRoles,
           child: AvailableOrdersPage(),
         ),
       ),
       GoRoute(
         path: RoutePaths.myTrips,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['transport_provider'],
+          allowedRoles: AppRole.transportProviderRoles,
           child: MyTripsPage(),
         ),
       ),
@@ -246,9 +265,10 @@ class AppRouter {
         path: RoutePaths.tripDetail,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          if (uuid == null)
+            return const Scaffold(body: Center(child: Text('Missing trip id')));
           return AuthGuard(
-            allowedRoles: ['transport_provider'],
+            allowedRoles: AppRole.transportProviderRoles,
             child: TripDetailPage(tripUuid: uuid),
           );
         },
@@ -257,9 +277,10 @@ class AppRouter {
         path: RoutePaths.pickup,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          if (uuid == null)
+            return const Scaffold(body: Center(child: Text('Missing trip id')));
           return AuthGuard(
-            allowedRoles: ['transport_provider'],
+            allowedRoles: AppRole.transportProviderRoles,
             child: PickupPage(tripUuid: uuid),
           );
         },
@@ -268,9 +289,10 @@ class AppRouter {
         path: RoutePaths.delivery,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null) return const Scaffold(body: Center(child: Text('Missing trip id')));
+          if (uuid == null)
+            return const Scaffold(body: Center(child: Text('Missing trip id')));
           return AuthGuard(
-            allowedRoles: ['transport_provider'],
+            allowedRoles: AppRole.transportProviderRoles,
             child: DeliveryPage(tripUuid: uuid),
           );
         },
@@ -278,7 +300,7 @@ class AppRouter {
       GoRoute(
         path: RoutePaths.transportEarnings,
         builder: (_, __) => const AuthGuard(
-          allowedRoles: ['transport_provider'],
+          allowedRoles: AppRole.transportProviderRoles,
           child: TransportEarningsPage(),
         ),
       ),
@@ -290,7 +312,7 @@ class AppRouter {
   /// and routed appropriately based on user authentication state and deep link type
   String? _handleDeepLinksAndAuth(BuildContext context, GoRouterState state) {
     final authState = context.read<AuthBloc>().state;
-    
+
     // First, try to parse deep link from the incoming URI
     final deepLinkInfo = DeepLinkHandler.parseUri(state.uri);
     if (deepLinkInfo.type != DeepLinkType.unknown) {
@@ -312,11 +334,11 @@ class AppRouter {
     // Standard authentication redirects
     if (authState is AuthAuthenticated) {
       final role = authState.role;
-      if (state.uri.path.startsWith('/$role')) return null;
+      if (AppRole.isHomePathForRole(state.uri.path, role)) return null;
       if (state.uri.path == RoutePaths.login ||
           state.uri.path == RoutePaths.register ||
           state.uri.path.startsWith('${RoutePaths.register}/')) {
-        return '/$role';
+        return AppRole.homePathFor(role);
       }
       return null;
     } else if (authState is AuthUnauthenticated) {

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String? label;
@@ -33,27 +33,37 @@ class CustomButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: enabled && !isLoading ? onPressed : null,
-        style: style ?? ElevatedButton.styleFrom(
-          backgroundColor: enabled ? color ?? theme.colorScheme.primary : theme.disabledColor,
-          foregroundColor: textColor ?? theme.colorScheme.onPrimary,
-          padding: padding,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-        ),
+        style: style ??
+            ElevatedButton.styleFrom(
+              backgroundColor: enabled
+                  ? color ?? theme.colorScheme.primary
+                  : theme.disabledColor.withValues(alpha: 0.34),
+              foregroundColor: textColor ?? theme.colorScheme.onPrimary,
+              disabledForegroundColor:
+                  theme.colorScheme.onSurface.withValues(alpha: 0.38),
+              elevation: 0,
+              padding: padding,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(borderRadius.clamp(0, 8)),
+              ),
+            ),
         child: isLoading
             ? SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2.4,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor ?? theme.colorScheme.onPrimary),
-                ),
+                    strokeWidth: 2.4,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        textColor ?? theme.colorScheme.onPrimary)),
               )
-            : child ?? Text(
-                label!,
-                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600) ?? const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
+            : child ??
+                Text(
+                  label!,
+                  style: theme.textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.w800) ??
+                      const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800),
+                ),
       ),
     );
   }

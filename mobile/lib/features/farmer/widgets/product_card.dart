@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
+import '../../../shared/themes/app_colors.dart';
 
 class FarmerProductCard extends StatelessWidget {
   final Product product;
@@ -20,13 +21,13 @@ class FarmerProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      elevation: 2,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap ?? () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+        onTap: onTap ??
+            () => context.go(RoutePaths.farmerProductEditPath(product.uuid),
+                extra: product),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -36,13 +37,14 @@ class FarmerProductCard extends StatelessWidget {
                 child: Image.network(
                   product.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, size: 42)),
+                  errorBuilder: (_, __, ___) => const Center(
+                      child: Icon(Icons.image_not_supported, size: 42)),
                 ),
               )
             else
               Container(
                 height: 120,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                color: theme.colorScheme.primary.withValues(alpha: 0.08),
                 child: const Center(child: Icon(Icons.grass, size: 42)),
               ),
             Expanded(
@@ -54,7 +56,9 @@ class FarmerProductCard extends StatelessWidget {
                   children: [
                     Text(
                       product.displayName,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -62,7 +66,10 @@ class FarmerProductCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.farmerAccent,
+                          fontWeight: FontWeight.w900,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -70,18 +77,26 @@ class FarmerProductCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Flexible(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: product.isActive ? Theme.of(context).colorScheme.primary.withOpacity(0.12) : Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+                          color: product.isActive
+                              ? theme.colorScheme.primary
+                                  .withValues(alpha: 0.12)
+                              : theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           product.isActive ? 'Active' : 'Inactive',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: product.isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: product.isActive
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
@@ -89,7 +104,7 @@ class FarmerProductCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         '${product.availableQuantity.toStringAsFixed(0)} avail',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -100,16 +115,23 @@ class FarmerProductCard extends StatelessWidget {
                       children: [
                         IconButton(
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          constraints:
+                              const BoxConstraints(minWidth: 36, minHeight: 36),
                           icon: const Icon(Icons.edit, size: 16),
-                          onPressed: onEdit ?? () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+                          color: theme.colorScheme.primary,
+                          onPressed: onEdit ??
+                              () => context.go(
+                                  RoutePaths.farmerProductEditPath(
+                                      product.uuid),
+                                  extra: product),
                         ),
                         if (onDelete != null)
                           IconButton(
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            constraints: const BoxConstraints(
+                                minWidth: 36, minHeight: 36),
                             icon: const Icon(Icons.delete_outline, size: 16),
-                            color: Theme.of(context).colorScheme.error,
+                            color: theme.colorScheme.error,
                             onPressed: onDelete,
                           ),
                       ],
@@ -124,4 +146,3 @@ class FarmerProductCard extends StatelessWidget {
     );
   }
 }
-

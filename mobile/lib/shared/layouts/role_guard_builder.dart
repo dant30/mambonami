@@ -1,10 +1,11 @@
-﻿// mobile/lib/shared/layouts/role_guard_builder.dart
+// mobile/lib/shared/layouts/role_guard_builder.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/auth/auth_bloc.dart';
+import '../../config/role_routes.dart';
 
 /// A builder widget that shows different UI based on the user's role.
-/// 
+///
 /// Example:
 /// ```dart
 /// RoleGuardBuilder(
@@ -38,14 +39,14 @@ class RoleGuardBuilder extends StatelessWidget {
         if (state is AuthAuthenticated) {
           final role = state.role;
           switch (role) {
-            case 'buyer':
-            case 'retailer':
+            case AppRole.buyer:
+            case AppRole.retailer:
               if (buyerBuilder != null) return buyerBuilder!(context);
               break;
-            case 'farmer':
+            case AppRole.farmer:
               if (farmerBuilder != null) return farmerBuilder!(context);
               break;
-            case 'transport_provider':
+            case AppRole.transportProvider:
               if (transportBuilder != null) return transportBuilder!(context);
               break;
             case 'admin':

@@ -18,7 +18,7 @@ class PillBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bgColor =
-        backgroundColor ?? theme.colorScheme.primary.withOpacity(0.14);
+        backgroundColor ?? theme.colorScheme.primary.withValues(alpha: 0.12);
     final fgColor = foregroundColor ?? theme.colorScheme.primary;
 
     return Container(
@@ -32,7 +32,7 @@ class PillBadge extends StatelessWidget {
         style: theme.textTheme.labelSmall?.copyWith(
           color: fgColor,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
+          letterSpacing: 0,
         ),
       ),
     );
