@@ -2,10 +2,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../../core/hooks/useProducts';
 import Form from '../../../shared/components/forms/Form';
-import FormInput from '../../../shared/components/forms/FormInput';
-import FormSelect from '../../../shared/components/forms/FormSelect';
-import Button from '../../../shared/components/ui/Button';
-import Card from '../../../shared/components/ui/Card';
+import FormField from '../../../shared/components/forms/FormField';
+import FormSection from '../../../shared/components/forms/FormSection';
+import FormActions from '../../../shared/components/forms/FormActions';
+import Card from '../../../shared/components/cards/Card';
 
 export default function ProductCreate() {
   const navigate = useNavigate();
@@ -70,92 +70,109 @@ export default function ProductCreate() {
       <Form title="New product" description="Provide a name, price, stock, and supporting details for this product." onSubmit={handleSubmit}>
         <Card>
           <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormInput
-                id="productName"
-                label="Product name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Fresh red mango"
-              />
-              <FormInput
-                id="productPrice"
-                label="Price"
-                type="number"
-                min={0}
-                step={0.01}
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormSelect id="productCurrency" label="Currency" value={currency} onChange={(event) => setCurrency(event.target.value)}>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="KES">KES</option>
-              </FormSelect>
-              <FormInput
-                id="productStock"
-                label="Stock"
-                type="number"
-                min={0}
-                step={1}
-                value={stock}
-                onChange={(event) => setStock(event.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormSelect
-                id="productCategory"
-                label="Category"
-                value={categoryId}
-                onChange={(event) => setCategoryId(event.target.value)}
-              >
-                <option value="">Uncategorized</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={String(category.id)}>
-                    {category.name || `Category ${category.id}`}
-                  </option>
-                ))}
-              </FormSelect>
-              <div className="space-y-2">
-                <label htmlFor="productAvailable" className="form-label">
-                  Availability
-                </label>
-                <label className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            <FormSection>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField id="productName" label="Product name">
                   <input
-                    id="productAvailable"
-                    type="checkbox"
-                    checked={available}
-                    onChange={(event) => setAvailable(event.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    id="productName"
+                    className="form-input"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Fresh red mango"
                   />
-                  <span>{available ? 'Published' : 'Draft'}</span>
-                </label>
+                </FormField>
+
+                <FormField id="productPrice" label="Price">
+                  <input
+                    id="productPrice"
+                    className="form-input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={price}
+                    onChange={(event) => setPrice(event.target.value)}
+                  />
+                </FormField>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="productDescription" className="form-label">
-                Description
-              </label>
-              <textarea
-                id="productDescription"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                className="form-input min-h-[120px]"
-                placeholder="Describe the product for customers"
-              />
-            </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField id="productCurrency" label="Currency">
+                  <select
+                    id="productCurrency"
+                    className="form-select"
+                    value={currency}
+                    onChange={(event) => setCurrency(event.target.value)}
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="KES">KES</option>
+                  </select>
+                </FormField>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-              <p className="text-sm text-slate-500">Once saved, this product can be selected for new orders.</p>
-              <Button type="submit" variant="default" className="w-full sm:w-auto" disabled={!canSubmit || loading}>
-                {loading ? 'Saving...' : 'Create product'}
-              </Button>
-            </div>
+                <FormField id="productStock" label="Stock">
+                  <input
+                    id="productStock"
+                    className="form-input"
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={stock}
+                    onChange={(event) => setStock(event.target.value)}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField id="productCategory" label="Category">
+                  <select
+                    id="productCategory"
+                    className="form-select"
+                    value={categoryId}
+                    onChange={(event) => setCategoryId(event.target.value)}
+                  >
+                    <option value="">Uncategorized</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={String(category.id)}>
+                        {category.name || `Category ${category.id}`}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <div className="space-y-2">
+                  <label htmlFor="productAvailable" className="form-label">
+                    Availability
+                  </label>
+                  <label className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    <input
+                      id="productAvailable"
+                      type="checkbox"
+                      checked={available}
+                      onChange={(event) => setAvailable(event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span>{available ? 'Published' : 'Draft'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="productDescription" className="form-label">
+                  Description
+                </label>
+                <textarea
+                  id="productDescription"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  className="form-input min-h-[120px]"
+                  placeholder="Describe the product for customers"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                <p className="text-sm text-slate-500">Once saved, this product can be selected for new orders.</p>
+                <FormActions primaryLabel={loading ? 'Saving...' : 'Create product'} primaryProps={{ type: 'submit', disabled: !canSubmit || loading }} />
+              </div>
+            </FormSection>
           </div>
         </Card>
       </Form>

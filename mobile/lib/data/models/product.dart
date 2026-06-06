@@ -3,14 +3,12 @@ class ProductCategory {
   final int id;
   final String code;
   final String name;
-  final String baseUnit;
   final bool isActive;
 
   ProductCategory({
     required this.id,
     required this.code,
     required this.name,
-    required this.baseUnit,
     required this.isActive,
   });
 
@@ -27,7 +25,6 @@ class ProductCategory {
       id: json['id'],
       code: json['code'],
       name: json['name'],
-      baseUnit: json['base_unit'],
       isActive: parseBool(json['is_active']),
     );
   }
@@ -36,7 +33,6 @@ class ProductCategory {
     'id': id,
     'code': code,
     'name': name,
-    'base_unit': baseUnit,
     'is_active': isActive,
   };
 }
@@ -50,11 +46,15 @@ class Product {
   final ProductCategory category;
   final String name;
   final String? variety;
+  final String? sku;
   final double pricePerUnit;
   final double availableQuantity;
+  final double reservedQuantity;
   final String unit;
   final DateTime harvestDate;
   final int shelfLifeDays;
+  final DateTime? expiryDate;
+  final bool isOrganic;
   final int remainingShelfLife;
   final bool isActive;
   final String? imageUrl;
@@ -74,11 +74,15 @@ class Product {
     required this.category,
     required this.name,
     this.variety,
+    this.sku,
     required this.pricePerUnit,
     required this.availableQuantity,
+    required this.reservedQuantity,
     required this.unit,
     required this.harvestDate,
     required this.shelfLifeDays,
+    this.expiryDate,
+    required this.isOrganic,
     required this.remainingShelfLife,
     required this.isActive,
     this.imageUrl,
@@ -118,11 +122,22 @@ class Product {
       category: ProductCategory.fromJson(json['category_detail']),
       name: json['name'],
       variety: json['variety'],
+      sku: json['sku'] != null ? json['sku'].toString() : null,
       pricePerUnit: double.parse(json['price_per_unit'].toString()),
       availableQuantity: double.parse(json['available_quantity'].toString()),
+      reservedQuantity: parseDoubleDefault(json['reserved_quantity'], 0.0),
       unit: json['unit'],
       harvestDate: DateTime.parse(json['harvest_date']),
       shelfLifeDays: json['shelf_life_days'],
+      expiryDate: json['expiry_date'] != null ? DateTime.tryParse(json['expiry_date'].toString()) : null,
+      isOrganic: (() {
+        final v = json['is_organic'];
+        if (v is bool) return v;
+        if (v == null) return false;
+        if (v is num) return v != 0;
+        final s = v.toString().toLowerCase();
+        return s == 'true' || s == '1' || s == 'yes';
+      })(),
       remainingShelfLife: json['remaining_shelf_life'],
       isActive: (() {
         final v = json['is_active'];
@@ -151,11 +166,15 @@ class Product {
     'category_detail': category.toJson(),
     'name': name,
     'variety': variety,
+    'sku': sku,
     'price_per_unit': pricePerUnit,
     'available_quantity': availableQuantity,
+    'reserved_quantity': reservedQuantity,
     'unit': unit,
     'harvest_date': harvestDate.toIso8601String(),
     'shelf_life_days': shelfLifeDays,
+    'expiry_date': expiryDate?.toIso8601String(),
+    'is_organic': isOrganic,
     'remaining_shelf_life': remainingShelfLife,
     'is_active': isActive,
     'image': imageUrl,

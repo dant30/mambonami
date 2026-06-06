@@ -5,7 +5,7 @@ import { getOrderStatusLabel, getOrderStatusClasses } from '../hooks/useOrderSta
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';
-import Card from '../../../shared/components/ui/Card';
+import Card from '../../../shared/components/cards/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../../shared/components/tables/Table';
 
 export default function OrderList() {

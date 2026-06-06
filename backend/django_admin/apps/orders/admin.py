@@ -19,6 +19,20 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('id', 'buyer__phone', 'account_number')
     readonly_fields = ('id', 'uuid', 'account_number', 'created_at', 'updated_at')
+    fieldsets = (
+        (None, {'fields': ('buyer', 'account_number', 'status')}),
+        ('Delivery Info', {
+            'fields': (
+                'delivery_address', 'delivery_street', 'delivery_city',
+                'delivery_postal_code', 'delivery_landmark', 'delivery_lat', 'delivery_lng'
+            )
+        }),
+        ('Totals', {'fields': ('total_amount', 'delivery_fee', 'platform_commission', 'total_weight_kg')}),
+        ('Schedule', {'fields': ('scheduled_date', 'scheduled_time_window')}),
+        ('Provider', {'fields': ('assigned_provider',)}),
+        ('Payment', {'fields': ('paybill_transaction_code', 'paid_at', 'delivered_at')}),
+        ('System', {'fields': ('id', 'uuid', 'created_at', 'updated_at')}),
+    )
     inlines = [SubOrderInline]
     actions = ['mark_paid_manually']
 
@@ -31,6 +45,6 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(SubOrder)
 class SubOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'order', 'farmer', 'status', 'subtotal')
+    list_display = ('id', 'order', 'farmer', 'status', 'subtotal', 'farmer_payout')
     list_filter = ('status',)
     search_fields = ('order__id', 'farmer__user__phone')

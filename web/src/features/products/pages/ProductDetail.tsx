@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useProducts } from '../../../core/hooks/useProducts';
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Button from '../../../shared/components/ui/Button';
-import Card from '../../../shared/components/ui/Card';
+import Card from '../../../shared/components/cards/Card';
 import { Product } from '../../../core/types';
 
 export default function ProductDetail() {

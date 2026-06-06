@@ -8,12 +8,12 @@ import {
   registerInit as registerInitRequest,
   registerVerify as registerVerifyRequest,
 } from '../services/authService';
-import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
 import Select from '../../../shared/components/ui/Select';
-import Label from '../../../shared/components/ui/Label';
 import Alert from '../../../shared/components/ui/Alert';
-import Card from '../../../shared/components/ui/Card';
+import FormField from '../../../shared/components/forms/FormField';
+import FormActions from '../../../shared/components/forms/FormActions';
+import Card from '../../../shared/components/cards/Card';
 
 const initSchema = z.object({
   phone: z.string().nonempty('Phone is required').min(9, 'Enter a valid phone number'),
@@ -143,8 +143,7 @@ export default function Register() {
             {serverMessage ? <Alert variant="destructive">{serverMessage}</Alert> : null}
             {phase === 'init' ? (
               <form className="space-y-5" onSubmit={handleSubmit(onInitSubmit)}>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                <FormField id="phone" label="Phone" errors={errors.phone?.message}>
                   <Input
                     id="phone"
                     type="tel"
@@ -153,10 +152,8 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...register('phone')}
                   />
-                  {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
+                </FormField>
+                <FormField id="role" label="Role" errors={errors.role?.message}>
                   <Select
                     id="role"
                     options={[
@@ -167,16 +164,11 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...register('role')}
                   />
-                  {errors.role ? <p className="text-sm text-destructive mt-1">{errors.role.message}</p> : null}
-                </div>
-                <Button
-                  type="submit"
-                  variant="default"
-                  disabled={isSubmitting}
-                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
-                >
-                  {isSubmitting ? 'Sending OTP...' : 'Send verification code'}
-                </Button>
+                </FormField>
+                <FormActions
+                  primaryLabel={isSubmitting ? 'Sending OTP...' : 'Send verification code'}
+                  primaryProps={{ type: 'submit', disabled: isSubmitting, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
+                />
                 <p className="text-sm text-slate-300">
                   Already have an account?{' '}
                   <Link to="/login" className="font-semibold text-emerald-300 hover:text-emerald-100">
@@ -186,8 +178,7 @@ export default function Register() {
               </form>
             ) : (
               <form className="space-y-5" onSubmit={handleVerifySubmit(onVerifySubmit)}>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
+                <FormField id="phone" label="Phone">
                   <Input
                     id="phone"
                     type="tel"
@@ -196,9 +187,8 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('phone')}
                   />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
+                </FormField>
+                <FormField id="role" label="Role">
                   <Input
                     id="role"
                     readOnly
@@ -206,9 +196,8 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('role')}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="otp_code">OTP Code</Label>
+                </FormField>
+                <FormField id="otp_code" label="OTP Code" errors={verifyErrors.otp_code?.message}>
                   <Input
                     id="otp_code"
                     type="text"
@@ -216,10 +205,8 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('otp_code')}
                   />
-                  {verifyErrors.otp_code ? <p className="text-sm text-destructive mt-1">{verifyErrors.otp_code.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                </FormField>
+                <FormField id="username" label="Username" errors={verifyErrors.username?.message}>
                   <Input
                     id="username"
                     type="text"
@@ -227,10 +214,8 @@ export default function Register() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('username')}
                   />
-                  {verifyErrors.username ? <p className="text-sm text-destructive mt-1">{verifyErrors.username.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                </FormField>
+                <FormField id="password" label="Password" errors={verifyErrors.password?.message}>
                   <div className="relative">
                     <Input
                       id="password"
@@ -247,10 +232,8 @@ export default function Register() {
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
-                  {verifyErrors.password ? <p className="text-sm text-destructive mt-1">{verifyErrors.password.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm_password">Confirm Password</Label>
+                </FormField>
+                <FormField id="confirm_password" label="Confirm Password" errors={verifyErrors.confirm_password?.message}>
                   <div className="relative">
                     <Input
                       id="confirm_password"
@@ -267,16 +250,11 @@ export default function Register() {
                       {showConfirmPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
-                  {verifyErrors.confirm_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.confirm_password.message}</p> : null}
-                </div>
-                <Button
-                  type="submit"
-                  variant="default"
-                  disabled={isVerifying}
-                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
-                >
-                  {isVerifying ? 'Completing registration...' : 'Complete registration'}
-                </Button>
+                </FormField>
+                <FormActions
+                  primaryLabel={isVerifying ? 'Completing registration...' : 'Complete registration'}
+                  primaryProps={{ type: 'submit', disabled: isVerifying, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
+                />
                 <p className="text-sm text-slate-300">
                   Already registered?{' '}
                   <Link to="/login" className="font-semibold text-emerald-300 hover:text-emerald-100">

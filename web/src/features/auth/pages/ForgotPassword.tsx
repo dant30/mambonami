@@ -7,11 +7,11 @@ import {
   passwordResetInit as forgotPasswordInitRequest,
   passwordResetVerify as forgotPasswordVerifyRequest,
 } from '../services/authService';
-import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
-import Label from '../../../shared/components/ui/Label';
 import Alert from '../../../shared/components/ui/Alert';
-import Card from '../../../shared/components/ui/Card';
+import FormField from '../../../shared/components/forms/FormField';
+import FormActions from '../../../shared/components/forms/FormActions';
+import Card from '../../../shared/components/cards/Card';
 
 const initSchema = z.object({
   phone: z.string().nonempty('Phone is required').min(9, 'Enter a valid phone number'),
@@ -104,8 +104,7 @@ export default function ForgotPassword() {
             {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
             {phase === 'init' ? (
               <form className="space-y-5" onSubmit={handleSubmit(onInitSubmit)}>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                <FormField id="phone" label="Phone" errors={errors.phone?.message}>
                   <Input
                     id="phone"
                     type="tel"
@@ -113,16 +112,11 @@ export default function ForgotPassword() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...register('phone')}
                   />
-                  {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  variant="default"
-                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
-                >
-                  {isSubmitting ? 'Sending code...' : 'Send reset code'}
-                </Button>
+                </FormField>
+                <FormActions
+                  primaryLabel={isSubmitting ? 'Sending code...' : 'Send reset code'}
+                  primaryProps={{ type: 'submit', disabled: isSubmitting, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
+                />
                 <p className="text-sm text-slate-300">
                   Remembered your password?{' '}
                   <Link to="/login" className="font-semibold text-emerald-300 hover:text-emerald-100">
@@ -132,8 +126,7 @@ export default function ForgotPassword() {
               </form>
             ) : (
               <form className="space-y-5" onSubmit={handleVerifySubmit(onVerifySubmit)}>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
+                <FormField id="phone" label="Phone">
                   <Input
                     id="phone"
                     type="tel"
@@ -142,9 +135,8 @@ export default function ForgotPassword() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('phone')}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="otp_code">OTP Code</Label>
+                </FormField>
+                <FormField id="otp_code" label="OTP Code" errors={verifyErrors.otp_code?.message}>
                   <Input
                     id="otp_code"
                     type="text"
@@ -152,10 +144,8 @@ export default function ForgotPassword() {
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                     {...verifyRegister('otp_code')}
                   />
-                  {verifyErrors.otp_code ? <p className="text-sm text-destructive mt-1">{verifyErrors.otp_code.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new_password">New Password</Label>
+                </FormField>
+                <FormField id="new_password" label="New Password" errors={verifyErrors.new_password?.message}>
                   <div className="relative">
                     <Input
                       id="new_password"
@@ -172,10 +162,8 @@ export default function ForgotPassword() {
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
-                  {verifyErrors.new_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.new_password.message}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm_password">Confirm Password</Label>
+                </FormField>
+                <FormField id="confirm_password" label="Confirm Password" errors={verifyErrors.confirm_password?.message}>
                   <div className="relative">
                     <Input
                       id="confirm_password"
@@ -192,16 +180,11 @@ export default function ForgotPassword() {
                       {showConfirmPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
-                  {verifyErrors.confirm_password ? <p className="text-sm text-destructive mt-1">{verifyErrors.confirm_password.message}</p> : null}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isVerifying}
-                  variant="default"
-                  className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
-                >
-                  {isVerifying ? 'Resetting...' : 'Reset password'}
-                </Button>
+                </FormField>
+                <FormActions
+                  primaryLabel={isVerifying ? 'Resetting...' : 'Reset password'}
+                  primaryProps={{ type: 'submit', disabled: isVerifying, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
+                />
               </form>
             )}
           </div>

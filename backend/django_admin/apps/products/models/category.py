@@ -7,7 +7,6 @@ class ProductCategory(BaseModel):
     """Product category (MA, MBO, NA, MI) with display name."""
     code = models.CharField(max_length=3, unique=True, help_text="Category code (MA, MBO, NA, MI)")
     name = models.CharField(max_length=50, help_text="Category name (Matunda, Mboga, etc.)")
-    base_unit = models.CharField(max_length=20, help_text="kg / piece / litre / tray / bunch")
     is_active = models.BooleanField(default=True)
 
     class Meta:

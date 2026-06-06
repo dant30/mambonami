@@ -21,7 +21,7 @@ class SubOrder(BaseModel):
     farmer = models.ForeignKey(FarmerProfile, on_delete=models.PROTECT, related_name='sub_orders')
     status = models.CharField(max_length=20, choices=SUBORDER_STATUS, default='pending')
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    farmer_commission = models.DecimalField(max_digits=10, decimal_places=2)  # platform fee deducted
+    farmer_payout = models.DecimalField(max_digits=10, decimal_places=2, help_text="Amount payable to the farmer after platform commission")
     confirmed_at = models.DateTimeField(null=True, blank=True)
     ready_at = models.DateTimeField(null=True, blank=True)
 

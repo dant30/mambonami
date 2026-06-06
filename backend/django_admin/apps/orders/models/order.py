@@ -28,7 +28,11 @@ class Order(BaseModel):
     platform_commission = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cart')
     account_number = models.CharField(max_length=50, unique=True, blank=True, db_index=True)
-    delivery_address = models.TextField()
+    delivery_address = models.TextField(blank=True)
+    delivery_street = models.CharField(max_length=200, blank=True, help_text="Street address or delivery line")
+    delivery_city = models.CharField(max_length=100, blank=True, help_text="City or town for delivery")
+    delivery_postal_code = models.CharField(max_length=20, blank=True, help_text="Postal code or ZIP")
+    delivery_landmark = models.CharField(max_length=200, blank=True, help_text="Optional delivery landmark")
     delivery_lat = models.DecimalField(
         max_digits=9, decimal_places=6,
         null=True,
@@ -71,6 +75,12 @@ class Order(BaseModel):
 
     def __str__(self):
         return f"Order {self.id} – {self.buyer.phone} – {self.status}"
+
+    def save(self, *args, **kwargs):
+        if not self.delivery_address and (self.delivery_street or self.delivery_city or self.delivery_postal_code or self.delivery_landmark):
+            address_parts = [part for part in [self.delivery_street, self.delivery_city, self.delivery_postal_code, self.delivery_landmark] if part]
+            self.delivery_address = ', '.join(address_parts)
+        super().save(*args, **kwargs)
 
     def mark_paid(self, transaction_code):
         """Transition to paid escrow."""

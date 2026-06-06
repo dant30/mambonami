@@ -23,14 +23,20 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _landmarkController = TextEditingController();
   final TextEditingController _timeWindowController = TextEditingController();
   DateTime? _scheduledDate;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
-    _addressController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _postalCodeController.dispose();
+    _landmarkController.dispose();
     _timeWindowController.dispose();
     super.dispose();
   }
@@ -84,7 +90,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         items: cartRepository.items.value
             .map((item) => CartItemDto(productUuid: item.product.uuid, quantity: item.quantity))
             .toList(),
-        deliveryAddress: _addressController.text.trim(),
+        deliveryAddress: _buildDeliveryAddress(),
+        deliveryStreet: _streetController.text.trim(),
+        deliveryCity: _cityController.text.trim(),
+        deliveryPostalCode: _postalCodeController.text.trim(),
+        deliveryLandmark: _landmarkController.text.trim().isEmpty ? null : _landmarkController.text.trim(),
         deliveryLat: position.latitude,
         deliveryLng: position.longitude,
         scheduledDate: DateFormat('yyyy-MM-dd').format(_scheduledDate!),
@@ -156,9 +166,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           Text('Delivery details', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           TextFormField(
-                            controller: _addressController,
-                            decoration: const InputDecoration(labelText: 'Delivery address'),
-                            validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery address' : null,
+                            controller: _streetController,
+                            decoration: const InputDecoration(labelText: 'Street address'),
+                            validator: (value) => value?.trim().isEmpty == true ? 'Enter a street address' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _cityController,
+                                  decoration: const InputDecoration(labelText: 'City'),
+                                  validator: (value) => value?.trim().isEmpty == true ? 'Enter a city' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _postalCodeController,
+                                  decoration: const InputDecoration(labelText: 'Postal code'),
+                                  validator: (value) => value?.trim().isEmpty == true ? 'Enter a postal code' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _landmarkController,
+                            decoration: const InputDecoration(labelText: 'Landmark (optional)'),
                           ),
                           const SizedBox(height: 16),
                           GestureDetector(
@@ -199,6 +234,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
         },
       ),
     );
+  }
+
+  String _buildDeliveryAddress() {
+    final segments = [
+      _streetController.text.trim(),
+      _cityController.text.trim(),
+      _postalCodeController.text.trim(),
+    ].where((segment) => segment.isNotEmpty).toList();
+
+    if (_landmarkController.text.trim().isNotEmpty) {
+      segments.add('Landmark: ${_landmarkController.text.trim()}');
+    }
+
+    return segments.join(', ');
   }
 
   Widget _summaryRow(String label, String value) {

@@ -4,6 +4,10 @@
 class CreateOrderRequest {
   final List<CartItemDto> items;
   final String deliveryAddress;
+  final String deliveryStreet;
+  final String deliveryCity;
+  final String deliveryPostalCode;
+  final String? deliveryLandmark;
   final double deliveryLat;
   final double deliveryLng;
   final String scheduledDate;
@@ -12,6 +16,10 @@ class CreateOrderRequest {
   CreateOrderRequest({
     required this.items,
     required this.deliveryAddress,
+    required this.deliveryStreet,
+    required this.deliveryCity,
+    required this.deliveryPostalCode,
+    this.deliveryLandmark,
     required this.deliveryLat,
     required this.deliveryLng,
     required this.scheduledDate,
@@ -21,6 +29,10 @@ class CreateOrderRequest {
   Map<String, dynamic> toJson() => {
     'items': items.map((e) => e.toJson()).toList(),
     'delivery_address': deliveryAddress,
+    'delivery_street': deliveryStreet,
+    'delivery_city': deliveryCity,
+    'delivery_postal_code': deliveryPostalCode,
+    'delivery_landmark': deliveryLandmark,
     'delivery_lat': deliveryLat,
     'delivery_lng': deliveryLng,
     'scheduled_date': scheduledDate,
@@ -53,6 +65,10 @@ class OrderResponse {
   final String deliveryAddress;
   final double deliveryLat;
   final double deliveryLng;
+  final String deliveryStreet;
+  final String deliveryCity;
+  final String deliveryPostalCode;
+  final String? deliveryLandmark;
   final double totalWeightKg;
   final DateTime scheduledDate;
   final String scheduledTimeWindow;
@@ -73,6 +89,10 @@ class OrderResponse {
     required this.deliveryAddress,
     required this.deliveryLat,
     required this.deliveryLng,
+    required this.deliveryStreet,
+    required this.deliveryCity,
+    required this.deliveryPostalCode,
+    this.deliveryLandmark,
     required this.totalWeightKg,
     required this.scheduledDate,
     required this.scheduledTimeWindow,
@@ -95,6 +115,10 @@ class OrderResponse {
       deliveryAddress: json['delivery_address'] ?? '',
       deliveryLat: (json['delivery_lat'] ?? json['delivery_latitude'] ?? 0.0).toDouble(),
       deliveryLng: (json['delivery_lng'] ?? json['delivery_longitude'] ?? 0.0).toDouble(),
+      deliveryStreet: json['delivery_street'] ?? '',
+      deliveryCity: json['delivery_city'] ?? '',
+      deliveryPostalCode: json['delivery_postal_code'] ?? '',
+      deliveryLandmark: json['delivery_landmark'],
       totalWeightKg: (json['total_weight_kg'] ?? 0.0).toDouble(),
       scheduledDate: DateTime.tryParse(json['scheduled_date'] ?? '') ?? DateTime.now(),
       scheduledTimeWindow: json['scheduled_time_window'] ?? '',

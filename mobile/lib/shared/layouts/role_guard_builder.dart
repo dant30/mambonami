@@ -1,4 +1,4 @@
-﻿// mobile/lib/shared/widgets/role_guard_builder.dart
+﻿// mobile/lib/shared/layouts/role_guard_builder.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/auth/auth_bloc.dart';

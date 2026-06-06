@@ -6,11 +6,11 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../../core/hooks/useAuth';
 import { login as loginRequest } from '../services/authService';
 import Input from '../../../shared/components/ui/Input';
-import Button from '../../../shared/components/ui/Button';
-import Label from '../../../shared/components/ui/Label';
 import Alert from '../../../shared/components/ui/Alert';
 import Checkbox from '../../../shared/components/ui/Checkbox';
-import Card from '../../../shared/components/ui/Card';
+import FormField from '../../../shared/components/forms/FormField';
+import FormActions from '../../../shared/components/forms/FormActions';
+import Card from '../../../shared/components/cards/Card';
 
 const loginSchema = z.object({
   phone: z.string().nonempty('Phone is required').min(9, 'Enter a valid phone number'),
@@ -68,8 +68,7 @@ export default function Login() {
             </div>
             {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
+              <FormField id="phone" label="Phone number" errors={errors.phone?.message}>
                 <Input
                   id="phone"
                   type="tel"
@@ -78,11 +77,9 @@ export default function Login() {
                   className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                   {...register('phone')}
                 />
-                {errors.phone ? <p className="text-sm text-destructive mt-1">{errors.phone.message}</p> : null}
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <FormField id="password" label="Password" errors={errors.password?.message}>
                 <div className="relative">
                   <Input
                     id="password"
@@ -99,8 +96,7 @@ export default function Login() {
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                {errors.password ? <p className="text-sm text-destructive mt-1">{errors.password.message}</p> : null}
-              </div>
+              </FormField>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Checkbox label="Remember me" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
@@ -109,14 +105,10 @@ export default function Login() {
                 </Link>
               </div>
 
-              <Button
-                type="submit"
-                variant="default"
-                disabled={isSubmitting}
-                className="w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500"
-              >
-                {isSubmitting ? 'Signing in...' : 'Sign in'}
-              </Button>
+              <FormActions
+                primaryLabel={isSubmitting ? 'Signing in...' : 'Sign in'}
+                primaryProps={{ type: 'submit', disabled: isSubmitting, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
+              />
             </form>
             <div className="border-t border-border pt-4 text-sm text-slate-300">
               Don’t have an account yet?{' '}

@@ -28,7 +28,11 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     }
     """
     grouped = cart_data['grouped_products']
-    delivery_address = cart_data['delivery_address']
+    delivery_address = cart_data.get('delivery_address', '')
+    delivery_street = cart_data.get('delivery_street', '')
+    delivery_city = cart_data.get('delivery_city', '')
+    delivery_postal_code = cart_data.get('delivery_postal_code', '')
+    delivery_landmark = cart_data.get('delivery_landmark', '')
     delivery_lat = cart_data['delivery_lat']
     delivery_lng = cart_data['delivery_lng']
     scheduled_date = cart_data['scheduled_date']
@@ -41,6 +45,10 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         delivery_fee=0,
         platform_commission=0,
         delivery_address=delivery_address,
+        delivery_street=delivery_street,
+        delivery_city=delivery_city,
+        delivery_postal_code=delivery_postal_code,
+        delivery_landmark=delivery_landmark,
         delivery_lat=delivery_lat,
         delivery_lng=delivery_lng,
         scheduled_date=scheduled_date,
@@ -86,13 +94,13 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         commission = sub_total * Decimal('0.08')
         farmer_payout = sub_total - commission
 
-        # Create SubOrder
+        # Create SubOrder with farmer payout after commission
         sub_order = SubOrder.objects.create(
             order=order,
             farmer_id=farmer_id,
             status='pending',
             subtotal=sub_total,
-            farmer_commission=commission
+            farmer_payout=farmer_payout
         )
         # Bulk create items
         for item in items_list:

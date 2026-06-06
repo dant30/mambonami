@@ -8,7 +8,7 @@ import {
 } from '../hooks/useOrderStatus';
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Badge from '../../../shared/components/ui/Badge';
-import Card from '../../../shared/components/ui/Card';
+import Card from '../../../shared/components/cards/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../../shared/components/tables/Table';
 
 export default function OrderDetail() {

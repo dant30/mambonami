@@ -1,4 +1,4 @@
-﻿// mobile/lib/shared/widgets/custom_app_bar.dart
+﻿// mobile/lib/shared/layouts/custom_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/notification_badge.dart';

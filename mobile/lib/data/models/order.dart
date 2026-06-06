@@ -10,6 +10,10 @@ class Order extends Equatable {
   final String status;
   final String? accountNumber;
   final String deliveryAddress;
+  final String deliveryStreet;
+  final String deliveryCity;
+  final String deliveryPostalCode;
+  final String deliveryLandmark;
   final double deliveryLat;
   final double deliveryLng;
   final double totalWeightKg;
@@ -28,6 +32,10 @@ class Order extends Equatable {
     required this.status,
     this.accountNumber,
     required this.deliveryAddress,
+    required this.deliveryStreet,
+    required this.deliveryCity,
+    required this.deliveryPostalCode,
+    required this.deliveryLandmark,
     required this.deliveryLat,
     required this.deliveryLng,
     required this.totalWeightKg,
@@ -39,6 +47,14 @@ class Order extends Equatable {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    final street = parseString(json['delivery_street']);
+    final city = parseString(json['delivery_city']);
+    final postal = parseString(json['delivery_postal_code']);
+    final landmark = parseString(json['delivery_landmark']);
+    final combinedAddress = street.isNotEmpty
+        ? [street, city, postal].where((section) => section.isNotEmpty).join(', ') + (landmark.isNotEmpty ? ' • $landmark' : '')
+        : parseString(json['delivery_address']);
+
     return Order(
       id: parseInt(json['id']),
       uuid: parseString(json['uuid']),
@@ -47,7 +63,11 @@ class Order extends Equatable {
       platformCommission: parseDouble(json['platform_commission']),
       status: parseString(json['status']),
       accountNumber: json['account_number'] != null ? parseString(json['account_number']) : null,
-      deliveryAddress: parseString(json['delivery_address']),
+      deliveryAddress: combinedAddress,
+      deliveryStreet: street,
+      deliveryCity: city,
+      deliveryPostalCode: postal,
+      deliveryLandmark: landmark,
       deliveryLat: parseDouble(json['delivery_lat'] ?? json['delivery_latitude']),
       deliveryLng: parseDouble(json['delivery_lng'] ?? json['delivery_longitude']),
       totalWeightKg: parseDouble(json['total_weight_kg']),

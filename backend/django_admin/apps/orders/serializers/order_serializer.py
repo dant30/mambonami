@@ -24,7 +24,7 @@ class SubOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubOrder
-        fields = ('id', 'farmer', 'farmer_phone', 'status', 'subtotal', 'items', 'confirmed_at', 'ready_at')
+        fields = ('id', 'farmer', 'farmer_phone', 'status', 'subtotal', 'farmer_payout', 'items', 'confirmed_at', 'ready_at')
 
 class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)
@@ -35,6 +35,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'uuid', 'buyer', 'buyer_phone', 'total_amount', 'delivery_fee',
             'platform_commission', 'status', 'account_number', 'delivery_address',
+            'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
             'delivery_lat', 'delivery_lng', 'total_weight_kg',
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
             'sub_orders', 'created_at', 'paid_at', 'delivered_at'
@@ -43,7 +44,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderCreateSerializer(serializers.Serializer):
     """Create order from cart items with delivery location."""
-    delivery_address = serializers.CharField()
+    delivery_address = serializers.CharField(required=False, allow_blank=True)
+    delivery_street = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    delivery_city = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    delivery_postal_code = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    delivery_landmark = serializers.CharField(required=False, allow_blank=True, max_length=200)
     delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Latitude of delivery location")
     delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Longitude of delivery location")
     scheduled_date = serializers.DateField()
@@ -78,4 +83,20 @@ class OrderCreateSerializer(serializers.Serializer):
             farmer_products.append({'product': prod, 'quantity': item['quantity']})
             farmer_map[prod.farmer_id] = farmer_products
         attrs['grouped_products'] = farmer_map
+
+        # Structured address support
+        if not attrs.get('delivery_address'):
+            street = attrs.get('delivery_street', '').strip()
+            city = attrs.get('delivery_city', '').strip()
+            postal_code = attrs.get('delivery_postal_code', '').strip()
+            landmark = attrs.get('delivery_landmark', '').strip()
+
+            if street or city or postal_code or landmark:
+                address_parts = [part for part in [street, city, postal_code, landmark] if part]
+                attrs['delivery_address'] = ', '.join(address_parts)
+            else:
+                raise serializers.ValidationError({
+                    'delivery_address': 'Either delivery_address or structured delivery fields are required.'
+                })
+
         return attrs

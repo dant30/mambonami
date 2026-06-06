@@ -5,10 +5,11 @@ import { formatCurrency } from '../../../core/utils';
 import { useOrders } from '../hooks/useOrders';
 import type { OrderCreateItem, OrderCreatePayload } from '../services/orderService';
 import Form from '../../../shared/components/forms/Form';
-import FormInput from '../../../shared/components/forms/FormInput';
-import FormSelect from '../../../shared/components/forms/FormSelect';
+import FormField from '../../../shared/components/forms/FormField';
+import FormActions from '../../../shared/components/forms/FormActions';
 import Button from '../../../shared/components/ui/Button';
-import Card from '../../../shared/components/ui/Card';
+import Select from '../../../shared/components/ui/Select';
+import Card from '../../../shared/components/cards/Card';
 import DatePicker from '../../../shared/components/ui/DatePicker';
 import TimePicker from '../../../shared/components/ui/TimePicker';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../../shared/components/tables/Table';
@@ -136,37 +137,47 @@ export default function CreateOrder() {
               <p className="mt-1 text-sm text-slate-500">Where should this order be delivered?</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormInput
-                id="deliveryAddress"
-                label="Delivery address"
-                value={deliveryAddress}
-                onChange={(event) => setDeliveryAddress(event.target.value)}
-                placeholder="123 Main Street"
-              />
-              <FormInput
-                id="deliveryLat"
-                label="Latitude"
-                type="number"
-                value={deliveryLat}
-                onChange={(event) => setDeliveryLat(event.target.value)}
-                placeholder="-1.2921"
-                step="0.000001"
-              />
-              <FormInput
-                id="deliveryLng"
-                label="Longitude"
-                type="number"
-                value={deliveryLng}
-                onChange={(event) => setDeliveryLng(event.target.value)}
-                placeholder="36.8219"
-                step="0.000001"
-              />
+              <FormField id="deliveryAddress" label="Delivery address">
+                <input
+                  id="deliveryAddress"
+                  className="form-input"
+                  value={deliveryAddress}
+                  onChange={(event) => setDeliveryAddress(event.target.value)}
+                  placeholder="123 Main Street"
+                />
+              </FormField>
+
+              <FormField id="deliveryLat" label="Latitude">
+                <input
+                  id="deliveryLat"
+                  className="form-input"
+                  type="number"
+                  value={deliveryLat}
+                  onChange={(event) => setDeliveryLat(event.target.value)}
+                  placeholder="-1.2921"
+                  step="0.000001"
+                />
+              </FormField>
+
+              <FormField id="deliveryLng" label="Longitude">
+                <input
+                  id="deliveryLng"
+                  className="form-input"
+                  type="number"
+                  value={deliveryLng}
+                  onChange={(event) => setDeliveryLng(event.target.value)}
+                  placeholder="36.8219"
+                  step="0.000001"
+                />
+              </FormField>
+
               <DatePicker
                 id="scheduledDate"
                 className="w-full"
                 value={scheduledDate}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setScheduledDate(event.target.value)}
               />
+
               <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="scheduledStart" className="form-label">
@@ -201,28 +212,31 @@ export default function CreateOrder() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormSelect
-                id="selectedProduct"
-                label="Choose product"
-                value={selectedProductUuid}
-                onChange={(event) => setSelectedProductUuid(event.target.value)}
-              >
-                <option value="">Select a product</option>
-                {productOptions.map((product) => (
-                  <option key={product.uuid} value={product.uuid}>
-                    {product.name || product.description || product.uuid} • {formatCurrency(Number(product.price ?? 0))}
-                  </option>
-                ))}
-              </FormSelect>
-              <FormInput
-                id="quantity"
-                label="Quantity"
-                type="number"
-                min={1}
-                step={1}
-                value={quantity}
-                onChange={(event) => setQuantity(Number(event.target.value))}
-              />
+              <FormField id="selectedProduct" label="Choose product">
+                <Select
+                  id="selectedProduct"
+                  options={productOptions.map((product) => ({
+                    value: String(product.uuid),
+                    label: `${product.name || product.description || product.uuid} • ${formatCurrency(Number(product.price ?? 0))}`,
+                  }))}
+                  value={selectedProductUuid}
+                  onValueChange={setSelectedProductUuid}
+                  placeholder="Select a product"
+                  className="form-select"
+                />
+              </FormField>
+
+              <FormField id="quantity" label="Quantity">
+                <input
+                  id="quantity"
+                  className="form-input"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={quantity}
+                  onChange={(event) => setQuantity(Number(event.target.value))}
+                />
+              </FormField>
             </div>
 
             <Button type="button" variant="secondary" disabled={!canAddItem} onClick={handleAddItem}>
@@ -304,9 +318,7 @@ export default function CreateOrder() {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500">Complete every section and submit when the order preview looks right.</p>
-          <Button type="submit" variant="default" className="w-full sm:w-auto" disabled={!canSubmit || orderLoading}>
-            {orderLoading ? 'Creating order…' : 'Create order'}
-          </Button>
+          <FormActions primaryLabel={orderLoading ? 'Creating order…' : 'Create order'} primaryProps={{ type: 'submit', disabled: !canSubmit || orderLoading }} />
         </div>
       </Form>
     </div>
