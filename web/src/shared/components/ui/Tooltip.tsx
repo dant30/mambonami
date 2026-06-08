@@ -1,18 +1,29 @@
-﻿import React from 'react';
+﻿import * as React from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { cn } from '@/lib/utils';
 
-interface TooltipProps {
-  content: string;
-  children: React.ReactNode;
-}
+const Tooltip = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
+const TooltipProvider = TooltipPrimitive.Provider;
 
-export default function Tooltip({ content, children }: TooltipProps) {
-  return (
-    <div className="group relative inline-flex">
-      {children}
-      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block">
-        {content}
-      </span>
-    </div>
-  );
-}
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, side = 'top', align = 'center', ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    side={side}
+    align={align}
+    className={cn(
+      'z-50 overflow-hidden rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-large',
+      className,
+    )}
+    sideOffset={4}
+    {...props}
+  />
+));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+
+export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent };
+export default Tooltip;
 
