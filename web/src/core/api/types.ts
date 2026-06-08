@@ -1,4 +1,5 @@
-﻿export type {
+﻿// web/src/core/api/types.ts
+export type {
 	ApiResponse,
 	PaginatedResponse,
 	ApiErrorResponse,

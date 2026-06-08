@@ -8,6 +8,8 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "finance"],
   "icons": [
     {
       "src": "icons/logo192.png",
@@ -20,6 +22,32 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Admin dashboard overview"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Orders",
+      "short_name": "Orders",
+      "description": "View recent orders",
+      "url": "/orders",
+      "icons": [{ "src": "icons/order-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Disputes",
+      "short_name": "Disputes",
+      "description": "Resolve disputes",
+      "url": "/disputes",
+      "icons": [{ "src": "icons/dispute-icon.png", "sizes": "96x96" }]
     }
   ]
 }

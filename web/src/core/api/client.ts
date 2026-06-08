@@ -1,4 +1,5 @@
-﻿import axios, { AxiosInstance, AxiosError } from 'axios';
+﻿// web/src/core/api/client.ts
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_BASE } from './endpoints';
 import { getToken, removeToken, setToken } from '../storage/secureStorage';
 

@@ -1,34 +1,77 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+// web/src/core/context/AuthContext.tsx
+
+// web/src/core/context/AuthContext.tsx
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
+
 import { apiClient } from '../api/client';
-import { UserProfile } from '../api';
-import { getToken, removeToken, setToken } from '../storage/secureStorage';
+import { UserProfile } from '../api/types';
+
+import {
+  getToken,
+  setToken,
+  setRefreshToken,
+  clearAllTokens,
+} from '../storage/secureStorage';
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  login: (token: string, profile: UserProfile) => void;
+
+  login: (
+    accessToken: string,
+    refreshToken: string,
+    user: UserProfile
+  ) => void;
+
   logout: () => void;
+
   refreshProfile: () => Promise<void>;
+
+  updateUser: (user: UserProfile) => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+/**
+ * Exported context
+ */
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const login = (token: string, profile: UserProfile) => {
-    setToken(token);
-    setUser(profile);
+  const login = (
+    accessToken: string,
+    refreshToken: string,
+    userProfile: UserProfile
+  ) => {
+    setToken(accessToken);
+    setRefreshToken(refreshToken);
+    setUser(userProfile);
   };
 
-  const logout = () => {
-    removeToken();
+  const logout = useCallback(() => {
+    clearAllTokens();
     setUser(null);
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const updateUser = useCallback((profile: UserProfile) => {
+    setUser(profile);
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
     const token = getToken();
+
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -36,31 +79,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const response = await apiClient.get<UserProfile>('/api/users/profile/');
+      const response = await apiClient.get<UserProfile>(
+        '/api/users/profile/'
+      );
+
       setUser(response.data);
     } catch (error) {
-      removeToken();
+      console.error('Failed to refresh profile:', error);
+
+      clearAllTokens();
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    refreshProfile();
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      if (!mounted) return;
+
+      await refreshProfile();
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, [refreshProfile]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        refreshProfile,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used within AuthProvider');
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      'useAuth must be used within AuthProvider'
+    );
   }
-  return ctx;
+
+  return context;
 };
