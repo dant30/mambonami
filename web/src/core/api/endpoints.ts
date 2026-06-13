@@ -19,6 +19,41 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 /**
+ * Admin-only endpoints
+ */
+export const ADMIN_ENDPOINTS = {
+  users: {
+    list: '/admin-api/users/users/',
+    detail: (id: string | number) => `/admin-api/users/users/${id}/`,
+    suspend: (id: string | number) => `/admin-api/users/users/${id}/suspend/`,
+    activate: (id: string | number) => `/admin-api/users/users/${id}/activate/`,
+  },
+  farmers: {
+    list: '/admin-api/users/farmers/',
+    detail: (id: string | number) => `/admin-api/users/farmers/${id}/`,
+    approve: (id: string | number) => `/admin-api/users/farmers/${id}/approve/`,
+  },
+  transportProviders: {
+    list: '/admin-api/users/transport-providers/',
+    detail: (id: string | number) => `/admin-api/users/transport-providers/${id}/`,
+    approve: (id: string | number) => `/admin-api/users/transport-providers/${id}/approve/`,
+  },
+  audit: {
+    list: '/admin-api/audit/logs/',
+    detail: (uuid: string) => `/admin-api/audit/logs/${uuid}/`,
+  },
+  disputes: {
+    list: '/admin-api/disputes/',
+    detail: (uuid: string) => `/admin-api/disputes/${uuid}/`,
+    resolve: (uuid: string) => `/admin-api/disputes/${uuid}/resolve/`,
+  },
+  payouts: {
+    list: '/admin-api/payouts/',
+    detail: (uuid: string) => `/admin-api/payouts/${uuid}/`,
+  },
+} as const;
+
+/**
  * Orders Endpoints
  */
 export const ORDERS_ENDPOINTS = {

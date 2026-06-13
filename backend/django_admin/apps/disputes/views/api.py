@@ -1,4 +1,6 @@
 ﻿# backend/django_admin/apps/disputes/views/api.py
+from django.db import models
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from ..models import Dispute
@@ -57,7 +59,7 @@ class DisputeResolveView(generics.GenericAPIView):
         return Dispute.objects.filter(status__in=['open', 'under_review'])
 
     def post(self, request, uuid):
-        dispute = generics.get_object_or_404(self.get_queryset(), uuid=uuid)
+        dispute = get_object_or_404(self.get_queryset(), uuid=uuid)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         resolved = resolve_dispute(dispute, serializer.validated_data, request.user)
