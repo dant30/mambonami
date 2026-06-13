@@ -68,13 +68,13 @@ export default function ProductList() {
               products.map((product) => (
                 <TableRow key={product.uuid ?? product.id}>
                   <TableCell className="px-4 py-4 font-medium text-slate-900">
-                    {product.name || product.description || `Product ${product.uuid ?? product.id}`}
+                    {product.name || product.variety || product.description || `Product ${product.uuid ?? product.id}`}
                   </TableCell>
-                  <TableCell className="px-4 py-4">{formatCurrency(Number(product.price ?? 0), product.currency || 'USD')}</TableCell>
-                  <TableCell className="px-4 py-4">{product.stock ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-4">{formatCurrency(Number(product.price_per_unit ?? 0))}</TableCell>
+                  <TableCell className="px-4 py-4">{product.available_quantity ?? '—'}</TableCell>
                   <TableCell className="px-4 py-4">
-                    <Badge className={product.available ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}>
-                      {product.available ? 'Available' : 'Inactive'}
+                    <Badge className={product.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}>
+                      {product.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-4 space-x-3">

@@ -22,6 +22,8 @@ export const login = async ({ phone, password }: { phone: string; password: stri
         first_name: 'Mambonami',
         last_name: 'Admin',
         role: 'admin',
+        is_staff: true,
+        is_superuser: true,
         is_phone_verified: true,
         date_joined: new Date().toISOString(),
         farm_profile: null,
@@ -31,16 +33,6 @@ export const login = async ({ phone, password }: { phone: string; password: stri
   }
 
   const { data } = await apiClient.post<LoginResponse>(AUTH_ENDPOINTS.login, { phone, password });
-  return data;
-};
-
-export const registerInit = async ({ phone, role }: { phone: string; role: string }) => {
-  const { data } = await apiClient.post(AUTH_ENDPOINTS.registerInit, { phone, role });
-  return data;
-};
-
-export const registerVerify = async (payload: any) => {
-  const { data } = await apiClient.post(AUTH_ENDPOINTS.registerVerify, payload);
   return data;
 };
 

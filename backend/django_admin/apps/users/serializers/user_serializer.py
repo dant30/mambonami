@@ -202,7 +202,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'phone', 'username', 'email', 'first_name', 'last_name', 'role',
-            'is_phone_verified', 'date_joined', 'farm_profile', 'transport_profile',
+            'is_phone_verified', 'is_staff', 'is_superuser', 'date_joined', 'farm_profile', 'transport_profile',
         )
 
     def get_farm_profile(self, obj):

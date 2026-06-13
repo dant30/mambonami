@@ -107,14 +107,12 @@ export default function Login() {
 
               <FormActions
                 primaryLabel={isSubmitting ? 'Signing in...' : 'Sign in'}
+                secondaryLabel=""
                 primaryProps={{ type: 'submit', disabled: isSubmitting, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
               />
             </form>
             <div className="border-t border-border pt-4 text-sm text-slate-300">
-              Don’t have an account yet?{' '}
-              <Link to="/register" className="font-semibold text-emerald-300 hover:text-emerald-100">
-                Create account
-              </Link>
+              Accounts are provisioned by the admin team. Contact support if you need access.
             </div>
           </div>
         </Card>

@@ -21,6 +21,8 @@ export interface UserProfile {
 	last_name: string | null;
 	role: string;
 	is_phone_verified: boolean;
+	is_staff?: boolean;
+	is_superuser?: boolean;
 	date_joined: string;
 	farm_profile?: {
 		farm_gps: string;

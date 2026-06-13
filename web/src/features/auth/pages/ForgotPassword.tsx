@@ -115,6 +115,7 @@ export default function ForgotPassword() {
                 </FormField>
                 <FormActions
                   primaryLabel={isSubmitting ? 'Sending code...' : 'Send reset code'}
+                  secondaryLabel=""
                   primaryProps={{ type: 'submit', disabled: isSubmitting, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
                 />
                 <p className="text-sm text-slate-300">
@@ -183,6 +184,7 @@ export default function ForgotPassword() {
                 </FormField>
                 <FormActions
                   primaryLabel={isVerifying ? 'Resetting...' : 'Reset password'}
+                  secondaryLabel=""
                   primaryProps={{ type: 'submit', disabled: isVerifying, className: 'w-full bg-emerald-600 text-white shadow-soft hover:bg-emerald-500' }}
                 />
               </form>

@@ -77,24 +77,59 @@ export default function ProductDetail() {
                 <p>{product.name || 'Unnamed product'}</p>
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Price</p>
-                <p>{formatCurrency(Number(product.price ?? 0), product.currency || 'USD')}</p>
+                <p className="font-semibold text-slate-900">Price per unit</p>
+                <p>{formatCurrency(Number(product.price_per_unit ?? 0))}</p>
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Stock</p>
-                <p>{product.stock ?? 'Not tracked'}</p>
+                <p className="font-semibold text-slate-900">Available quantity</p>
+                <p>{product.available_quantity ?? 'Not tracked'}</p>
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Availability</p>
-                <p>{product.available ? 'Active' : 'Inactive'}</p>
+                <p>{product.is_active ? 'Active' : 'Inactive'}</p>
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Vendor</p>
-                <p>{product.vendorId ?? 'Not assigned'}</p>
+                <p>{product.farmer_phone ?? product.farmer ?? 'Not assigned'}</p>
               </div>
               <div>
                 <p className="font-semibold text-slate-900">UUID</p>
                 <p>{product.uuid || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Inventory</h2>
+              <p className="mt-1 text-sm text-slate-500">Units, reserve counts, and freshness details.</p>
+            </div>
+            <div className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
+              <div>
+                <p className="font-semibold text-slate-900">Unit</p>
+                <p>{product.unit || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Reserved quantity</p>
+                <p>{product.reserved_quantity ?? 0}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Harvest date</p>
+                <p>{product.harvest_date ? formatDate(product.harvest_date) : 'Not set'}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Expiry date</p>
+                <p>{product.expiry_date ? formatDate(product.expiry_date) : 'Not calculated'}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Shelf life</p>
+                <p>{product.shelf_life_days ?? 'N/A'} days</p>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Organic</p>
+                <p>{product.is_organic ? 'Yes' : 'No'}</p>
               </div>
             </div>
           </div>
@@ -115,11 +150,11 @@ export default function ProductDetail() {
         <div className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
           <div>
             <p className="font-semibold text-slate-900">Created</p>
-            <p>{formatDate(product.createdAt)}</p>
+            <p>{product.created_at ? formatDate(product.created_at) : 'N/A'}</p>
           </div>
           <div>
             <p className="font-semibold text-slate-900">Updated</p>
-            <p>{formatDate(product.updatedAt)}</p>
+            <p>{product.updated_at ? formatDate(product.updated_at) : 'N/A'}</p>
           </div>
         </div>
       </Card>

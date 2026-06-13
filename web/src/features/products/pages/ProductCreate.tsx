@@ -19,17 +19,20 @@ export default function ProductCreate() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [stock, setStock] = useState('0');
+  const [variety, setVariety] = useState('');
+  const [pricePerUnit, setPricePerUnit] = useState('');
+  const [availableQuantity, setAvailableQuantity] = useState('0');
+  const [unit, setUnit] = useState('kg');
+  const [harvestDate, setHarvestDate] = useState('');
   const [available, setAvailable] = useState(true);
   const [categoryId, setCategoryId] = useState('');
+  const [isOrganic, setIsOrganic] = useState(false);
 
   useEffect(() => {
     getCategories().catch(() => {});
   }, [getCategories]);
 
-  const canSubmit = Boolean(name.trim() && price && !Number.isNaN(Number(price)));
+  const canSubmit = Boolean(name.trim() && pricePerUnit && availableQuantity && harvestDate && !Number.isNaN(Number(pricePerUnit)));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,11 +41,15 @@ export default function ProductCreate() {
 
     const payload = {
       name: name.trim(),
+      variety: variety.trim(),
       description: description.trim(),
-      price: Number(price),
-      currency,
-      stock: Number(stock),
-      available,
+      price_per_unit: Number(pricePerUnit),
+      available_quantity: Number(availableQuantity),
+      reserved_quantity: 0,
+      unit,
+      harvest_date: harvestDate,
+      is_active: available,
+      is_organic: isOrganic,
       category: categoryId ? Number(categoryId) : undefined,
     };
 
@@ -67,7 +74,7 @@ export default function ProductCreate() {
         </div>
       ) : null}
 
-      <Form title="New product" description="Provide a name, price, stock, and supporting details for this product." onSubmit={handleSubmit}>
+      <Form title="New product" description="Provide a name, pricing, quantity, and supporting details for this product." onSubmit={handleSubmit}>
         <Card>
           <div className="space-y-6">
             <FormSection>
@@ -82,42 +89,66 @@ export default function ProductCreate() {
                   />
                 </FormField>
 
-                <FormField id="productPrice" label="Price">
+                <FormField id="productVariety" label="Variety">
                   <input
-                    id="productPrice"
+                    id="productVariety"
                     className="form-input"
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={price}
-                    onChange={(event) => setPrice(event.target.value)}
+                    value={variety}
+                    onChange={(event) => setVariety(event.target.value)}
+                    placeholder="Ngowe"
                   />
                 </FormField>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField id="productCurrency" label="Currency">
-                  <select
-                    id="productCurrency"
-                    className="form-select"
-                    value={currency}
-                    onChange={(event) => setCurrency(event.target.value)}
-                  >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="KES">KES</option>
-                  </select>
+                <FormField id="productPricePerUnit" label="Price per unit">
+                  <input
+                    id="productPricePerUnit"
+                    className="form-input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={pricePerUnit}
+                    onChange={(event) => setPricePerUnit(event.target.value)}
+                  />
                 </FormField>
 
-                <FormField id="productStock" label="Stock">
+                <FormField id="productQuantity" label="Available quantity">
                   <input
-                    id="productStock"
+                    id="productQuantity"
                     className="form-input"
                     type="number"
                     min={0}
                     step={1}
-                    value={stock}
-                    onChange={(event) => setStock(event.target.value)}
+                    value={availableQuantity}
+                    onChange={(event) => setAvailableQuantity(event.target.value)}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField id="productUnit" label="Unit">
+                  <select
+                    id="productUnit"
+                    className="form-select"
+                    value={unit}
+                    onChange={(event) => setUnit(event.target.value)}
+                  >
+                    <option value="kg">Kilogram</option>
+                    <option value="piece">Piece</option>
+                    <option value="litre">Litre</option>
+                    <option value="tray">Tray</option>
+                    <option value="bunch">Bunch</option>
+                  </select>
+                </FormField>
+
+                <FormField id="productHarvestDate" label="Harvest date">
+                  <input
+                    id="productHarvestDate"
+                    className="form-input"
+                    type="date"
+                    value={harvestDate}
+                    onChange={(event) => setHarvestDate(event.target.value)}
                   />
                 </FormField>
               </div>
@@ -153,6 +184,18 @@ export default function ProductCreate() {
                     <span>{available ? 'Published' : 'Draft'}</span>
                   </label>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={isOrganic}
+                    onChange={(event) => setIsOrganic(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>{isOrganic ? 'Organic certified' : 'Not organic certified'}</span>
+                </label>
               </div>
 
               <div className="space-y-2">

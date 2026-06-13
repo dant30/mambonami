@@ -50,9 +50,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const hasRole = useCallback((roles: Role | Role[]) => {
     if (!user) return false;
-    const userRole = user.role as Role;
-    if (Array.isArray(roles)) return roles.includes(userRole);
-    return userRole === roles;
+    const isAdminUser = user.role === 'admin' || user.is_staff === true || user.is_superuser === true;
+    if (Array.isArray(roles)) {
+      return roles.some((role) => (role === 'admin' ? isAdminUser : user.role === role));
+    }
+    return roles === 'admin' ? isAdminUser : user.role === roles;
   }, [user]);
 
   const refreshProfile = useCallback(async () => {
