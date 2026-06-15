@@ -28,21 +28,35 @@ async def proxy_request(
             follow_redirects=False,
         )
 
-        # Preserve duplicate headers like Set-Cookie
-        response_headers = [
-            (name, value)
-            for name, value in response.headers.multi_items()
-            if name.lower() not in {
-                'connection',
-                'keep-alive',
-                'proxy-authenticate',
-                'proxy-authorization',
-                'te',
-                'trailers',
-                'transfer-encoding',
-                'upgrade',
-            }
-        ]
+        excluded_headers = {
+            'connection',
+            'keep-alive',
+            'proxy-authenticate',
+            'proxy-authorization',
+            'te',
+            'trailers',
+            'transfer-encoding',
+            'upgrade',
+            'content-length',
+        }
+
+        response_headers = []
+        if hasattr(response.headers, 'multi_items'):
+            for name, value in response.headers.multi_items():
+                if name.lower() not in excluded_headers:
+                    response_headers.append((name, value))
+        elif hasattr(response, 'raw'):
+            for name, value in response.raw:
+                if isinstance(name, bytes):
+                    name = name.decode('latin-1')
+                if isinstance(value, bytes):
+                    value = value.decode('latin-1')
+                if name.lower() not in excluded_headers:
+                    response_headers.append((name, value))
+        else:
+            for name, value in response.headers.items():
+                if name.lower() not in excluded_headers:
+                    response_headers.append((name, value))
 
         return Response(
             content=response.content,
