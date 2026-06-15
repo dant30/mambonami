@@ -65,3 +65,5 @@ CACHES['default']['LOCATION'] = env('REDIS_URL')
 
 # M-Pesa – use production credentials
 MPESA_ENVIRONMENT = 'production'
+
+SESSION_COOKIE_DOMAIN = 'api.mambonami.com'
