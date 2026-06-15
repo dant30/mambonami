@@ -50,7 +50,7 @@ export default function CreateOrder() {
   const cartTotal = useMemo(
     () =>
       cartItems.reduce(
-        (sum, item) => sum + Number(item.product?.price ?? 0) * item.quantity,
+        (sum, item) => sum + Number(item.product?.price_per_unit ?? 0) * item.quantity,
         0,
       ),
     [cartItems],
@@ -217,7 +217,7 @@ export default function CreateOrder() {
                   id="selectedProduct"
                   options={productOptions.map((product) => ({
                     value: String(product.uuid),
-                    label: `${product.name || product.description || product.uuid} • ${formatCurrency(Number(product.price ?? 0))}`,
+                    label: `${product.name || product.description || product.uuid} • ${formatCurrency(Number(product.price_per_unit ?? 0))}`,
                   }))}
                   value={selectedProductUuid}
                   onValueChange={setSelectedProductUuid}
@@ -262,7 +262,7 @@ export default function CreateOrder() {
                         </TableCell>
                         <TableCell className="px-4 py-3">{item.quantity}</TableCell>
                         <TableCell className="px-4 py-3">
-                          {formatCurrency(Number(item.product?.price ?? 0) * item.quantity)}
+                          {formatCurrency(Number(item.product?.price_per_unit ?? 0) * item.quantity)}
                         </TableCell>
                         <TableCell className="px-4 py-3">
                           <button
