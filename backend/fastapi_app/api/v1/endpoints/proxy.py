@@ -38,30 +38,44 @@ async def proxy_request(
             'transfer-encoding',
             'upgrade',
             'content-length',
+            'set-cookie',
         }
 
-        response_headers = []
-        if hasattr(response.headers, 'multi_items'):
-            for name, value in response.headers.multi_items():
-                if name.lower() not in excluded_headers:
-                    response_headers.append((name, value))
-        elif hasattr(response, 'raw'):
-            for name, value in response.raw:
+        headers_dict = {
+            name: value
+            for name, value in response.headers.items()
+            if name.lower() not in excluded_headers
+        }
+
+        proxied_response = Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=headers_dict,
+        )
+
+        # Preserve cookies from Django backend
+        if hasattr(response.headers, 'raw'):
+            from http.cookies import SimpleCookie
+
+            for name, value in response.headers.raw:
                 if isinstance(name, bytes):
                     name = name.decode('latin-1')
                 if isinstance(value, bytes):
                     value = value.decode('latin-1')
-                if name.lower() not in excluded_headers:
-                    response_headers.append((name, value))
-        else:
-            for name, value in response.headers.items():
-                if name.lower() not in excluded_headers:
-                    response_headers.append((name, value))
+                if name.lower() == 'set-cookie':
+                    cookie = SimpleCookie()
+                    cookie.load(value)
+                    for cookie_name, morsel in cookie.items():
+                        proxied_response.set_cookie(
+                            cookie_name,
+                            morsel.value,
+                            path=morsel['path'] or '/',
+                            domain=morsel['domain'] or None,
+                            secure=bool(morsel['secure']),
+                            httponly=bool(morsel['httponly']),
+                            samesite=morsel['samesite'] or 'Lax',
+                        )
 
-        return Response(
-            content=response.content,
-            status_code=response.status_code,
-            headers=response_headers,
-        )
+        return proxied_response
     except httpx.RequestError as e:
         raise HTTPException(status_code=502, detail=f"Backend unreachable: {str(e)}")
