@@ -27,10 +27,27 @@ async def proxy_request(
             params=request.query_params,
             follow_redirects=False,
         )
+
+        # Preserve duplicate headers like Set-Cookie
+        response_headers = [
+            (name, value)
+            for name, value in response.headers.multi_items()
+            if name.lower() not in {
+                'connection',
+                'keep-alive',
+                'proxy-authenticate',
+                'proxy-authorization',
+                'te',
+                'trailers',
+                'transfer-encoding',
+                'upgrade',
+            }
+        ]
+
         return Response(
             content=response.content,
             status_code=response.status_code,
-            headers=dict(response.headers),
+            headers=response_headers,
         )
     except httpx.RequestError as e:
         raise HTTPException(status_code=502, detail=f"Backend unreachable: {str(e)}")
