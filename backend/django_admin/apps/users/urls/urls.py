@@ -1,6 +1,6 @@
 ﻿# backend/django_admin/apps/users/urls.py
 from django.urls import path
-from .views.api import (
+from ..views.api import (
     RegisterInitView,
     VerifyOTPView,
     PasswordResetInitView,

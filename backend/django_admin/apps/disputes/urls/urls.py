@@ -1,6 +1,6 @@
-﻿# backend/django_admin/apps/disputes/urls.py
+# backend/django_admin/apps/disputes/urls.py
 from django.urls import path
-from .views import api
+from ..views import api
 
 urlpatterns = [
     path('', api.DisputeListView.as_view(), name='dispute-list'),

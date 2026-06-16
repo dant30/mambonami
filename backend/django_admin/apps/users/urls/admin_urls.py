@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views.admin_views import FarmerAdminViewSet, TransportProviderAdminViewSet, UserAdminViewSet
+from ..views.admin_views import FarmerAdminViewSet, TransportProviderAdminViewSet, UserAdminViewSet
 
 router = DefaultRouter()
 router.register('farmers', FarmerAdminViewSet, basename='admin-farmers')
