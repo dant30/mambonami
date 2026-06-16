@@ -6,6 +6,7 @@ import { usePayouts } from '../hooks/useAdminData';
 export default function PayoutsManager() {
   const [filter, setFilter] = useState<'pending' | 'processing' | 'completed' | 'failed'>('pending');
   const { payouts, loading, error, refetch } = usePayouts(filter);
+  const safePayouts = Array.isArray(payouts) ? payouts : [];
 
   return (
     <div className="space-y-6">
@@ -22,25 +23,25 @@ export default function PayoutsManager() {
           variant={filter === 'pending' ? 'primary' : 'outline'}
           onClick={() => setFilter('pending')}
         >
-          Pending ({payouts.filter(p => p.status === 'pending').length})
+          Pending ({safePayouts.filter(p => p.status === 'pending').length})
         </Button>
         <Button
           variant={filter === 'processing' ? 'primary' : 'outline'}
           onClick={() => setFilter('processing')}
         >
-          Processing ({payouts.filter(p => p.status === 'processing').length})
+          Processing ({safePayouts.filter(p => p.status === 'processing').length})
         </Button>
         <Button
           variant={filter === 'completed' ? 'primary' : 'outline'}
           onClick={() => setFilter('completed')}
         >
-          Completed ({payouts.filter(p => p.status === 'completed').length})
+          Completed ({safePayouts.filter(p => p.status === 'completed').length})
         </Button>
         <Button
           variant={filter === 'failed' ? 'primary' : 'outline'}
           onClick={() => setFilter('failed')}
         >
-          Failed ({payouts.filter(p => p.status === 'failed').length})
+          Failed ({safePayouts.filter(p => p.status === 'failed').length})
         </Button>
       </div>
 
@@ -48,7 +49,7 @@ export default function PayoutsManager() {
 
       {loading ? (
         <Card className="p-6 text-center">Loading payouts...</Card>
-      ) : payouts.length === 0 ? (
+      ) : safePayouts.length === 0 ? (
         <Card className="p-6 text-center text-slate-600">No payouts found</Card>
       ) : (
         <div className="overflow-x-auto">
@@ -65,7 +66,7 @@ export default function PayoutsManager() {
               </tr>
             </thead>
             <tbody>
-              {payouts.map((payout) => (
+              {safePayouts.map((payout) => (
                 <tr key={payout.uuid} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900">{payout.farmer_name}</td>
                   <td className="px-4 py-3 text-sm text-slate-600">{payout.farmer_phone}</td>
@@ -120,13 +121,13 @@ export default function PayoutsManager() {
         <Card className="p-4">
           <p className="text-sm text-slate-600">Total Payouts</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
-            KES {payouts.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
+            KES {safePayouts.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
           </p>
         </Card>
         <Card className="p-4">
           <p className="text-sm text-slate-600">Completed</p>
           <p className="mt-2 text-2xl font-semibold text-green-600">
-            KES {payouts
+            KES {safePayouts
               .filter(p => p.status === 'completed')
               .reduce((sum, p) => sum + p.amount, 0)
               .toLocaleString()}
@@ -135,7 +136,7 @@ export default function PayoutsManager() {
         <Card className="p-4">
           <p className="text-sm text-slate-600">Pending/Failed</p>
           <p className="mt-2 text-2xl font-semibold text-red-600">
-            KES {payouts
+            KES {safePayouts
               .filter(p => p.status !== 'completed')
               .reduce((sum, p) => sum + p.amount, 0)
               .toLocaleString()}

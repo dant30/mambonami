@@ -21,6 +21,7 @@ export default function DisputeResolution() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { disputes, loading, refetch } = useDisputes(filter);
+  const safeDisputes = Array.isArray(disputes) ? disputes : [];
 
   const handleSubmitResolution = async (disputeUuid: string) => {
     setError(null);
@@ -54,19 +55,19 @@ export default function DisputeResolution() {
           variant={filter === 'open' ? 'primary' : 'outline'}
           onClick={() => setFilter('open')}
         >
-          Open ({disputes.filter(d => d.status === 'open').length})
+          Open ({safeDisputes.filter(d => d.status === 'open').length})
         </Button>
         <Button
           variant={filter === 'under_review' ? 'primary' : 'outline'}
           onClick={() => setFilter('under_review')}
         >
-          Under Review ({disputes.filter(d => d.status === 'under_review').length})
+          Under Review ({safeDisputes.filter(d => d.status === 'under_review').length})
         </Button>
         <Button
           variant={filter === 'resolved' ? 'primary' : 'outline'}
           onClick={() => setFilter('resolved')}
         >
-          Resolved ({disputes.filter(d => d.status === 'resolved').length})
+          Resolved ({safeDisputes.filter(d => d.status === 'resolved').length})
         </Button>
       </div>
 
@@ -78,11 +79,11 @@ export default function DisputeResolution() {
         <div className="lg:col-span-1">
           {loading ? (
             <Card className="p-6 text-center">Loading disputes...</Card>
-          ) : disputes.length === 0 ? (
+          ) : safeDisputes.length === 0 ? (
             <Card className="p-6 text-center text-slate-600">No disputes found</Card>
           ) : (
             <div className="space-y-2">
-              {disputes.map((dispute) => (
+              {safeDisputes.map((dispute) => (
                 <Card
                   key={dispute.uuid}
                   className={`cursor-pointer p-4 transition ${

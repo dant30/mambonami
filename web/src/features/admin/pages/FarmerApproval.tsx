@@ -10,6 +10,7 @@ export default function FarmerApproval() {
   const [selectedFarmers, setSelectedFarmers] = useState<number[]>([]);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { farmers, loading, error, refetch } = useFarmers(filter);
+  const safeFarmers = Array.isArray(farmers) ? farmers : [];
 
   const handleApprove = async (farmerId: number) => {
     setApproving(farmerId);
@@ -32,7 +33,7 @@ export default function FarmerApproval() {
   };
 
   const toggleSelectAll = () => {
-    const pendingIds = farmers.filter((farmer) => !farmer.coop_verified).map((farmer) => farmer.id);
+    const pendingIds = safeFarmers.filter((farmer) => !farmer.coop_verified).map((farmer) => farmer.id);
     setSelectedFarmers((prev) =>
       prev.length === pendingIds.length ? [] : pendingIds,
     );
@@ -70,22 +71,22 @@ export default function FarmerApproval() {
             variant={filter === 'pending' ? 'secondary' : 'ghost'}
             onClick={() => setFilter('pending')}
           >
-            Pending ({farmers.filter((f) => !f.coop_verified).length})
+            Pending ({safeFarmers.filter((f) => !f.coop_verified).length})
           </Button>
           <Button
             variant={filter === 'approved' ? 'secondary' : 'ghost'}
             onClick={() => setFilter('approved')}
           >
-            Approved ({farmers.filter((f) => f.coop_verified).length})
+            Approved ({safeFarmers.filter((f) => f.coop_verified).length})
           </Button>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             onClick={toggleSelectAll}
-            disabled={farmers.filter((f) => !f.coop_verified).length === 0}
+            disabled={safeFarmers.filter((f) => !f.coop_verified).length === 0}
           >
-            {selectedFarmers.length === farmers.filter((f) => !f.coop_verified).length ? 'Clear selection' : 'Select all pending'}
+            {selectedFarmers.length === safeFarmers.filter((f) => !f.coop_verified).length ? 'Clear selection' : 'Select all pending'}
           </Button>
           <Button
             variant="secondary"
@@ -102,7 +103,7 @@ export default function FarmerApproval() {
 
       {loading ? (
         <Card className="p-6 text-center">Loading farmers...</Card>
-      ) : farmers.length === 0 ? (
+      ) : safeFarmers.length === 0 ? (
         <Card className="p-6 text-center text-slate-600">No farmers found</Card>
       ) : (
         <div className="overflow-x-auto">
@@ -112,7 +113,7 @@ export default function FarmerApproval() {
                 <th className="px-4 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedFarmers.length === farmers.filter((f) => !f.coop_verified).length && farmers.filter((f) => !f.coop_verified).length > 0}
+                    checked={selectedFarmers.length === safeFarmers.filter((f) => !f.coop_verified).length && safeFarmers.filter((f) => !f.coop_verified).length > 0}
                     onChange={toggleSelectAll}
                   />
                 </th>
@@ -128,7 +129,7 @@ export default function FarmerApproval() {
               </tr>
             </thead>
             <tbody>
-              {farmers.map((farmer) => (
+              {safeFarmers.map((farmer) => (
                 <tr key={farmer.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <input

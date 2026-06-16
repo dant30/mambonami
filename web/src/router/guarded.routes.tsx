@@ -14,7 +14,6 @@ import PayoutList from '../features/payouts/pages/PayoutList';
 import Profile from '../features/auth/pages/Profile';
 
 // Admin pages
-import AdminDashboard from '../features/admin/pages/Dashboard';
 import FarmerApproval from '../features/admin/pages/FarmerApproval';
 import TransportProviderApproval from '../features/admin/pages/TransportProviderApproval';
 import DisputeResolution from '../features/admin/pages/DisputeResolution';
@@ -43,8 +42,8 @@ export const guardedRoutes: RouteObject[] = [
       { path: 'profile', element: <Profile /> },
 
       // Admin routes
-      { path: 'admin', element: <AdminDashboard /> },
-      { path: 'admin/dashboard', element: <AdminDashboard /> },
+      { path: 'admin', element: <Dashboard /> },
+      { path: 'admin/dashboard', element: <Dashboard /> },
       { path: 'admin/farmers', element: <FarmerApproval /> },
       { path: 'admin/farmer-approval', element: <FarmerApproval /> },
       { path: 'admin/transport-providers', element: <TransportProviderApproval /> },

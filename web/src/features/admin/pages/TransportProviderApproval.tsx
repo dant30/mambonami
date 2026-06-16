@@ -10,6 +10,7 @@ export default function TransportProviderApproval() {
   const [selectedProviders, setSelectedProviders] = useState<number[]>([]);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { providers, loading, error, refetch } = useTransportProviders(filter);
+  const safeProviders = Array.isArray(providers) ? providers : [];
 
   const handleApprove = async (providerId: number) => {
     setApproving(providerId);
@@ -32,7 +33,7 @@ export default function TransportProviderApproval() {
   };
 
   const toggleSelectAll = () => {
-    const pendingIds = providers.filter((provider) => !provider.is_approved && provider.deposit_paid).map((provider) => provider.id);
+    const pendingIds = safeProviders.filter((provider) => !provider.is_approved && provider.deposit_paid).map((provider) => provider.id);
     setSelectedProviders((prev) =>
       prev.length === pendingIds.length ? [] : pendingIds,
     );
@@ -70,22 +71,22 @@ export default function TransportProviderApproval() {
             variant={filter === 'pending' ? 'secondary' : 'ghost'}
             onClick={() => setFilter('pending')}
           >
-            Pending ({providers.filter((p) => !p.is_approved).length})
+            Pending ({safeProviders.filter((p) => !p.is_approved).length})
           </Button>
           <Button
             variant={filter === 'approved' ? 'secondary' : 'ghost'}
             onClick={() => setFilter('approved')}
           >
-            Approved ({providers.filter((p) => p.is_approved).length})
+            Approved ({safeProviders.filter((p) => p.is_approved).length})
           </Button>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             onClick={toggleSelectAll}
-            disabled={providers.filter((p) => !p.is_approved && p.deposit_paid).length === 0}
+            disabled={safeProviders.filter((p) => !p.is_approved && p.deposit_paid).length === 0}
           >
-            {selectedProviders.length === providers.filter((p) => !p.is_approved && p.deposit_paid).length
+            {selectedProviders.length === safeProviders.filter((p) => !p.is_approved && p.deposit_paid).length
               ? 'Clear selection'
               : 'Select all pending'}
           </Button>
@@ -104,7 +105,7 @@ export default function TransportProviderApproval() {
 
       {loading ? (
         <Card className="p-6 text-center">Loading transport providers...</Card>
-      ) : providers.length === 0 ? (
+      ) : safeProviders.length === 0 ? (
         <Card className="p-6 text-center text-slate-600">No transport providers found</Card>
       ) : (
         <div className="overflow-x-auto">
@@ -121,7 +122,7 @@ export default function TransportProviderApproval() {
               </tr>
             </thead>
             <tbody>
-              {providers.map((provider) => (
+              {safeProviders.map((provider) => (
                 <tr key={provider.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <input

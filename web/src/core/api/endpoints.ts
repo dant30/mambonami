@@ -1,7 +1,8 @@
 ﻿// web/src/core/api/endpoints.ts
 const DEFAULT_API_BASE = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configuredApiBase) {
+    return configuredApiBase;
   }
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol;

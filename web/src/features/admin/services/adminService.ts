@@ -6,7 +6,7 @@ export const listOrders = async (params?: Record<string, any>) => listAdminOrder
 
 export const listFarmers = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.farmers.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const approveFarmer = async (farmerId: number | string) => {
@@ -16,7 +16,7 @@ export const approveFarmer = async (farmerId: number | string) => {
 
 export const listTransportProviders = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.transportProviders.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const approveTransportProvider = async (providerId: number | string) => {
@@ -26,12 +26,12 @@ export const approveTransportProvider = async (providerId: number | string) => {
 
 export const listAuditLogs = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.audit.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const listDisputes = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.disputes.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const resolveDispute = async (uuid: string, payload: Record<string, unknown>) => {
@@ -41,12 +41,12 @@ export const resolveDispute = async (uuid: string, payload: Record<string, unkno
 
 export const listPayouts = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.payouts.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const listUsers = async () => {
   const { data } = await apiClient.get(ADMIN_ENDPOINTS.users.list);
-  return data.results || data;
+  return data?.results ?? data?.data ?? data ?? [];
 };
 
 export const suspendUser = async (userId: number | string) => {

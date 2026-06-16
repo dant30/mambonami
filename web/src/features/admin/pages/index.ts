@@ -1,4 +1,3 @@
-export { default as Dashboard } from './Dashboard';
 export { default as FarmerApproval } from './FarmerApproval';
 export { default as TransportProviderApproval } from './TransportProviderApproval';
 export { default as DisputeResolution } from './DisputeResolution';

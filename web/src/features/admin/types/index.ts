@@ -81,6 +81,7 @@ export interface AdminUser {
   email: string;
   is_active: boolean;
   user_type: string;
+  role?: string;
   created_at: string;
   updated_at: string;
 }

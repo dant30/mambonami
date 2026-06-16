@@ -1,6 +1,8 @@
 ﻿# backend/django_admin/apps/users/views/api.py
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from core.throttling import BurstThrottle
 from ..serializers import (
     RegisterInitSerializer,
@@ -14,6 +16,7 @@ from ..models import User
 from ..services import get_tokens_for_user, authenticate_user
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterInitView(generics.GenericAPIView):
     serializer_class = RegisterInitSerializer
     permission_classes = [permissions.AllowAny]
@@ -26,6 +29,7 @@ class RegisterInitView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class VerifyOTPView(generics.CreateAPIView):
     serializer_class = VerifyOTPSerializer
     permission_classes = [permissions.AllowAny]
@@ -42,6 +46,7 @@ class VerifyOTPView(generics.CreateAPIView):
         )
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetInitView(generics.GenericAPIView):
     serializer_class = PasswordResetInitSerializer
     permission_classes = [permissions.AllowAny]
@@ -54,6 +59,7 @@ class PasswordResetInitView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetVerifyView(generics.GenericAPIView):
     serializer_class = PasswordResetVerifySerializer
     permission_classes = [permissions.AllowAny]
@@ -66,6 +72,7 @@ class PasswordResetVerifyView(generics.GenericAPIView):
         return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomTokenObtainPairView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]

@@ -8,6 +8,8 @@ const localAdminCredentials = {
 };
 
 export const login = async ({ phone, password }: { phone: string; password: string }): Promise<LoginResponse> => {
+  // Dev: avoid noisy console logs in production builds
+  
   if (phone === localAdminCredentials.phone && password === localAdminCredentials.password) {
     return Promise.resolve({
       tokens: {
@@ -32,8 +34,13 @@ export const login = async ({ phone, password }: { phone: string; password: stri
     });
   }
 
-  const { data } = await apiClient.post<LoginResponse>(AUTH_ENDPOINTS.login, { phone, password });
-  return data;
+  try {
+    const { data } = await apiClient.post<LoginResponse>(AUTH_ENDPOINTS.login, { phone, password });
+    return data;
+  } catch (error: any) {
+    console.error('[authService] login error', error.response?.status, error.response?.data);
+    throw error;
+  }
 };
 
 export const passwordResetInit = async ({ phone }: { phone: string }) => {

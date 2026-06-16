@@ -13,6 +13,7 @@ export default function AuditLog() {
     model: searchModel || undefined,
   });
 
+  const safeLogs = Array.isArray(logs) ? logs : [];
   return (
     <div className="space-y-6">
       <div>
@@ -60,11 +61,11 @@ export default function AuditLog() {
 
       {loading ? (
         <Card className="p-6 text-center">Loading audit logs...</Card>
-      ) : logs.length === 0 ? (
+      ) : safeLogs.length === 0 ? (
         <Card className="p-6 text-center text-slate-600">No audit logs found</Card>
       ) : (
         <div className="space-y-3">
-          {logs.map((log) => (
+          {safeLogs.map((log) => (
             <Card key={log.uuid} className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -102,7 +103,7 @@ export default function AuditLog() {
       )}
 
       <div className="text-center text-sm text-slate-600">
-        Total records: {logs.length}
+        Total records: {safeLogs.length}
       </div>
     </div>
   );

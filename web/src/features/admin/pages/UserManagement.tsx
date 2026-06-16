@@ -18,16 +18,17 @@ export default function UserManagement() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { users, loading, error, refetch } = useUsers(filter);
+  const safeUsers = Array.isArray(users) ? users : [];
 
   const filteredUsers = useMemo(() => {
     const normalized = searchTerm.trim().toLowerCase();
-    return users.filter((user) => {
+    return safeUsers.filter((user) => {
       if (!normalized) return true;
       return [user.username, user.email, user.phone, user.user_type]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalized));
     });
-  }, [users, searchTerm]);
+  }, [safeUsers, searchTerm]);
 
   const selectedUsers = useMemo(
     () => filteredUsers.filter((user) => selectedUserIds.includes(user.id)),
