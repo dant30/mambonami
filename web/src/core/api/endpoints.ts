@@ -1,5 +1,18 @@
 ﻿// web/src/core/api/endpoints.ts
-export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const DEFAULT_API_BASE = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    return `${protocol}//${host}${port}`;
+  }
+  return 'http://localhost:8000';
+};
+
+export const API_BASE = DEFAULT_API_BASE();
 
 /**
  * Authentication & User Management Endpoints
