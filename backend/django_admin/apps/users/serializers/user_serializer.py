@@ -168,15 +168,15 @@ class PasswordResetVerifySerializer(serializers.Serializer):
         if attrs['new_password'] != attrs['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
 
-        attempts_key = f'password_reset_attempts:{attrs['phone']}'
+        attempts_key = f'password_reset_attempts:{attrs["phone"]}'
         attempts = RedisCache.get(attempts_key) or 0
         max_attempts = getattr(settings, 'OTP_MAX_ATTEMPTS', 3)
         if attempts >= max_attempts:
             RedisCache.delete(attempts_key)
-            RedisCache.delete(f'password_reset_otp:{attrs['phone']}')
+            RedisCache.delete(f'password_reset_otp:{attrs["phone"]}')
             raise serializers.ValidationError({'otp': 'Maximum OTP attempts exceeded. Please request a new code.'})
 
-        cached_otp = RedisCache.get(f'password_reset_otp:{attrs['phone']}')
+        cached_otp = RedisCache.get(f'password_reset_otp:{attrs["phone"]}')
         if not cached_otp or cached_otp != attrs['otp']:
             RedisCache.set(attempts_key, attempts + 1, timeout=settings.OTP_EXPIRY_SECONDS)
             raise serializers.ValidationError({'otp': 'Invalid or expired OTP.'})

@@ -1,4 +1,4 @@
-﻿# backend/django_admin/apps/users/urls.py
+﻿# backend/django_admin/apps/users/urls/urls.py
 from django.urls import path
 from ..views.api import (
     RegisterInitView,

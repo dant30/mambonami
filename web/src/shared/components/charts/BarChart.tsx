@@ -9,15 +9,15 @@
   Bar,
 } from 'recharts';
 
-interface BarChartProps {
-  data: Array<Record<string, string | number>>;
-  dataKey: string;
-  labelKey: string;
+interface BarChartProps<T extends object = Record<string, string | number>> {
+  data: T[];
+  dataKey: Extract<keyof T, string | number>;
+  labelKey: Extract<keyof T, string | number>;
   title?: string;
   color?: string;
 }
 
-export default function BarChart({ data, dataKey, labelKey, title, color = '#2563eb' }: BarChartProps) {
+export default function BarChart<T extends object>({ data, dataKey, labelKey, title, color = '#2563eb' }: BarChartProps<T>) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
       {title ? <h3 className="mb-4 text-lg font-semibold text-slate-900">{title}</h3> : null}

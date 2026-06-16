@@ -13,6 +13,7 @@ import {
   FileText,
   Users,
   Settings,
+  BarChart3,
 } from 'lucide-react';
 
 import {
@@ -60,6 +61,7 @@ const mainNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { title: 'Farmer Approval', url: '/admin/farmer-approval', icon: Users, roles: ['admin'] },
+  { title: 'Order Overview', url: '/admin/orders', icon: BarChart3, roles: ['admin'] },
   { title: 'Audit Log', url: '/admin/audit-log', icon: FileText, roles: ['admin'] },
   { title: 'User Management', url: '/admin/users', icon: ShieldCheck, roles: ['admin'] },
   { title: 'Settings', url: '/admin/settings', icon: Settings, roles: ['admin'] },

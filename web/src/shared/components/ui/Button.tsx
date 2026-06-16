@@ -2,15 +2,17 @@
 import { cn } from '../../../lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'ghost';
+  variant?: 'default' | 'primary' | 'secondary' | 'destructive' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg' | 'icon';
 }
 
 const variantStyles = {
   default: 'bg-primary text-primary-foreground hover:bg-primary/95',
+  primary: 'bg-blue-600 text-white hover:bg-blue-700',
   secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/90',
   destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
   ghost: 'bg-transparent text-foreground hover:bg-muted/80',
+  outline: 'border border-slate-300 bg-white text-slate-900 hover:border-slate-400 hover:bg-slate-50',
 };
 
 const sizeStyles = {

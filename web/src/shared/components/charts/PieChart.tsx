@@ -7,15 +7,15 @@
   Legend,
 } from 'recharts';
 
-interface PieChartProps {
-  data: Array<{ name: string; value: number }>;
+interface PieChartProps<T extends object = { name: string; value: number }> {
+  data: T[];
   title?: string;
   colors?: string[];
 }
 
 const defaultColors = ['#2563eb', '#14b8a6', '#f97316', '#e11d48', '#8b5cf6'];
 
-export default function PieChart({ data, title, colors = defaultColors }: PieChartProps) {
+export default function PieChart<T extends object>({ data, title, colors = defaultColors }: PieChartProps<T>) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
       {title ? <h3 className="mb-4 text-lg font-semibold text-slate-900">{title}</h3> : null}
