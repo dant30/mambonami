@@ -1,4 +1,5 @@
-﻿import 'package:geolocator/geolocator.dart';
+﻿// mobile/lib/services/location_service.dart
+import 'package:geolocator/geolocator.dart';
 
 class LocationService {
   LocationService._();

@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hive/hive.dart';               // ✅ NEW
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // ✅ for LatLng (optional but ensures type)
 
 import 'core/api_client.dart';
 import 'core/secure_storage.dart';
 import 'core/notification_service.dart';
 import 'core/deep_link_auth_listener.dart';
+import 'core/storage/hive_geocode_cache.dart'; // ✅ NEW – your cache class
 import 'config/routes.dart';
 import 'config/theme.dart';
 import 'data/local/cache_manager.dart';
@@ -32,6 +35,10 @@ final getIt = GetIt.instance;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ✅ 1. Initialize Hive for local caching
+  await Hive.initFlutter();
+
+  // Firebase (optional)
   bool firebaseAvailable = false;
   try {
     await Firebase.initializeApp();
@@ -61,7 +68,14 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   }
   await CacheManager.instance.init();
   await DatabaseHelper.instance.init();
-  
+
+  // ✅ 2. Initialize and register GeocodeCache
+  if (!getIt.isRegistered<GeocodeCache>()) {
+    final cache = GeocodeCache();
+    await cache.init();
+    getIt.registerSingleton<GeocodeCache>(cache);
+  }
+
   // Repositories
   if (!getIt.isRegistered<AuthRepository>()) {
     getIt.registerSingleton<AuthRepository>(AuthRepository());
