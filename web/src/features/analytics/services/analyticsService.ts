@@ -1,5 +1,6 @@
 ﻿import { apiClient } from '../../../core/api/client';
 import { ANALYTICS_ENDPOINTS } from '../../../core/api/endpoints';
+import axios from 'axios';
 import type {
   AnalyticsDashboardStats,
   AnalyticsPaymentsMetrics,
@@ -161,7 +162,7 @@ export const getAnalyticsDashboardStats = async (): Promise<AnalyticsDashboardSt
 
         return analyticsDashboardCache;
       } catch (error) {
-        const status = error?.response?.status ?? error?.status;
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined;
         if (status === 429) {
           analyticsDashboardCooldownUntil = Date.now() + ANALYTICS_DASHBOARD_COOLDOWN_MS;
         }

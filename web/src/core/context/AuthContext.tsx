@@ -71,12 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (profileRefreshPromise) {
-      return profileRefreshPromise;
+      await profileRefreshPromise;
+      return;
     }
 
     if (Date.now() < profileRefreshCooldownUntil) {
       setLoading(false);
-      return null;
+      return;
     }
 
     setLoading(true);
@@ -106,7 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       });
 
-    return profileRefreshPromise;
+    await profileRefreshPromise;
+    return;
   }, []);
 
   useEffect(() => {
