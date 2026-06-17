@@ -22,6 +22,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
+  String? _stringValue(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    if (value is String && value.isNotEmpty) {
+      return value;
+    }
+    return null;
+  }
+
   Future<void> _onRegisterInit(
       RegisterInitEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -37,7 +45,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       RegisterVerifyEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      print('AuthBloc: Starting registration verification for phone ${event.phone}');
+      // Registration data is validated after the repository call so we can
+      // fail fast with a clear error if the backend omits required fields.
       final user = await authRepository.registerVerify(
         phone: event.phone,
         otp: event.otp,
@@ -50,18 +59,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         licensePlate: event.licensePlate,
       );
       
-      // Validate user data
-      if (user['role'] == null || user['phone'] == null) {
+      final role = _stringValue(user, 'role');
+      final phone = _stringValue(user, 'phone');
+      final username = _stringValue(user, 'username') ?? event.username;
+
+      if (role == null || phone == null) {
         throw Exception('Invalid user data from registration: missing role or phone');
       }
       
-      print('AuthBloc: Registration successful for role ${user['role']}');
-      emit(AuthAuthenticated(
-          user['role'] as String, 
-          event.phone,
-          user['username'] as String? ?? event.username));
+      emit(AuthAuthenticated(role, phone, username));
     } catch (e) {
-      print('AuthBloc: Registration verification failed: $e');
       emit(AuthError(e.toString()));
     }
   }
@@ -69,21 +76,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      print('AuthBloc: Starting login for phone ${event.phone}');
       final user = await authRepository.login(event.phone, event.password);
       
-      // Validate user data
-      if (user['role'] == null || user['phone'] == null) {
+      final role = _stringValue(user, 'role');
+      final phone = _stringValue(user, 'phone') ?? event.phone;
+      final username = _stringValue(user, 'username');
+
+      if (role == null || phone == null) {
         throw Exception('Invalid user data: missing role or phone');
       }
       
-      print('AuthBloc: Login successful for role ${user['role']}');
-      emit(AuthAuthenticated(
-          user['role'] as String, 
-          event.phone, 
-          user['username'] as String?));
+      emit(AuthAuthenticated(role, phone, username));
     } catch (e) {
-      print('AuthBloc: Login failed with error: $e');
       emit(AuthError(e.toString()));
     }
   }
@@ -122,11 +126,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Verify token by fetching profile from backend. If this succeeds,
       // token is valid; otherwise handle as unauthenticated.
       final profile = await authRepository.getProfile();
-      final role =
-          profile['role'] as String? ?? await secureStorage.getUserRole();
-      final phone =
-          profile['phone'] as String? ?? await secureStorage.getUserPhone();
-      final username = profile['username'] as String?;
+      final role = _stringValue(profile, 'role') ?? await secureStorage.getUserRole();
+      final phone = _stringValue(profile, 'phone') ?? await secureStorage.getUserPhone();
+      final username = _stringValue(profile, 'username');
       if (role != null && phone != null) {
         // Ensure secure storage has the latest values
         await secureStorage.saveUserRole(role);

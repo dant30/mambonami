@@ -9,6 +9,8 @@ class CustomCard extends StatelessWidget {
   final double? elevation;
   final Color? color;
   final BorderSide? border;
+  final double borderRadius;
+  final Clip clipBehavior;
 
   const CustomCard({
     super.key,
@@ -19,6 +21,8 @@ class CustomCard extends StatelessWidget {
     this.elevation = 0,
     this.color,
     this.border,
+    this.borderRadius = 12,
+    this.clipBehavior = Clip.antiAlias,
   });
 
   @override
@@ -28,7 +32,7 @@ class CustomCard extends StatelessWidget {
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color ?? theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(borderRadius),
         border: Border.fromBorderSide(
           border ?? BorderSide(color: theme.colorScheme.outline),
         ),
@@ -36,10 +40,11 @@ class CustomCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(borderRadius),
+        clipBehavior: clipBehavior,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(borderRadius),
           child: Padding(
             padding: padding ?? const EdgeInsets.all(16),
             child: child,

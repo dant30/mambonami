@@ -2,17 +2,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
-import 'package:go_router/go_router.dart';
 import '../core/constants.dart';
 import '../core/deep_link_handler.dart';
 import '../blocs/notification/notification_bloc.dart';
 import '../data/models/notification.dart';
 
 final getIt = GetIt.instance;
-
-/// Global variable to store pending deep link for app startup
-/// Used when deep link arrives before router is fully initialized
-DeepLinkInfo? _pendingDeepLink;
 
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -130,16 +125,23 @@ class NotificationService {
   /// Stores pending deep link if router is not available
   void _navigateToDeepLink(String routePath) {
     try {
-      // Try to get router from context
-      // If not available, store for later navigation
-      _pendingDeepLink = DeepLinkInfo(
-        type: DeepLinkType.unknown,
-      );
-      debugPrint('[NotificationService] Stored pending deep link: $routePath');
-      // The router will check for pending deep link on app startup
+      debugPrint('[NotificationService] Received deep link route: $routePath');
+      // Router integration happens through the app's startup listeners.
     } catch (e) {
       debugPrint('[NotificationService] Failed to navigate: $e');
     }
+  }
+
+  Map<String, String> _stringMetadata(Map<String, dynamic> data) {
+    return data.map((key, value) => MapEntry(key, value?.toString() ?? ''));
+  }
+
+  String _notificationIdFromData(Map<String, dynamic> data) {
+    final uuid = data['uuid'];
+    if (uuid is String && uuid.isNotEmpty) {
+      return uuid;
+    }
+    return DateTime.now().microsecondsSinceEpoch.toString();
   }
 
   NotificationModel? _fromRemoteMessage(RemoteMessage message) {
@@ -147,12 +149,12 @@ class NotificationService {
     final notification = message.notification;
     if (notification == null) return null;
     return NotificationModel(
-      id: DateTime.now().millisecondsSinceEpoch, // temporary ID (real one comes from backend)
-      uuid: data['uuid'] ?? '',
+      id: DateTime.now().millisecondsSinceEpoch,
+      uuid: _notificationIdFromData(data),
       channel: 'push',
       title: notification.title ?? '',
       body: notification.body ?? '',
-      metadata: data,
+      metadata: _stringMetadata(data),
       status: 'sent',
       createdAt: DateTime.now(),
       readAt: null,

@@ -40,39 +40,23 @@ class Trip {
 
   factory Trip.fromJson(Map<String, dynamic> json) {
     return Trip(
-      id: json['id'],
-      uuid: json['uuid'],
-      order: json['order'],
-      agreedFee: json['agreed_fee'] != null
-          ? double.tryParse(json['agreed_fee'].toString())
-          : null,
-      waitingSurcharge: json['waiting_surcharge'] != null
-          ? double.tryParse(json['waiting_surcharge'].toString())
-          : null,
-      provider: json['provider'],
-      status: json['status'],
-      pickupLat: json['pickup_lat'] != null
-          ? double.parse(json['pickup_lat'].toString())
-          : null,
-      pickupLng: json['pickup_lng'] != null
-          ? double.parse(json['pickup_lng'].toString())
-          : null,
-      deliveryLat: json['delivery_lat'] != null
-          ? double.parse(json['delivery_lat'].toString())
-          : null,
-      deliveryLng: json['delivery_lng'] != null
-          ? double.parse(json['delivery_lng'].toString())
-          : null,
-      pickupPhoto: json['pickup_photo'],
-      deliveryPhoto: json['delivery_photo'],
-      pickedUpAt: json['picked_up_at'] != null
-          ? DateTime.parse(json['picked_up_at'])
-          : null,
-      deliveredAt: json['delivered_at'] != null
-          ? DateTime.parse(json['delivered_at'])
-          : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      uuid: json['uuid']?.toString() ?? '',
+      order: json['order'] is int ? json['order'] : int.tryParse(json['order']?.toString() ?? '') ?? 0,
+      agreedFee: json['agreed_fee'] != null ? double.tryParse(json['agreed_fee'].toString()) : null,
+      waitingSurcharge: json['waiting_surcharge'] != null ? double.tryParse(json['waiting_surcharge'].toString()) : null,
+      provider: json['provider'] is int ? json['provider'] : int.tryParse(json['provider']?.toString() ?? ''),
+      status: json['status']?.toString() ?? 'pending',
+      pickupLat: json['pickup_lat'] != null ? double.tryParse(json['pickup_lat'].toString()) : null,
+      pickupLng: json['pickup_lng'] != null ? double.tryParse(json['pickup_lng'].toString()) : null,
+      deliveryLat: json['delivery_lat'] != null ? double.tryParse(json['delivery_lat'].toString()) : null,
+      deliveryLng: json['delivery_lng'] != null ? double.tryParse(json['delivery_lng'].toString()) : null,
+      pickupPhoto: json['pickup_photo']?.toString(),
+      deliveryPhoto: json['delivery_photo']?.toString(),
+      pickedUpAt: json['picked_up_at'] != null ? DateTime.tryParse(json['picked_up_at'].toString()) : null,
+      deliveredAt: json['delivered_at'] != null ? DateTime.tryParse(json['delivered_at'].toString()) : null,
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

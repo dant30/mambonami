@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../blocs/notification/notification_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../config/route_paths.dart';
+import '../../blocs/notification/notification_bloc.dart';
 
 class NotificationBadge extends StatefulWidget {
   final double size;
-  const NotificationBadge({super.key, this.size = 24});
+  final VoidCallback? onTap;
+  const NotificationBadge({super.key, this.size = 24, this.onTap});
 
   @override
   State<NotificationBadge> createState() => _NotificationBadgeState();
@@ -31,6 +33,14 @@ class _NotificationBadgeState extends State<NotificationBadge> with SingleTicker
   }
 
   @override
+  void didUpdateWidget(covariant NotificationBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.size != widget.size) {
+      _lastCount = 0;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<NotificationBloc, NotificationState>(
       listener: (context, state) {
@@ -47,31 +57,47 @@ class _NotificationBadgeState extends State<NotificationBadge> with SingleTicker
         int unread = 0;
         if (state is NotificationLoaded) unread = state.unreadCount;
 
-        return GestureDetector(
-          onTap: () => context.go(RoutePaths.notifications),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: widget.size,
-                height: widget.size,
-                child: const Icon(Icons.notifications_outlined),
-              ),
-              Positioned(
-                right: -2,
-                top: -2,
-                child: ScaleTransition(
-                  scale: _scale,
-                  child: unread > 0
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: Theme.of(context).colorScheme.secondary, borderRadius: BorderRadius.circular(12)),
-                          child: Text(unread > 99 ? '99+' : unread.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSecondary, fontSize: 11, fontWeight: FontWeight.w700)),
-                        )
-                      : const SizedBox.shrink(),
+        return Semantics(
+          button: true,
+          label: 'Notifications',
+          child: InkResponse(
+            onTap: widget.onTap ?? () => context.go(RoutePaths.notifications),
+            radius: widget.size,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                SizedBox(
+                  width: widget.size,
+                  height: widget.size,
+                  child: const Icon(Icons.notifications_outlined),
                 ),
-              ),
-            ],
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: ScaleTransition(
+                    scale: _scale,
+                    child: unread > 0
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.secondary,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              unread > 99 ? '99+' : unread.toString(),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSecondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }),

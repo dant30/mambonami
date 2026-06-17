@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/dispute_repository.dart';
-import '../../data/dtos/dispute_dto.dart';
 import '../../data/models/dispute.dart';
 
 part 'dispute_event.dart';

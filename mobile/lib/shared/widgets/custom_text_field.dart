@@ -19,6 +19,8 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String>? onFieldSubmitted;
   final TextCapitalization textCapitalization;
   final String? helperText;
+  final EdgeInsetsGeometry? contentPadding;
+  final TextAlignVertical? textAlignVertical;
 
   const CustomTextField({
     super.key,
@@ -40,6 +42,8 @@ class CustomTextField extends StatelessWidget {
     this.onFieldSubmitted,
     this.textCapitalization = TextCapitalization.none,
     this.helperText,
+    this.contentPadding,
+    this.textAlignVertical,
   }) : assert(label != null || labelText != null, 'Provide label or labelText');
 
   @override
@@ -51,6 +55,7 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       textCapitalization: textCapitalization,
+      textAlignVertical: textAlignVertical,
       validator: validator,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
@@ -62,6 +67,10 @@ class CustomTextField extends StatelessWidget {
         hintText: hintText,
         helperText: helperText,
         errorText: errorText,
+        contentPadding: contentPadding,
+        alignLabelWithHint: maxLines != 1,
+        isDense: true,
+        errorMaxLines: 3,
         prefixIcon: prefixIcon == null
             ? null
             : IconTheme(

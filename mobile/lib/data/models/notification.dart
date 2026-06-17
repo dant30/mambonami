@@ -23,15 +23,19 @@
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      uuid: json['uuid'],
-      channel: json['channel'],
-      title: json['title'],
-      body: json['body'],
-      metadata: json['metadata'] ?? {},
-      status: json['status'],
-      createdAt: DateTime.parse(json['created_at']),
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at']) : null,
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      uuid: json['uuid']?.toString() ?? '',
+      channel: json['channel']?.toString() ?? 'push',
+      title: json['title']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? json['metadata'] as Map<String, dynamic>
+          : json['metadata'] is Map
+              ? Map<String, dynamic>.from(json['metadata'] as Map)
+              : <String, dynamic>{},
+      status: json['status']?.toString() ?? 'pending',
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      readAt: json['read_at'] != null ? DateTime.tryParse(json['read_at'].toString()) : null,
     );
   }
 

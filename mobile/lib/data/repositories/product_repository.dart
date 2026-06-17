@@ -7,6 +7,7 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../local/database_helper.dart';
 import '../models/product.dart';
+import 'response_utils.dart';
 
 final getIt = GetIt.instance;
 
@@ -17,7 +18,7 @@ class ProductRepository {
   /// Attempt to load products from local DB cache
   Future<List<Product>> getCachedProducts({String? categoryCode, int? farmerId}) async {
     final records = await _databaseHelper.getRecords(kProductTable);
-    return records.map((r) => Product.fromJson(r)).toList();
+    return records.map((record) => Product.fromJson(normalizeMap(record))).toList();
   }
 
   Future<List<Product>> getProducts({String? categoryCode, int? farmerId}) async {
@@ -28,8 +29,7 @@ class ProductRepository {
 
       final response = await _apiClient.dio.get('/api/products/', queryParameters: queryParams);
       if (response.statusCode == 200) {
-        final List<dynamic> data = _extractList(response.data);
-        final products = data.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+        final products = normalizeList<Map<String, dynamic>>(response.data).map(Product.fromJson).toList();
 
         // persist each product into local DB for offline access with TTL
         for (final p in products) {
@@ -67,12 +67,12 @@ class ProductRepository {
 
       // Try cached
       final record = await _databaseHelper.getRecord(kProductTable, uuid);
-      if (record != null) return Product.fromJson(record);
+      if (record != null) return Product.fromJson(normalizeMap(record));
 
       throw Exception('Product not found');
     } catch (e) {
       final record = await _databaseHelper.getRecord(kProductTable, uuid);
-      if (record != null) return Product.fromJson(record);
+      if (record != null) return Product.fromJson(normalizeMap(record));
       throw _handleError(e);
     }
   }
@@ -81,8 +81,7 @@ class ProductRepository {
     try {
       final response = await _apiClient.dio.get('/api/products/categories/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = _extractList(response.data);
-        return data.map((json) => ProductCategory.fromJson(json as Map<String, dynamic>)).toList();
+        return normalizeList<Map<String, dynamic>>(response.data).map(ProductCategory.fromJson).toList();
       }
       throw Exception('Failed to fetch categories');
     } catch (e) {
@@ -95,7 +94,7 @@ class ProductRepository {
       final payload = _buildFormData(data);
       final response = await _apiClient.dio.post('/api/products/farmer/products/', data: payload);
       if (response.statusCode == 201) {
-        final product = Product.fromJson(response.data);
+        final product = Product.fromJson(normalizeMap(response.data));
         try {
           await _databaseHelper.insertOrUpdateRecord(kProductTable, product.uuid, product.toJson(), ttl: kProductCacheTTL);
         } catch (_) {}
@@ -112,7 +111,7 @@ class ProductRepository {
       final payload = _buildFormData(data);
       final response = await _apiClient.dio.patch('/api/products/farmer/products/$uuid/', data: payload);
       if (response.statusCode == 200) {
-        final product = Product.fromJson(response.data);
+        final product = Product.fromJson(normalizeMap(response.data));
         try {
           await _databaseHelper.insertOrUpdateRecord(kProductTable, uuid, product.toJson(), ttl: kProductCacheTTL);
         } catch (_) {}
@@ -133,24 +132,6 @@ class ProductRepository {
     } catch (e) {
       throw _handleError(e);
     }
-  }
-
-  List<dynamic> _extractList(dynamic responseData) {
-    if (responseData is List) {
-      return responseData;
-    }
-    if (responseData is Map<String, dynamic>) {
-      final candidates = ['results', 'data', 'products', 'items', 'orders'];
-      for (final key in candidates) {
-        final value = responseData[key];
-        if (value is List) return value;
-        if (value is Map<String, dynamic>) {
-          final nested = _extractList(value);
-          if (nested.isNotEmpty) return nested;
-        }
-      }
-    }
-    return [];
   }
 
   FormData _buildFormData(Map<String, dynamic> data) {
@@ -178,8 +159,8 @@ class ProductRepository {
 
   String _handleError(dynamic error) {
     if (error is DioException) {
-      final data = error.response?.data;
-      if (data != null && data['detail'] != null) return data['detail'];
+      final data = normalizeMap(error.response?.data);
+      if (data['detail'] != null) return stringValue(data['detail']);
       return 'Network error: ${error.message}';
     }
     return error.toString();

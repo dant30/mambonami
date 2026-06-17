@@ -11,12 +11,12 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as int?,
-      uuid: json['uuid'] as String?,
-      phone: json['phone'] as String?,
-      username: json['username'] as String?,
-      email: json['email'] as String?,
-      role: json['role'] as String?,
+      id: json['id'] is int ? json['id'] as int : int.tryParse(json['id']?.toString() ?? ''),
+      uuid: json['uuid']?.toString(),
+      phone: json['phone']?.toString(),
+      username: json['username']?.toString(),
+      email: json['email']?.toString(),
+      role: json['role']?.toString(),
     );
   }
 

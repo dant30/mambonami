@@ -182,14 +182,16 @@ double parseDouble(dynamic value) {
 
 DateTime parseDate(dynamic value) {
   if (value is DateTime) return value;
-  if (value is String) return DateTime.parse(value);
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value) ?? DateTime.now();
+  }
   if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
-  throw FormatException('Unable to parse date: $value');
+  return DateTime.now();
 }
 
 List<SubOrder> parseSubOrders(dynamic value) {
   if (value is List) {
-    return value.map((item) => SubOrder.fromJson(item as Map<String, dynamic>)).toList();
+    return value.whereType<Map<String, dynamic>>().map(SubOrder.fromJson).toList();
   }
   if (value is Map<String, dynamic>) {
     final nested = value['results'] ?? value['data'] ?? [];
@@ -200,7 +202,7 @@ List<SubOrder> parseSubOrders(dynamic value) {
 
 List<OrderItem> parseOrderItems(dynamic value) {
   if (value is List) {
-    return value.map((item) => OrderItem.fromJson(item as Map<String, dynamic>)).toList();
+    return value.whereType<Map<String, dynamic>>().map(OrderItem.fromJson).toList();
   }
   if (value is Map<String, dynamic>) {
     final nested = value['results'] ?? value['data'] ?? [];

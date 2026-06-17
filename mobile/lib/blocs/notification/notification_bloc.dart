@@ -16,14 +16,40 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<NewPushNotificationEvent>(_onNewPush);
   }
 
+  NotificationModel _withReadState(NotificationModel notification) {
+    return NotificationModel(
+      id: notification.id,
+      uuid: notification.uuid,
+      channel: notification.channel,
+      title: notification.title,
+      body: notification.body,
+      metadata: notification.metadata,
+      status: 'read',
+      createdAt: notification.createdAt,
+      readAt: notification.readAt ?? DateTime.now(),
+    );
+  }
+
+  NotificationLoaded _buildLoadedState(
+    List<NotificationModel> notifications, {
+    required bool hasMore,
+    required String? nextPageUrl,
+  }) {
+    final unreadCount = notifications.where((notification) => !notification.isRead).length;
+    return NotificationLoaded(
+      notifications,
+      unreadCount,
+      hasMore: hasMore,
+      nextPageUrl: nextPageUrl,
+    );
+  }
+
   Future<void> _onFetch(FetchNotificationsEvent event, Emitter<NotificationState> emit) async {
     emit(NotificationLoading());
     try {
       final dto = await notificationRepository.getNotifications();
-      final unreadCount = dto.notifications.where((n) => !n.isRead).length;
-      emit(NotificationLoaded(
+      emit(_buildLoadedState(
         dto.notifications,
-        unreadCount,
         hasMore: dto.hasMore,
         nextPageUrl: dto.next,
       ));
@@ -39,26 +65,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final currentState = state;
     if (currentState is NotificationLoaded) {
       // Optimistic update: mark locally first
-      final updated = currentState.notifications.map((n) {
-        return n.id == event.notificationId
-            ? NotificationModel(
-                id: n.id,
-                uuid: n.uuid,
-                channel: n.channel,
-                title: n.title,
-                body: n.body,
-                metadata: n.metadata,
-                status: 'read',
-                createdAt: n.createdAt,
-                readAt: DateTime.now(),
-              )
-            : n;
-      }).toList();
+      final updated = currentState.notifications
+          .map((notification) => notification.id == event.notificationId
+              ? _withReadState(notification)
+              : notification)
+          .toList();
 
-      final newUnreadCount = updated.where((n) => !n.isRead).length;
-      emit(NotificationLoaded(
+      emit(_buildLoadedState(
         updated,
-        newUnreadCount,
         hasMore: currentState.hasMore,
         nextPageUrl: currentState.nextPageUrl,
       ));
@@ -68,12 +82,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         await notificationRepository.markAsRead([event.notificationId]);
       } catch (e) {
         // On error, revert optimistic update
-        emit(NotificationLoaded(
-          currentState.notifications,
-          currentState.unreadCount,
-          hasMore: currentState.hasMore,
-          nextPageUrl: currentState.nextPageUrl,
-        ));
+        emit(currentState);
         emit(NotificationError('Failed to mark as read: ${e.toString()}'));
       }
     }
@@ -90,24 +99,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       if (unreadIds.isNotEmpty) {
         // Optimistic: mark all as read locally
         final updated = currentState.notifications
-            .map((n) => n.isRead
-                ? n
-                : NotificationModel(
-                    id: n.id,
-                    uuid: n.uuid,
-                    channel: n.channel,
-                    title: n.title,
-                    body: n.body,
-                    metadata: n.metadata,
-                    status: 'read',
-                    createdAt: n.createdAt,
-                    readAt: DateTime.now(),
-                  ))
+            .map((notification) => notification.isRead ? notification : _withReadState(notification))
             .toList();
 
-        emit(NotificationLoaded(
+        emit(_buildLoadedState(
           updated,
-          0,
           hasMore: currentState.hasMore,
           nextPageUrl: currentState.nextPageUrl,
         ));
@@ -116,12 +112,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           await notificationRepository.markAsRead(unreadIds);
         } catch (e) {
           // Revert on error
-          emit(NotificationLoaded(
-            currentState.notifications,
-            currentState.unreadCount,
-            hasMore: currentState.hasMore,
-            nextPageUrl: currentState.nextPageUrl,
-          ));
+          emit(currentState);
           emit(NotificationError('Failed to mark all as read: ${e.toString()}'));
         }
       }
@@ -132,10 +123,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final currentState = state;
     if (currentState is NotificationLoaded) {
       final updatedList = [event.notification, ...currentState.notifications];
-      final unreadCount = updatedList.where((n) => !n.isRead).length;
-      emit(NotificationLoaded(
+      emit(_buildLoadedState(
         updatedList,
-        unreadCount,
         hasMore: currentState.hasMore,
         nextPageUrl: currentState.nextPageUrl,
       ));

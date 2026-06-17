@@ -27,7 +27,7 @@ class Avatar extends StatelessWidget {
   });
 
   String _getInitials() {
-    List<String> names = [];
+    final names = <String>[];
     if (firstName != null && firstName!.isNotEmpty) names.add(firstName![0].toUpperCase());
     if (secondName != null && secondName!.isNotEmpty) names.add(secondName![0].toUpperCase());
     if (lastName != null && lastName!.isNotEmpty) names.add(lastName![0].toUpperCase());
@@ -72,6 +72,9 @@ class Avatar extends StatelessWidget {
         color: _getBackgroundColor(context),
         shape: BoxShape.circle,
         image: decorationImage,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+        ),
       ),
       child: decorationImage == null
           ? Center(

@@ -20,6 +20,19 @@ class CustomImagePicker {
     return pickedFiles.map((f) => File(f.path)).toList();
   }
 
+  static Future<File?> pickImageWithCompression({ImageSource source = ImageSource.gallery}) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: source,
+      imageQuality: 82,
+      maxWidth: 1600,
+    );
+    if (pickedFile != null) {
+      return File(pickedFile.path);
+    }
+    return null;
+  }
+
   static Future<File?> showImageSourceSheet(BuildContext context) {
     final theme = Theme.of(context);
     return showModalBottomSheet<File?>(
@@ -27,7 +40,7 @@ class CustomImagePicker {
       showDragHandle: true,
       backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return SafeArea(
@@ -88,7 +101,7 @@ class _ImageSourceTile extends StatelessWidget {
       leading: Icon(icon, color: theme.colorScheme.primary),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
       tileColor: theme.colorScheme.primary.withValues(alpha: 0.08),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: onTap,
     );
   }

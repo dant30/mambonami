@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../models/trip.dart';
 import '../dtos/trip_dto.dart';
+import 'response_utils.dart';
 
 final getIt = GetIt.instance;
 
@@ -15,10 +16,7 @@ class TripRepository {
     try {
       final response =
           await _apiClient.dio.get('/api/logistics/orders/available/');
-      final List<dynamic> data = _extractList(response.data);
-      return data
-          .map((json) => Trip.fromJson(json as Map<String, dynamic>))
-          .toList();
+        return normalizeList<Map<String, dynamic>>(response.data).map(Trip.fromJson).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -28,7 +26,7 @@ class TripRepository {
     try {
       final response =
           await _apiClient.dio.post('/api/logistics/orders/$orderId/assign/');
-      return Trip.fromJson(response.data);
+      return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
     }
@@ -37,10 +35,7 @@ class TripRepository {
   Future<List<Trip>> getMyTrips() async {
     try {
       final response = await _apiClient.dio.get('/api/logistics/my-trips/');
-      final List<dynamic> data = _extractList(response.data);
-      return data
-          .map((json) => Trip.fromJson(json as Map<String, dynamic>))
-          .toList();
+        return normalizeList<Map<String, dynamic>>(response.data).map(Trip.fromJson).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -50,7 +45,7 @@ class TripRepository {
     try {
       final response =
           await _apiClient.dio.get('/api/logistics/my-trips/$uuid/');
-      return Trip.fromJson(response.data);
+      return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
     }
@@ -104,12 +99,12 @@ class TripRepository {
 
         final response = await _apiClient.dio
             .patch('/api/logistics/my-trips/$uuid/', data: form);
-        return Trip.fromJson(response.data);
+        return Trip.fromJson(normalizeMap(response.data));
       }
 
       final response = await _apiClient.dio
           .patch('/api/logistics/my-trips/$uuid/', data: data.toJson());
-      return Trip.fromJson(response.data);
+      return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
     }
@@ -119,7 +114,7 @@ class TripRepository {
     try {
       final response = await _apiClient.dio
           .post('/api/logistics/my-trips/$tripUuid/arrive/');
-      return TripArriveResponse.fromJson(response.data as Map<String, dynamic>);
+      return TripArriveResponse.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
     }
@@ -129,7 +124,7 @@ class TripRepository {
     try {
       final response = await _apiClient.dio
           .post('/api/logistics/my-trips/$tripUuid/generate-otp/');
-      return GenerateOtpResponse.fromJson(response.data);
+      return GenerateOtpResponse.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
     }
@@ -144,29 +139,11 @@ class TripRepository {
     }
   }
 
-  List<dynamic> _extractList(dynamic responseData) {
-    if (responseData is List) {
-      return responseData;
-    }
-    if (responseData is Map<String, dynamic>) {
-      final candidates = ['results', 'data', 'orders', 'items'];
-      for (final key in candidates) {
-        final value = responseData[key];
-        if (value is List) return value;
-        if (value is Map<String, dynamic>) {
-          final nested = _extractList(value);
-          if (nested.isNotEmpty) return nested;
-        }
-      }
-    }
-    return [];
-  }
-
   String _handleError(dynamic error) {
     if (error is DioException) {
-      final data = error.response?.data;
-      if (data != null && data['error'] != null) return data['error'];
-      if (data != null && data['detail'] != null) return data['detail'];
+      final data = normalizeMap(error.response?.data);
+      if (data['error'] != null) return stringValue(data['error']);
+      if (data['detail'] != null) return stringValue(data['detail']);
       return 'Network error: ${error.message}';
     }
     return error.toString();

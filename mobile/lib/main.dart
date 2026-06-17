@@ -47,30 +47,54 @@ void main() async {
 
 Future<void> setupDependencies(bool firebaseAvailable) async {
   // Core
-  getIt.registerSingleton<SecureStorage>(SecureStorage());
-  getIt.registerSingleton<ApiClient>(ApiClient());
-  getIt.registerSingleton<CacheManager>(CacheManager.instance);
-  getIt.registerSingleton<DatabaseHelper>(DatabaseHelper.instance);
+  if (!getIt.isRegistered<SecureStorage>()) {
+    getIt.registerSingleton<SecureStorage>(SecureStorage());
+  }
+  if (!getIt.isRegistered<ApiClient>()) {
+    getIt.registerSingleton<ApiClient>(ApiClient());
+  }
+  if (!getIt.isRegistered<CacheManager>()) {
+    getIt.registerSingleton<CacheManager>(CacheManager.instance);
+  }
+  if (!getIt.isRegistered<DatabaseHelper>()) {
+    getIt.registerSingleton<DatabaseHelper>(DatabaseHelper.instance);
+  }
   await CacheManager.instance.init();
   await DatabaseHelper.instance.init();
   
   // Repositories
-  getIt.registerSingleton<AuthRepository>(AuthRepository());
-  getIt.registerSingleton<CartRepository>(CartRepository());
+  if (!getIt.isRegistered<AuthRepository>()) {
+    getIt.registerSingleton<AuthRepository>(AuthRepository());
+  }
+  if (!getIt.isRegistered<CartRepository>()) {
+    getIt.registerSingleton<CartRepository>(CartRepository());
+  }
   await getIt<CartRepository>().init();
-  getIt.registerSingleton<ProductRepository>(ProductRepository());
-  getIt.registerSingleton<OrderRepository>(OrderRepository());
-  getIt.registerSingleton<TripRepository>(TripRepository());
-  getIt.registerSingleton<NotificationRepository>(NotificationRepository());
-  getIt.registerSingleton<DisputeRepository>(DisputeRepository());
+  if (!getIt.isRegistered<ProductRepository>()) {
+    getIt.registerSingleton<ProductRepository>(ProductRepository());
+  }
+  if (!getIt.isRegistered<OrderRepository>()) {
+    getIt.registerSingleton<OrderRepository>(OrderRepository());
+  }
+  if (!getIt.isRegistered<TripRepository>()) {
+    getIt.registerSingleton<TripRepository>(TripRepository());
+  }
+  if (!getIt.isRegistered<NotificationRepository>()) {
+    getIt.registerSingleton<NotificationRepository>(NotificationRepository());
+  }
+  if (!getIt.isRegistered<DisputeRepository>()) {
+    getIt.registerSingleton<DisputeRepository>(DisputeRepository());
+  }
 
   // BLoCs
-  getIt.registerLazySingleton<NotificationBloc>(() => NotificationBloc(
-    notificationRepository: getIt<NotificationRepository>(),
-  ));
+  if (!getIt.isRegistered<NotificationBloc>()) {
+    getIt.registerLazySingleton<NotificationBloc>(() => NotificationBloc(
+      notificationRepository: getIt<NotificationRepository>(),
+    ));
+  }
 
   // Initialize notification service when Firebase is available.
-  if (firebaseAvailable) {
+  if (firebaseAvailable && !getIt.isRegistered<NotificationService>()) {
     final notificationService = NotificationService();
     await notificationService.init();
     getIt.registerSingleton<NotificationService>(notificationService);

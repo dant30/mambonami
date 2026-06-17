@@ -9,13 +9,17 @@ class CustomSnackbar {
     SnackBarBehavior behavior = SnackBarBehavior.floating,
   }) {
     final theme = Theme.of(context);
+    final effectiveBackground = backgroundColor ?? theme.colorScheme.primary;
+    final foreground = ThemeData.estimateBrightnessForColor(effectiveBackground) == Brightness.dark
+        ? Colors.white
+        : Colors.white;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             Icon(
               Icons.eco_outlined,
-              color: theme.colorScheme.onPrimary,
+              color: foreground,
               size: 20,
             ),
             const SizedBox(width: 10),
@@ -23,14 +27,14 @@ class CustomSnackbar {
               child: Text(
                 message,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onPrimary,
+                  color: foreground,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: backgroundColor ?? theme.colorScheme.primary,
+        backgroundColor: effectiveBackground,
         duration: duration,
         behavior: behavior,
         elevation: 0,
@@ -41,17 +45,14 @@ class CustomSnackbar {
   }
 
   static void showSuccess(BuildContext context, String message) {
-    show(context, message,
-        backgroundColor: Theme.of(context).colorScheme.primary);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.primary);
   }
 
   static void showError(BuildContext context, String message) {
-    show(context, message,
-        backgroundColor: Theme.of(context).colorScheme.error);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.error);
   }
 
   static void showInfo(BuildContext context, String message) {
-    show(context, message,
-        backgroundColor: Theme.of(context).colorScheme.secondary);
+    show(context, message, backgroundColor: Theme.of(context).colorScheme.secondary);
   }
 }

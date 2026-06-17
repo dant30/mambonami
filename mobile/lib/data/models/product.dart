@@ -13,19 +13,11 @@ class ProductCategory {
   });
 
   factory ProductCategory.fromJson(Map<String, dynamic> json) {
-    bool parseBool(dynamic v) {
-      if (v is bool) return v;
-      if (v == null) return false;
-      if (v is num) return v != 0;
-      final s = v.toString().toLowerCase();
-      return s == 'true' || s == '1' || s == 'yes';
-    }
-
     return ProductCategory(
-      id: json['id'],
-      code: json['code'],
-      name: json['name'],
-      isActive: parseBool(json['is_active']),
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      code: json['code']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      isActive: _parseBool(json['is_active']),
     );
   }
 
@@ -95,65 +87,33 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    double? parseNullableDouble(dynamic v) {
-      if (v == null) return null;
-      try {
-        return double.parse(v.toString());
-      } catch (_) {
-        return null;
-      }
-    }
-
-    double parseDoubleDefault(dynamic v, double def) {
-      if (v == null) return def;
-      try {
-        return double.parse(v.toString());
-      } catch (_) {
-        return def;
-      }
-    }
-
     return Product(
-      id: json['id'],
-      uuid: json['uuid'],
-      farmerId: json['farmer'],
-      farmerPhone: json['farmer_phone'] ?? '',
-      farmerName: json['farmer_name'] ?? '',
-      category: ProductCategory.fromJson(json['category_detail']),
-      name: json['name'],
-      variety: json['variety'],
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      uuid: json['uuid']?.toString() ?? '',
+      farmerId: json['farmer'] is int ? json['farmer'] : int.tryParse(json['farmer']?.toString() ?? '') ?? 0,
+      farmerPhone: json['farmer_phone']?.toString() ?? '',
+      farmerName: json['farmer_name']?.toString() ?? '',
+      category: ProductCategory.fromJson(json['category_detail'] is Map<String, dynamic> ? json['category_detail'] as Map<String, dynamic> : const {}),
+      name: json['name']?.toString() ?? '',
+      variety: json['variety']?.toString(),
       sku: json['sku'] != null ? json['sku'].toString() : null,
-      pricePerUnit: double.parse(json['price_per_unit'].toString()),
-      availableQuantity: double.parse(json['available_quantity'].toString()),
-      reservedQuantity: parseDoubleDefault(json['reserved_quantity'], 0.0),
-      unit: json['unit'],
-      harvestDate: DateTime.parse(json['harvest_date']),
-      shelfLifeDays: json['shelf_life_days'],
+      pricePerUnit: _parseDouble(json['price_per_unit']),
+      availableQuantity: _parseDouble(json['available_quantity']),
+      reservedQuantity: _parseDouble(json['reserved_quantity']),
+      unit: json['unit']?.toString() ?? '',
+      harvestDate: DateTime.tryParse(json['harvest_date']?.toString() ?? '') ?? DateTime.now(),
+      shelfLifeDays: json['shelf_life_days'] is int ? json['shelf_life_days'] : int.tryParse(json['shelf_life_days']?.toString() ?? '') ?? 0,
       expiryDate: json['expiry_date'] != null ? DateTime.tryParse(json['expiry_date'].toString()) : null,
-      isOrganic: (() {
-        final v = json['is_organic'];
-        if (v is bool) return v;
-        if (v == null) return false;
-        if (v is num) return v != 0;
-        final s = v.toString().toLowerCase();
-        return s == 'true' || s == '1' || s == 'yes';
-      })(),
-      remainingShelfLife: json['remaining_shelf_life'],
-      isActive: (() {
-        final v = json['is_active'];
-        if (v is bool) return v;
-        if (v == null) return false;
-        if (v is num) return v != 0;
-        final s = v.toString().toLowerCase();
-        return s == 'true' || s == '1' || s == 'yes';
-      })(),
-      imageUrl: json['image'],
-      description: json['description'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      pickupLat: parseNullableDouble(json['pickup_lat']),
-      pickupLng: parseNullableDouble(json['pickup_lng']),
-      weightPerUnit: parseDoubleDefault(json['weight_per_unit'], 0.0),
+      isOrganic: _parseBool(json['is_organic']),
+      remainingShelfLife: json['remaining_shelf_life'] is int ? json['remaining_shelf_life'] : int.tryParse(json['remaining_shelf_life']?.toString() ?? '') ?? 0,
+      isActive: _parseBool(json['is_active']),
+      imageUrl: json['image']?.toString(),
+      description: json['description']?.toString(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      pickupLat: _parseNullableDouble(json['pickup_lat']),
+      pickupLng: _parseNullableDouble(json['pickup_lng']),
+      weightPerUnit: _parseDouble(json['weight_per_unit']),
     );
   }
 
@@ -187,4 +147,23 @@ class Product {
   };
 
   String get displayName => variety != null && variety!.isNotEmpty ? '$name ($variety)' : name;
+}
+
+bool _parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value == null) return false;
+  if (value is num) return value != 0;
+  final normalized = value.toString().toLowerCase();
+  return normalized == 'true' || normalized == '1' || normalized == 'yes';
+}
+
+double _parseDouble(dynamic value, {double fallback = 0.0}) {
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  return double.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+double? _parseNullableDouble(dynamic value) {
+  if (value == null) return null;
+  return double.tryParse(value.toString());
 }

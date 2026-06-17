@@ -2,7 +2,6 @@
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../data/models/order.dart';
-import '../../data/dtos/order_dto.dart';
 
 part 'order_event.dart';
 part 'order_state.dart';

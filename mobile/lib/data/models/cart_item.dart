@@ -9,7 +9,12 @@ class CartItem extends Equatable {
   const CartItem({required this.product, required this.quantity});
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
-    final productJson = json['product'] as Map<String, dynamic>?;
+    final rawProduct = json['product'];
+    final productJson = rawProduct is Map<String, dynamic>
+      ? rawProduct
+      : rawProduct is Map
+        ? Map<String, dynamic>.from(rawProduct)
+        : null;
     final quantityValue = json['quantity'];
 
     if (productJson == null) {

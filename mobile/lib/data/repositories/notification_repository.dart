@@ -2,6 +2,7 @@
 import 'package:get_it/get_it.dart';
 import '../../core/api_client.dart';
 import '../dtos/notifications_dto.dart';
+import 'response_utils.dart';
 
 final getIt = GetIt.instance;
 
@@ -32,7 +33,9 @@ class NotificationRepository {
 
   String _handleError(dynamic error) {
     if (error is DioException) {
-      return error.response?.data['detail'] ?? error.message;
+      final data = normalizeMap(error.response?.data);
+      if (data['detail'] != null) return stringValue(data['detail']);
+      return error.message ?? 'Notification request failed';
     }
     return error.toString();
   }

@@ -27,17 +27,16 @@ class Dispute extends Equatable {
 
   factory Dispute.fromJson(Map<String, dynamic> json) {
     return Dispute(
-      uuid: json['uuid'] ?? '',
-      orderUuid: json['order_uuid'] ?? json['order'] ?? '',
-      subject: json['subject'] ?? '',
-      description: json['description'] ?? '',
-      status: json['status'] ?? 'open',
-      resolution: json['resolution'],
+      uuid: json['uuid']?.toString() ?? '',
+      orderUuid: json['order_uuid']?.toString() ?? json['order']?.toString() ?? '',
+      subject: json['subject']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'open',
+      resolution: json['resolution']?.toString(),
       attachmentUrls: _parseAttachments(json['attachments']),
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      resolvedAt:
-          json['resolved_at'] != null ? DateTime.tryParse(json['resolved_at']) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at']) : null,
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      resolvedAt: json['resolved_at'] != null ? DateTime.tryParse(json['resolved_at'].toString()) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
     );
   }
 

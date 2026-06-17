@@ -19,9 +19,12 @@ class AppErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -66,12 +69,17 @@ class AppErrorWidget extends StatelessWidget {
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: Text(buttonText ?? 'Retry'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onRetry,
+                child: Text(buttonText ?? 'Retry'),
+              ),
             ),
           ],
         ],
+          ),
+        ),
       ),
     );
   }

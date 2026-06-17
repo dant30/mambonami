@@ -6,6 +6,7 @@ import '../../core/constants.dart';
 import '../../core/secure_storage.dart';
 import '../local/cache_manager.dart';
 import '../local/database_helper.dart';
+import 'response_utils.dart';
 
 final getIt = GetIt.instance;
 
@@ -60,11 +61,17 @@ class AuthRepository {
 
       final response = await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
       if (response.statusCode == 201) {
-        final tokens = response.data['tokens'];
-        final user = response.data['user'] as Map<String, dynamic>;
-        await _secureStorage.saveTokens(tokens['access'], tokens['refresh']);
-        await _secureStorage.saveUserRole(role);
-        await _secureStorage.saveUserPhone(phone);
+        final responseData = normalizeMap(response.data);
+        final tokens = normalizeMap(responseData['tokens']);
+        final user = normalizeMap(responseData['user']);
+        final accessToken = stringValue(tokens['access']);
+        final refreshToken = stringValue(tokens['refresh']);
+        if (accessToken.isEmpty || refreshToken.isEmpty) {
+          throw Exception('Missing tokens in registration response');
+        }
+        await _secureStorage.saveTokens(accessToken, refreshToken);
+        await _secureStorage.saveUserRole(stringValue(user['role'], fallback: role));
+        await _secureStorage.saveUserPhone(stringValue(user['phone'], fallback: phone));
         await _cacheManager.saveJson(kCachedProfileKey, user);
         await _databaseHelper.insertOrUpdateRecord(kUserTable, phone, user);
         return user;
@@ -87,39 +94,42 @@ class AuthRepository {
       }
 
       // Validate response structure
-      if (response.data is! Map<String, dynamic>) {
+      final responseData = normalizeMap(response.data);
+      if (responseData.isEmpty) {
         throw Exception('Invalid response format from server');
       }
 
-      final responseData = response.data as Map<String, dynamic>;
-
       // Extract tokens
-      if (responseData['tokens'] == null || responseData['tokens'] is! Map) {
+      if (responseData['tokens'] == null) {
         throw Exception('Missing or invalid tokens in response');
       }
-      final tokens = responseData['tokens'] as Map<String, dynamic>;
+      final tokens = normalizeMap(responseData['tokens']);
+      final accessToken = stringValue(tokens['access']);
+      final refreshToken = stringValue(tokens['refresh']);
 
-      if (tokens['access'] == null || tokens['refresh'] == null) {
+      if (accessToken.isEmpty || refreshToken.isEmpty) {
         throw Exception('Missing access or refresh token');
       }
 
       // Extract user data
-      if (responseData['user'] == null || responseData['user'] is! Map) {
+      if (responseData['user'] == null) {
         throw Exception('Missing or invalid user data in response');
       }
-      final user = responseData['user'] as Map<String, dynamic>;
+      final user = normalizeMap(responseData['user']);
 
       // Validate required user fields
-      if (user['role'] == null || user['phone'] == null) {
+      final userRole = stringValue(user['role']);
+      final userPhone = stringValue(user['phone']);
+      if (userRole.isEmpty || userPhone.isEmpty) {
         throw Exception('Missing required user fields (role or phone)');
       }
 
       // Save tokens and user info to secure storage
-      await _secureStorage.saveTokens(tokens['access'] as String, tokens['refresh'] as String);
-      await _secureStorage.saveUserRole(user['role'] as String);
-      await _secureStorage.saveUserPhone(user['phone'] as String);
+      await _secureStorage.saveTokens(accessToken, refreshToken);
+      await _secureStorage.saveUserRole(userRole);
+      await _secureStorage.saveUserPhone(userPhone);
       await _cacheManager.saveJson(kCachedProfileKey, user);
-      await _databaseHelper.insertOrUpdateRecord(kUserTable, user['phone'] as String, user);
+      await _databaseHelper.insertOrUpdateRecord(kUserTable, userPhone, user);
 
       return user;
     } catch (e) {
@@ -130,14 +140,16 @@ class AuthRepository {
   Future<Map<String, dynamic>> getProfile() async {
     try {
       final response = await _apiClient.dio.get(kProfileEndpoint);
-      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-        final profile = response.data as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        final profile = normalizeMap(response.data);
+        if (profile.isNotEmpty) {
         await _cacheManager.saveJson(kCachedProfileKey, profile);
-        final userId = profile['phone'] as String?;
-        if (userId != null) {
+        final userId = stringValue(profile['phone']);
+        if (userId.isNotEmpty) {
           await _databaseHelper.insertOrUpdateRecord(kUserTable, userId, profile);
         }
         return profile;
+        }
       }
 
       final cached = await getCachedProfile();
@@ -192,7 +204,7 @@ class AuthRepository {
   String _handleError(dynamic error) {
     if (error is DioException) {
       final statusCode = error.response?.statusCode;
-      final data = error.response?.data;
+      final data = normalizeMap(error.response?.data);
 
       // Log error details for debugging
       print('AuthRepository Error - Status: $statusCode, Type: ${error.type}');
@@ -203,11 +215,11 @@ class AuthRepository {
       // Handle specific HTTP status codes
       switch (statusCode) {
         case 400:
-          return data?['detail'] ?? 'Invalid phone or password format';
+          return stringValue(data['detail'], fallback: 'Invalid phone or password format');
         case 401:
-          return data?['detail'] ?? 'Invalid phone number or password';
+          return stringValue(data['detail'], fallback: 'Invalid phone number or password');
         case 409:
-          return data?['detail'] ?? 'User already exists';
+          return stringValue(data['detail'], fallback: 'User already exists');
         case 429:
           return 'Too many login attempts. Please try again later.';
         case 500:
@@ -215,12 +227,12 @@ class AuthRepository {
         case 503:
           return 'Server error. Please try again later.';
         default:
-          if (data != null) {
-            if (data is Map && data['detail'] != null) {
-              return data['detail'];
+          if (data.isNotEmpty) {
+            if (data['detail'] != null) {
+              return stringValue(data['detail']);
             }
-            if (data is Map && data['error'] != null) {
-              return data['error'];
+            if (data['error'] != null) {
+              return stringValue(data['error']);
             }
           }
           return 'Network error: ${error.message}';
