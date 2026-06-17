@@ -8,9 +8,9 @@ import Footer from './Footer';
 export default function MainLayout() {
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex h-screen w-full">
+      <div className="flex min-h-svh w-full overflow-hidden bg-background">
         <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col overflow-hidden">
+        <SidebarInset className="flex flex-1 flex-col overflow-hidden pt-0">
           <Header />
           <div className="flex flex-1 flex-col overflow-auto">
             <main className="flex-1 p-6 xl:px-8">

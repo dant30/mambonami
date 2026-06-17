@@ -75,7 +75,7 @@ export default function Header() {
     : user?.phone?.slice(-2).toUpperCase() || '?';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-200 bg-emerald-50/95 px-6 py-4 shadow-sm shadow-emerald-200/30 backdrop-blur-sm transition-colors duration-200 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
+    <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-3 shadow-sm shadow-emerald-200/30 backdrop-blur-sm transition-colors duration-200 sm:px-6 sm:py-4 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
       <div className="flex items-center justify-between gap-6">
         <div className="flex-1">
           <input
@@ -83,7 +83,7 @@ export default function Header() {
             placeholder="Search orders, products, transports..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-2xl px-4 py-3 rounded-lg border border-emerald-300 bg-emerald-50 text-sm text-slate-900 placeholder:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+            className="w-full max-w-3xl rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-slate-900 placeholder:text-emerald-600 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
 

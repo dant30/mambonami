@@ -13,6 +13,11 @@
     scroll-behavior: smooth;
   }
 
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   * {
     border-color: var(--color-border);
   }
