@@ -74,11 +74,6 @@ export default function Header() {
     ? user.username.split(' ').map((n) => n[0]).join('').toUpperCase()
     : user?.phone?.slice(-2).toUpperCase() || '?';
 
-  // Temporary notification handler (replace with actual notification drawer)
-  const handleNotifications = () => {
-    alert('Notifications panel coming soon');
-  };
-
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-200 bg-emerald-50/95 px-6 py-4 shadow-sm shadow-emerald-200/30 backdrop-blur-sm transition-colors duration-200 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
       <div className="flex items-center justify-between gap-6">
@@ -94,14 +89,14 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           {/* Notifications button */}
-          <button
-            type="button"
-            onClick={handleNotifications}
+          <Link
+            to="/notifications"
+            aria-label="Notifications"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             title="Notifications"
           >
             <BellIcon className="h-5 w-5" />
-          </button>
+          </Link>
 
           {/* Theme toggle button */}
           <button

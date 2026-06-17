@@ -1,69 +1,48 @@
 
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../../shared/components/cards/Card';
 import BarChart from '../../../shared/components/charts/BarChart';
 import LineChart from '../../../shared/components/charts/LineChart';
 import PieChart from '../../../shared/components/charts/PieChart';
-import { getAdminStats } from '../../admin/services/adminService';
-import type { AdminStats } from '../../admin/types';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getAdminStats();
-        setStats(data as AdminStats);
-      } catch (err) {
-        setError('Failed to load dashboard stats');
-        console.error('Error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-  }, []);
+  const { stats, loading, error } = useAnalytics();
 
   const navigationItems = [
     {
-      title: 'Farmer Approvals',
-      description: 'Review and approve pending farmers',
-      count: stats?.pending_farmer_approvals,
+      title: 'Top Farmers',
+      description: 'Highest selling farmers over the selected window',
+      count: stats?.topFarmers.length,
       path: '/admin/farmers',
       variant: 'blue' as const,
     },
     {
-      title: 'Transport Providers',
-      description: 'Approve providers with deposits',
-      count: stats?.pending_transport_approvals,
+      title: 'Transport Signals',
+      description: 'Transport performance and delivery activity',
+      count: stats?.topTransportProviders.length,
       path: '/admin/transport-providers',
       variant: 'purple' as const,
     },
     {
       title: 'Disputes',
-      description: 'Resolve open disputes',
-      count: stats?.open_disputes,
+      description: 'Tracked dispute activity from daily metrics',
+      count: stats?.disputeStatusBreakdown.reduce((sum, item) => sum + item.value, 0),
       path: '/admin/disputes',
       variant: 'red' as const,
     },
     {
-      title: 'Payouts',
-      description: 'Manage farmer payouts',
-      count: stats?.pending_payouts,
+      title: 'Payments',
+      description: 'Collections and payout throughput',
+      count: stats?.payments?.collections.count,
       path: '/admin/payouts',
       variant: 'green' as const,
     },
     {
-      title: 'Audit Logs',
-      description: 'View admin actions',
+      title: 'Analytics Summary',
+      description: 'Daily metric rollups from the backend',
+      count: stats?.summary?.total_orders,
       path: '/admin/audit',
       variant: 'gray' as const,
     },
@@ -102,9 +81,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-slate-900">Admin Dashboard</h1>
+        <h1 className="text-4xl font-bold text-slate-900">Analytics Dashboard</h1>
         <p className="mt-2 text-lg text-slate-600">
-          Welcome to the Mambonami admin panel. Manage approvals, disputes, and platform operations.
+          Read-only analytics for the admin web app. Operational actions stay in the admin feature.
         </p>
       </div>
 
@@ -140,7 +119,7 @@ export default function Dashboard() {
             <LineChart
               title="Order volume trend"
               data={stats?.orderTrend || []}
-              dataKey="orders"
+              dataKey="value"
               labelKey="label"
               color="#0f766e"
             />
@@ -165,14 +144,52 @@ export default function Dashboard() {
             />
           </div>
 
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900">Summary</h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm text-slate-600">Date range</p>
+                  <p className="mt-1 font-medium text-slate-900">
+                    {stats?.summary?.start_date || '—'} to {stats?.summary?.end_date || '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Total sales</p>
+                  <p className="mt-1 font-medium text-slate-900">KES {String(stats?.summary?.total_sales ?? 0)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Collections</p>
+                  <p className="mt-1 font-medium text-slate-900">{String(stats?.payments?.collections.total_amount ?? 0)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Payouts</p>
+                  <p className="mt-1 font-medium text-slate-900">{String(stats?.payments?.payouts.total_amount ?? 0)}</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900">Top Performers</h3>
+              <div className="mt-4 space-y-3">
+                {stats?.topFarmers.slice(0, 5).map((farmer) => (
+                  <div key={farmer.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                    <span className="text-sm text-slate-700">{farmer.user_phone}</span>
+                    <span className="text-sm font-medium text-slate-900">KES {String(farmer.total_sales)}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
           {/* Info section */}
           <Card className="border-l-4 border-blue-500 bg-blue-50 p-6">
             <h3 className="font-semibold text-blue-900">System Information</h3>
             <ul className="mt-3 space-y-2 text-sm text-blue-800">
-              <li>• All actions are logged and auditable</li>
-              <li>• Approvals require proper verification before proceeding</li>
-              <li>• Dispute resolutions trigger automatic refunds or penalties</li>
-              <li>• Check the Audit Log for a complete history of all actions</li>
+              <li>• Dashboard data is sourced from the backend analytics module</li>
+              <li>• Approval and suspension actions remain in the admin feature set</li>
+              <li>• Daily metrics can be recomputed from backend analytics endpoints</li>
+              <li>• The web app is admin-facing; field users should use the mobile app</li>
             </ul>
           </Card>
         </>

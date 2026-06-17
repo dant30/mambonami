@@ -6,6 +6,11 @@ import { UserProfile } from '../api/types';
 import { getToken, setToken, setRefreshToken, clearAllTokens } from '../storage/secureStorage';
 import type { Role } from '@/lib/types';
 
+const PROFILE_REFRESH_COOLDOWN_MS = 30_000;
+
+let profileRefreshPromise: Promise<UserProfile | null> | null = null;
+let profileRefreshCooldownUntil = 0;
+
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
@@ -64,16 +69,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return;
     }
-    try {
-      const response = await apiClient.get<UserProfile>('/api/users/profile/');
-      setUser(response.data);
-    } catch (error) {
-      console.error('Failed to refresh profile:', error);
-      clearAllTokens();
-      setUser(null);
-    } finally {
-      setLoading(false);
+
+    if (profileRefreshPromise) {
+      return profileRefreshPromise;
     }
+
+    if (Date.now() < profileRefreshCooldownUntil) {
+      setLoading(false);
+      return null;
+    }
+
+    setLoading(true);
+
+    profileRefreshPromise = apiClient.get<UserProfile>('/api/users/profile/')
+      .then((response) => {
+        profileRefreshCooldownUntil = 0;
+        setUser(response.data);
+        return response.data;
+      })
+      .catch((error) => {
+        const status = error?.response?.status ?? error?.status;
+        console.error('Failed to refresh profile:', error);
+
+        if (status === 429) {
+          profileRefreshCooldownUntil = Date.now() + PROFILE_REFRESH_COOLDOWN_MS;
+          setLoading(false);
+          return null;
+        }
+
+        clearAllTokens();
+        setUser(null);
+        throw error;
+      })
+      .finally(() => {
+        profileRefreshPromise = null;
+        setLoading(false);
+      });
+
+    return profileRefreshPromise;
   }, []);
 
   useEffect(() => {

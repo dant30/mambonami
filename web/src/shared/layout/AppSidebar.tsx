@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   Package,
   Truck,
+  Bell,
   AlertTriangle,
   Wallet,
   User as UserIcon,
@@ -55,12 +56,13 @@ const mainNavItems: NavItem[] = [
   { title: 'Orders', url: '/orders', icon: ShoppingCart, roles: ['admin'] },
   { title: 'Products', url: '/products', icon: Package, roles: ['admin'] },
   { title: 'Transport Providers', url: '/transport', icon: Truck, roles: ['admin'] },
+  { title: 'Farmer Approval', url: '/farmers/approval', icon: Users, roles: ['admin'] },
+  { title: 'Notifications', url: '/notifications', icon: Bell, roles: ['admin'] },
   { title: 'Disputes', url: '/disputes', icon: AlertTriangle, roles: ['admin'] },
   { title: 'Payouts', url: '/payouts', icon: Wallet, roles: ['admin'] },
 ];
 
 const adminNavItems: NavItem[] = [
-  { title: 'Farmer Approval', url: '/admin/farmer-approval', icon: Users, roles: ['admin'] },
   { title: 'Order Overview', url: '/admin/orders', icon: BarChart3, roles: ['admin'] },
   { title: 'Audit Log', url: '/admin/audit-log', icon: FileText, roles: ['admin'] },
   { title: 'User Management', url: '/admin/users', icon: ShieldCheck, roles: ['admin'] },
