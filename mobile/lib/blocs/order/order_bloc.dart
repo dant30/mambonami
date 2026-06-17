@@ -1,5 +1,6 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../data/dtos/order_dto.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../data/models/order.dart';
 

@@ -1,7 +1,7 @@
 // mobile/lib/data/repositories/geocoding_repository.dart
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../core/storage/hive_geocode_cache.dart';
+import '../../core/storage/hive_geocode_cache.dart';
 
 class GeocodingRepository {
   final GeocodeCache _cache;

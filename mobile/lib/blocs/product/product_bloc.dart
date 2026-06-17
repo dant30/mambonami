@@ -1,5 +1,6 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../data/models/product.dart';
 import '../../data/repositories/product_repository.dart';
 
 part 'product_event.dart';

@@ -1,5 +1,6 @@
 // mobile/lib/core/storage/hive_geocode_cache.dart
 import 'package:hive/hive.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class GeocodeCache {
   static const String _boxName = 'geocode_cache';

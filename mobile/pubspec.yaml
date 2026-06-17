@@ -11,12 +11,12 @@ dependencies:
 
   # UI & Core
   cupertino_icons: ^1.0.6
-  google_fonts: ^6.2.1
+  google_fonts: ^6.3.0
   cached_network_image: ^3.3.0
   intl: ^0.18.1
-  image_picker: ^1.0.4
-  camera: ^0.10.5
-  permission_handler: ^11.0.1  # Already used for location permissions
+  image_picker: ^1.1.0
+  camera: ^0.11.0
+  permission_handler: ^12.0.0
 
   # Navigation & State Management
   go_router: ^12.0.0
@@ -30,9 +30,9 @@ dependencies:
   flutter_secure_storage: ^9.0.0
 
   # Geocoding & Maps (NEW)
-  google_maps_flutter: ^2.6.0
-  geocoding: ^2.1.1
-  geolocator: ^10.1.0       # Already present – keep it
+  google_maps_flutter: ^2.17.0
+  geocoding: ^4.0.0
+  geolocator: ^13.0.0
 
   # Local Caching (NEW)
   hive: ^2.2.3

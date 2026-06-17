@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hive/hive.dart';               // ✅ NEW
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // ✅ for LatLng (optional but ensures type)
 
 import 'core/api_client.dart';
