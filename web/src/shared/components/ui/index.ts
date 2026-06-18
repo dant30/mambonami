@@ -22,7 +22,6 @@ export { default as Dialog } from './Dialog';
 export { default as Drawer } from './Drawer';
 export { default as Accordion } from './Accordion';
 export { default as Toast } from './Toast';
-export * from './Sidebar';
 export * from './Sheet';
 export * from './Separator';
 export * from './AlertDialog';

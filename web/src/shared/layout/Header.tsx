@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../core/hooks/useAuth';
 import { useTheme } from '../../core/context/ThemeContext';
 
-// Bell icon (notifications)
 const BellIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -13,7 +12,6 @@ const BellIcon = ({ className = "h-5 w-5" }) => (
   </svg>
 );
 
-// Sun icon (light theme)
 const SunIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -29,7 +27,6 @@ const SunIcon = ({ className = "h-5 w-5" }) => (
   </svg>
 );
 
-// Moon icon (dark theme)
 const MoonIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -50,7 +47,6 @@ export default function Header() {
     navigate('/login');
   };
 
-  // Close dropdown on outside click or ESC
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -75,7 +71,7 @@ export default function Header() {
     : user?.phone?.slice(-2).toUpperCase() || '?';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-3 shadow-sm shadow-emerald-200/30 backdrop-blur-sm transition-colors duration-200 sm:px-6 sm:py-4 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
+    <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-3 shadow-sm backdrop-blur-sm transition-colors duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
       <div className="flex items-center justify-between gap-6">
         <div className="flex-1">
           <input
@@ -88,7 +84,6 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Notifications button */}
           <Link
             to="/notifications"
             aria-label="Notifications"
@@ -98,7 +93,6 @@ export default function Header() {
             <BellIcon className="h-5 w-5" />
           </Link>
 
-          {/* Theme toggle button */}
           <button
             type="button"
             onClick={toggleTheme}
@@ -108,7 +102,6 @@ export default function Header() {
             {theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
           </button>
 
-          {/* User dropdown with ref */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
