@@ -1,31 +1,19 @@
 // web/src/shared/layout/MainLayout.tsx
 import { Outlet } from 'react-router-dom';
+import { SidebarProvider } from '@/core/context';
 import { AppSidebar } from './AppSidebar';
 import Header from './Header';
 import Footer from './Footer';
-import { useIsMobile } from '@/core/hooks/useIsMobile';
-import { useState, useEffect } from 'react';
+import { useSidebar } from '@/core/context';
 import { cn } from '@/lib/utils';
 
-export default function MainLayout() {
-  const isMobile = useIsMobile();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sidebar-collapsed') === 'true';
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const handler = () => {
-      setCollapsed(localStorage.getItem('sidebar-collapsed') === 'true');
-    };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
-
-  // If desktop and not collapsed, add left margin equal to sidebar width
-  const sidebarMargin = !isMobile && !collapsed ? 'ml-64' : !isMobile && collapsed ? 'ml-16' : '';
+function LayoutContent() {
+  const { isCollapsed, isMobile } = useSidebar();
+  
+  // Desktop: apply margin based on collapsed state
+  const sidebarMargin = !isMobile
+    ? isCollapsed ? 'ml-16' : 'ml-64'
+    : '';
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -40,5 +28,13 @@ export default function MainLayout() {
         <Footer />
       </div>
     </div>
+  );
+}
+
+export default function MainLayout() {
+  return (
+    <SidebarProvider>
+      <LayoutContent />
+    </SidebarProvider>
   );
 }

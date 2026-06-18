@@ -1,3 +1,4 @@
+// web/src/shared/components/ui/Menubar.tsx
 import React from 'react';
 
 interface MenubarProps {

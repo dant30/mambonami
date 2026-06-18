@@ -1,5 +1,4 @@
 // web/src/shared/layout/AppSidebar.tsx
-import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -18,9 +17,9 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Menu,
 } from 'lucide-react';
 import { useAuth } from '@/core/context/AuthContext';
+import { useSidebar } from '@/core/context/SidebarContext';
 import type { Role } from '@/lib/types';
 import {
   AlertDialog,
@@ -33,11 +32,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/shared/components/ui/AlertDialog';
-import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/ui/Sheet';
-import { useIsMobile } from '@/core/hooks/useIsMobile';
-import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/shared/components/ui/Sheet';
 import { Button } from '@/shared/components/ui';
-
+import { cn } from '@/lib/utils';
 
 interface NavItem {
   title: string;
@@ -67,19 +70,7 @@ const adminNavItems: NavItem[] = [
 export function AppSidebar() {
   const { pathname } = useLocation();
   const { user, logout, hasRole } = useAuth();
-  const isMobile = useIsMobile();
-
-  // Collapsible state (desktop only)
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sidebar-collapsed') === 'true';
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', String(collapsed));
-  }, [collapsed]);
+  const { isMobileOpen, setMobileOpen, isCollapsed, toggleCollapsed, isMobile } = useSidebar();
 
   const isLinkActive = (url: string) => {
     if (url === '/') return pathname === '/';
@@ -87,7 +78,6 @@ export function AppSidebar() {
   };
 
   if (!hasRole('admin')) {
-    // If not admin, show a minimal sidebar (or redirect)
     return (
       <div className="fixed top-0 left-0 z-40 h-screen w-64 border-r bg-emerald-50/95 p-4 dark:bg-slate-950/95">
         <div className="font-bold tracking-tight">Mambonami</div>
@@ -109,79 +99,83 @@ export function AppSidebar() {
           <Link
             key={item.url}
             to={item.url}
+            onClick={() => isMobile && setMobileOpen(false)}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
               active
                 ? "bg-emerald-100 font-medium text-emerald-900 dark:bg-slate-800 dark:text-emerald-100"
-                : "hover:bg-emerald-50 dark:hover:bg-slate-800",
-              collapsed && "justify-center px-2"
+                : "text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800",
+              !isMobile && isCollapsed && "justify-center px-2"
             )}
-            title={collapsed ? item.title : undefined}
+            title={(!isMobile && isCollapsed) ? item.title : undefined}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>{item.title}</span>}
+            {(!isMobile || !isCollapsed) && <span>{item.title}</span>}
           </Link>
         );
       });
 
-  // Desktop sidebar with collapsible
+  // ----- DESKTOP SIDEBAR -----
   const DesktopSidebar = () => (
     <div
       className={cn(
-        "fixed top-0 left-0 z-40 flex h-screen flex-col border-r bg-emerald-50/95 transition-all duration-300 dark:bg-slate-950/95",
-        collapsed ? "w-16" : "w-64"
+        "fixed top-0 left-0 z-40 hidden h-screen flex-col border-r bg-emerald-50/95 transition-all duration-300 dark:bg-slate-950/95 md:flex",
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
+      {/* Header */}
       <div className={cn(
         "flex items-center justify-between px-3 py-3",
-        collapsed && "justify-center"
+        isCollapsed && "justify-center"
       )}>
-        {!collapsed && <div className="font-bold tracking-tight">Mambonami</div>}
+        {!isCollapsed && <div className="font-bold tracking-tight">Mambonami</div>}
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleCollapsed}
           className="h-8 w-8"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
 
+      {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <div>
-          {!collapsed && <div className="mb-2 px-3 text-xs font-medium text-muted-foreground">Workspace</div>}
+          {!isCollapsed && <div className="mb-2 px-3 text-xs font-medium text-muted-foreground">Workspace</div>}
           <div className="space-y-1">{renderNavItems(mainNavItems)}</div>
         </div>
         <div>
-          {!collapsed && <div className="mb-2 px-3 text-xs font-medium text-muted-foreground">Administration</div>}
+          {!isCollapsed && <div className="mb-2 px-3 text-xs font-medium text-muted-foreground">Administration</div>}
           <div className="space-y-1">{renderNavItems(adminNavItems)}</div>
         </div>
       </div>
 
+      {/* Footer */}
       <div className="border-t p-2">
         <div className="space-y-1">
           <Link
             to="/profile"
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-slate-800",
-              collapsed && "justify-center px-2"
+              isCollapsed && "justify-center px-2"
             )}
-            title={collapsed ? 'Profile' : undefined}
+            title={isCollapsed ? 'Profile' : undefined}
           >
             <UserIcon className="h-4 w-4 shrink-0" />
-            {!collapsed && <span className="truncate">{user?.first_name ?? user?.username ?? 'Profile'}</span>}
+            {!isCollapsed && <span className="truncate">{user?.first_name ?? user?.username ?? 'Profile'}</span>}
           </Link>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950",
-                  collapsed && "justify-center px-2"
+                  isCollapsed && "justify-center px-2"
                 )}
-                title={collapsed ? 'Sign out' : undefined}
+                title={isCollapsed ? 'Sign out' : undefined}
               >
                 <LogOut className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Sign out</span>}
+                {!isCollapsed && <span>Sign out</span>}
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -202,17 +196,15 @@ export function AppSidebar() {
     </div>
   );
 
-  // Mobile sidebar using Sheet
+  // ----- MOBILE SIDEBAR (Sheet) -----
   const MobileSidebar = () => (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="fixed top-3 left-3 z-50 md:hidden">
-          <Menu className="h-5 w-5" />
-        </Button>
-      </SheetTrigger>
+    <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
       <SheetContent side="left" className="w-64 p-0">
+        <SheetHeader className="px-4 py-3 border-b">
+          <SheetTitle className="font-bold tracking-tight">Mambonami</SheetTitle>
+          <SheetDescription className="sr-only">Navigation menu</SheetDescription>
+        </SheetHeader>
         <div className="flex h-full flex-col bg-emerald-50/95 dark:bg-slate-950/95">
-          <div className="px-4 py-3 font-bold tracking-tight">Mambonami</div>
           <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
             <div>
               <div className="mb-2 px-3 text-xs font-medium text-muted-foreground">Workspace</div>
@@ -228,6 +220,7 @@ export function AppSidebar() {
               <Link
                 to="/profile"
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-slate-800"
+                onClick={() => setMobileOpen(false)}
               >
                 <UserIcon className="h-4 w-4" />
                 <span className="truncate">{user?.first_name ?? user?.username ?? 'Profile'}</span>
@@ -261,7 +254,8 @@ export function AppSidebar() {
 
   return (
     <>
-      {isMobile ? <MobileSidebar /> : <DesktopSidebar />}
+      <DesktopSidebar />
+      <MobileSidebar />
     </>
   );
 }

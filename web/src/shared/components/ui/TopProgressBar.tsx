@@ -1,4 +1,4 @@
-// frontend/src/shared/components/ui/TopProgressBar.tsx
+// web/src/shared/components/ui/TopProgressBar.tsx
 import { useEffect, useState } from "react";
 
 export function TopProgressBar() {

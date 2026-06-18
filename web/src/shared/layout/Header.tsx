@@ -1,8 +1,11 @@
 ﻿// web/src/shared/layout/Header.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../core/hooks/useAuth';
-import { useTheme } from '../../core/context/ThemeContext';
+import { Menu } from 'lucide-react';
+import { useAuth } from '@/core/hooks/useAuth';
+import { useTheme } from '@/core/context/ThemeContext';
+import { useSidebar } from '@/core/context';
+import { Button } from '@/shared/components/ui';
 
 const BellIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -38,6 +41,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isMobile, toggleMobile, toggleCollapsed } = useSidebar();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -45,6 +49,15 @@ export default function Header() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Handle sidebar toggle (mobile = open sheet, desktop = collapse)
+  const handleSidebarToggle = () => {
+    if (isMobile) {
+      toggleMobile();
+    } else {
+      toggleCollapsed();
+    }
   };
 
   useEffect(() => {
@@ -72,40 +85,61 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-3 shadow-sm backdrop-blur-sm transition-colors duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex-1">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left: Hamburger + Logo */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSidebarToggle}
+            className="h-9 w-9 rounded-full hover:bg-emerald-200 dark:hover:bg-slate-700"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <span className="text-lg font-bold tracking-tight text-emerald-800 dark:text-emerald-300 md:hidden">
+            Mambonami
+          </span>
+        </div>
+
+        {/* Search bar - hidden on mobile, visible on desktop */}
+        <div className="hidden flex-1 md:block">
           <input
             type="text"
             placeholder="Search orders, products, transports..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-3xl rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-slate-900 placeholder:text-emerald-600 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+            className="w-full max-w-2xl rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-emerald-600 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          {/* Notifications */}
           <Link
             to="/notifications"
             aria-label="Notifications"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             title="Notifications"
           >
-            <BellIcon className="h-5 w-5" />
+            <BellIcon className="h-4 w-4" />
           </Link>
 
+          {/* Theme toggle */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+            {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
           </button>
 
+          {/* User dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm hover:bg-emerald-200 transition dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm hover:bg-emerald-200 transition dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             >
               {userInitials}
             </button>
@@ -113,7 +147,9 @@ export default function Header() {
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-emerald-200 rounded-lg shadow-lg py-2 z-50 dark:bg-slate-900 dark:border-slate-700">
                 <div className="px-4 py-2 border-b border-emerald-200 dark:border-slate-700">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{user?.username || user?.phone}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {user?.username || user?.phone}
+                  </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{user?.phone}</p>
                 </div>
                 <Link
