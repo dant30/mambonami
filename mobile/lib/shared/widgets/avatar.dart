@@ -1,6 +1,6 @@
+// mobile/lib/shared/widgets/avatar.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
 
 class Avatar extends StatelessWidget {
   final String? imageUrl;
@@ -12,6 +12,7 @@ class Avatar extends StatelessWidget {
   final double size;
   final Color? backgroundColor;
   final TextStyle? textStyle;
+  final bool showBorder;
 
   const Avatar({
     super.key,
@@ -24,6 +25,7 @@ class Avatar extends StatelessWidget {
     this.size = 56,
     this.backgroundColor,
     this.textStyle,
+    this.showBorder = true,
   });
 
   String _getInitials() {
@@ -34,57 +36,78 @@ class Avatar extends StatelessWidget {
     if (names.isEmpty && username != null && username!.isNotEmpty) {
       names.add(username![0].toUpperCase());
     }
-    return names.join();
+    return names.take(2).join();
   }
 
   Color _getBackgroundColor(BuildContext context) {
     if (backgroundColor != null) return backgroundColor!;
     
-    // Generate color from initials
     final initials = _getInitials();
-    if (initials.isEmpty) return AppColors.inputLight;
+    if (initials.isEmpty) {
+      return Theme.of(context).colorScheme.surfaceContainerHighest;
+    }
 
+    // Pre-defined palette with good contrast
     final colors = [
-      AppColors.primaryLight,
-      AppColors.secondaryLight,
-      AppColors.destructiveLight,
-      AppColors.foregroundLight,
-      AppColors.cardLight,
-      AppColors.inputLight,
-      AppColors.ringLight,
-      AppColors.primaryDark,
+      const Color(0xFFE53935),
+      const Color(0xFFD81B60),
+      const Color(0xFF8E24AA),
+      const Color(0xFF5E35B1),
+      const Color(0xFF3949AB),
+      const Color(0xFF1E88E5),
+      const Color(0xFF00897B),
+      const Color(0xFF43A047),
+      const Color(0xFFFDD835),
+      const Color(0xFFFB8C00),
+      const Color(0xFFF4511E),
+      const Color(0xFF6D4C41),
     ];
     return colors[initials.hashCode % colors.length];
   }
 
+  Color _getTextColor(Color bgColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(bgColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bgColor = _getBackgroundColor(context);
+    final textColor = _getTextColor(bgColor);
+
     final decorationImage = imageFile != null
         ? DecorationImage(image: FileImage(imageFile!), fit: BoxFit.cover)
         : imageUrl != null && imageUrl!.isNotEmpty
             ? DecorationImage(image: NetworkImage(imageUrl!), fit: BoxFit.cover)
             : null;
 
+    final initials = _getInitials();
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _getBackgroundColor(context),
+        color: bgColor,
         shape: BoxShape.circle,
         image: decorationImage,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
+        border: showBorder
+            ? Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                width: 1.5,
+              )
+            : null,
       ),
       child: decorationImage == null
           ? Center(
               child: Text(
-                _getInitials(),
+                initials.isEmpty ? '?' : initials,
                 style: textStyle ??
-                    Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    theme.textTheme.titleMedium?.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: size * 0.45,
+                    ),
               ),
             )
           : null,

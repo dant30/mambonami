@@ -1,3 +1,5 @@
+// mobile/lib/shared/widgets/loading_indicator.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class LoadingIndicator extends StatelessWidget {
@@ -5,48 +7,107 @@ class LoadingIndicator extends StatelessWidget {
   final Color? color;
   final bool compact;
 
+  /// New features
+  final bool fullscreen;
+  final bool blurBackground;
+  final double? size;
+  final Widget? indicator;
+  final bool blocking;
+
   const LoadingIndicator({
     super.key,
     this.message,
     this.color,
     this.compact = false,
+    this.fullscreen = false,
+    this.blurBackground = false,
+    this.size,
+    this.indicator,
+    this.blocking = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textColor = color ?? theme.colorScheme.primary;
-    return Center(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.all(compact ? 12 : 18),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.outline),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: compact ? 22 : 28,
-              height: compact ? 22 : 28,
-              child: CircularProgressIndicator(color: textColor, strokeWidth: 3),
-            ),
-            if (message != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                message!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
-                  fontWeight: FontWeight.w700,
-                ),
+
+    final indicatorColor = color ?? theme.colorScheme.primary;
+    final effectiveSize = size ?? (compact ? 22 : 30);
+
+    Widget loader = Semantics(
+      label: message ?? 'Loading',
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 250),
+        scale: 1,
+        curve: Curves.easeOutBack,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: 1,
+          child: Container(
+            padding: EdgeInsets.all(compact ? 14 : 20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
               ),
-            ],
-          ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: effectiveSize,
+                  height: effectiveSize,
+                  child: indicator ??
+                      CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: indicatorColor,
+                      ),
+                ),
+                if (message != null) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    message!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
+    );
+
+    if (!fullscreen) {
+      return Center(child: loader);
+    }
+
+    return Stack(
+      children: [
+        if (blocking)
+          ModalBarrier(
+            dismissible: false,
+            color: Colors.black.withValues(alpha: 0.2),
+          ),
+
+        if (blurBackground)
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: const SizedBox.expand(),
+          ),
+
+        Center(child: loader),
+      ],
     );
   }
 }

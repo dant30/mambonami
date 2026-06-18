@@ -163,10 +163,10 @@ class AppDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: AppGradients.hero,
                   borderRadius: BorderRadius.circular(8),
@@ -178,8 +178,8 @@ class AppDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          width: 64,
-                          height: 64,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.16),
                             shape: BoxShape.circle,
@@ -190,12 +190,12 @@ class AppDrawer extends StatelessWidget {
                           ),
                           child: Avatar(
                             username: username.isNotEmpty ? username : phone,
-                            size: 64,
+                            size: 56,
                             backgroundColor:
                                 Colors.white.withValues(alpha: 0.18),
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +303,7 @@ class AppDrawer extends StatelessWidget {
                       selectedTileColor: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withValues(alpha: 0.1),
+                          .withValues(alpha: 0.08),
                       iconColor: selected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context)
@@ -315,6 +315,12 @@ class AppDrawer extends StatelessWidget {
                           : Theme.of(context).colorScheme.onSurface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
+                        side: selected
+                            ? BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              )
+                            : BorderSide.none,
                       ),
                       dense: true,
                       onTap: () {
@@ -323,7 +329,13 @@ class AppDrawer extends StatelessWidget {
                       },
                     );
                   }),
-                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                      thickness: 1,
+                    ),
+                  ),
                   // Secondary
                   ...secondary
                       .where((item) =>
@@ -335,12 +347,28 @@ class AppDrawer extends StatelessWidget {
                       leading: Icon(item.icon),
                       title: Text(item.title),
                       selected: selected,
+                      selectedColor: Theme.of(context).colorScheme.primary,
                       selectedTileColor: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withValues(alpha: 0.1),
+                          .withValues(alpha: 0.08),
+                      iconColor: selected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: isDark ? 0.82 : 0.72),
+                      textColor: selected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
+                        side: selected
+                            ? BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              )
+                            : BorderSide.none,
                       ),
                       dense: true,
                       onTap: () {
@@ -349,7 +377,13 @@ class AppDrawer extends StatelessWidget {
                       },
                     );
                   }),
-                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                      thickness: 1,
+                    ),
+                  ),
                   ListTile(
                     leading: const Icon(Icons.logout),
                     title: const Text('Log out'),

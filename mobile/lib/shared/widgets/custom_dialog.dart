@@ -1,3 +1,4 @@
+// mobile/lib/shared/widgets/custom_dialog.dart
 import 'package:flutter/material.dart';
 
 class CustomDialog {
@@ -38,6 +39,33 @@ class CustomDialog {
             child: Text(buttonText),
           ),
         ],
+      ),
+    );
+  }
+
+  static Future<void> showLoading(
+    BuildContext context, {
+    String message = 'Please wait...',
+  }) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        contentPadding: const EdgeInsets.all(24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator.adaptive(),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -85,6 +113,79 @@ class CustomDialog {
           ),
         ],
       ),
+    );
+  }
+
+  static Future<bool?> showConfirmWithAction(
+    BuildContext context,
+    String title,
+    String message, {
+    String cancelText = 'Cancel',
+    String confirmText = 'Confirm',
+    bool barrierDismissible = true,
+    Future<void> Function()? onConfirm,
+  }) {
+    final theme = Theme.of(context);
+    bool isLoading = false;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: barrierDismissible,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: theme.colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              icon: _DialogIcon(
+                icon: Icons.warning_amber_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              title: Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              content: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context, false),
+                  child: Text(cancelText),
+                ),
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() => isLoading = true);
+                          if (onConfirm != null) {
+                            await onConfirm();
+                          }
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext, true);
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(confirmText),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

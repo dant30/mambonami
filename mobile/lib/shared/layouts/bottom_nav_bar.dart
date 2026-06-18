@@ -1,4 +1,4 @@
-// mobile/lib/shared/layouts/bottom_nav_bar.dart
+﻿// mobile/lib/shared/layouts/bottom_nav_bar.dart
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -31,8 +31,18 @@ class BottomNavBar extends StatelessWidget {
           onDestinationSelected: onTap,
           destinations: items.map((item) {
             return NavigationDestination(
-              icon: Icon(item.icon),
-              selectedIcon: Icon(item.activeIcon ?? item.icon),
+              icon: item.badgeCount > 0
+                  ? Badge(
+                      label: Text(item.badgeCount > 99 ? '99+' : item.badgeCount.toString()),
+                      child: Icon(item.icon),
+                    )
+                  : Icon(item.icon),
+              selectedIcon: item.badgeCount > 0
+                  ? Badge(
+                      label: Text(item.badgeCount > 99 ? '99+' : item.badgeCount.toString()),
+                      child: Icon(item.activeIcon ?? item.icon),
+                    )
+                  : Icon(item.activeIcon ?? item.icon),
               label: item.label,
             );
           }).toList(),
@@ -46,10 +56,12 @@ class BottomNavItem {
   final IconData icon;
   final IconData? activeIcon;
   final String label;
+  final int badgeCount;
 
   const BottomNavItem({
     required this.icon,
     this.activeIcon,
     required this.label,
+    this.badgeCount = 0,
   });
 }

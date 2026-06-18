@@ -1,6 +1,8 @@
+// mobile/lib/shared/widgets/earnings_widgets.dart
 import 'package:flutter/material.dart';
 import '../themes/app_gradients.dart';
-import 'role_dashboard_widgets.dart';
+import '../themes/app_colors.dart';
+import 'role_dashboard_widgets.dart' show DashboardStat; // Reuse existing
 
 class EarningsHero extends StatelessWidget {
   final String label;
@@ -19,12 +21,15 @@ class EarningsHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppColors.primaryForegroundLight;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppGradients.field,
-        borderRadius: BorderRadius.circular(8),
+        gradient: isDark ? AppGradients.field : AppGradients.hero,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,18 +65,13 @@ class EarningsHero extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Row(
-            children: [
-              for (int index = 0; index < stats.length; index++) ...[
-                Expanded(child: _HeroStat(stat: stats[index])),
-                if (index != stats.length - 1)
-                  Container(
-                    width: 1,
-                    height: 44,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    color: Colors.white.withValues(alpha: 0.18),
-                  ),
-              ],
-            ],
+            children: stats.asMap().entries.map((entry) {
+              final index = entry.key;
+              final stat = entry.value;
+              return Expanded(
+                child: _HeroStat(stat: stat),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -96,7 +96,7 @@ class EarningsBreakdownCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.colorScheme.outline),
       ),
       child: Column(
@@ -109,11 +109,16 @@ class EarningsBreakdownCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          for (int index = 0; index < rows.length; index++) ...[
-            _BreakdownRow(row: rows[index]),
-            if (index != rows.length - 1)
-              Divider(color: theme.colorScheme.outline),
-          ],
+          ...rows.map((row) {
+            final index = rows.indexOf(row);
+            return Column(
+              children: [
+                _BreakdownRow(row: row),
+                if (index != rows.length - 1)
+                  Divider(color: theme.colorScheme.outline, height: 1),
+              ],
+            );
+          }),
         ],
       ),
     );

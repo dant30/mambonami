@@ -1,11 +1,15 @@
+// mobile/lib/shared/widgets/empty_state.dart
 import 'package:flutter/material.dart';
 
 class EmptyState extends StatelessWidget {
   final String? title;
   final String? description;
   final String? message;
+
   final String? assetPath;
-  final String buttonText;
+  final IconData? icon;
+
+  final String? buttonText;
   final VoidCallback? onButtonPressed;
 
   const EmptyState({
@@ -14,69 +18,99 @@ class EmptyState extends StatelessWidget {
     this.description,
     this.message,
     this.assetPath,
-    this.buttonText = 'Retry',
+    this.icon,
+    this.buttonText,
     this.onButtonPressed,
-  }) : assert(title != null || message != null, 'Provide title or message');
+  }) : assert(
+          title != null || message != null,
+          'Provide at least a title or message',
+        );
 
   @override
   Widget build(BuildContext context) {
-    final effectiveTitle = title ?? 'Nothing to show';
-    final effectiveDescription =
-        description ?? message ?? 'There is no content to display right now.';
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (assetPath != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Image.asset(assetPath!, height: 160),
-            )
-          else
-            Container(
-              width: 76,
-              height: 76,
-              margin: const EdgeInsets.only(bottom: 18),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.outline),
-              ),
-              child: Icon(
-                Icons.eco_outlined,
-                color: theme.colorScheme.primary,
-                size: 34,
+    final effectiveTitle = title ?? 'Nothing here yet';
+    final effectiveDescription =
+        description ?? message ?? 'There is no content to display right now.';
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildVisual(theme),
+            const SizedBox(height: 20),
+
+            /// Title
+            Text(
+              effectiveTitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
-          Text(
-            effectiveTitle,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: theme.colorScheme.onSurface,
+
+            const SizedBox(height: 10),
+
+            /// Description
+            Text(
+              effectiveDescription,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.65),
+                height: 1.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            effectiveDescription,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
-              height: 1.4,
-            ),
-          ),
-          if (onButtonPressed != null) ...[
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: onButtonPressed,
-              child: Text(buttonText),
-            ),
+
+            /// Action Button
+            if (onButtonPressed != null && buttonText != null) ...[
+              const SizedBox(height: 28),
+              ElevatedButton(
+                onPressed: onButtonPressed,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(buttonText!),
+              ),
+            ],
           ],
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVisual(ThemeData theme) {
+    /// Priority: asset > icon > default icon
+    if (assetPath != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Image.asset(
+          assetPath!,
+          height: 140,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    return Container(
+      width: 84,
+      height: 84,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Icon(
+        icon ?? Icons.inbox_outlined,
+        size: 40,
+        color: theme.colorScheme.primary.withOpacity(0.7),
       ),
     );
   }

@@ -1,3 +1,4 @@
+// mobile/lib/shared/widgets/error_widget.dart
 import 'package:flutter/material.dart';
 
 class AppErrorWidget extends StatelessWidget {
@@ -25,59 +26,59 @@ class AppErrorWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (assetPath != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
-              child: Image.asset(assetPath!, height: 150),
-            ),
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: theme.colorScheme.error.withValues(alpha: 0.24),
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (assetPath != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: Image.asset(assetPath!, height: 150),
+                ),
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withValues(alpha: 0.24),
+                  ),
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  color: theme.colorScheme.error,
+                  size: 34,
+                ),
               ),
-            ),
-            child: Icon(
-              Icons.error_outline,
-              color: theme.colorScheme.error,
-              size: 34,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
-              height: 1.4,
-            ),
-          ),
-          if (onRetry != null) ...[
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onRetry,
-                child: Text(buttonText ?? 'Retry'),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
+                  height: 1.4,
+                ),
+              ),
+              if (onRetry != null) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onRetry,
+                    child: Text(buttonText ?? 'Retry'),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),

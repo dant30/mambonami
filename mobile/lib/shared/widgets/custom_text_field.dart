@@ -1,7 +1,8 @@
+// mobile/lib/shared/widgets/custom_text_field.dart
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String? label;
   final String? labelText;
   final String? hintText;
@@ -21,10 +22,13 @@ class CustomTextField extends StatelessWidget {
   final String? helperText;
   final EdgeInsetsGeometry? contentPadding;
   final TextAlignVertical? textAlignVertical;
+  final FocusNode? focusNode;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CustomTextField({
     super.key,
-    required this.controller,
+    this.controller,
     this.label,
     this.labelText,
     this.hintText,
@@ -44,13 +48,19 @@ class CustomTextField extends StatelessWidget {
     this.helperText,
     this.contentPadding,
     this.textAlignVertical,
-  }) : assert(label != null || labelText != null, 'Provide label or labelText');
+    this.focusNode,
+    this.readOnly = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final effectiveLabel = label ?? labelText;
+    
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
@@ -62,8 +72,10 @@ class CustomTextField extends StatelessWidget {
       enabled: enabled,
       autofocus: autofocus,
       maxLines: maxLines,
+      readOnly: readOnly,
+      onTap: onTap,
       decoration: InputDecoration(
-        labelText: label ?? labelText,
+        labelText: effectiveLabel,
         hintText: hintText,
         helperText: helperText,
         errorText: errorText,
@@ -71,19 +83,13 @@ class CustomTextField extends StatelessWidget {
         alignLabelWithHint: maxLines != 1,
         isDense: true,
         errorMaxLines: 3,
-        prefixIcon: prefixIcon == null
-            ? null
-            : IconTheme(
-                data: IconThemeData(
-                  color: theme.colorScheme.primary,
-                  size: 21,
-                ),
-                child: prefixIcon!,
-              ),
+        prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: theme.inputDecorationTheme.fillColor ??
-            theme.colorScheme.surface.withValues(alpha: 0.9),
+        fillColor: enabled
+            ? theme.inputDecorationTheme.fillColor ??
+                theme.colorScheme.surface
+            : theme.colorScheme.surface.withValues(alpha: 0.6),
       ),
     );
   }

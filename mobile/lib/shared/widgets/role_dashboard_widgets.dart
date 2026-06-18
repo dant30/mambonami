@@ -1,5 +1,7 @@
+// mobile/lib/shared/widgets/role_dashboard_widgets.dart
 import 'package:flutter/material.dart';
 import '../themes/app_shadows.dart';
+import '../themes/app_colors.dart';
 
 class RoleHeroCard extends StatelessWidget {
   final String title;
@@ -25,7 +27,7 @@ class RoleHeroCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: AppShadows.floating,
       ),
       child: Column(
@@ -94,13 +96,15 @@ class HeroActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return FilledButton.icon(
       onPressed: onTap,
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: FilledButton.styleFrom(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF102116),
+        foregroundColor: isDark ? AppColors.primaryForegroundDark : AppColors.primaryForegroundLight,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -196,18 +200,24 @@ class DashboardStatStrip extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outline),
       ),
       child: Row(
-        children: [
-          for (int index = 0; index < stats.length; index++) ...[
-            Expanded(child: _StatCell(stat: stats[index])),
-            if (index != stats.length - 1)
-              Container(
-                width: 1,
-                height: 38,
-                color: theme.colorScheme.outline,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-          ],
-        ],
+        children: stats.asMap().entries.map((entry) {
+          final index = entry.key;
+          final stat = entry.value;
+          return Expanded(
+            child: Column(
+              children: [
+                _StatCell(stat: stat),
+                if (index != stats.length - 1)
+                  Container(
+                    width: 1,
+                    height: 38,
+                    color: theme.colorScheme.outline,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }

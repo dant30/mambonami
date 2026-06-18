@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/features/buyer/widgets/cart_item.dart
+import 'package:flutter/material.dart';
 
 import '../../../data/models/cart_item.dart';
 

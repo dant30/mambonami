@@ -1,3 +1,4 @@
+// mobile/lib/shared/widgets/custom_chip.dart
 import 'package:flutter/material.dart';
 
 class CustomChip extends StatelessWidget {
@@ -7,6 +8,7 @@ class CustomChip extends StatelessWidget {
   final Widget? avatar;
   final VoidCallback? onDeleted;
   final bool selected;
+  final double? fontSize;
 
   const CustomChip({
     super.key,
@@ -16,31 +18,43 @@ class CustomChip extends StatelessWidget {
     this.avatar,
     this.onDeleted,
     this.selected = false,
+    this.fontSize,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSelected = selected;
+    final bgColor = color ??
+        (isSelected
+            ? theme.colorScheme.primary.withValues(alpha: 0.12)
+            : theme.chipTheme.backgroundColor);
+    
     return Chip(
       avatar: avatar,
-      label: Text(label),
-      backgroundColor: color ??
-          (selected
-              ? theme.colorScheme.primary.withValues(alpha: 0.12)
-              : theme.chipTheme.backgroundColor),
-      labelStyle: TextStyle(
-        color: textColor ??
-            (selected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurface),
-        fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: fontSize ?? 13,
+          color: textColor ??
+              (isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface),
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+        ),
       ),
+      backgroundColor: bgColor,
       onDeleted: onDeleted,
+      deleteIcon: onDeleted != null
+          ? Icon(Icons.close, size: 16)
+          : null,
       side: BorderSide(
-        color: selected ? theme.colorScheme.primary : theme.colorScheme.outline,
+        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline,
+        width: isSelected ? 1.5 : 0.5,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      visualDensity: VisualDensity.compact,
     );
   }
 }

@@ -1,4 +1,4 @@
-// mobile/lib/shared/layouts/role_guard_builder.dart
+﻿// mobile/lib/shared/layouts/role_guard_builder.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -36,6 +36,15 @@ class RoleGuardBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        // Show loading state while authenticating
+        if (state is AuthLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
         if (state is AuthAuthenticated) {
           final role = state.role;
           switch (role) {
@@ -49,11 +58,12 @@ class RoleGuardBuilder extends StatelessWidget {
             case AppRole.transportProvider:
               if (transportBuilder != null) return transportBuilder!(context);
               break;
-            case 'admin':
+            case AppRole.admin:
               if (adminBuilder != null) return adminBuilder!(context);
               break;
           }
         }
+        
         // Fallback for unauthenticated or missing builder
         if (unauthorizedBuilder != null) {
           return unauthorizedBuilder!(context);

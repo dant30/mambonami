@@ -4,33 +4,40 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class CustomImagePicker {
-  static Future<File?> pickImage(
-      {ImageSource source = ImageSource.gallery}) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
+  static final ImagePicker _picker = ImagePicker();
+
+  static Future<File?> pickImage({
+    ImageSource source = ImageSource.gallery,
+    double maxWidth = 1600,
+    double maxHeight = 1600,
+    int imageQuality = 82,
+  }) async {
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: imageQuality,
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
+      );
+      if (pickedFile != null) {
+        return File(pickedFile.path);
+      }
+    } catch (e, st) {
+      debugPrint('Image pick error: $e');
+      debugPrint('$st');
     }
     return null;
   }
 
   static Future<List<File>> pickMultipleImages({int maxCount = 5}) async {
-    final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage(limit: maxCount);
-    return pickedFiles.map((f) => File(f.path)).toList();
-  }
-
-  static Future<File?> pickImageWithCompression({ImageSource source = ImageSource.gallery}) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: source,
-      imageQuality: 82,
-      maxWidth: 1600,
-    );
-    if (pickedFile != null) {
-      return File(pickedFile.path);
+    try {
+      final pickedFiles = await _picker.pickMultiImage(limit: maxCount);
+      return pickedFiles.map((file) => File(file.path)).toList();
+    } catch (e, st) {
+      debugPrint('Multi image pick error: $e');
+      debugPrint('$st');
+      return [];
     }
-    return null;
   }
 
   static Future<File?> showImageSourceSheet(BuildContext context) {

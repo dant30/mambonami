@@ -1,7 +1,10 @@
+﻿// mobile/lib/features/buyer/pages/buyer_dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../blocs/order/order_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
@@ -11,6 +14,9 @@ import '../../../shared/widgets/cart_action_button.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/role_dashboard_widgets.dart';
+import '../../../shared/widgets/section_header.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/greeting_header.dart';
 
 class BuyerDashboard extends StatelessWidget {
   const BuyerDashboard({super.key});
@@ -18,14 +24,22 @@ class BuyerDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
+    final orderState = context.watch<OrderBloc>().state;
+    
     String username = '';
     if (authState is AuthAuthenticated) {
       username = authState.username ?? authState.phone;
     }
 
+    // Get recent orders count
+    int recentOrdersCount = 0;
+    if (orderState is MyOrdersLoaded) {
+      recentOrdersCount = orderState.orders.length;
+    }
+
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Buyer Dashboard',
+        title: 'Fresh Market',
         showNotificationAction: true,
         leading: Builder(
           builder: (ctx) => IconButton(
@@ -40,90 +54,257 @@ class BuyerDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RoleHeroCard(
-              title: username.isNotEmpty
-                  ? 'Fresh picks, $username'
-                  : 'Fresh picks',
-              subtitle:
-                  'Browse verified produce, checkout fast, and follow every delivery from market to doorstep.',
-              icon: Icons.shopping_basket_outlined,
-              gradient: AppGradients.cool,
-              actions: [
-                HeroActionButton(
-                  label: 'Browse',
-                  icon: Icons.search_rounded,
-                  onTap: () => context.push(RoutePaths.products),
-                ),
-                HeroActionButton(
-                  label: 'Cart',
-                  icon: Icons.shopping_cart_checkout_rounded,
-                  onTap: () => context.push(RoutePaths.cart),
-                ),
-              ],
+            // Animated Greeting
+            GreetingHeader(
+              name: username.isNotEmpty ? username : 'there',
+              subtitle: 'Fresh produce delivered to your door',
             ),
-            const SizedBox(height: 16),
-            const DashboardStatStrip(
+            
+            // Quick Stats Row
+            DashboardStatStrip(
               stats: [
                 DashboardStat(
                   label: 'Orders',
-                  value: 'Live',
+                  value: recentOrdersCount.toString(),
                   icon: Icons.receipt_long_outlined,
                 ),
                 DashboardStat(
-                  label: 'Produce',
-                  value: 'Fresh',
-                  icon: Icons.eco_outlined,
+                  label: 'Active',
+                  value: '3',
+                  icon: Icons.shopping_bag_outlined,
                 ),
                 DashboardStat(
-                  label: 'Support',
-                  value: 'Ready',
-                  icon: Icons.support_agent_outlined,
+                  label: 'Saved',
+                  value: '12',
+                  icon: Icons.favorite_border,
                 ),
               ],
             ),
+            
             const SizedBox(height: 18),
+            
+            // Quick Actions Grid
+            SectionHeader(
+              title: 'Quick Actions',
+              subtitle: 'Shop, track, and manage your orders',
+            ),
+            const SizedBox(height: 8),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.92,
+              childAspectRatio: 1.1,
               children: [
-                DashboardActionTile(
+                _QuickActionTile(
                   icon: Icons.storefront_outlined,
-                  title: 'Browse Products',
-                  subtitle: 'Fresh verified goods',
-                  accentColor: AppColors.buyerAccent,
+                  title: 'Browse',
+                  subtitle: 'Fresh products',
+                  color: AppColors.buyerAccent,
                   onTap: () => context.push(RoutePaths.products),
                 ),
-                DashboardActionTile(
+                _QuickActionTile(
+                  icon: Icons.shopping_cart_checkout_rounded,
+                  title: 'Cart',
+                  subtitle: 'Ready to checkout',
+                  color: AppColors.secondaryLight,
+                  onTap: () => context.push(RoutePaths.cart),
+                ),
+                _QuickActionTile(
                   icon: Icons.receipt_long,
-                  title: 'My Orders',
-                  subtitle: 'Track purchases',
-                  accentColor: AppColors.secondaryLight,
+                  title: 'Orders',
+                  subtitle: 'Track history',
+                  color: AppColors.farmerAccent,
                   onTap: () => context.push(RoutePaths.orders),
                 ),
-                DashboardActionTile(
+                _QuickActionTile(
                   icon: Icons.support_agent,
                   title: 'Support',
-                  subtitle: 'Get help quickly',
-                  accentColor: AppColors.farmerAccent,
+                  subtitle: 'We\'re here',
+                  color: Colors.purple,
                   onTap: () => context.push(RoutePaths.support),
                 ),
-                DashboardActionTile(
-                  icon: Icons.notifications_none,
-                  title: 'Notifications',
-                  subtitle: 'Latest updates',
-                  accentColor: Colors.purple,
-                  onTap: () => context.push(RoutePaths.notifications),
-                ),
               ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Featured Section (future: show promotions)
+            SectionHeader(
+              title: 'Featured',
+              subtitle: 'Handpicked for you',
+              trailing: TextButton(
+                onPressed: () => context.push(RoutePaths.products),
+                child: const Text('See all'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 120,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _FeatureCard(
+                    icon: Icons.eco,
+                    title: 'Organic Week',
+                    subtitle: '20% off organic produce',
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 12),
+                  _FeatureCard(
+                    icon: Icons.local_shipping,
+                    title: 'Free Delivery',
+                    subtitle: 'On orders over KES 2,000',
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 12),
+                  _FeatureCard(
+                    icon: Icons.percent,
+                    title: 'Farmer Specials',
+                    subtitle: 'Direct from farm',
+                    color: Colors.teal,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.2),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

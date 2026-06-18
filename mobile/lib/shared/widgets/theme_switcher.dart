@@ -13,9 +13,24 @@ class ThemeSwitcher extends StatelessWidget {
       icon: const Icon(Icons.brightness_6),
       onSelected: (mode) => context.read<ThemeCubit>().setThemeMode(mode),
       itemBuilder: (context) => [
-        const PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
-        const PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
-        const PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+        const PopupMenuItem(
+          value: ThemeMode.light,
+          child: Row(
+            children: [Icon(Icons.light_mode), SizedBox(width: 8), Text('Light')],
+          ),
+        ),
+        const PopupMenuItem(
+          value: ThemeMode.dark,
+          child: Row(
+            children: [Icon(Icons.dark_mode), SizedBox(width: 8), Text('Dark')],
+          ),
+        ),
+        const PopupMenuItem(
+          value: ThemeMode.system,
+          child: Row(
+            children: [Icon(Icons.settings), SizedBox(width: 8), Text('System')],
+          ),
+        ),
       ],
     );
   }
