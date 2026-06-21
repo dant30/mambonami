@@ -4,7 +4,9 @@ import path from 'path';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 
-const SSR_BUNDLE_PATH = path.join(process.cwd(), 'dist', 'server', 'server.js');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SSR_BUNDLE_PATH = path.join(__dirname, '../dist/server/server.js');
 
 let serverEntryPromise: Promise<any> | null = null;
 
