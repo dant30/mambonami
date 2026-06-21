@@ -1,4 +1,5 @@
-﻿/**
+﻿// src/features/transport/types/trip.ts
+/**
  * Trip / ride domain types
  */
 

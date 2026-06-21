@@ -1,4 +1,4 @@
-﻿import { Product } from './product';
+﻿import { Product } from '../../products/types/product';
 
 /**
  * Order domain types
@@ -59,4 +59,11 @@ export interface Order {
 	paid_at?: string | null;
 	delivered_at?: string | null;
 	items?: OrderItem[];
+}
+
+export interface ListResponse<T = unknown> {
+	results: T[];
+	count?: number;
+	next?: string | null;
+	previous?: string | null;
 }

@@ -132,9 +132,9 @@ class GenerateDeliveryOTPView(APIView):
             return Response({'error': 'Order not ready for delivery'}, status=400)
         otp = generate_otp()
         cache_otp(f"delivery_otp_{order.id}", otp, timeout=300)
-        # Send OTP to buyer via WhatsApp (task)
-        from apps.notifications.tasks import send_whatsapp
-        send_whatsapp.delay(order.buyer.phone, f"Your delivery OTP is {otp}. Valid for 5 minutes.")
+        # Send OTP to buyer via SMS
+        from apps.notifications.services.sms import send_otp_message
+        send_otp_message(order.buyer.phone, otp)
         return Response({'message': 'OTP sent to buyer'})
 
 class VerifyDeliveryOTPView(APIView):

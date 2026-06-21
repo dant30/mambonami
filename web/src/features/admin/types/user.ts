@@ -1,4 +1,5 @@
-﻿/**
+﻿// web/src/core/types/user.ts
+/**
  * User domain types
  */
 

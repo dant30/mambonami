@@ -1,4 +1,5 @@
-﻿/**
+﻿// web/src/features/payouts/types/payout.ts
+/**
  * Payout domain types
  */
 

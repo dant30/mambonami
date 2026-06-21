@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/notifications/models/notification.py
 from django.db import models
+from django.utils import timezone
 from shared.db_models.base import BaseModel
 from apps.users.models import User
 

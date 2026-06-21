@@ -2,6 +2,7 @@
 import logging
 from django.core.mail import send_mail as django_send_mail
 from django.conf import settings
+from django.utils import timezone
 from ..models import Notification
 
 logger = logging.getLogger(__name__)

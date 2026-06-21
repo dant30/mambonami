@@ -1,4 +1,5 @@
-﻿import { create } from 'zustand';
+﻿// web/src/features/payouts/stores/payoutStore.ts
+import { create } from 'zustand';
 import type { PayoutListSummary, PayoutRecord } from '../types';
 
 type PayoutStore = {

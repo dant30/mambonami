@@ -1,4 +1,5 @@
-﻿import { RouteObject } from 'react-router-dom';
+﻿// src/router/public.routes.tsx
+import { RouteObject } from 'react-router-dom';
 import Login from '../features/auth/pages/Login';
 import ForgotPassword from '../features/auth/pages/ForgotPassword';
 

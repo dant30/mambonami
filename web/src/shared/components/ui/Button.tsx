@@ -4,6 +4,7 @@ import { cn } from '../../../lib/utils';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'destructive' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg' | 'icon';
+  asChild?: boolean;
 }
 
 const variantStyles = {
@@ -23,18 +24,32 @@ const sizeStyles = {
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'default', size = 'md', className = '', ...props }, ref) => (
-    <button
+  ({ variant = 'default', size = 'md', className = '', asChild = false, children, ...props }, ref) => {
+    const classes = cn(
+      'inline-flex items-center justify-center rounded-2xl font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 shadow-soft',
+      variantStyles[variant],
+      sizeStyles[size],
+      className,
+    );
+
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children, {
+        ...props,
+        className: cn(children.props.className, classes),
+        ref,
+      });
+    }
+
+    return (
+      <button
       ref={ref}
-      className={cn(
-        'inline-flex items-center justify-center rounded-2xl font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 shadow-soft',
-        variantStyles[variant],
-        sizeStyles[size],
-        className,
-      )}
+      className={classes}
       {...props}
-    />
-  ),
+    >
+      {children}
+      </button>
+    );
+  },
 );
 
 Button.displayName = 'Button';

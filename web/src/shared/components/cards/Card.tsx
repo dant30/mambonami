@@ -1,4 +1,5 @@
-﻿import type { ComponentPropsWithoutRef, PropsWithChildren, ReactNode } from 'react';
+﻿// web/src/shared/components/cards/Card.tsx
+import type { ComponentPropsWithoutRef, PropsWithChildren, ReactNode } from 'react';
 import { forwardRef } from 'react';
 
 import { cn } from '../../../lib/utils';

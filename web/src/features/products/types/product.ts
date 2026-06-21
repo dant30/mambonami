@@ -1,4 +1,5 @@
-﻿/**
+﻿// web/src/core/types/product.ts
+/**
  * Product domain types
  */
 

@@ -1,5 +1,6 @@
-﻿import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../core/hooks/useAuth';
+﻿// src/router/PublicRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../features/auth/hooks/useAuth';
 
 export const PublicRoute = () => {
   const { user, loading } = useAuth();

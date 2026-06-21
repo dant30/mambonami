@@ -1,4 +1,4 @@
-﻿export type { Dispute, DisputeStatus, DisputeComment } from '../../../core/types';
+﻿export type { Dispute, DisputeStatus, DisputeComment } from './dispute';
 
 export type DisputeWorkflowStatus = 'open' | 'under_review' | 'resolved' | 'closed';
 

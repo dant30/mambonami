@@ -1,5 +1,4 @@
 export {
-  createDispute,
   getAdminDispute,
   getDispute,
   listAdminDisputes,

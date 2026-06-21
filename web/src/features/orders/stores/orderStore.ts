@@ -1,5 +1,5 @@
 ﻿import create from 'zustand';
-import { Order } from '../../../core/types/order';
+import { Order } from '../types/order';
 import * as orderService from '../services/orderService';
 
 interface OrderState {
@@ -9,7 +9,6 @@ interface OrderState {
   error: string | null;
   fetchOrders: (params?: Record<string, any>) => Promise<void>;
   fetchOrder: (uuid: string) => Promise<void>;
-  createOrder: (payload: orderService.OrderCreatePayload) => Promise<Order | null>;
   clearError: () => void;
 }
 
@@ -36,19 +35,6 @@ export const useOrderStore = create<OrderState>((set) => ({
       set({ order });
     } catch (error: any) {
       set({ error: error.response?.data?.detail || error.message || 'Unable to load order' });
-    } finally {
-      set({ loading: false });
-    }
-  },
-  createOrder: async (payload) => {
-    set({ loading: true, error: null });
-    try {
-      const order = await orderService.createOrder(payload);
-      set((state) => ({ orders: [order, ...state.orders] }));
-      return order;
-    } catch (error: any) {
-      set({ error: error.response?.data?.detail || error.message || 'Unable to create order' });
-      return null;
     } finally {
       set({ loading: false });
     }

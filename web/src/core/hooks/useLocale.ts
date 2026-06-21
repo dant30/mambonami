@@ -1,3 +1,4 @@
+// web/src/core/hooks/useLocale.ts
 import { useCallback, useState } from 'react';
 import en from '../locale/en.json';
 import sw from '../locale/sw.json';

@@ -1,4 +1,5 @@
-﻿import { apiClient } from '../../../core/api/client';
+﻿// web/src/features/payouts/services/payoutService.ts
+import { apiClient } from '../../../core/api/client';
 import { PAYOUTS_ENDPOINTS } from '../../../core/api/endpoints';
 import type { PayoutDetailViewModel, PayoutListFilters, PayoutRecord, PayoutWorkflowStatus } from '../types';
 
@@ -41,14 +42,4 @@ export const listPayouts = async (filters?: PayoutListFilters) => {
 export const getPayout = async (uuid: string) => {
 	const { data } = await apiClient.get(PAYOUTS_ENDPOINTS.detail(uuid));
 	return normalizePayout(data) as PayoutDetailViewModel;
-};
-
-export const handleB2CCallback = async (payload: Record<string, unknown>) => {
-	const { data } = await apiClient.post(PAYOUTS_ENDPOINTS.b2cCallback, payload);
-	return data;
-};
-
-export const handleB2CTimeout = async (payload: Record<string, unknown>) => {
-	const { data } = await apiClient.post(PAYOUTS_ENDPOINTS.b2cTimeout, payload);
-	return data;
 };

@@ -1,1 +1,1 @@
-﻿export type { Product } from '../../../core/types';
+﻿export type { Product } from './product';

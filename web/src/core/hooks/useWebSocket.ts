@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿// web/src/core/hooks/useWebSocket.ts
+import { useEffect, useRef, useState } from 'react';
 export const useWebSocket = (url: string) => {
   const [lastMessage, setLastMessage] = useState<any>(null);
   const ws = useRef<WebSocket | null>(null);

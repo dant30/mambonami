@@ -20,7 +20,7 @@ const initSchema = z.object({
 const verifySchema = z
   .object({
     phone: z.string().nonempty('Phone is required'),
-    otp_code: z.string().nonempty('OTP code is required'),
+    otp: z.string().nonempty('OTP code is required'),
     new_password: z.string().nonempty('Password is required').min(6, 'Password must be at least 6 characters'),
     confirm_password: z.string().nonempty('Please confirm your password'),
   })
@@ -137,13 +137,13 @@ export default function ForgotPassword() {
                     {...verifyRegister('phone')}
                   />
                 </FormField>
-                <FormField id="otp_code" label="OTP Code" errors={verifyErrors.otp_code?.message}>
+                <FormField id="otp" label="OTP Code" errors={verifyErrors.otp?.message}>
                   <Input
-                    id="otp_code"
+                    id="otp"
                     type="text"
                     placeholder="Enter OTP code"
                     className="bg-white/95 border-slate-200 text-slate-900 placeholder:text-slate-500 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
-                    {...verifyRegister('otp_code')}
+                    {...verifyRegister('otp')}
                   />
                 </FormField>
                 <FormField id="new_password" label="New Password" errors={verifyErrors.new_password?.message}>

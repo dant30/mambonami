@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/notifications/tasks.py
 from celery import shared_task
+from django.utils import timezone
 from .models import Notification
 from .services.whatsapp import WhatsAppService
 from .services.email import EmailService

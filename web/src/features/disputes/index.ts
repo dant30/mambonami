@@ -1,6 +1,5 @@
 export { useDisputes } from './hooks';
 export {
-  createDispute,
   getAdminDispute,
   getDispute,
   listAdminDisputes,

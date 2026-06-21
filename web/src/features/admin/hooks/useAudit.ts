@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { apiClient } from '../api/client';
-import { AUDIT_ENDPOINTS } from '../api/endpoints';
+import { apiClient } from '../../../core/api/client';
+import { AUDIT_ENDPOINTS } from '../../../core/api/endpoints';
 
 interface AuditLog {
   uuid: string;

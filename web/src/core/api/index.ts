@@ -5,14 +5,10 @@ export {
   ORDERS_ENDPOINTS,
   PRODUCTS_ENDPOINTS,
   DISPUTES_ENDPOINTS,
-  LOGISTICS_ENDPOINTS,
   PAYOUTS_ENDPOINTS,
   NOTIFICATIONS_ENDPOINTS,
   AUDIT_ENDPOINTS,
   ANALYTICS_ENDPOINTS,
-  PAYBILL_ENDPOINTS,
-  PAYMENTS_ENDPOINTS,
-  HEALTH_ENDPOINT,
   API_BASE,
 } from './endpoints';
 
@@ -28,3 +24,6 @@ export type {
   LoginResponse,
   AuthError,
 } from './types';
+
+export * from './endpoints';
+export * from './types';

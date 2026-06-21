@@ -1,10 +1,10 @@
 ﻿import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useProducts } from '../../../core/hooks/useProducts';
+import { useProducts } from '../hooks/useProducts';
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Button from '../../../shared/components/ui/Button';
 import Card from '../../../shared/components/cards/Card';
-import { Product } from '../../../core/types';
+import type { Product } from '../types/product';
 
 export default function ProductDetail() {
   const { uuid } = useParams();

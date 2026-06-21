@@ -5,7 +5,7 @@ import {
   getOrderStatusLabel,
   getOrderStatusClasses,
   getSubOrderStatusLabel,
-} from '../hooks/useOrderStatus';
+} from '../hooks/useOrders';
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Badge from '../../../shared/components/ui/Badge';
 import Card from '../../../shared/components/cards/Card';

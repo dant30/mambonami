@@ -1,6 +1,6 @@
 ﻿import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../../../core/hooks/useProducts';
+import { useProducts } from '../hooks/useProducts';
 import { formatCurrency } from '../../../core/utils';
 import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';

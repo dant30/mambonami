@@ -263,7 +263,12 @@ OTP_MAX_ATTEMPTS = 3
 # Escrow reserve floor (KES)
 ESCROW_RESERVE_FLOOR = 200_000
 
-# WhatsApp / Email / Push (placeholders)
+# SMS / WhatsApp / Email / Push (placeholders)
+AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
+AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
+AFRICASTALKING_SENDER_ID = env('AFRICASTALKING_SENDER_ID', default='MAMBONAMI')
+AFRICASTALKING_SANDBOX = env.bool('AFRICASTALKING_SANDBOX', default=True)
+
 WHATSAPP_API_URL = env('WHATSAPP_API_URL', default='')
 WHATSAPP_API_TOKEN = env('WHATSAPP_API_TOKEN', default='')
 

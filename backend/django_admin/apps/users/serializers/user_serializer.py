@@ -6,18 +6,10 @@ from django.contrib.auth.password_validation import validate_password
 from core.cache import RedisCache, cache_otp, delete_otp, get_otp
 from core.utils import generate_otp
 from core.validators import validate_phone_number
+from apps.notifications.services.sms import send_otp_message
 from ..models import User, FarmerProfile, TransportProviderProfile
 
 logger = logging.getLogger(__name__)
-
-
-def send_otp_message(phone: str, otp: str) -> None:
-    message = f"Your Mambonami verification code is {otp}. It expires in 5 minutes."
-    try:
-        from apps.notifications.services.whatsapp import send_whatsapp_message
-        send_whatsapp_message(phone, message)
-    except Exception:
-        logger.warning('OTP fallback for %s: %s', phone, otp)
 
 
 class RegisterInitSerializer(serializers.Serializer):

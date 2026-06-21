@@ -1,8 +1,15 @@
-﻿import { useCallback, useEffect } from 'react';
+﻿// features/analytics/hooks/useAnalytics.ts
+import { useCallback, useEffect } from 'react';
 import { getAnalyticsDashboardStats } from '../services/analyticsService';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 
-export const useAnalytics = () => {
+/**
+ * Hook for fetching and managing analytics dashboard data.
+ * Uses a store to cache state across components.
+ */
+export const useAnalytics = (options?: { autoFetch?: boolean }) => {
+  const { autoFetch = true } = options ?? {};
+
   const stats = useAnalyticsStore((state) => state.stats);
   const loading = useAnalyticsStore((state) => state.loading);
   const error = useAnalyticsStore((state) => state.error);
@@ -18,7 +25,8 @@ export const useAnalytics = () => {
       setStats(dashboardStats);
       return dashboardStats;
     } catch (err) {
-      setError('Failed to load analytics dashboard');
+      const message = err instanceof Error ? err.message : 'Failed to load analytics';
+      setError(message);
       throw err;
     } finally {
       setLoading(false);
@@ -26,14 +34,21 @@ export const useAnalytics = () => {
   }, [setError, setLoading, setStats]);
 
   useEffect(() => {
-    if (stats) return;
-    void refetch();
-  }, [refetch, stats]);
+    // Only fetch if autoFetch is true and we don't have data yet
+    if (autoFetch && !stats) {
+      void refetch();
+    }
+  }, [autoFetch, refetch, stats]);
 
   return {
     stats,
     loading,
     error,
     refetch,
+    // Optional: clear cache if needed
+    clear: useCallback(() => {
+      setStats(null);
+      setError(null);
+    }, [setStats, setError]),
   };
-};// useAnalytics
+};

@@ -27,10 +27,21 @@ async def proxy_request(
     # Build headers, preserving all important ones from the request
     headers = dict(request.headers)
     headers.pop("host", None)
-    
-    body = await request.body()
+
+    content_type = headers.get("content-type", "")
     json_body = None
-    if headers.get("content-type", "").startswith("application/json") and body:
+    body = None
+    stream_body = False
+
+    if content_type.startswith("application/json"):
+        body = await request.body()
+    elif content_type.startswith("multipart/form-data") or content_type.startswith("application/octet-stream"):
+        stream_body = True
+        headers.pop("content-length", None)
+    else:
+        body = await request.body()
+
+    if content_type.startswith("application/json") and body:
         try:
             json_body = await request.json()
         except Exception:
@@ -41,17 +52,19 @@ async def proxy_request(
         # Log minimal request details at debug level to avoid leaking sensitive data
         if json_body is not None:
             logger.debug(f"Proxy JSON body length: {len(str(json_body))}")
-        else:
+        elif body is not None:
             logger.debug(f"Proxy raw body length: {len(body)}")
         logger.debug(f"Proxy headers: content-type={headers.get('content-type')}, accept={headers.get('accept')}")
 
     try:
+        request_content = request.stream() if stream_body else (body if body else None)
+
         response = await http_client.request(
             method=request.method,
             url=target_url,
             headers=headers,
             json=json_body if json_body is not None else None,
-            content=None if json_body is not None else (body if body else None),
+            content=None if json_body is not None else request_content,
             params=request.query_params,
             follow_redirects=False,
         )

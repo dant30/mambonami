@@ -6,7 +6,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { formatCurrency, formatDate } from '../../../core/utils';
 import { listOrders } from '../services/adminService';
 import { downloadCsv, downloadPdf } from '../utils/reportExport';
-import type { Order, OrderStatus } from '../../../core/types';
+import type { Order, OrderStatus } from '../../orders/types/order';
 
 const statusOptions: Array<OrderStatus | 'all'> = [
   'all',

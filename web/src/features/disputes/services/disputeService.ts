@@ -64,11 +64,6 @@ export const getDispute = async (uuid: string) => {
 	return normalizeDispute(data);
 };
 
-export const createDispute = async (payload: Record<string, unknown>) => {
-	const { data } = await apiClient.post(DISPUTES_ENDPOINTS.create, payload);
-	return normalizeDispute(data);
-};
-
 export const resolveDispute = async (uuid: string, payload: DisputeResolutionForm) => {
 	const { data } = await apiClient.post(ADMIN_ENDPOINTS.disputes.resolve(uuid), payload);
 	return normalizeDispute(data);

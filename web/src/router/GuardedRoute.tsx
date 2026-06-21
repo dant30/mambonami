@@ -1,5 +1,6 @@
-﻿import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../core/hooks/useAuth';
+﻿// src/router/GuardedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../features/auth/hooks/useAuth';
 
 export const GuardedRoute = () => {
   const { user, loading } = useAuth();

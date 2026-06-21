@@ -1,4 +1,5 @@
-﻿import type { Payout, PayoutStatus } from '../../../core/types';
+﻿// web/src/features/payouts/types/index.ts
+import type { Payout, PayoutStatus } from './payout';
 
 export type { Payout, PayoutStatus };
 

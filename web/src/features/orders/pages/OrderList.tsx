@@ -1,7 +1,7 @@
 ﻿import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useOrders } from '../hooks/useOrders';
-import { getOrderStatusLabel, getOrderStatusClasses } from '../hooks/useOrderStatus';
+import { getOrderStatusLabel, getOrderStatusClasses } from '../hooks/useOrders';
 import { formatCurrency, formatDate } from '../../../core/utils';
 import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';

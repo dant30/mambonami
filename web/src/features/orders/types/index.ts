@@ -5,4 +5,4 @@
   SubOrder,
   SubOrderStatus,
   ListResponse,
-} from '../../../core/types';
+} from './order';

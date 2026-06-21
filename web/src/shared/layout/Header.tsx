@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { useAuth } from '@/core/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/core/context/ThemeContext';
 import { useSidebar } from '@/core/context';
 import { Button } from '@/shared/components/ui';

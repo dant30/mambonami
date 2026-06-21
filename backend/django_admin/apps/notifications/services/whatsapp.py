@@ -2,6 +2,7 @@
 import logging
 from twilio.rest import Client
 from django.conf import settings
+from django.utils import timezone
 from ..models import Notification
 
 logger = logging.getLogger(__name__)

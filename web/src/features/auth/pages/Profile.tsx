@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '../../../core/hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../../../core/api/client';
 import { AUTH_ENDPOINTS } from '../../../core/api/endpoints';
 import Button from '../../../shared/components/ui/Button';
