@@ -58,18 +58,21 @@ async function sendWebResponse(res: ServerResponse, webResponse: Response) {
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
+    console.log(`[SSR] Loading SSR server from ${SSR_BUNDLE_PATH}`);
     const ssrServer = await getSsrServer();
     if (!ssrServer || typeof ssrServer.fetch !== 'function') {
       throw new Error('SSR server bundle does not expose a fetch handler');
     }
 
+    console.log(`[SSR] Handling ${req.method} ${req.url}`);
     const webRequest = createWebRequest(req);
     const webResponse = await ssrServer.fetch(webRequest, {}, {});
+    console.log(`[SSR] Got response status ${webResponse.status}`);
     await sendWebResponse(res, webResponse);
   } catch (error) {
-    console.error(error);
+    console.error('[SSR] Error:', error);
     res.statusCode = 500;
     res.setHeader('content-type', 'text/plain; charset=utf-8');
-    res.end('Internal Server Error');
+    res.end(`Internal Server Error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
