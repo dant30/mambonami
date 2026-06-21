@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sprout, ShoppingBasket, Truck, ShieldCheck, Star, Quote, Store, Building2, Users, Heart, Salad } from "lucide-react";
+import { ArrowRight, Sprout, ShoppingBasket, Truck, ShieldCheck, Star, Quote, Store, Building2, Users, Heart, Salad, PackageSearch, Leaf, Mail, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { notifyComingSoon } from "@/lib/coming-soon";
 import heroImg from "@/assets/hero-farm.jpg";
 import farmerImg from "@/assets/farmer.jpg";
 import produceImg from "@/assets/produce.jpg";
-import { Particles } from "@/components/layout/Particles";
+import { Particles } from "@/components/site/Particles";
 import { useCountUp } from "@/hooks/use-count-up";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_site/")({
   head: () => ({
     meta: [
       { title: "MAMBONAMI — Fresh from Farm to Table" },
@@ -61,15 +64,15 @@ function Home() {
               <Sprout className="w-3.5 h-3.5 animate-float" /> Farmers • Retailers • Consumers
             </span>
             <h1 className="font-display text-5xl md:text-7xl font-black leading-[1.05] mb-6">
-              From <span className="text-secondary italic">farm</span> to retailers, restaurants &amp; homes.
+              From <span className="text-gradient animate-gradient bg-gradient-hero italic">farm</span> to retailers, restaurants &amp; homes.
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/85 mb-10 max-w-xl">
               MAMBONAMI is Kenya's direct-trade marketplace — connecting farmers with retailers, hotels, restaurants, and families. Fair prices, transparent sourcing, doorstep delivery.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/contact" className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-7 py-3.5 font-semibold hover:bg-secondary/90 transition shadow-glow hover:scale-105 duration-300">
+              <button type="button" onClick={notifyComingSoon} className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-7 py-3.5 font-semibold hover:bg-secondary/90 transition shadow-glow hover:scale-105 duration-300">
                 Get Started <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
               <Link to="/how-it-works" className="inline-flex items-center gap-2 rounded-full glass text-primary-foreground px-7 py-3.5 font-semibold hover:bg-white/20 transition">
                 How it works
               </Link>
@@ -247,18 +250,115 @@ function Home() {
       </section>
 
 
-      {/* CTA */}
-      <section className="pb-24">
+      {/* How it works — 3 steps */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute -top-20 right-1/4 w-72 h-72 rounded-full bg-secondary/20 blur-3xl animate-blob -z-10" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 rounded-full bg-primary/20 blur-3xl animate-blob -z-10" style={{ animationDelay: "3s" }} />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-hero rounded-3xl px-8 py-16 md:p-16 text-center text-primary-foreground shadow-glow">
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Ready to taste the difference?</h2>
-            <p className="text-primary-foreground/85 text-lg max-w-xl mx-auto mb-8">Join thousands experiencing farm-fresh produce, delivered with care.</p>
-            <Link to="/contact" className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-8 py-4 font-semibold hover:bg-secondary/90 transition">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-secondary font-semibold uppercase tracking-wider text-sm">How MAMBONAMI works</span>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mt-3">Three simple steps. Zero middlemen.</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 relative">
+            {[
+              { Icon: PackageSearch, title: "Browse & order", body: "Discover seasonal produce from verified farms across 47 counties — filter by location, crop, or delivery date.", step: "01" },
+              { Icon: Leaf, title: "Harvested for you", body: "Your order is picked the same morning, quality-checked, and packed at the farm — never sitting in a warehouse.", step: "02" },
+              { Icon: Truck, title: "Delivered fresh", body: "Doorstep delivery in under 24 hours with M-Pesa escrow — pay only when it arrives in perfect condition.", step: "03" },
+            ].map(({ Icon, title, body, step }, i) => (
+              <div key={title} className="glass-card rounded-2xl p-8 hover-lift relative animate-fade-in-up" style={{ animationDelay: `${i * 120}ms` }}>
+                <div className="absolute top-6 right-6 font-display text-5xl font-black text-primary/10">{step}</div>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center mb-5 shadow-glow">
+                  <Icon className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-2xl font-bold mb-2">{title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trusted by strip */}
+      <section className="py-12 border-y border-border bg-accent/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-6">
+            Trusted across the food chain
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-muted-foreground">
+            {["Naivas-affiliated", "Carrefour vendors", "Sarova Hotels", "Java House", "ALDI Africa", "WFP Kenya"].map((b) => (
+              <span key={b} className="font-display text-lg md:text-xl font-bold opacity-60 hover:opacity-100 transition">
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter */}
+      <NewsletterSection />
+
+      {/* CTA */}
+      <section className="pb-24 pt-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative bg-gradient-hero animate-gradient rounded-3xl px-8 py-16 md:p-16 text-center text-primary-foreground shadow-glow overflow-hidden">
+            <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-secondary/30 blur-3xl animate-blob" />
+            <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl animate-blob" style={{ animationDelay: "2s" }} />
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 relative">Ready to taste the difference?</h2>
+            <p className="text-primary-foreground/85 text-lg max-w-xl mx-auto mb-8 relative">Join thousands experiencing farm-fresh produce, delivered with care.</p>
+            <button type="button" onClick={notifyComingSoon} className="relative inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-8 py-4 font-semibold hover:bg-secondary/90 hover:scale-105 transition shadow-glow">
               Get Started Today <ArrowRight className="w-4 h-4" />
-            </Link>
+            </button>
           </div>
         </div>
       </section>
     </>
   );
 }
+
+function NewsletterSection() {
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+    setDone(true);
+    toast.success("You're on the list! 🌱", { description: "We'll email you the moment MAMBONAMI launches." });
+    setEmail("");
+  };
+  return (
+    <section className="py-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="glass-card rounded-3xl p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center shadow-soft">
+          <div>
+            <span className="inline-flex items-center gap-2 text-secondary font-semibold uppercase tracking-wider text-sm">
+              <Mail className="w-4 h-4" /> Early access
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mt-3 mb-3">Be first in line when we launch.</h2>
+            <p className="text-muted-foreground">Get seasonal harvest updates, farmer stories, and a 10% welcome credit for your first order.</p>
+          </div>
+          <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="flex-1 rounded-full bg-background border border-border px-5 py-3.5 outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+              aria-label="Email address"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3.5 font-semibold hover:bg-primary-dark hover:scale-105 transition shadow-soft"
+            >
+              {done ? <><CheckCircle2 className="w-4 h-4" /> Subscribed</> : <>Notify me <ArrowRight className="w-4 h-4" /></>}
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+

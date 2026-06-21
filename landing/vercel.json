@@ -1,13 +1,20 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/server",
-  "rewrites": [
+  "version": 3,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/server.js"
+      "src": "api/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "dist/**"
+        ]
+      }
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/server.ts"
+    }
+  ]
 }

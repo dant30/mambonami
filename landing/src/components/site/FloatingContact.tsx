@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { MessageCircle, Phone, Mail, X } from "lucide-react";
 
+const PHONE = "+254724167076";
+const WA_NUMBER = "254724167076";
+const WA_MESSAGE = encodeURIComponent(
+  "Hello MAMBONAMI 👋 — I'd love to learn more about your farm-to-table marketplace.",
+);
+
 export function FloatingContact() {
   const [open, setOpen] = useState(false);
 
   const actions = [
-    { Icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/254700000000", color: "bg-[#25D366]" },
-    { Icon: Phone, label: "Call us", href: "tel:+254700000000", color: "bg-primary" },
+    {
+      Icon: MessageCircle,
+      label: "WhatsApp",
+      href: `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`,
+      color: "bg-[#25D366]",
+    },
+    { Icon: Phone, label: "Call us", href: `tel:${PHONE}`, color: "bg-primary" },
     { Icon: Mail, label: "Email", href: "mailto:hello@mambonami.com", color: "bg-secondary" },
   ];
 

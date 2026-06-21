@@ -8,25 +8,26 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './pages/root.tsx'
-import { Route as SiteRouteImport } from './components/layout/MainLayout.tsx'
-import { Route as IndexRouteImport } from './ro./routes/index.tsx
-import { Route as SiteTermsRouteImport } from './pages/terms.tsx'
-import { Route as SiteServicesRouteImport } from './pages/services.tsx'
-import { Route as SitePrivacyRouteImport } from './pages/privacy.tsx'
-import { Route as SiteHowItWorksRouteImport } from './pages/HowItWorks.tsx'
-import { Route as SiteFaqRouteImport } from './pages/faq.tsx'
-import { Route as SiteContactRouteImport } from './pages/contact.tsx'
-import { Route as SiteAboutRouteImport } from './pages/about.tsx'
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SiteRouteImport } from './routes/_site'
+import { Route as SiteIndexRouteImport } from './routes/_site.index'
+import { Route as SiteTermsRouteImport } from './routes/_site.terms'
+import { Route as SiteServicesRouteImport } from './routes/_site.services'
+import { Route as SiteProductsRouteImport } from './routes/_site.products'
+import { Route as SitePrivacyRouteImport } from './routes/_site.privacy'
+import { Route as SiteHowItWorksRouteImport } from './routes/_site.how-it-works'
+import { Route as SiteFaqRouteImport } from './routes/_site.faq'
+import { Route as SiteContactRouteImport } from './routes/_site.contact'
+import { Route as SiteAboutRouteImport } from './routes/_site.about'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const SiteIndexRoute = SiteIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => SiteRoute,
 } as any)
 const SiteTermsRoute = SiteTermsRouteImport.update({
   id: '/terms',
@@ -36,6 +37,11 @@ const SiteTermsRoute = SiteTermsRouteImport.update({
 const SiteServicesRoute = SiteServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteProductsRoute = SiteProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => SiteRoute,
 } as any)
 const SitePrivacyRoute = SitePrivacyRouteImport.update({
@@ -65,36 +71,39 @@ const SiteAboutRoute = SiteAboutRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof SiteIndexRoute
   '/about': typeof SiteAboutRoute
   '/contact': typeof SiteContactRoute
   '/faq': typeof SiteFaqRoute
   '/how-it-works': typeof SiteHowItWorksRoute
   '/privacy': typeof SitePrivacyRoute
+  '/products': typeof SiteProductsRoute
   '/services': typeof SiteServicesRoute
   '/terms': typeof SiteTermsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/about': typeof SiteAboutRoute
   '/contact': typeof SiteContactRoute
   '/faq': typeof SiteFaqRoute
   '/how-it-works': typeof SiteHowItWorksRoute
   '/privacy': typeof SitePrivacyRoute
+  '/products': typeof SiteProductsRoute
   '/services': typeof SiteServicesRoute
   '/terms': typeof SiteTermsRoute
+  '/': typeof SiteIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_site': typeof SiteRouteWithChildren
   '/_site/about': typeof SiteAboutRoute
   '/_site/contact': typeof SiteContactRoute
   '/_site/faq': typeof SiteFaqRoute
   '/_site/how-it-works': typeof SiteHowItWorksRoute
   '/_site/privacy': typeof SitePrivacyRoute
+  '/_site/products': typeof SiteProductsRoute
   '/_site/services': typeof SiteServicesRoute
   '/_site/terms': typeof SiteTermsRoute
+  '/_site/': typeof SiteIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,33 +114,35 @@ export interface FileRouteTypes {
     | '/faq'
     | '/how-it-works'
     | '/privacy'
+    | '/products'
     | '/services'
     | '/terms'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/about'
     | '/contact'
     | '/faq'
     | '/how-it-works'
     | '/privacy'
+    | '/products'
     | '/services'
     | '/terms'
+    | '/'
   id:
     | '__root__'
-    | '/'
     | '/_site'
     | '/_site/about'
     | '/_site/contact'
     | '/_site/faq'
     | '/_site/how-it-works'
     | '/_site/privacy'
+    | '/_site/products'
     | '/_site/services'
     | '/_site/terms'
+    | '/_site/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   SiteRoute: typeof SiteRouteWithChildren
 }
 
@@ -144,12 +155,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_site/': {
+      id: '/_site/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof SiteIndexRouteImport
+      parentRoute: typeof SiteRoute
     }
     '/_site/terms': {
       id: '/_site/terms'
@@ -163,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof SiteServicesRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/products': {
+      id: '/_site/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof SiteProductsRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/privacy': {
@@ -209,8 +227,10 @@ interface SiteRouteChildren {
   SiteFaqRoute: typeof SiteFaqRoute
   SiteHowItWorksRoute: typeof SiteHowItWorksRoute
   SitePrivacyRoute: typeof SitePrivacyRoute
+  SiteProductsRoute: typeof SiteProductsRoute
   SiteServicesRoute: typeof SiteServicesRoute
   SiteTermsRoute: typeof SiteTermsRoute
+  SiteIndexRoute: typeof SiteIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -219,14 +239,15 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteFaqRoute: SiteFaqRoute,
   SiteHowItWorksRoute: SiteHowItWorksRoute,
   SitePrivacyRoute: SitePrivacyRoute,
+  SiteProductsRoute: SiteProductsRoute,
   SiteServicesRoute: SiteServicesRoute,
   SiteTermsRoute: SiteTermsRoute,
+  SiteIndexRoute: SiteIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   SiteRoute: SiteRouteWithChildren,
 }
 export const routeTree = rootRouteImport

@@ -1,7 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { FloatingContact } from "@/components/layout/FloatingContact";
+import { Header } from "@/components/site/Header";
+import { Footer } from "@/components/site/Footer";
+import { FloatingContact } from "@/components/site/FloatingContact";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/_site")({
   component: SiteLayout,
@@ -16,7 +17,7 @@ function SiteLayout() {
       </main>
       <Footer />
       <FloatingContact />
+      <Toaster position="top-center" richColors />
     </div>
   );
 }
-

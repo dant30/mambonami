@@ -28,7 +28,7 @@ function Contact() {
           <div className="space-y-6">
             {[
               { Icon: Mail, t: "Email", d: "hello@mambonami.com" },
-              { Icon: Phone, t: "Phone", d: "+254 700 000 000" },
+              { Icon: Phone, t: "Phone / WhatsApp", d: "+254 724 167 076" },
               { Icon: MapPin, t: "Office", d: "Nairobi, Kenya" },
             ].map(({ Icon, t, d }) => (
               <div key={t} className="flex gap-4 items-start bg-card p-6 rounded-2xl border border-border shadow-soft">

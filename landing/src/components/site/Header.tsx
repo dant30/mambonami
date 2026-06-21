@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X, Leaf } from "lucide-react";
+import { notifyComingSoon } from "@/lib/coming-soon";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
   { to: "/services", label: "Services" },
+  { to: "/products", label: "Products" },
   { to: "/how-it-works", label: "How It Works" },
   { to: "/faq", label: "FAQ" },
   { to: "/contact", label: "Contact" },
@@ -36,12 +38,13 @@ export function Header() {
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/contact"
+          <button
+            type="button"
+            onClick={notifyComingSoon}
             className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-semibold hover:bg-primary-dark transition-colors shadow-soft"
           >
             Get Started
-          </Link>
+          </button>
         </nav>
 
         <button
@@ -68,6 +71,16 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                notifyComingSoon();
+              }}
+              className="mt-2 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold"
+            >
+              Get Started
+            </button>
           </nav>
         </div>
       )}
