@@ -46,10 +46,10 @@ AWS_QUERYSTRING_AUTH = False
 
 # Email (e.g., SendGrid)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST = 'smtp.zoho.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_USER = 'noreply@mambonami.com'
 EMAIL_HOST_PASSWORD = env('SENDGRID_API_KEY', default='')
 DEFAULT_FROM_EMAIL = 'noreply@mambonami.com'
 
