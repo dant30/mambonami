@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { MessageCircle, Phone, Mail, X } from "lucide-react";
 
-const PHONE = "+254724167076";
-const WA_NUMBER = "254724167076";
+const PHONE = "+254728102107";
+const WA_NUMBER = "254728102107";
 const WA_MESSAGE = encodeURIComponent(
   "Hello MAMBONAMI 👋 — I'd love to learn more about your farm-to-table marketplace.",
 );
