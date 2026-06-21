@@ -140,8 +140,8 @@ function PrivacyPage() {
           <h2 className="font-display text-2xl font-semibold mb-3">10. Contact Us</h2>
           <p className="mb-3">If you have questions about this privacy policy or your data:</p>
           <ul className="space-y-2">
-            <li>📧 Email: <a className="text-primary underline" href="mailto:privacy@mambonami.com">privacy@mambonami.com</a></li>
-            <li>📱 Phone: <a className="text-primary underline" href="tel:+254724167076">+254 724 167 076</a></li>
+            <li>📧 Email: <a className="text-primary underline" href="mailto:hello@mambonami.com">hello@mambonami.com</a></li>
+            <li>📱 Phone: <a className="text-primary underline" href="tel:+254728102107">+254 728 102 107</a></li>
             <li>📍 Address: MAMBONAMI, Nairobi, Kenya</li>
           </ul>
         </section>
