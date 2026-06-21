@@ -61,7 +61,7 @@ export function Footer() {
           <h4 className="font-semibold mb-3 text-sm uppercase tracking-wider">Contact</h4>
           <ul className="space-y-2 text-sm text-primary-foreground/80">
             <li className="flex items-center gap-2"><Mail className="w-4 h-4" /><span>hello@mambonami.com</span></li>
-            <li className="flex items-center gap-2"><Phone className="w-4 h-4" /><a href="tel:+254724167076" className="hover:text-secondary">+254 724 167 076</a></li>
+            <li className="flex items-center gap-2"><Phone className="w-4 h-4" /><a href="tel:+254728102107" className="hover:text-secondary">+254 728 102 107</a></li>
             <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /><span>Nairobi, Kenya</span></li>
           </ul>
         </div>
