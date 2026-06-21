@@ -5,7 +5,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist/client"
       }
     },
     {
@@ -13,12 +13,20 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
-          "dist/**"
+          "dist/server/**"
         ]
       }
     }
   ],
   "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|json|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/api/server.ts"
