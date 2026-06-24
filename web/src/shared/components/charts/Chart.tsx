@@ -1,15 +1,34 @@
+// web/src/shared/components/charts/Chart.tsx
 import React from 'react';
+import { cn } from '@/lib/utils';
 
-interface ChartProps {
+interface ChartProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
+  description?: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export default function Chart({ title, children }: ChartProps) {
+export default function Chart({ title, description, children, className, ...props }: ChartProps) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-      {title ? <h3 className="mb-3 text-base font-semibold text-slate-900">{title}</h3> : null}
-      <div className="min-h-[220px]">{children}</div>
+    <div
+      className={cn(
+        "rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors",
+        className
+      )}
+      {...props}
+    >
+      {(title || description) && (
+        <div className="mb-4">
+          {title && (
+            <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          )}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+      )}
+      <div className="w-full min-h-[220px]">{children}</div>
     </div>
   );
 }

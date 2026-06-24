@@ -1,3 +1,4 @@
+// web/src/shared/components/ui/index.ts
 export { default as Select, SearchableSelect } from './Select';
 export * from './DatePicker';
 export * from './TimePicker';
@@ -17,7 +18,6 @@ export { default as Spinner } from './Spinner';
 export { default as Progress } from './Progress';
 export { default as Tooltip } from './Tooltip';
 export { default as Popover } from './Popover';
-export { default as Dropdown } from './Dropdown';
 export { default as Dialog } from './Dialog';
 export { default as Drawer } from './Drawer';
 export { default as Accordion } from './Accordion';
@@ -25,3 +25,6 @@ export { default as Toast } from './Toast';
 export * from './Sheet';
 export * from './Separator';
 export * from './AlertDialog';
+
+// 👇 Add this line to export all dropdown components
+export * from './DropdownMenu';

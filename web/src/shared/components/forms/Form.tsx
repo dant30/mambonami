@@ -1,14 +1,42 @@
-﻿import React from 'react';
+﻿// web/src/shared/components/forms/Form.tsx
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   title?: string;
   description?: string;
+  variant?: 'card' | 'plain';
+  className?: string;
 }
 
-export default function Form({ title, description, className = '', children, ...props }: FormProps) {
+export default function Form({
+  title,
+  description,
+  variant = 'card',
+  className = '',
+  children,
+  ...props
+}: FormProps) {
+  const baseClasses = 'space-y-6';
+  const variantClasses =
+    variant === 'card'
+      ? 'rounded-lg border border-border bg-card p-6 shadow-sm'
+      : '';
+
   return (
-    <form className={`space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-soft ${className}`} {...props}>
-      {title ? <div className="space-y-2"><h2 className="text-2xl font-semibold text-slate-950">{title}</h2>{description ? <p className="text-sm text-slate-500">{description}</p> : null}</div> : null}
+    <form className={cn(baseClasses, variantClasses, className)} {...props}>
+      {(title || description) && (
+        <div className="space-y-1.5">
+          {title && (
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              {title}
+            </h2>
+          )}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+      )}
       {children}
     </form>
   );

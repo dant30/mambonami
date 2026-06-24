@@ -1,6 +1,7 @@
+// web/src/shared/components/forms/FormActions.tsx
 import React from 'react';
-import Button from '../ui/Button';
-import { cn } from '../../../lib/utils';
+import { Button } from '@/shared/components/ui';
+import { cn } from '@/lib/utils';
 
 type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
 
@@ -29,20 +30,30 @@ export default function FormActions({
   return (
     <div
       className={cn(
-        'flex flex-wrap gap-2 border-t border-surface-border pt-3',
+        'flex flex-wrap items-center gap-3 border-t border-border pt-4',
         alignmentClass,
-        className,
+        className
       )}
       role="group"
       aria-label="Form actions"
     >
-      {secondaryLabel ? (
-        <Button variant="secondary" {...secondaryProps}>
+      {secondaryLabel && (
+        <Button
+          variant="outline"
+          type="button"
+          disabled={loading}
+          {...secondaryProps}
+        >
           {secondaryLabel}
         </Button>
-      ) : null}
-      <Button variant="default" disabled={loading} {...primaryProps}>
-        {primaryLabel}
+      )}
+      <Button
+        variant="default"
+        type="submit"
+        disabled={loading}
+        {...primaryProps}
+      >
+        {loading ? 'Saving...' : primaryLabel}
       </Button>
     </div>
   );

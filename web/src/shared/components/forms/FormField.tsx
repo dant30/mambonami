@@ -1,7 +1,7 @@
+// web/src/shared/components/forms/FormField.tsx
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-
-import { cn } from '../../../lib/utils';
-import Label from '../ui/Label';
+import { cn } from '@/lib/utils';
+import { Label } from '@/shared/components/ui';
 import ValidationErrors from './ValidationErrors';
 
 interface FormFieldProps {
@@ -44,20 +44,20 @@ export function FormField({
 
   return (
     <div className={cn('grid gap-1.5', className)}>
-      {label ? (
-        <Label htmlFor={id}>
+      {label && (
+        <Label htmlFor={id} className="text-sm font-medium">
           {label}
-          {required ? <span className="ml-1 text-xs text-destructive">*</span> : null}
+          {required && <span className="ml-1 text-destructive">*</span>}
         </Label>
-      ) : null}
-      <div className={cn(hasErrors && 'rounded-md ring-1 ring-danger-200 dark:ring-danger-900/40')}>
+      )}
+      <div className={cn(hasErrors && 'rounded-md ring-1 ring-destructive/50')}>
         {enhancedChild}
       </div>
-      {hint && !hasErrors ? (
-        <p id={hintId} className="text-sm text-text-muted">
+      {hint && !hasErrors && (
+        <p id={hintId} className="text-sm text-muted-foreground">
           {hint}
         </p>
-      ) : null}
+      )}
       <ValidationErrors id={errorId} errors={normalizedErrors} />
     </div>
   );

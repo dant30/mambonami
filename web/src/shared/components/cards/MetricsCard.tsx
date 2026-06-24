@@ -1,4 +1,5 @@
-﻿interface MetricsCardProps {
+﻿// web/src/shared/components/cards/MetricsCard.tsx
+interface MetricsCardProps {
   title: string;
   value: string;
   metric?: string;

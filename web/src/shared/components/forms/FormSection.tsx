@@ -1,6 +1,6 @@
+// web/src/shared/components/forms/FormSection.tsx
 import type { ReactNode } from 'react';
-
-import { cn } from '../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface FormSectionProps {
   title?: string;
@@ -18,17 +18,23 @@ export function FormSection({
   className = '',
 }: FormSectionProps) {
   return (
-    <section className={cn('ui-form-section anim-fade-in', className)}>
+    <section className={cn('space-y-4', className)}>
       {(title || description || actions) && (
-        <header className="ui-form-section-header">
-          <div>
-            {title ? <h3 className="text-base font-semibold text-text-primary">{title}</h3> : null}
-            {description ? <p className="mt-1 text-sm text-text-secondary">{description}</p> : null}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-0.5">
+            {title && (
+              <h3 className="text-base font-semibold leading-none tracking-tight">
+                {title}
+              </h3>
+            )}
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
           </div>
-          {actions ? <div>{actions}</div> : null}
-        </header>
+          {actions && <div>{actions}</div>}
+        </div>
       )}
-      <div className="ui-form-section-body">{children}</div>
+      <div className="space-y-4">{children}</div>
     </section>
   );
 }

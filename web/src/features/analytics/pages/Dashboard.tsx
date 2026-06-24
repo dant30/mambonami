@@ -1,15 +1,16 @@
-
+// web/src/features/analytics/pages/Dashboard.tsx
 import { useNavigate } from 'react-router-dom';
-import Card from '../../../shared/components/cards/Card';
-import BarChart from '../../../shared/components/charts/BarChart';
-import LineChart from '../../../shared/components/charts/LineChart';
-import PieChart from '../../../shared/components/charts/PieChart';
+import Card from '@/shared/components/cards/Card';
+import BarChart from '@/shared/components/charts/BarChart';
+import LineChart from '@/shared/components/charts/LineChart';
+import PieChart from '@/shared/components/charts/PieChart';
 import { useAnalytics } from '../hooks/useAnalytics';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { stats, loading, error } = useAnalytics();
 
+  // Navigation items derived from analytics data
   const navigationItems = [
     {
       title: 'Top Farmers',
@@ -28,7 +29,7 @@ export default function Dashboard() {
     {
       title: 'Disputes',
       description: 'Tracked dispute activity from daily metrics',
-      count: stats?.disputeStatusBreakdown.reduce((sum, item) => sum + item.value, 0),
+      count: stats?.disputeStatusBreakdown?.reduce((sum, item) => sum + item.value, 0),
       path: '/admin/disputes',
       variant: 'red' as const,
     },
@@ -45,6 +46,30 @@ export default function Dashboard() {
       count: stats?.summary?.total_orders,
       path: '/admin/audit',
       variant: 'gray' as const,
+    },
+  ];
+
+  // KPI cards derived from summary
+  const kpiItems = [
+    {
+      label: 'Total Orders',
+      value: stats?.summary?.total_orders ?? 0,
+      change: stats?.summary?.order_change ?? 0,
+    },
+    {
+      label: 'Total Sales',
+      value: `KES ${stats?.summary?.total_sales?.toLocaleString() ?? 0}`,
+      change: stats?.summary?.sales_change ?? 0,
+    },
+    {
+      label: 'Active Farmers',
+      value: stats?.summary?.active_farmers ?? 0,
+      change: stats?.summary?.farmers_change ?? 0,
+    },
+    {
+      label: 'Active Providers',
+      value: stats?.summary?.active_providers ?? 0,
+      change: stats?.summary?.providers_change ?? 0,
     },
   ];
 
@@ -78,8 +103,25 @@ export default function Dashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-slate-600">Loading dashboard statistics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-slate-900">Analytics Dashboard</h1>
         <p className="mt-2 text-lg text-slate-600">
@@ -87,113 +129,125 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-slate-600">Loading dashboard statistics...</p>
+      {/* KPI Cards (if summary data exists) */}
+      {stats?.summary && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {kpiItems.map((kpi) => (
+            <Card key={kpi.label} className="p-4">
+              <p className="text-sm font-medium text-slate-600">{kpi.label}</p>
+              <p className="text-3xl font-bold text-slate-900">{kpi.value}</p>
+              {kpi.change !== undefined && (
+                <p className={`mt-1 text-sm ${kpi.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {kpi.change >= 0 ? '↑' : '↓'} {Math.abs(kpi.change)}% vs last period
+                </p>
+              )}
+            </Card>
+          ))}
         </div>
-      ) : (
-        <>
-          {/* Key metrics */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {navigationItems.map((item) => (
-              <Card
-                key={item.path}
-                className={`border-2 p-4 text-center cursor-pointer transition hover:shadow-lg ${getColorClasses(item.variant)}`}
-                onClick={() => navigate(item.path)}
-              >
-                {item.count !== undefined && (
-                  <p className={`text-3xl font-bold ${getCountColor(item.variant)}`}>
-                    {item.count}
-                  </p>
-                )}
-                <p className="mt-1 font-semibold text-slate-900">{item.title}</p>
-                <p className="text-xs text-slate-600">{item.description}</p>
-              </Card>
-            ))}
-          </div>
-
-          {/* Trend charts */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <LineChart
-              title="Order volume trend"
-              data={stats?.orderTrend || []}
-              dataKey="value"
-              labelKey="label"
-              color="#0f766e"
-            />
-            <PieChart title="Farmer approvals" data={stats?.farmerApprovalBreakdown || []} />
-            <PieChart title="Provider approvals" data={stats?.providerApprovalBreakdown || []} />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <BarChart
-              title="Dispute status breakdown"
-              data={stats?.disputeStatusBreakdown || []}
-              dataKey="value"
-              labelKey="name"
-              color="#ca8a04"
-            />
-            <BarChart
-              title="Payout status breakdown"
-              data={stats?.payoutStatusBreakdown || []}
-              dataKey="value"
-              labelKey="name"
-              color="#0f766e"
-            />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Summary</h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm text-slate-600">Date range</p>
-                  <p className="mt-1 font-medium text-slate-900">
-                    {stats?.summary?.start_date || '—'} to {stats?.summary?.end_date || '—'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600">Total sales</p>
-                  <p className="mt-1 font-medium text-slate-900">KES {String(stats?.summary?.total_sales ?? 0)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600">Collections</p>
-                  <p className="mt-1 font-medium text-slate-900">{String(stats?.payments?.collections.total_amount ?? 0)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600">Payouts</p>
-                  <p className="mt-1 font-medium text-slate-900">{String(stats?.payments?.payouts.total_amount ?? 0)}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Top Performers</h3>
-              <div className="mt-4 space-y-3">
-                {stats?.topFarmers.slice(0, 5).map((farmer) => (
-                  <div key={farmer.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                    <span className="text-sm text-slate-700">{farmer.user_phone}</span>
-                    <span className="text-sm font-medium text-slate-900">KES {String(farmer.total_sales)}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Info section */}
-          <Card className="border-l-4 border-blue-500 bg-blue-50 p-6">
-            <h3 className="font-semibold text-blue-900">System Information</h3>
-            <ul className="mt-3 space-y-2 text-sm text-blue-800">
-              <li>• Dashboard data is sourced from the backend analytics module</li>
-              <li>• Approval and suspension actions remain in the admin feature set</li>
-              <li>• Daily metrics can be recomputed from backend analytics endpoints</li>
-              <li>• The web app is admin-facing; field users should use the mobile app</li>
-            </ul>
-          </Card>
-        </>
       )}
+
+      {/* Navigation Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {navigationItems.map((item) => (
+          <Card
+            key={item.path}
+            className={`cursor-pointer border-2 p-4 text-center transition hover:shadow-lg ${getColorClasses(item.variant)}`}
+            onClick={() => navigate(item.path)}
+          >
+            {item.count !== undefined && (
+              <p className={`text-3xl font-bold ${getCountColor(item.variant)}`}>
+                {item.count}
+              </p>
+            )}
+            <p className="mt-1 font-semibold text-slate-900">{item.title}</p>
+            <p className="text-xs text-slate-600">{item.description}</p>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <LineChart
+          title="Order volume trend"
+          data={stats?.orderTrend || []}
+          xKey="label"
+          lines={[{ key: 'value', name: 'Orders', color: '#0f766e' }]}
+        />
+        <PieChart title="Farmer approvals" data={stats?.farmerApprovalBreakdown || []} />
+        <PieChart title="Provider approvals" data={stats?.providerApprovalBreakdown || []} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <BarChart
+          title="Dispute status breakdown"
+          data={stats?.disputeStatusBreakdown || []}
+          xKey="name"
+          bars={[{ key: 'value', name: 'Disputes', color: '#ca8a04' }]}
+        />
+        <BarChart
+          title="Payout status breakdown"
+          data={stats?.payoutStatusBreakdown || []}
+          xKey="name"
+          bars={[{ key: 'value', name: 'Payouts', color: '#0f766e' }]}
+        />
+      </div>
+
+      {/* Detailed Summary and Top Performers */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900">Summary</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-sm text-slate-600">Date range</p>
+              <p className="mt-1 font-medium text-slate-900">
+                {stats?.summary?.start_date || '—'} to {stats?.summary?.end_date || '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Total sales</p>
+              <p className="mt-1 font-medium text-slate-900">KES {stats?.summary?.total_sales?.toLocaleString() ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Collections</p>
+              <p className="mt-1 font-medium text-slate-900">
+                {stats?.payments?.collections.total_amount?.toLocaleString() ?? 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Payouts</p>
+              <p className="mt-1 font-medium text-slate-900">
+                {stats?.payments?.payouts.total_amount?.toLocaleString() ?? 0}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900">Top Performers</h3>
+          <div className="mt-4 space-y-3">
+            {stats?.topFarmers?.slice(0, 5).map((farmer) => (
+              <div key={farmer.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                <span className="text-sm text-slate-700">{farmer.user_phone}</span>
+                <span className="text-sm font-medium text-slate-900">KES {farmer.total_sales?.toLocaleString()}</span>
+              </div>
+            ))}
+            {(!stats?.topFarmers || stats.topFarmers.length === 0) && (
+              <p className="text-sm text-slate-500">No data available</p>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Info section */}
+      <Card className="border-l-4 border-blue-500 bg-blue-50 p-6">
+        <h3 className="font-semibold text-blue-900">System Information</h3>
+        <ul className="mt-3 space-y-2 text-sm text-blue-800">
+          <li>• Dashboard data is sourced from the backend analytics module</li>
+          <li>• Approval and suspension actions remain in the admin feature set</li>
+          <li>• Daily metrics can be recomputed from backend analytics endpoints</li>
+          <li>• The web app is admin-facing; field users should use the mobile app</li>
+        </ul>
+      </Card>
     </div>
   );
 }

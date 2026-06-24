@@ -1,57 +1,52 @@
 ﻿// web/src/shared/layout/Header.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, Plus, Bell, Sun, Moon, Search } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/core/context/ThemeContext';
 import { useSidebar } from '@/core/context';
 import { Button } from '@/shared/components/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui';
+import { cn } from '@/lib/utils';
 
-const BellIcon = ({ className = "h-5 w-5" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-);
-
-const SunIcon = ({ className = "h-5 w-5" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="5" />
-    <line x1="12" y1="1" x2="12" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="23" />
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-    <line x1="1" y1="12" x2="3" y2="12" />
-    <line x1="21" y1="12" x2="23" y2="12" />
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-  </svg>
-);
-
-const MoonIcon = ({ className = "h-5 w-5" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-  </svg>
-);
+// Simple breadcrumb helper
+function getBreadcrumbs(pathname: string) {
+  const segments = pathname.split('/').filter(Boolean);
+  const crumbs = segments.map((segment, index) => {
+    const url = '/' + segments.slice(0, index + 1).join('/');
+    const label = segment
+      .replace(/-/g, ' ')
+      .replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+    return { label, url };
+  });
+  return crumbs;
+}
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { isMobile, toggleMobile, toggleCollapsed } = useSidebar();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const env = import.meta.env.VITE_ENVIRONMENT || 'development';
+  const envBadgeColor = env === 'production' ? 'bg-green-600' : env === 'staging' ? 'bg-yellow-600' : 'bg-blue-600';
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // Handle sidebar toggle (mobile = open sheet, desktop = collapse)
   const handleSidebarToggle = () => {
     if (isMobile) {
       toggleMobile();
@@ -60,6 +55,10 @@ export default function Header() {
     }
   };
 
+  // Breadcrumbs
+  const breadcrumbs = getBreadcrumbs(location.pathname);
+
+  // Keyboard shortcuts and outside click handlers
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -69,6 +68,12 @@ export default function Header() {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsDropdownOpen(false);
+        setShowSearch(false);
+      }
+      if (event.key === '/' && !showSearch) {
+        event.preventDefault();
+        setShowSearch(true);
+        setTimeout(() => searchInputRef.current?.focus(), 100);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -77,52 +82,120 @@ export default function Header() {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEsc);
     };
-  }, []);
+  }, [showSearch]);
 
-  const userInitials = user?.username
-    ? user.username.split(' ').map((n) => n[0]).join('').toUpperCase()
-    : user?.phone?.slice(-2).toUpperCase() || '?';
+  const userInitials = user?.first_name
+    ? user.first_name.split(' ').map((n) => n[0]).join('').toUpperCase()
+    : user?.username?.slice(0, 2).toUpperCase() || '?';
+
+  const quickActions = [
+    { label: 'Approve Farmer', path: '/admin/farmer-approval' },
+    { label: 'Create Admin', path: '/admin/users' },
+    { label: 'Send Notification', path: '/notifications' },
+    { label: 'Generate Report', path: '/analytics/sales' },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-3 shadow-sm backdrop-blur-sm transition-colors duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
-      <div className="flex items-center justify-between gap-4">
-        {/* Left: Hamburger + Logo */}
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 border-b border-sidebar-border bg-emerald-50/95 px-4 py-2 shadow-sm backdrop-blur-sm transition-colors duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-slate-950/40">
+      <div className="flex items-center justify-between gap-2">
+        {/* Left: Hamburger + Breadcrumbs */}
+        <div className="flex items-center gap-2 min-w-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleSidebarToggle}
-            className="h-9 w-9 rounded-full hover:bg-emerald-200 dark:hover:bg-slate-700"
+            className="h-9 w-9 rounded-full hover:bg-emerald-200 dark:hover:bg-slate-700 shrink-0"
             aria-label="Toggle sidebar"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="text-lg font-bold tracking-tight text-emerald-800 dark:text-emerald-300 md:hidden">
-            Mambonami
+
+          {/* Breadcrumbs */}
+          <nav className="hidden md:flex items-center gap-1 text-sm text-muted-foreground truncate">
+            {breadcrumbs.map((crumb, index) => (
+              <span key={crumb.url} className="flex items-center gap-1">
+                {index > 0 && <span className="text-muted-foreground/40">/</span>}
+                {index === breadcrumbs.length - 1 ? (
+                  <span className="font-medium text-foreground truncate">{crumb.label}</span>
+                ) : (
+                  <Link to={crumb.url} className="hover:text-foreground transition-colors">
+                    {crumb.label}
+                  </Link>
+                )}
+              </span>
+            ))}
+          </nav>
+
+          {/* Mobile: show current page name */}
+          <span className="md:hidden text-sm font-medium truncate">
+            {breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : 'Dashboard'}
           </span>
         </div>
 
-        {/* Search bar - hidden on mobile, visible on desktop */}
-        <div className="hidden flex-1 md:block">
+        {/* Center: Global Search (desktop) */}
+        <div className="hidden md:flex flex-1 max-w-xl mx-4 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search orders, products, transports..."
+            placeholder="Search orders, farmers, transporters..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-2xl rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-emerald-600 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+            className="w-full rounded-lg border border-emerald-300 bg-emerald-50/80 px-9 py-2 text-sm text-slate-900 placeholder:text-muted-foreground transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+              }
+            }}
           />
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+            ⌘K
+          </kbd>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {/* Environment badge */}
+          <div className={cn(
+            "hidden sm:block text-xs font-medium text-white px-2 py-0.5 rounded-full",
+            envBadgeColor
+          )}>
+            {env.toUpperCase()}
+          </div>
+
+          {/* Quick actions dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full hover:bg-emerald-200 dark:hover:bg-slate-700"
+                aria-label="Quick actions"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {quickActions.map((action) => (
+                <DropdownMenuItem key={action.path} asChild>
+                  <Link to={action.path} className="cursor-pointer">
+                    {action.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Notifications */}
           <Link
             to="/notifications"
             aria-label="Notifications"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-            title="Notifications"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
           >
-            <BellIcon className="h-4 w-4" />
+            <Bell className="h-4 w-4" />
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              8
+            </span>
           </Link>
 
           {/* Theme toggle */}
@@ -132,7 +205,7 @@ export default function Header() {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
           {/* User dropdown */}
@@ -145,31 +218,58 @@ export default function Header() {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-emerald-200 rounded-lg shadow-lg py-2 z-50 dark:bg-slate-900 dark:border-slate-700">
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-emerald-200 rounded-lg shadow-lg py-2 z-50 dark:bg-slate-900 dark:border-slate-700">
                 <div className="px-4 py-2 border-b border-emerald-200 dark:border-slate-700">
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {user?.username || user?.phone}
+                    {user?.first_name || user?.username || user?.phone}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.phone}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || user?.phone}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">Admin</p>
                 </div>
                 <Link
                   to="/profile"
                   className="block px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 transition dark:text-slate-200 dark:hover:bg-slate-800"
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  Profile
+                  Profile Settings
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
                 >
-                  Logout
+                  Sign out
                 </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Mobile search bar (toggled) */}
+      {showSearch && (
+        <div className="md:hidden mt-2 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            autoFocus
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-emerald-300 bg-emerald-50/80 px-9 py-2 text-sm text-slate-900 placeholder:text-muted-foreground transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+              }
+            }}
+          />
+          <button
+            onClick={() => setShowSearch(false)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </header>
   );
 }

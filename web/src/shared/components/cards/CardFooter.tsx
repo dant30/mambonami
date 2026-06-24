@@ -1,0 +1,1 @@
+// web/src/shared/components/cards/CardFooter.tsx
