@@ -57,9 +57,11 @@ class ProviderDashboard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.providerAccent.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.providerAccent.withOpacity(0.3)),
+                  color: AppColors.providerAccent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.providerAccent.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -152,7 +154,7 @@ class ProviderDashboard extends StatelessWidget {
               title: 'Profile',
               subtitle: 'Account details',
               icon: Icons.person,
-              accentColor: Colors.purple,
+              accentColor: AppColors.supportAccent,
               onTap: () => context.push(RoutePaths.profile),
             ),
           ],

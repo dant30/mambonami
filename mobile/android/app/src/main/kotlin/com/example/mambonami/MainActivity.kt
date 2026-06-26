@@ -1,4 +1,4 @@
-package com.example.mambonami
+package com.mambonami.app
 
 import io.flutter.embedding.android.FlutterActivity
 

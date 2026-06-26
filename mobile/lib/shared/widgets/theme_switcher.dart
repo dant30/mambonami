@@ -10,7 +10,15 @@ class ThemeSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeState = context.watch<ThemeCubit>().state;
     return PopupMenuButton<ThemeMode>(
-      icon: const Icon(Icons.brightness_6),
+      tooltip: 'Theme',
+      initialValue: themeState.themeMode,
+      icon: Icon(
+        themeState.themeMode == ThemeMode.dark
+            ? Icons.dark_mode_outlined
+            : themeState.themeMode == ThemeMode.light
+                ? Icons.light_mode_outlined
+                : Icons.brightness_auto_outlined,
+      ),
       onSelected: (mode) => context.read<ThemeCubit>().setThemeMode(mode),
       itemBuilder: (context) => [
         const PopupMenuItem(

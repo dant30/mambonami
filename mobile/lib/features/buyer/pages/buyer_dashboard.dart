@@ -119,7 +119,7 @@ class BuyerDashboard extends StatelessWidget {
                     icon: Icons.support_agent,
                     title: 'Support',
                     subtitle: 'We\'re here',
-                    color: Colors.purple,
+                    color: AppColors.supportAccent,
                     onTap: () => context.push(RoutePaths.support),
                   ),
                 ],
@@ -143,21 +143,21 @@ class BuyerDashboard extends StatelessWidget {
                       icon: Icons.eco,
                       title: 'Organic Week',
                       subtitle: '20% off organic produce',
-                      color: Colors.green,
+                      color: AppColors.buyerAccent,
                     ),
                     const SizedBox(width: 12),
                     _FeatureCard(
                       icon: Icons.local_shipping,
                       title: 'Free Delivery',
                       subtitle: 'On orders over KES 2,000',
-                      color: Colors.orange,
+                      color: AppColors.providerAccent,
                     ),
                     const SizedBox(width: 12),
                     _FeatureCard(
                       icon: Icons.percent,
                       title: 'Farmer Specials',
                       subtitle: 'Direct from farm',
-                      color: Colors.teal,
+                      color: AppColors.farmerAccent,
                     ),
                   ],
                 ),
@@ -191,16 +191,16 @@ class _QuickActionTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Material(
       color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
+              color: theme.colorScheme.outline.withValues(alpha: 0.72),
             ),
           ),
           child: Column(
@@ -209,8 +209,8 @@ class _QuickActionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 28),
               ),
@@ -224,7 +224,7 @@ class _QuickActionTile extends StatelessWidget {
               Text(
                 subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -256,19 +256,22 @@ class _FeatureCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+          colors: [
+            color.withValues(alpha: 0.15),
+            color.withValues(alpha: 0.05),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -290,7 +293,7 @@ class _FeatureCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

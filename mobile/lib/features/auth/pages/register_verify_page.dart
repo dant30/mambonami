@@ -99,7 +99,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +221,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                       decoration: const InputDecoration(
                         labelText: 'Vehicle Type',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         ),
                         filled: true,
                       ),

@@ -114,7 +114,7 @@ class FarmerDashboard extends StatelessWidget {
                   icon: Icons.show_chart_outlined,
                   title: 'Earnings',
                   subtitle: 'Track revenue',
-                  accentColor: Colors.purple,
+                  accentColor: AppColors.supportAccent,
                   onTap: () => context.push(RoutePaths.farmerEarnings),
                 ),
               ],

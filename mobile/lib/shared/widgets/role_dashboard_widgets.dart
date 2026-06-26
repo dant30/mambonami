@@ -27,7 +27,7 @@ class RoleHeroCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: AppShadows.floating,
       ),
       child: Column(
@@ -104,7 +104,8 @@ class HeroActionButton extends StatelessWidget {
       label: Text(label),
       style: FilledButton.styleFrom(
         backgroundColor: Colors.white,
-        foregroundColor: isDark ? AppColors.primaryForegroundDark : AppColors.primaryForegroundLight,
+        foregroundColor:
+            isDark ? AppColors.primaryForegroundDark : AppColors.primaryLight,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -204,14 +205,14 @@ class DashboardStatStrip extends StatelessWidget {
           final index = entry.key;
           final stat = entry.value;
           return Expanded(
-            child: Column(
+            child: Row(
               children: [
-                _StatCell(stat: stat),
+                Expanded(child: _StatCell(stat: stat)),
                 if (index != stats.length - 1)
                   Container(
                     width: 1,
-                    height: 38,
-                    color: theme.colorScheme.outline,
+                    height: 42,
+                    color: theme.colorScheme.outline.withValues(alpha: 0.72),
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                   ),
               ],

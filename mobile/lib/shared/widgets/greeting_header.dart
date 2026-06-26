@@ -1,4 +1,3 @@
-// mobile/lib/shared/widgets/greeting_header.dart
 import 'package:flutter/material.dart';
 
 class GreetingHeader extends StatelessWidget {
@@ -27,14 +26,6 @@ class GreetingHeader extends StatelessWidget {
     return 'Hello';
   }
 
-  String _emoji() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return '🌅';
-    if (hour >= 12 && hour < 17) return '☀️';
-    if (hour >= 17 && hour < 21) return '🌆';
-    return '🌙';
-  }
-
   IconData _icon() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return Icons.wb_sunny_outlined;
@@ -47,14 +38,11 @@ class GreetingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayName =
         (name != null && name!.trim().isNotEmpty) ? name!.trim() : 'there';
-
     final theme = Theme.of(context);
-
     final titleStyle = textStyle ??
         theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
         );
-
     final subStyle = subtitleStyle ??
         theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
@@ -69,13 +57,15 @@ class GreetingHeader extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              _emoji(),
-              style: const TextStyle(fontSize: 22),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.14),
             ),
+          ),
+          child: Icon(
+            _icon(),
+            color: theme.colorScheme.onPrimaryContainer,
+            size: 24,
           ),
         ),
         const SizedBox(width: 12),

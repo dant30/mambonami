@@ -16,9 +16,9 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.trailing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-    this.showDivider = true,
-    this.accentWidth = 5,
+    this.padding = const EdgeInsets.symmetric(vertical: 10.0),
+    this.showDivider = false,
+    this.accentWidth = 4,
     this.accentColor,
     this.onTap,
   });
@@ -37,15 +37,17 @@ class SectionHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: accentWidth,
-              height: hasSubtitle ? 42 : 24,
-              decoration: BoxDecoration(
-                color: effectiveAccent,
-                borderRadius: BorderRadius.circular(8),
+            if (accentWidth > 0) ...[
+              Container(
+                width: accentWidth,
+                height: hasSubtitle ? 38 : 22,
+                decoration: BoxDecoration(
+                  color: effectiveAccent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +63,8 @@ class SectionHeader extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.64),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.64),
                       ),
                     ),
                   ],

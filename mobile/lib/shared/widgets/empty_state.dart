@@ -67,7 +67,7 @@ class EmptyState extends StatelessWidget {
                 effectiveDescription,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.68),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
                   height: 1.45,
                 ),
               ),
@@ -87,7 +87,7 @@ class EmptyState extends StatelessWidget {
                               vertical: 14,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: Text(buttonText!),
@@ -118,24 +118,24 @@ class EmptyState extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 520),
       curve: Curves.easeOut,
-      width: 90,
-      height: 90,
+      width: 84,
+      height: 84,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary.withOpacity(0.16),
-            theme.colorScheme.primary.withOpacity(0.04),
+            theme.colorScheme.primary.withValues(alpha: 0.16),
+            theme.colorScheme.primary.withValues(alpha: 0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.18),
+          color: theme.colorScheme.outline.withValues(alpha: 0.18),
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.08),
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -144,7 +144,7 @@ class EmptyState extends StatelessWidget {
       child: Icon(
         icon ?? Icons.inbox_outlined,
         size: 42,
-        color: theme.colorScheme.primary.withOpacity(0.78),
+        color: theme.colorScheme.primary.withValues(alpha: 0.78),
       ),
     );
   }

@@ -14,8 +14,13 @@ ThemeData lightTheme = ThemeData(
     onPrimary: AppColors.primaryForegroundLight,
     secondary: AppColors.secondaryLight,
     onSecondary: AppColors.secondaryForegroundLight,
+    primaryContainer: AppColors.primaryLight.withValues(alpha: 0.12),
+    onPrimaryContainer: AppColors.primaryLight,
+    secondaryContainer: AppColors.secondaryLight.withValues(alpha: 0.14),
+    onSecondaryContainer: AppColors.secondaryForegroundLight,
     surface: AppColors.cardLight,
     onSurface: AppColors.foregroundLight,
+    onSurfaceVariant: AppColors.foregroundLight.withValues(alpha: 0.66),
     surfaceContainerHighest: AppColors.surfaceHighLight,
     outline: AppColors.outlineLight,
     error: AppColors.destructiveLight,
@@ -44,6 +49,12 @@ ThemeData lightTheme = ThemeData(
     filled: true,
     fillColor: AppColors.inputLight,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    labelStyle: TextStyle(
+      color: AppColors.foregroundLight.withValues(alpha: 0.7),
+    ),
+    hintStyle: TextStyle(
+      color: AppColors.foregroundLight.withValues(alpha: 0.48),
+    ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
@@ -57,6 +68,15 @@ ThemeData lightTheme = ThemeData(
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(foregroundColor: AppColors.primaryLight),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      backgroundColor: AppColors.primaryLight,
+      foregroundColor: AppColors.primaryForegroundLight,
+      minimumSize: const Size(48, 46),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+    ),
   ),
   cardTheme: CardThemeData(
     elevation: 0,

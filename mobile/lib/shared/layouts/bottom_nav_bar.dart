@@ -19,11 +19,9 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
     return Material(
-      elevation: 14,
-      shadowColor: theme.shadowColor.withOpacity(0.12),
+      elevation: 10,
+      shadowColor: theme.shadowColor.withValues(alpha: 0.12),
       color: theme.colorScheme.surface,
       child: SafeArea(
         top: false,
@@ -34,14 +32,13 @@ class BottomNavBar extends StatelessWidget {
             color: theme.colorScheme.surface,
             border: Border(
               top: BorderSide(
-                color: theme.colorScheme.outline.withOpacity(0.65),
+                color: theme.colorScheme.outline.withValues(alpha: 0.65),
                 width: 1,
               ),
             ),
           ),
-          padding: EdgeInsets.only(bottom: bottomPadding),
           child: NavigationBar(
-            height: kBottomNavigationBarHeight,
+            height: 68,
             selectedIndex: currentIndex,
             onDestinationSelected: (index) {
               HapticFeedback.selectionClick();
@@ -49,7 +46,7 @@ class BottomNavBar extends StatelessWidget {
             },
             backgroundColor: theme.colorScheme.surface,
             surfaceTintColor: theme.colorScheme.surfaceTint,
-            indicatorColor: theme.colorScheme.primary.withOpacity(0.14),
+            indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.14),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: items.map((item) {
               return NavigationDestination(

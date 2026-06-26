@@ -48,9 +48,9 @@ class AppScreen extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF07110C),
-          Color(0xFF102019),
-          Color(0xFF0D1712),
+          Color(0xFF0F1712),
+          Color(0xFF16251B),
+          Color(0xFF101713),
         ],
       );
     }
@@ -59,9 +59,9 @@ class AppScreen extends StatelessWidget {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        Color(0xFFEAF8EF),
-        Color(0xFFDDF2E5),
-        Color(0xFFF3FAF1),
+        Color(0xFFF7FAF5),
+        Color(0xFFEEF6EC),
+        Color(0xFFF9FBF7),
       ],
     );
   }

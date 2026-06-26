@@ -14,8 +14,13 @@ ThemeData darkTheme = ThemeData(
     onPrimary: AppColors.primaryForegroundDark,
     secondary: AppColors.secondaryDark,
     onSecondary: AppColors.secondaryForegroundDark,
+    primaryContainer: AppColors.primaryDark.withValues(alpha: 0.16),
+    onPrimaryContainer: AppColors.primaryDark,
+    secondaryContainer: AppColors.secondaryDark.withValues(alpha: 0.16),
+    onSecondaryContainer: AppColors.secondaryForegroundDark,
     surface: AppColors.cardDark,
     onSurface: AppColors.foregroundDark,
+    onSurfaceVariant: AppColors.foregroundDark.withValues(alpha: 0.68),
     surfaceContainerHighest: AppColors.surfaceHighDark,
     outline: AppColors.outlineDark,
     error: AppColors.destructiveDark,
@@ -44,6 +49,12 @@ ThemeData darkTheme = ThemeData(
     filled: true,
     fillColor: AppColors.inputDark,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    labelStyle: TextStyle(
+      color: AppColors.foregroundDark.withValues(alpha: 0.72),
+    ),
+    hintStyle: TextStyle(
+      color: AppColors.foregroundDark.withValues(alpha: 0.48),
+    ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
@@ -57,6 +68,15 @@ ThemeData darkTheme = ThemeData(
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(foregroundColor: AppColors.primaryDark),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      backgroundColor: AppColors.primaryDark,
+      foregroundColor: AppColors.primaryForegroundDark,
+      minimumSize: const Size(48, 46),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+    ),
   ),
   cardTheme: CardThemeData(
     elevation: 0,

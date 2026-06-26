@@ -38,7 +38,7 @@ class CustomButton extends StatelessWidget {
     this.color,
     this.textColor,
     this.disabledColor,
-    this.borderRadius = 12.0,
+    this.borderRadius = 8.0,
     this.padding =
         const EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
     this.style,
@@ -63,7 +63,7 @@ class CustomButton extends StatelessWidget {
         : (enabled
             ? (color ?? theme.colorScheme.primary)
             : (disabledColor ??
-                theme.disabledColor.withOpacity(0.3)));
+                theme.disabledColor.withValues(alpha: 0.3)));
 
     final fgColor = textColor ??
         (outlined
@@ -82,7 +82,7 @@ class CustomButton extends StatelessWidget {
       backgroundColor: bgColor,
       foregroundColor: fgColor,
       disabledForegroundColor:
-          theme.colorScheme.onSurface.withOpacity(0.38),
+          theme.colorScheme.onSurface.withValues(alpha: 0.38),
       elevation: outlined ? 0 : 0,
       minimumSize: Size(
         fullWidth ? double.infinity : (minWidth ?? 120),

@@ -9,6 +9,7 @@ import '../../config/role_routes.dart';
 import '../../config/route_paths.dart';
 import '../themes/app_gradients.dart';
 import '../themes/app_shadows.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/avatar.dart';
 import '../widgets/pill_badge.dart';
 
@@ -141,7 +142,7 @@ class AppDrawer extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(12)),
+            borderRadius: BorderRadius.circular(8)),
         child: Text(
           count > 99 ? '99+' : count.toString(),
           style: TextStyle(
@@ -272,12 +273,8 @@ class AppDrawer extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.verified_user_outlined,
-                            color: Colors.white.withValues(alpha: 0.88),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
+                          const AppLogo(size: 28),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'MAMBONAMI',
