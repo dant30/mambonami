@@ -1,11 +1,12 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
-    // Updated package name
     namespace = "com.mambonami.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
@@ -17,46 +18,43 @@ android {
     }
 
     defaultConfig {
-        // Updated Application ID to match your Google Play package
         applicationId = "com.mambonami.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    }
+
     signingConfigs {
-        // For development (debug) – uses the debug keystore
-        create("debug") {
-            // The debug keystore is generated automatically by Android Studio
-            // No need to specify credentials for debug
+        // Release signing config using the secure key.properties file.
+        create("release") {
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            keyAlias = keystoreProperties["keyAlias"] as String
+            storePassword = keystoreProperties["storePassword"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
         }
-        // For release – you must create your own keystore
-        // Uncomment and configure this block before building a release
-        // create("release") {
-        //     storeFile = file("path/to/your/keystore.jks")
-        //     storePassword = "your_store_password"
-        //     keyAlias = "your_key_alias"
-        //     keyPassword = "your_key_password"
-        // }
     }
 
     buildTypes {
-        release {
-            // TODO: Replace with your release signing config
-            // For now, signing with debug keys (DO NOT USE FOR PRODUCTION)
-            signingConfig = signingConfigs.getByName("debug")
-            // When you have your keystore ready, replace the line above with:
-            // signingConfig = signingConfigs.getByName("release")
-            
-            // Proguard (optional, but recommended)
+        debug {
+            // Debug builds should never shrink or minify.
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isShrinkResources = false
+        }
+
+        release {
+            // Use the production signing config for release builds.
+            signingConfig = signingConfigs.getByName("release")
+
+            // Disable minification for now to avoid ProGuard complexity.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
