@@ -49,8 +49,10 @@ class AppDrawer extends StatelessWidget {
     final roleLabel = AppRole.displayLabel(role);
     final homeRoute = AppRole.homePathFor(role);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    bool isRouteSelected(String route) =>
-        currentLocation == route || currentLocation.startsWith(route);
+    bool isRouteSelected(String route) {
+      final normalizedLocation = currentLocation.split('?').first;
+      return normalizedLocation == route || normalizedLocation.startsWith('$route/');
+    }
 
     // Badge counts (computed at build time)
     final notifState = context.watch<NotificationBloc>().state;
@@ -177,23 +179,43 @@ class AppDrawer extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.44),
-                              width: 1.4,
+                        Stack(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.16),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.44),
+                                  width: 1.4,
+                                ),
+                              ),
+                              child: Avatar(
+                                username: username.isNotEmpty ? username : phone,
+                                size: 56,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.18),
+                              ),
                             ),
-                          ),
-                          child: Avatar(
-                            username: username.isNotEmpty ? username : phone,
-                            size: 56,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.18),
-                          ),
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: Colors.greenAccent.shade400,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(width: 12),
                         Expanded(

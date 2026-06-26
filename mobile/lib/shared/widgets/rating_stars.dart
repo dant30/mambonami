@@ -1,5 +1,6 @@
 // mobile/lib/shared/widgets/rating_stars.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class RatingStars extends StatelessWidget {
   final double rating;
@@ -58,6 +59,68 @@ class RatingStars extends StatelessWidget {
                 child: Icon(Icons.star, size: size, color: fillColor),
               ),
             ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class InteractiveRatingStars extends StatefulWidget {
+  final int initialRating;
+  final ValueChanged<int> onRatingChanged;
+  final int starCount;
+  final double size;
+  final Color? filledColor;
+  final Color? emptyColor;
+
+  const InteractiveRatingStars({
+    super.key,
+    this.initialRating = 0,
+    required this.onRatingChanged,
+    this.starCount = 5,
+    this.size = 24,
+    this.filledColor,
+    this.emptyColor,
+  });
+
+  @override
+  State<InteractiveRatingStars> createState() => _InteractiveRatingStarsState();
+}
+
+class _InteractiveRatingStarsState extends State<InteractiveRatingStars> {
+  late int _rating;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.initialRating;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(widget.starCount, (index) {
+        final isSelected = index < _rating;
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _rating = index + 1);
+            widget.onRatingChanged(_rating);
+          },
+          child: AnimatedScale(
+            scale: isSelected ? 1.06 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutBack,
+            child: Icon(
+              isSelected ? Icons.star : Icons.star_border,
+              color: isSelected
+                  ? (widget.filledColor ?? theme.colorScheme.secondary)
+                  : (widget.emptyColor ?? theme.disabledColor),
+              size: widget.size,
+            ),
           ),
         );
       }),

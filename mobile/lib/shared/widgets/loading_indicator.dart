@@ -92,22 +92,34 @@ class LoadingIndicator extends StatelessWidget {
       return Center(child: loader);
     }
 
-    return Stack(
-      children: [
-        if (blocking)
-          ModalBarrier(
-            dismissible: false,
-            color: Colors.black.withValues(alpha: 0.2),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.surface,
+            theme.colorScheme.surface.withValues(alpha: 0.84),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          if (blocking)
+            ModalBarrier(
+              dismissible: false,
+              color: Colors.black.withValues(alpha: 0.2),
+            ),
 
-        if (blurBackground)
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-            child: const SizedBox.expand(),
-          ),
+          if (blurBackground)
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: const SizedBox.expand(),
+            ),
 
-        Center(child: loader),
-      ],
+          Center(child: loader),
+        ],
+      ),
     );
   }
 }

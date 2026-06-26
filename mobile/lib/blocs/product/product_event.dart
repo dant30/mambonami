@@ -36,3 +36,9 @@ class DeleteProductEvent extends ProductEvent {
   const DeleteProductEvent(this.uuid);
   @override List<Object> get props => [uuid];
 }
+
+class ToggleFavoriteEvent extends ProductEvent {
+  final Product product;
+  const ToggleFavoriteEvent(this.product);
+  @override List<Object> get props => [product.uuid];
+}

@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../blocs/order/order_bloc.dart';
+import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
@@ -12,10 +12,8 @@ import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/cart_action_button.dart';
 import '../../../shared/themes/app_colors.dart';
-import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/role_dashboard_widgets.dart';
 import '../../../shared/widgets/section_header.dart';
-import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/greeting_header.dart';
 
 class BuyerDashboard extends StatelessWidget {
@@ -51,124 +49,121 @@ class BuyerDashboard extends StatelessWidget {
       ),
       drawer: const AppDrawer(),
       body: AppScreen(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Animated Greeting
-            GreetingHeader(
-              name: username.isNotEmpty ? username : 'there',
-              subtitle: 'Fresh produce delivered to your door',
-            ),
-            
-            // Quick Stats Row
-            DashboardStatStrip(
-              stats: [
-                DashboardStat(
-                  label: 'Orders',
-                  value: recentOrdersCount.toString(),
-                  icon: Icons.receipt_long_outlined,
-                ),
-                DashboardStat(
-                  label: 'Active',
-                  value: '3',
-                  icon: Icons.shopping_bag_outlined,
-                ),
-                DashboardStat(
-                  label: 'Saved',
-                  value: '12',
-                  icon: Icons.favorite_border,
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 18),
-            
-            // Quick Actions Grid
-            SectionHeader(
-              title: 'Quick Actions',
-              subtitle: 'Shop, track, and manage your orders',
-            ),
-            const SizedBox(height: 8),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.1,
-              children: [
-                _QuickActionTile(
-                  icon: Icons.storefront_outlined,
-                  title: 'Browse',
-                  subtitle: 'Fresh products',
-                  color: AppColors.buyerAccent,
-                  onTap: () => context.push(RoutePaths.products),
-                ),
-                _QuickActionTile(
-                  icon: Icons.shopping_cart_checkout_rounded,
-                  title: 'Cart',
-                  subtitle: 'Ready to checkout',
-                  color: AppColors.secondaryLight,
-                  onTap: () => context.push(RoutePaths.cart),
-                ),
-                _QuickActionTile(
-                  icon: Icons.receipt_long,
-                  title: 'Orders',
-                  subtitle: 'Track history',
-                  color: AppColors.farmerAccent,
-                  onTap: () => context.push(RoutePaths.orders),
-                ),
-                _QuickActionTile(
-                  icon: Icons.support_agent,
-                  title: 'Support',
-                  subtitle: 'We\'re here',
-                  color: Colors.purple,
-                  onTap: () => context.push(RoutePaths.support),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Featured Section (future: show promotions)
-            SectionHeader(
-              title: 'Featured',
-              subtitle: 'Handpicked for you',
-              trailing: TextButton(
-                onPressed: () => context.push(RoutePaths.products),
-                child: const Text('See all'),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            context.read<OrderBloc>().add(FetchMyOrdersEvent());
+            context.read<ProductBloc>().add(const FetchProductsEvent());
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              GreetingHeader(
+                name: username.isNotEmpty ? username : 'there',
+                subtitle: 'Fresh produce delivered to your door',
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 120,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _FeatureCard(
-                    icon: Icons.eco,
-                    title: 'Organic Week',
-                    subtitle: '20% off organic produce',
-                    color: Colors.green,
+              DashboardStatStrip(
+                stats: [
+                  DashboardStat(
+                    label: 'Orders',
+                    value: recentOrdersCount.toString(),
+                    icon: Icons.receipt_long_outlined,
                   ),
-                  const SizedBox(width: 12),
-                  _FeatureCard(
-                    icon: Icons.local_shipping,
-                    title: 'Free Delivery',
-                    subtitle: 'On orders over KES 2,000',
-                    color: Colors.orange,
+                  DashboardStat(
+                    label: 'Active',
+                    value: '3',
+                    icon: Icons.shopping_bag_outlined,
                   ),
-                  const SizedBox(width: 12),
-                  _FeatureCard(
-                    icon: Icons.percent,
-                    title: 'Farmer Specials',
-                    subtitle: 'Direct from farm',
-                    color: Colors.teal,
+                  DashboardStat(
+                    label: 'Saved',
+                    value: '12',
+                    icon: Icons.favorite_border,
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              SectionHeader(
+                title: 'Quick Actions',
+                subtitle: 'Shop, track, and manage your orders',
+              ),
+              const SizedBox(height: 8),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.1,
+                children: [
+                  _QuickActionTile(
+                    icon: Icons.storefront_outlined,
+                    title: 'Browse',
+                    subtitle: 'Fresh products',
+                    color: AppColors.buyerAccent,
+                    onTap: () => context.push(RoutePaths.products),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.shopping_cart_checkout_rounded,
+                    title: 'Cart',
+                    subtitle: 'Ready to checkout',
+                    color: AppColors.secondaryLight,
+                    onTap: () => context.push(RoutePaths.cart),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.receipt_long,
+                    title: 'Orders',
+                    subtitle: 'Track history',
+                    color: AppColors.farmerAccent,
+                    onTap: () => context.push(RoutePaths.orders),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.support_agent,
+                    title: 'Support',
+                    subtitle: 'We\'re here',
+                    color: Colors.purple,
+                    onTap: () => context.push(RoutePaths.support),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SectionHeader(
+                title: 'Featured',
+                subtitle: 'Handpicked for you',
+                trailing: TextButton(
+                  onPressed: () => context.push(RoutePaths.products),
+                  child: const Text('See all'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 120,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _FeatureCard(
+                      icon: Icons.eco,
+                      title: 'Organic Week',
+                      subtitle: '20% off organic produce',
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 12),
+                    _FeatureCard(
+                      icon: Icons.local_shipping,
+                      title: 'Free Delivery',
+                      subtitle: 'On orders over KES 2,000',
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 12),
+                    _FeatureCard(
+                      icon: Icons.percent,
+                      title: 'Farmer Specials',
+                      subtitle: 'Direct from farm',
+                      color: Colors.teal,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const AppBottomNavigationBar(),

@@ -6,6 +6,20 @@ import '../../data/repositories/product_repository.dart';
 part 'product_event.dart';
 part 'product_state.dart';
 
+class _FavoriteTracker {
+  static final Set<String> _favoriteIds = <String>{};
+
+  static bool isFavorite(Product product) => _favoriteIds.contains(product.uuid);
+
+  static void toggle(Product product) {
+    if (_favoriteIds.contains(product.uuid)) {
+      _favoriteIds.remove(product.uuid);
+    } else {
+      _favoriteIds.add(product.uuid);
+    }
+  }
+}
+
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository productRepository;
 
@@ -15,6 +29,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<CreateProductEvent>(_onCreateProduct);
     on<UpdateProductEvent>(_onUpdateProduct);
     on<DeleteProductEvent>(_onDeleteProduct);
+    on<ToggleFavoriteEvent>(_onToggleFavorite);
   }
 
   Future<void> _onFetchProducts(FetchProductsEvent event, Emitter<ProductState> emit) async {
@@ -81,6 +96,14 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       emit(ProductDeleted());
     } catch (e) {
       emit(ProductError(e.toString()));
+    }
+  }
+
+  Future<void> _onToggleFavorite(ToggleFavoriteEvent event, Emitter<ProductState> emit) async {
+    _FavoriteTracker.toggle(event.product);
+    if (state is ProductLoaded) {
+      final currentProducts = (state as ProductLoaded).products;
+      emit(ProductLoaded(currentProducts));
     }
   }
 }

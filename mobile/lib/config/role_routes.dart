@@ -5,11 +5,13 @@ class AppRole {
   static const retailer = 'retailer';
   static const farmer = 'farmer';
   static const transportProvider = 'transport_provider';
+  static const admin = 'admin';
 
   static const buyerRoles = [buyer, retailer];
   static const farmerRoles = [farmer];
   static const transportProviderRoles = [transportProvider];
   static const operationalRoles = [buyer, retailer, farmer, transportProvider];
+  static const allRoles = [buyer, retailer, farmer, transportProvider, admin];
 
   static String homePathFor(String? role) {
     switch (role) {
@@ -20,6 +22,8 @@ class AppRole {
         return RoutePaths.farmerDashboard;
       case transportProvider:
         return RoutePaths.transportProviderDashboard;
+      case admin:
+        return '/admin';
       default:
         return RoutePaths.login;
     }
@@ -41,6 +45,8 @@ class AppRole {
         return 'Farmer';
       case transportProvider:
         return 'Transport Provider';
+      case admin:
+        return 'Admin';
       default:
         return 'Guest';
     }

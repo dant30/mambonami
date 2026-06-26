@@ -8,6 +8,7 @@ import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../blocs/trip/trip_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
@@ -19,9 +20,18 @@ class ProviderDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
+    final tripState = context.watch<TripBloc>().state;
     String username = '';
     if (authState is AuthAuthenticated) {
       username = authState.username ?? authState.phone;
+    }
+
+    String activeTripLabel = '';
+    if (tripState is MyTripsLoaded && tripState.trips.isNotEmpty) {
+      final activeTrip = tripState.trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').firstOrNull;
+      if (activeTrip != null) {
+        activeTripLabel = 'You have an active trip in ${activeTrip.status}. Tap to continue.';
+      }
     }
 
     return Scaffold(
@@ -41,6 +51,34 @@ class ProviderDashboard extends StatelessWidget {
           children: [
             GreetingHeader(name: username),
             const SizedBox(height: 10),
+            if (activeTripLabel.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.providerAccent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.providerAccent.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.route_outlined, color: AppColors.providerAccent),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        activeTripLabel,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push(RoutePaths.myTrips),
+                      child: const Text('View'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             RoleHeroCard(
               title: 'Delivery control',
               subtitle:

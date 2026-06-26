@@ -1,10 +1,13 @@
 ﻿// mobile/lib/shared/layouts/bottom_nav_bar.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final List<BottomNavItem> items;
+
+  static const _animationDuration = Duration(milliseconds: 220);
 
   const BottomNavBar({
     super.key,
@@ -16,36 +19,60 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-              color: theme.colorScheme.outline.withValues(alpha: 0.7)),
-        ),
-      ),
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Material(
+      elevation: 14,
+      shadowColor: theme.shadowColor.withOpacity(0.12),
+      color: theme.colorScheme.surface,
       child: SafeArea(
         top: false,
-        child: NavigationBar(
-          selectedIndex: currentIndex,
-          onDestinationSelected: onTap,
-          destinations: items.map((item) {
-            return NavigationDestination(
-              icon: item.badgeCount > 0
-                  ? Badge(
-                      label: Text(item.badgeCount > 99 ? '99+' : item.badgeCount.toString()),
-                      child: Icon(item.icon),
-                    )
-                  : Icon(item.icon),
-              selectedIcon: item.badgeCount > 0
-                  ? Badge(
-                      label: Text(item.badgeCount > 99 ? '99+' : item.badgeCount.toString()),
-                      child: Icon(item.activeIcon ?? item.icon),
-                    )
-                  : Icon(item.activeIcon ?? item.icon),
-              label: item.label,
-            );
-          }).toList(),
+        child: AnimatedContainer(
+          duration: _animationDuration,
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: theme.colorScheme.outline.withOpacity(0.65),
+                width: 1,
+              ),
+            ),
+          ),
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          child: NavigationBar(
+            height: kBottomNavigationBarHeight,
+            selectedIndex: currentIndex,
+            onDestinationSelected: (index) {
+              HapticFeedback.selectionClick();
+              onTap(index);
+            },
+            backgroundColor: theme.colorScheme.surface,
+            surfaceTintColor: theme.colorScheme.surfaceTint,
+            indicatorColor: theme.colorScheme.primary.withOpacity(0.14),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: items.map((item) {
+              return NavigationDestination(
+                icon: item.badgeCount > 0
+                    ? Badge(
+                        label: Text(item.badgeCount > 99
+                            ? '99+'
+                            : item.badgeCount.toString()),
+                        child: Icon(item.icon),
+                      )
+                    : Icon(item.icon),
+                selectedIcon: item.badgeCount > 0
+                    ? Badge(
+                        label: Text(item.badgeCount > 99
+                            ? '99+'
+                            : item.badgeCount.toString()),
+                        child: Icon(item.activeIcon ?? item.icon),
+                      )
+                    : Icon(item.activeIcon ?? item.icon),
+                label: item.label,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );

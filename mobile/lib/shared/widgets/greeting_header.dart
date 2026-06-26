@@ -27,6 +27,14 @@ class GreetingHeader extends StatelessWidget {
     return 'Hello';
   }
 
+  String _emoji() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return '🌅';
+    if (hour >= 12 && hour < 17) return '☀️';
+    if (hour >= 17 && hour < 21) return '🌆';
+    return '🌙';
+  }
+
   IconData _icon() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return Icons.wb_sunny_outlined;
@@ -63,10 +71,11 @@ class GreetingHeader extends StatelessWidget {
             color: theme.colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            _icon(),
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 24,
+          child: Center(
+            child: Text(
+              _emoji(),
+              style: const TextStyle(fontSize: 22),
+            ),
           ),
         ),
         const SizedBox(width: 12),

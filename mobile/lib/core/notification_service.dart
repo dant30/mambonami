@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
+import '../core/api_client.dart';
 import '../core/constants.dart';
 import '../core/deep_link_handler.dart';
 import '../blocs/notification/notification_bloc.dart';
@@ -25,6 +26,7 @@ class NotificationService {
       final token = await _fcm.getToken();
       if (token != null) {
         debugPrint('FCM Token: $token');
+        await saveFCMToken(token);
       }
 
       // Setup local notifications for when app is in foreground
@@ -129,6 +131,21 @@ class NotificationService {
       // Router integration happens through the app's startup listeners.
     } catch (e) {
       debugPrint('[NotificationService] Failed to navigate: $e');
+    }
+  }
+
+  Future<void> saveFCMToken(String token) async {
+    try {
+      await getIt<ApiClient>().dio.post(
+        '/api/notifications/fcm-token/',
+        data: {
+          'token': token,
+        },
+      );
+      debugPrint('[NotificationService] FCM token saved successfully');
+    } catch (error, stackTrace) {
+      debugPrint('[NotificationService] Failed to save FCM token: $error');
+      debugPrint(stackTrace.toString());
     }
   }
 

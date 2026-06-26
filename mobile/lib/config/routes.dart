@@ -40,6 +40,46 @@ import '../features/common/support_page.dart';
 import '../blocs/auth/auth_bloc.dart';
 import 'role_routes.dart';
 
+class NotFoundPage extends StatelessWidget {
+  const NotFoundPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Page not found')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.explore_off_rounded, size: 64),
+              const SizedBox(height: 12),
+              Text(
+                'We could not find that page.',
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please return to the home screen and try again.',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () => context.go(AppRole.homePathFor(context.read<AuthBloc>().state is AuthAuthenticated ? (context.read<AuthBloc>().state as AuthAuthenticated).role : null)),
+                icon: const Icon(Icons.home_outlined),
+                label: const Text('Go home'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class AppRouter {
   late final GoRouter router = GoRouter(
     initialLocation: RoutePaths.login,
@@ -304,7 +344,12 @@ class AppRouter {
           child: TransportEarningsPage(),
         ),
       ),
+      GoRoute(
+        path: '/404',
+        builder: (_, __) => const NotFoundPage(),
+      ),
     ],
+    errorBuilder: (_, __) => const NotFoundPage(),
   );
 
   /// Handle deep links and authentication redirects
@@ -334,11 +379,48 @@ class AppRouter {
     // Standard authentication redirects
     if (authState is AuthAuthenticated) {
       final role = authState.role;
-      if (AppRole.isHomePathForRole(state.uri.path, role)) return null;
-      if (state.uri.path == RoutePaths.login ||
-          state.uri.path == RoutePaths.register ||
-          state.uri.path.startsWith('${RoutePaths.register}/')) {
+      const knownRoutes = <String>{
+        RoutePaths.login,
+        RoutePaths.register,
+        RoutePaths.registerVerify,
+        RoutePaths.forgotPassword,
+        RoutePaths.buyerDashboard,
+        RoutePaths.farmerDashboard,
+        RoutePaths.transportProviderDashboard,
+        RoutePaths.availableOrders,
+        RoutePaths.myTrips,
+        RoutePaths.transportEarnings,
+        RoutePaths.farmerProducts,
+        RoutePaths.farmerProductCreate,
+        RoutePaths.farmerOrderRequests,
+        RoutePaths.farmerEarnings,
+        RoutePaths.notifications,
+        RoutePaths.orders,
+        RoutePaths.products,
+        RoutePaths.cart,
+        RoutePaths.checkout,
+        RoutePaths.dispute,
+        RoutePaths.profile,
+        RoutePaths.settings,
+        RoutePaths.support,
+      };
+
+      final path = state.uri.path;
+      if (AppRole.isHomePathForRole(path, role)) return null;
+      if (path == RoutePaths.login ||
+          path == RoutePaths.register ||
+          path.startsWith('${RoutePaths.register}/')) {
         return AppRole.homePathFor(role);
+      }
+      if (!knownRoutes.contains(path) &&
+          !path.startsWith('${RoutePaths.productDetail.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.orderTracking.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.tripDetail.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.pickup.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.delivery.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.farmerProductEdit.replaceAll(':uuid', '')}') &&
+          !path.startsWith('${RoutePaths.farmerOrderRequestDetail.replaceAll(':id', '')}')) {
+        return '/404';
       }
       return null;
     } else if (authState is AuthUnauthenticated) {

@@ -1,8 +1,10 @@
 // mobile/lib/features/buyer/widgets/product_list_tile.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../config/route_paths.dart';
-import '../../../data/models/product.dart';
+import '../../blocs/product/product_bloc.dart';
+import '../../config/route_paths.dart';
+import '../../data/models/product.dart';
 
 class ProductListTile extends StatelessWidget {
   final Product product;
@@ -46,13 +48,27 @@ class ProductListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      product.displayName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.displayName,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            context.read<ProductBloc>().add(ToggleFavoriteEvent(product));
+                          },
+                          icon: const Icon(Icons.favorite_border),
+                          tooltip: 'Save product',
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(

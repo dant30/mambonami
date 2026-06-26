@@ -13,14 +13,21 @@ class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({super.key});
 
   int _selectedIndex(String location) {
-    if (location.startsWith(RoutePaths.buyerDashboard) ||
-        location.startsWith(RoutePaths.farmerDashboard) ||
-        location.startsWith(RoutePaths.transportProviderDashboard)) {
+    final normalizedLocation = location.split('?').first;
+    if (normalizedLocation == RoutePaths.buyerDashboard ||
+        normalizedLocation == RoutePaths.farmerDashboard ||
+        normalizedLocation == RoutePaths.transportProviderDashboard ||
+        normalizedLocation.startsWith('${RoutePaths.buyerDashboard}/') ||
+        normalizedLocation.startsWith('${RoutePaths.farmerDashboard}/') ||
+        normalizedLocation.startsWith('${RoutePaths.transportProviderDashboard}/')) {
       return 0;
     }
-    if (location.startsWith(RoutePaths.notifications)) return 1;
-    if (location.startsWith(RoutePaths.support)) return 2;
-    if (location.startsWith(RoutePaths.profile)) return 3;
+    if (normalizedLocation == RoutePaths.notifications ||
+        normalizedLocation.startsWith('${RoutePaths.notifications}/')) return 1;
+    if (normalizedLocation == RoutePaths.support ||
+        normalizedLocation.startsWith('${RoutePaths.support}/')) return 2;
+    if (normalizedLocation == RoutePaths.profile ||
+        normalizedLocation.startsWith('${RoutePaths.profile}/')) return 3;
     return 0;
   }
 
@@ -29,6 +36,10 @@ class AppBottomNavigationBar extends StatelessWidget {
     String homeRoute = RoutePaths.login;
     if (authState is AuthAuthenticated) {
       homeRoute = AppRole.homePathFor(authState.role);
+    }
+    if (index == 0) {
+      context.go(homeRoute);
+      return;
     }
 
     switch (index) {

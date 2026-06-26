@@ -108,7 +108,7 @@ class _OTPVerificationDialogState extends State<OTPVerificationDialog> {
       _error = '';
     });
     context.read<TripBloc>().add(
-      VerifyOTPEvent(tripUuid: widget.tripUuid, otp: otp),
+      VerifyOtpEvent(widget.tripUuid, otp),
     );
   }
 }

@@ -56,6 +56,25 @@ class CustomSnackbar {
     );
   }
 
+  static void showPersistent(
+    BuildContext context,
+    String message, {
+      Color? backgroundColor,
+      Widget? leading,
+      String? actionLabel,
+      VoidCallback? onAction,
+    }) {
+    show(
+      context,
+      message,
+      backgroundColor: backgroundColor,
+      duration: const Duration(days: 1),
+      leading: leading,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
+  }
+
   static void showSuccess(BuildContext context, String message) {
     show(context, message, backgroundColor: Theme.of(context).colorScheme.primary);
   }
