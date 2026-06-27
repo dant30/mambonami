@@ -37,6 +37,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: '.env');
+    debugPrint('Loaded .env file successfully.');
   } catch (error) {
     debugPrint('No .env file loaded, continuing with defaults.');
   }

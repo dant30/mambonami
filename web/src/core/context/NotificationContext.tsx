@@ -1,5 +1,6 @@
 ﻿// web/src/core/context/NotificationContext.tsx
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Toast } from '../../shared/components/ui';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
@@ -40,6 +41,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   return (
     <NotificationContext.Provider value={{ notifications, showNotification, removeNotification }}>
       {children}
+      <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex flex-col items-end gap-3 px-4 sm:px-6">
+        {notifications.map((notification) => (
+          <Toast
+            key={notification.id}
+            message={notification.message}
+            title={notification.title}
+            type={notification.type}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+      </div>
     </NotificationContext.Provider>
   );
 };

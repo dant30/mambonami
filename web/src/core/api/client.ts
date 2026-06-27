@@ -3,6 +3,15 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_BASE } from './endpoints';
 import { getToken, removeToken, setToken } from '../storage/secureStorage';
 
+const getCsrfToken = () => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const match = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
 /**
  * Create axios instance with default configuration
  */
@@ -11,16 +20,23 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 /**
- * Request interceptor - Add auth token to all requests
+ * Request interceptor - Add auth token and CSRF token to all requests
  */
 apiClient.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    (config.headers as Record<string, string | undefined>).Authorization = `Bearer ${token}`;
   }
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    (config.headers as Record<string, string | undefined>)['X-CSRFToken'] = csrfToken;
+  }
+
   return config;
 });
 

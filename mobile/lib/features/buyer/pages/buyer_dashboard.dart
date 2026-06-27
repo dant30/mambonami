@@ -49,6 +49,7 @@ class BuyerDashboard extends StatelessWidget {
       ),
       drawer: const AppDrawer(),
       body: AppScreen(
+        scrollable: false,
         child: RefreshIndicator(
           onRefresh: () async {
             context.read<OrderBloc>().add(FetchMyOrdersEvent());

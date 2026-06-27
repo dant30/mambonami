@@ -1,22 +1,8 @@
 ﻿// web/src/core/api/endpoints.ts
 
-const DEFAULT_API_BASE = () => {
-  const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
-  if (configuredApiBase) {
-    return configuredApiBase;
-  }
+const DEFAULT_API_BASE = import.meta.env.VITE_API_BASE_URL?.trim() || 'https://api.mambonami.com';
 
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol;
-    const host = window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    return `${protocol}//${host}${port}`;
-  }
-
-  return 'http://localhost:8000';
-};
-
-export const API_BASE = DEFAULT_API_BASE();
+export const API_BASE = DEFAULT_API_BASE;
 
 /**
  * Authentication & Token Endpoints
