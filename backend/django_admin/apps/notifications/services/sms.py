@@ -22,11 +22,40 @@ def _format_phone_number(phone_number: str) -> str:
 def _is_success_response(result: Dict[str, Any]) -> bool:
     if not isinstance(result, dict):
         return False
-    if result.get('status') in ('success', 'ok', True):
+    success_values = {'success', 'ok', 'sent', 'queued', 'accepted', 'delivered'}
+    status = result.get('status')
+    if isinstance(status, str) and status.lower() in success_values:
+        return True
+    if status is True:
         return True
     if result.get('success') is True:
         return True
+    for key in ('data', 'message', 'messages', 'response'):
+        nested = result.get(key)
+        if isinstance(nested, dict) and _is_success_response(nested):
+            return True
+        if isinstance(nested, list) and any(
+            isinstance(item, dict) and _is_success_response(item)
+            for item in nested
+        ):
+            return True
     return False
+
+
+def _provider_error_message(result: Dict[str, Any]) -> str:
+    if not isinstance(result, dict):
+        return ''
+    for key in ('error', 'message', 'description', 'detail'):
+        value = result.get(key)
+        if isinstance(value, str) and value:
+            return value
+    for key in ('data', 'response'):
+        nested = result.get(key)
+        if isinstance(nested, dict):
+            message = _provider_error_message(nested)
+            if message:
+                return message
+    return ''
 
 
 class OTSSMS:
@@ -97,6 +126,7 @@ class OTSSMS:
                 'status': 'success' if success else 'failed',
                 'response': result,
                 'message_id': result.get('message_id') or result.get('id'),
+                'message': _provider_error_message(result),
             }
 
         except requests.exceptions.Timeout:

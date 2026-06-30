@@ -140,7 +140,15 @@ class PasswordResetInitSerializer(serializers.Serializer):
             otp = generate_otp()
             RedisCache.set(f'password_reset_otp:{phone}', otp, timeout=settings.OTP_EXPIRY_SECONDS)
             RedisCache.set(f'password_reset_attempts:{phone}', 0, timeout=settings.OTP_EXPIRY_SECONDS)
-            send_otp_message(phone, otp)
+            sms_result = send_otp_message(phone, otp)
+            if sms_result.get('status') != 'success':
+                RedisCache.delete(f'password_reset_otp:{phone}')
+                RedisCache.delete(f'password_reset_attempts:{phone}')
+                error = sms_result.get('error') or sms_result.get('message') or 'SMS gateway did not accept the OTP.'
+                logger.warning('Password reset OTP SMS failed for %s: %s', phone, error)
+                raise serializers.ValidationError({
+                    'detail': f'Could not send OTP right now: {error}'
+                })
         return {'message': 'If an account exists for this phone, a reset OTP has been sent.'}
 
 

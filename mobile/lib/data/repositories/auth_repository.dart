@@ -198,6 +198,7 @@ class AuthRepository {
         'phone': normalizedPhone,
         'otp': otp,
         'new_password': newPassword,
+        'confirm_password': newPassword,
       });
       if (response.statusCode != 200) {
         throw Exception('Failed to reset password');
@@ -263,6 +264,7 @@ class AuthRepository {
     if (error is DioException) {
       final statusCode = error.response?.statusCode;
       final data = normalizeMap(error.response?.data);
+      final serverMessage = _extractServerMessage(data);
 
       // Log error details for debugging
       print('AuthRepository Error - Status: $statusCode, Type: ${error.type}');
@@ -273,11 +275,15 @@ class AuthRepository {
       // Handle specific HTTP status codes
       switch (statusCode) {
         case 400:
-          return stringValue(data['detail'], fallback: 'Invalid phone or password format');
+          return serverMessage.isNotEmpty
+              ? serverMessage
+              : 'Invalid phone or password format';
         case 401:
-          return stringValue(data['detail'], fallback: 'Invalid phone number or password');
+          return serverMessage.isNotEmpty
+              ? serverMessage
+              : 'Invalid phone number or password';
         case 409:
-          return stringValue(data['detail'], fallback: 'User already exists');
+          return serverMessage.isNotEmpty ? serverMessage : 'User already exists';
         case 429:
           return 'Too many login attempts. Please try again later.';
         case 500:
@@ -286,12 +292,7 @@ class AuthRepository {
           return 'Server error. Please try again later.';
         default:
           if (data.isNotEmpty) {
-            if (data['detail'] != null) {
-              return stringValue(data['detail']);
-            }
-            if (data['error'] != null) {
-              return stringValue(data['error']);
-            }
+            if (serverMessage.isNotEmpty) return serverMessage;
           }
           return 'Network error: ${error.message}';
       }
@@ -303,5 +304,27 @@ class AuthRepository {
     }
     
     return error.toString();
+  }
+
+  String _extractServerMessage(Map<String, dynamic> data) {
+    for (final key in const ['detail', 'error', 'message']) {
+      final message = stringValue(data[key]);
+      if (message.isNotEmpty) return message;
+    }
+
+    for (final entry in data.entries) {
+      final value = entry.value;
+      if (value is List && value.isNotEmpty) {
+        return '${entry.key}: ${value.map((item) => item.toString()).join(', ')}';
+      }
+      if (value is Map && value.isNotEmpty) {
+        final nested = _extractServerMessage(normalizeMap(value));
+        if (nested.isNotEmpty) return '${entry.key}: $nested';
+      }
+      final message = stringValue(value);
+      if (message.isNotEmpty) return '${entry.key}: $message';
+    }
+
+    return '';
   }
 }
