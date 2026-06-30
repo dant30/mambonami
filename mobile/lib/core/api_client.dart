@@ -25,9 +25,11 @@ class ApiClient {
   void _addInterceptors() {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await getIt<SecureStorage>().getAccessToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
+        if (!_isAuthRequest(options.path)) {
+          final token = await getIt<SecureStorage>().getAccessToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
         }
         AppLogger.debug('Request: ${options.method} ${options.uri}');
         return handler.next(options);
@@ -40,7 +42,7 @@ class ApiClient {
         final statusCode = error.response?.statusCode;
         AppLogger.error('HTTP $statusCode: ${error.message}');
 
-        if (statusCode == 401) {
+        if (statusCode == 401 && !_isAuthRequest(error.requestOptions.path)) {
           final refreshed = await _refreshToken();
           if (refreshed) {
             try {
@@ -78,6 +80,15 @@ class ApiClient {
         return handler.next(error);
       },
     ));
+  }
+
+  bool _isAuthRequest(String path) {
+    return path.endsWith(kLoginEndpoint) ||
+        path.endsWith(kRegisterInitEndpoint) ||
+        path.endsWith(kRegisterVerifyEndpoint) ||
+        path.endsWith(kForgotPasswordInitEndpoint) ||
+        path.endsWith(kForgotPasswordVerifyEndpoint) ||
+        path.endsWith(kRefreshTokenEndpoint);
   }
 
   Future<bool> _refreshToken() async {

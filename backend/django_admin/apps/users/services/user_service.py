@@ -2,6 +2,7 @@
 from typing import Optional
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.validators.phone_validator import normalize_phone_number
 
 User = get_user_model()
 
@@ -16,7 +17,12 @@ def get_tokens_for_user(user: User):
 
 def authenticate_user(phone: str, password: str) -> Optional[User]:
     try:
-        user = User.objects.get(phone=phone)
+        normalized_phone = normalize_phone_number(phone)
+    except Exception:
+        return None
+
+    try:
+        user = User.objects.get(phone=normalized_phone)
     except User.DoesNotExist:
         return None
 

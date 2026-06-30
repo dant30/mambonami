@@ -22,8 +22,9 @@ class AuthRepository {
 
   Future<void> registerInit(String phone, String role) async {
     try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
       final response = await _apiClient.dio.post(kRegisterInitEndpoint, data: {
-        'phone': phone,
+        'phone': normalizedPhone,
         'role': role,
       });
       if (response.statusCode != 200) {
@@ -46,8 +47,9 @@ class AuthRepository {
     String? licensePlate,
   }) async {
     try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
       final data = {
-        'phone': phone,
+        'phone': normalizedPhone,
         'otp': otp,
         'username': username,
         'password': password,
@@ -71,9 +73,9 @@ class AuthRepository {
         }
         await _secureStorage.saveTokens(accessToken, refreshToken);
         await _secureStorage.saveUserRole(stringValue(user['role'], fallback: role));
-        await _secureStorage.saveUserPhone(stringValue(user['phone'], fallback: phone));
+        await _secureStorage.saveUserPhone(stringValue(user['phone'], fallback: normalizedPhone));
         await _cacheManager.saveJson(kCachedProfileKey, user);
-        await _databaseHelper.insertOrUpdateRecord(kUserTable, phone, user);
+        await _databaseHelper.insertOrUpdateRecord(kUserTable, stringValue(user['phone'], fallback: normalizedPhone), user);
         return user;
       }
       throw Exception('Registration failed');
@@ -84,9 +86,10 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
       final response = await _apiClient.dio.post(
         kLoginEndpoint,
-        data: {'phone': phone, 'password': password},
+        data: {'phone': normalizedPhone, 'password': password},
       );
 
       if (response.statusCode != 200) {
@@ -169,8 +172,9 @@ class AuthRepository {
 
   Future<void> forgotPasswordInit(String phone) async {
     try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
       final response = await _apiClient.dio.post(kForgotPasswordInitEndpoint, data: {
-        'phone': phone,
+        'phone': normalizedPhone,
       });
       if (response.statusCode != 200) {
         throw Exception('Failed to send reset OTP');
@@ -182,8 +186,9 @@ class AuthRepository {
 
   Future<void> forgotPasswordVerify(String phone, String otp, String newPassword) async {
     try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
       final response = await _apiClient.dio.post(kForgotPasswordVerifyEndpoint, data: {
-        'phone': phone,
+        'phone': normalizedPhone,
         'otp': otp,
         'new_password': newPassword,
       });
@@ -229,6 +234,22 @@ class AuthRepository {
     await _secureStorage.clearAll();
     await _cacheManager.remove(kCachedProfileKey);
     await _databaseHelper.clearTable(kUserTable);
+  }
+
+  String _normalizePhoneNumber(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'[\s\-]'), '');
+    if (cleaned.startsWith('+')) {
+      final stripped = cleaned.substring(1);
+      if (RegExp(r'^(?:254|0)?(7\d{8})$').hasMatch(stripped)) {
+        final match = RegExp(r'^(?:254|0)?(7\d{8})$').firstMatch(stripped);
+        return '+254${match?.group(1)}';
+      }
+    }
+    if (RegExp(r'^(?:254|0)?(7\d{8})$').hasMatch(cleaned)) {
+      final match = RegExp(r'^(?:254|0)?(7\d{8})$').firstMatch(cleaned);
+      return '+254${match?.group(1)}';
+    }
+    return phone.trim();
   }
 
   String _handleError(dynamic error) {

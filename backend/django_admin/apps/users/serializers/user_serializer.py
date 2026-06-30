@@ -5,7 +5,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from core.cache import RedisCache, cache_otp, delete_otp, get_otp
 from core.utils import generate_otp
-from core.validators import validate_phone_number
+from core.validators import normalize_phone_number, validate_phone_number
 from apps.notifications.services.sms import send_otp_message
 from ..models import User, FarmerProfile, TransportProviderProfile
 
@@ -17,10 +17,10 @@ class RegisterInitSerializer(serializers.Serializer):
     role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
 
     def validate_phone(self, value):
-        validate_phone_number(value)
-        if User.objects.filter(phone=value).exists():
+        normalized_phone = normalize_phone_number(value)
+        if User.objects.filter(phone=normalized_phone).exists():
             raise serializers.ValidationError('User with this phone already exists.')
-        return value
+        return normalized_phone
 
     def save(self):
         phone = self.validated_data['phone']
@@ -50,10 +50,10 @@ class VerifyOTPSerializer(serializers.Serializer):
     driver_license = serializers.CharField(required=False, allow_blank=True)
 
     def validate_phone(self, value):
-        validate_phone_number(value)
-        if User.objects.filter(phone=value).exists():
+        normalized_phone = normalize_phone_number(value)
+        if User.objects.filter(phone=normalized_phone).exists():
             raise serializers.ValidationError('User with this phone already exists.')
-        return value
+        return normalized_phone
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -131,8 +131,8 @@ class PasswordResetInitSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
 
     def validate_phone(self, value):
-        validate_phone_number(value)
-        return value
+        normalized_phone = normalize_phone_number(value)
+        return normalized_phone
 
     def save(self):
         phone = self.validated_data['phone']
@@ -151,10 +151,10 @@ class PasswordResetVerifySerializer(serializers.Serializer):
     confirm_password = serializers.CharField(write_only=True)
 
     def validate_phone(self, value):
-        validate_phone_number(value)
-        if not User.objects.filter(phone=value).exists():
+        normalized_phone = normalize_phone_number(value)
+        if not User.objects.filter(phone=normalized_phone).exists():
             raise serializers.ValidationError('User with this phone does not exist.')
-        return value
+        return normalized_phone
 
     def validate(self, attrs):
         if attrs['new_password'] != attrs['confirm_password']:
@@ -243,3 +243,6 @@ class UserDetailSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
     password = serializers.CharField(write_only=True)
+
+    def validate_phone(self, value):
+        return normalize_phone_number(value)
