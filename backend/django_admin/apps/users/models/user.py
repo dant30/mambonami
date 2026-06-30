@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 from shared.db_models.base import BaseModel
-from core.validators import validate_gps_coordinates, validate_phone_number
+from core.validators import normalize_phone_number, validate_gps_coordinates, validate_phone_number
 
 
 class User(AbstractUser):   # no BaseModel
@@ -31,6 +31,14 @@ class User(AbstractUser):   # no BaseModel
         db_table = 'users'
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
+    def save(self, *args, **kwargs):
+        if self.phone:
+            try:
+                self.phone = normalize_phone_number(self.phone)
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.phone} ({self.role})"
