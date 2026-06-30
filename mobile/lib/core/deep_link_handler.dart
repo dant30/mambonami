@@ -23,6 +23,7 @@ enum DeepLinkType {
   orderTracking,
   productDetail,
   productCatalog,
+  login,
   farmerProductList,
   cart,
   disputeDetail,
@@ -58,6 +59,8 @@ class DeepLinkInfo {
         return uuid != null ? RoutePaths.productDetailPath(uuid!) : null;
       case DeepLinkType.productCatalog:
         return RoutePaths.products;
+      case DeepLinkType.login:
+        return RoutePaths.login;
       case DeepLinkType.cart:
         return RoutePaths.cart;
       case DeepLinkType.farmerProductList:
@@ -160,6 +163,12 @@ class DeepLinkHandler {
       debugPrint('[DeepLinkHandler] Detected product catalog');
       return DeepLinkInfo(
           type: DeepLinkType.productCatalog, params: uri.queryParameters);
+    }
+
+    // Route login: /login
+    if (pathSegments.length == 1 && pathSegments[0] == 'login') {
+      debugPrint('[DeepLinkHandler] Detected login deep link');
+      return DeepLinkInfo(type: DeepLinkType.login);
     }
 
     // Route cart: /cart
