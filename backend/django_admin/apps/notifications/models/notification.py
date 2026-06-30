@@ -10,6 +10,7 @@ class Notification(BaseModel):
         ('whatsapp', 'WhatsApp'),
         ('email', 'Email'),
         ('push', 'Push Notification'),
+        ('sms', 'SMS'),
         ('in_app', 'In-App'),
     ]
     STATUS_CHOICES = [

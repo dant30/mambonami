@@ -264,10 +264,18 @@ OTP_MAX_ATTEMPTS = 3
 ESCROW_RESERVE_FLOOR = 200_000
 
 # SMS / WhatsApp / Email / Push (placeholders)
-AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
-AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
-AFRICASTALKING_SENDER_ID = env('AFRICASTALKING_SENDER_ID', default='MAMBONAMI')
-AFRICASTALKING_SANDBOX = env.bool('AFRICASTALKING_SANDBOX', default=True)
+# OTS SMS Gateway (Olympus Telecom Solutions)
+# https://sms.ots.co.ke/developers
+OTS_API_URL = env('OTS_API_URL', default='https://sms.ots.co.ke/api/v3/')
+OTS_API_TOKEN = env('OTS_API_TOKEN', default='')
+OTS_SENDER_ID = env('OTS_SENDER_ID', default='MAMBONAMI')
+OTS_SANDBOX = env.bool('OTS_SANDBOX', default=True)
+
+# Deprecated Africa's Talking settings
+# AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
+# AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
+# AFRICASTALKING_SENDER_ID = env('AFRICASTALKING_SENDER_ID', default='MAMBONAMI')
+# AFRICASTALKING_SANDBOX = env.bool('AFRICASTALKING_SANDBOX', default=True)
 
 WHATSAPP_API_URL = env('WHATSAPP_API_URL', default='')
 WHATSAPP_API_TOKEN = env('WHATSAPP_API_TOKEN', default='')

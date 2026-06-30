@@ -5,6 +5,7 @@ from .models import Notification
 from .services.whatsapp import WhatsAppService
 from .services.email import EmailService
 from .services.push import PushNotificationService
+from .services.sms import OTSSMS
 
 @shared_task(bind=True, max_retries=3)
 def send_notification_task(self, notification_id):
@@ -18,6 +19,8 @@ def send_notification_task(self, notification_id):
             service = EmailService()
         elif notif.channel == 'push':
             service = PushNotificationService()
+        elif notif.channel == 'sms':
+            service = OTSSMS()
         else:
             # In-app: just mark as sent (already stored)
             notif.status = 'sent'

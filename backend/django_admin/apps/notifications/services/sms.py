@@ -1,8 +1,9 @@
 # backend/django_admin/apps/notifications/services/sms.py
 import logging
-import importlib
-from typing import Iterable
+import requests
+from typing import Iterable, Dict, Any
 from django.conf import settings
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -18,60 +19,111 @@ def _format_phone_number(phone_number: str) -> str:
     return f'+254{cleaned}'
 
 
-class AfricaTalkingSMS:
+class OTSSMS:
+    """OTS (Olympus Telecom Solutions) SMS Gateway."""
+
     def __init__(self):
-        self.sender = getattr(settings, 'AFRICASTALKING_SENDER_ID', 'MAMBONAMI')
-        self.sandbox = getattr(settings, 'AFRICASTALKING_SANDBOX', True)
-        self.sms = None
+        self.api_url = getattr(settings, 'OTS_API_URL', 'https://sms.ots.co.ke/api/v3/')
+        self.api_token = getattr(settings, 'OTS_API_TOKEN', '')
+        self.sender_id = getattr(settings, 'OTS_SENDER_ID', 'MAMBONAMI')
+        self.sandbox = getattr(settings, 'OTS_SANDBOX', True)
 
-        username = getattr(settings, 'AFRICASTALKING_USERNAME', '')
-        api_key = getattr(settings, 'AFRICASTALKING_API_KEY', '')
+    def _get_headers(self) -> Dict[str, str]:
+        return {
+            'Authorization': f'Bearer {self.api_token}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
 
-        if username and api_key:
-            try:
-                africastalking = importlib.import_module('africastalking')
-                africastalking.initialize(username, api_key)
-                self.sms = africastalking.SMS
-            except Exception as exc:
-                logger.exception('Failed to initialize Africa\'s Talking SMS: %s', exc)
-        else:
-            logger.warning("Africa's Talking credentials not configured")
+    def send(self, notification) -> bool:
+        result = self.send_sms(notification.user.phone, notification.body)
+        if result.get('status') == 'success':
+            notification.external_id = result.get('message_id', '')
+            notification.status = 'sent'
+            notification.delivered_at = timezone.now()
+            notification.save(update_fields=['external_id', 'status', 'delivered_at'])
+            return True
 
-    def send_sms(self, phone_number: str, message: str) -> dict:
-        """Send a single SMS."""
-        if not self.sms:
-            logger.warning('SMS not sent - Africa\'s Talking not configured')
-            return {'status': 'failed', 'message': 'SMS service not configured'}
+        notification.status = 'failed'
+        notification.error_message = result.get('error', '')
+        notification.save(update_fields=['status', 'error_message'])
+        return False
+
+    def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:
+        if not self.api_token:
+            logger.warning('SMS not sent - OTS API token not configured')
+            return {'status': 'failed', 'message': 'OTS API token not configured'}
+
+        formatted_number = _format_phone_number(phone_number)
+        endpoint = f"{self.api_url.rstrip('/')}/sms/send"
+        payload = {
+            'to': formatted_number,
+            'from': self.sender_id,
+            'message': message,
+            'type': 'plain',
+        }
 
         try:
-            formatted_number = _format_phone_number(phone_number)
-            response = self.sms.send(
-                message,
-                [formatted_number],
-                sender_id=self.sender,
+            response = requests.post(
+                endpoint,
+                json=payload,
+                headers=self._get_headers(),
+                timeout=30,
             )
-            logger.info('SMS sent to %s: %s', formatted_number, response)
-            return {'status': 'success', 'response': response}
-        except Exception as exc:
+            response.raise_for_status()
+            result = response.json()
+            logger.info('SMS sent to %s: %s', formatted_number, result)
+            return {
+                'status': 'success',
+                'response': result,
+                'message_id': result.get('message_id') or result.get('id'),
+            }
+
+        except requests.exceptions.Timeout:
+            logger.error('SMS timeout for %s', phone_number)
+            return {'status': 'failed', 'error': 'Request timeout'}
+
+        except requests.exceptions.RequestException as exc:
             logger.error('SMS failed for %s: %s', phone_number, exc)
-            return {'status': 'failed', 'error': str(exc)}
+            error_msg = str(exc)
+            if hasattr(exc, 'response') and exc.response is not None:
+                try:
+                    error_data = exc.response.json()
+                    error_msg = error_data.get('message') or error_data.get('error') or error_msg
+                except ValueError:
+                    pass
+            return {'status': 'failed', 'error': error_msg}
 
-    def send_bulk_sms(self, phone_numbers: Iterable[str], message: str) -> dict:
-        """Send bulk SMS to multiple recipients."""
-        if not self.sms:
-            return {'status': 'failed', 'message': 'SMS service not configured'}
+    def send_bulk_sms(self, phone_numbers: Iterable[str], message: str) -> Dict[str, Any]:
+        if not self.api_token:
+            return {'status': 'failed', 'message': 'OTS API token not configured'}
+
+        formatted_numbers = [_format_phone_number(phone) for phone in phone_numbers]
+        endpoint = f"{self.api_url.rstrip('/')}/sms/send"
+        payload = {
+            'to': formatted_numbers,
+            'from': self.sender_id,
+            'message': message,
+            'type': 'plain',
+        }
 
         try:
-            formatted_numbers = [_format_phone_number(phone) for phone in phone_numbers]
-            response = self.sms.send(
-                message,
-                formatted_numbers,
-                sender_id=self.sender,
+            response = requests.post(
+                endpoint,
+                json=payload,
+                headers=self._get_headers(),
+                timeout=60,
             )
-            return {'status': 'success', 'response': response}
-        except Exception as exc:
+            response.raise_for_status()
+            result = response.json()
+            logger.info('Bulk SMS sent to %d recipients', len(formatted_numbers))
+            return {'status': 'success', 'response': result}
+        except requests.exceptions.RequestException as exc:
             logger.error('Bulk SMS failed: %s', exc)
             return {'status': 'failed', 'error': str(exc)}
+
+
+AfricaTalkingSMS = OTSSMS
 
 
 def send_otp_message(phone: str, otp: str) -> dict:

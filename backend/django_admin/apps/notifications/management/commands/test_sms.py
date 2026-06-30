@@ -4,7 +4,7 @@ from apps.notifications.services.sms import AfricaTalkingSMS
 
 
 class Command(BaseCommand):
-    help = 'Test Africa\'s Talking SMS integration'
+    help = 'Test OTS SMS integration'
 
     def add_arguments(self, parser):
         parser.add_argument('phone', type=str, help='Phone number to send test SMS to')
