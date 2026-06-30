@@ -23,9 +23,19 @@ enum DeepLinkType {
   orderTracking,
   productDetail,
   productCatalog,
+  notifications,
+  orderHistory,
   login,
   farmerProductList,
+  farmerOrderRequests,
+  farmerEarnings,
   cart,
+  profile,
+  settings,
+  support,
+  transportAvailableOrders,
+  transportMyTrips,
+  transportEarnings,
   disputeDetail,
   farmerDashboard,
   buyerDashboard,
@@ -59,12 +69,32 @@ class DeepLinkInfo {
         return uuid != null ? RoutePaths.productDetailPath(uuid!) : null;
       case DeepLinkType.productCatalog:
         return RoutePaths.products;
+      case DeepLinkType.notifications:
+        return RoutePaths.notifications;
+      case DeepLinkType.orderHistory:
+        return RoutePaths.orders;
       case DeepLinkType.login:
         return RoutePaths.login;
       case DeepLinkType.cart:
         return RoutePaths.cart;
       case DeepLinkType.farmerProductList:
         return RoutePaths.farmerProducts;
+      case DeepLinkType.farmerOrderRequests:
+        return RoutePaths.farmerOrderRequests;
+      case DeepLinkType.farmerEarnings:
+        return RoutePaths.farmerEarnings;
+      case DeepLinkType.profile:
+        return RoutePaths.profile;
+      case DeepLinkType.settings:
+        return RoutePaths.settings;
+      case DeepLinkType.support:
+        return RoutePaths.support;
+      case DeepLinkType.transportAvailableOrders:
+        return RoutePaths.availableOrders;
+      case DeepLinkType.transportMyTrips:
+        return RoutePaths.myTrips;
+      case DeepLinkType.transportEarnings:
+        return RoutePaths.transportEarnings;
       case DeepLinkType.farmerDashboard:
         return RoutePaths.farmerDashboard;
       case DeepLinkType.buyerDashboard:
@@ -136,8 +166,56 @@ class DeepLinkHandler {
           type: DeepLinkType.farmerProductList, params: uri.queryParameters);
     }
 
+    // Route farmer order requests list: /farmer/order-requests
+    if (pathSegments.length == 2 &&
+        pathSegments[0] == 'farmer' &&
+        pathSegments[1] == 'order-requests') {
+      debugPrint('[DeepLinkHandler] Detected farmer order requests');
+      return DeepLinkInfo(
+        type: DeepLinkType.farmerOrderRequests,
+        params: uri.queryParameters,
+      );
+    }
+
+    // Route farmer earnings: /farmer/earnings
+    if (pathSegments.length == 2 &&
+        pathSegments[0] == 'farmer' &&
+        pathSegments[1] == 'earnings') {
+      debugPrint('[DeepLinkHandler] Detected farmer earnings');
+      return DeepLinkInfo(
+        type: DeepLinkType.farmerEarnings,
+        params: uri.queryParameters,
+      );
+    }
+
+    // Route transport list pages.
+    if (pathSegments.length == 2 && pathSegments[0] == 'transport_provider') {
+      if (pathSegments[1] == 'available-orders') {
+        debugPrint('[DeepLinkHandler] Detected available orders');
+        return DeepLinkInfo(
+          type: DeepLinkType.transportAvailableOrders,
+          params: uri.queryParameters,
+        );
+      }
+      if (pathSegments[1] == 'my-trips') {
+        debugPrint('[DeepLinkHandler] Detected my trips');
+        return DeepLinkInfo(
+          type: DeepLinkType.transportMyTrips,
+          params: uri.queryParameters,
+        );
+      }
+      if (pathSegments[1] == 'earnings') {
+        debugPrint('[DeepLinkHandler] Detected transport earnings');
+        return DeepLinkInfo(
+          type: DeepLinkType.transportEarnings,
+          params: uri.queryParameters,
+        );
+      }
+    }
+
     // Route order tracking: /order/uuid or /orders/uuid
-    if (pathSegments.length >= 2 && (pathSegments[0] == 'orders' || pathSegments[0] == 'order')) {
+    if (pathSegments.length >= 2 &&
+        (pathSegments[0] == 'orders' || pathSegments[0] == 'order')) {
       final uuid = pathSegments[1];
       debugPrint('[DeepLinkHandler] Detected order tracking: $uuid');
       return DeepLinkInfo(
@@ -147,8 +225,18 @@ class DeepLinkHandler {
       );
     }
 
+    // Route order history: /orders
+    if (pathSegments.length == 1 && pathSegments[0] == 'orders') {
+      debugPrint('[DeepLinkHandler] Detected order history');
+      return DeepLinkInfo(
+        type: DeepLinkType.orderHistory,
+        params: uri.queryParameters,
+      );
+    }
+
     // Route product details: /product/uuid or /products/uuid
-    if (pathSegments.length >= 2 && (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
+    if (pathSegments.length >= 2 &&
+        (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
       final uuid = pathSegments[1];
       debugPrint('[DeepLinkHandler] Detected product detail: $uuid');
       return DeepLinkInfo(
@@ -159,10 +247,20 @@ class DeepLinkHandler {
     }
 
     // Route product catalog: /products or /product
-    if (pathSegments.length == 1 && (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
+    if (pathSegments.length == 1 &&
+        (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
       debugPrint('[DeepLinkHandler] Detected product catalog');
       return DeepLinkInfo(
           type: DeepLinkType.productCatalog, params: uri.queryParameters);
+    }
+
+    // Route notifications: /notifications
+    if (pathSegments.length == 1 && pathSegments[0] == 'notifications') {
+      debugPrint('[DeepLinkHandler] Detected notifications');
+      return DeepLinkInfo(
+        type: DeepLinkType.notifications,
+        params: uri.queryParameters,
+      );
     }
 
     // Route login: /login
@@ -175,6 +273,20 @@ class DeepLinkHandler {
     if (pathSegments.length == 1 && pathSegments[0] == 'cart') {
       debugPrint('[DeepLinkHandler] Detected cart');
       return DeepLinkInfo(type: DeepLinkType.cart, params: uri.queryParameters);
+    }
+
+    // Route common account/support pages.
+    if (pathSegments.length == 1 && pathSegments[0] == 'profile') {
+      debugPrint('[DeepLinkHandler] Detected profile');
+      return DeepLinkInfo(type: DeepLinkType.profile);
+    }
+    if (pathSegments.length == 1 && pathSegments[0] == 'settings') {
+      debugPrint('[DeepLinkHandler] Detected settings');
+      return DeepLinkInfo(type: DeepLinkType.settings);
+    }
+    if (pathSegments.length == 1 && pathSegments[0] == 'support') {
+      debugPrint('[DeepLinkHandler] Detected support');
+      return DeepLinkInfo(type: DeepLinkType.support);
     }
 
     // Route dispute details: /disputes/uuid

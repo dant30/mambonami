@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../shared/widgets/app_logo.dart';
+import 'auth_surface.dart';
 
 class AuthPageHeader extends StatelessWidget {
   final String title;
@@ -17,7 +18,7 @@ class AuthPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -31,7 +32,7 @@ class AuthPageHeader extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: theme.colorScheme.onSurface,
             ),
           ),
@@ -41,9 +42,12 @@ class AuthPageHeader extends StatelessWidget {
               subtitle!,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
+                height: 1.35,
               ),
             ),
           ],
+          const SizedBox(height: 16),
+          const AuthTrustStrip(),
         ],
       ),
     );

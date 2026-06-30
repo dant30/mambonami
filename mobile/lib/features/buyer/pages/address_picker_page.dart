@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../../../data/models/address.dart';
 import '../../../data/repositories/address_repository.dart';
+import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+import '../../../shared/widgets/custom_text_field.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/section_header.dart';
 
 class AddressPickerPage extends StatefulWidget {
   const AddressPickerPage({super.key});
@@ -31,44 +37,48 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
       body: ValueListenableBuilder<List<Address>>(
         valueListenable: _addressRepository.addresses,
         builder: (context, addresses, _) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
+          return AppScreen(
+            scrollable: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const SectionHeader(
+                  title: 'Saved addresses',
+                  subtitle: 'Choose where your order should be delivered',
+                ),
                 if (addresses.isEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    'No saved addresses yet. Add one to continue.',
-                    style: TextStyle(fontSize: 16),
+                  Expanded(
+                    child: EmptyState(
+                      title: 'No saved addresses',
+                      description:
+                          'Add a delivery address to make checkout faster.',
+                      icon: Icons.location_on_outlined,
+                      buttonText: 'Add address',
+                      onButtonPressed: _showAddAddressDialog,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                ] else ...[
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: addresses.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final address = addresses[index];
+                        return _AddressTile(
+                          address: address,
+                          onTap: () => Navigator.of(context).pop(address),
+                          onDelete: () => _removeAddress(address.id),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CustomButton(
+                    label: 'Add New Address',
+                    icon: const Icon(Icons.add_location_alt_outlined),
+                    onPressed: _showAddAddressDialog,
+                  ),
                 ],
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: addresses.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final address = addresses[index];
-                      return ListTile(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        tileColor: Theme.of(context).colorScheme.surfaceVariant,
-                        title: Text(address.label, style: const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text(address.detailedAddress),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _removeAddress(address.id),
-                        ),
-                        onTap: () => Navigator.of(context).pop(address),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-                CustomButton(
-                  label: 'Add New Address',
-                  onPressed: _showAddAddressDialog,
-                ),
               ],
             ),
           );
@@ -80,10 +90,7 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
   Future<void> _removeAddress(String addressId) async {
     await _addressRepository.deleteAddress(addressId);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Address removed.'),
-      duration: Duration(seconds: 2),
-    ));
+    CustomSnackbar.showSuccess(context, 'Address removed.');
   }
 
   Future<void> _showAddAddressDialog() async {
@@ -105,33 +112,44 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
+                  CustomTextField(
                     controller: labelController,
-                    decoration: const InputDecoration(labelText: 'Label (e.g. Home)'),
-                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a label' : null,
+                    label: 'Label (e.g. Home)',
+                    textInputAction: TextInputAction.next,
+                    validator: (value) =>
+                        value?.trim().isEmpty == true ? 'Enter a label' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  CustomTextField(
                     controller: streetController,
-                    decoration: const InputDecoration(labelText: 'Street address'),
-                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a street' : null,
+                    label: 'Street address',
+                    textInputAction: TextInputAction.next,
+                    validator: (value) =>
+                        value?.trim().isEmpty == true ? 'Enter a street' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  CustomTextField(
                     controller: cityController,
-                    decoration: const InputDecoration(labelText: 'City'),
-                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a city' : null,
+                    label: 'City',
+                    textInputAction: TextInputAction.next,
+                    validator: (value) =>
+                        value?.trim().isEmpty == true ? 'Enter a city' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  CustomTextField(
                     controller: postalCodeController,
-                    decoration: const InputDecoration(labelText: 'Postal code'),
-                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a postal code' : null,
+                    label: 'Postal code',
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) => value?.trim().isEmpty == true
+                        ? 'Enter a postal code'
+                        : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  CustomTextField(
                     controller: landmarkController,
-                    decoration: const InputDecoration(labelText: 'Landmark (optional)'),
+                    label: 'Landmark (optional)',
+                    textInputAction: TextInputAction.done,
                   ),
                 ],
               ),
@@ -168,5 +186,58 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
       if (!mounted) return;
       Navigator.of(context).pop(savedAddress);
     }
+  }
+}
+
+class _AddressTile extends StatelessWidget {
+  final Address address;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _AddressTile({
+    required this.address,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return CustomCard(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      onTap: onTap,
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.location_on_outlined,
+            color: theme.colorScheme.onPrimaryContainer,
+          ),
+        ),
+        title: Text(
+          address.label,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        subtitle: Text(
+          address.detailedAddress,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: IconButton(
+          tooltip: 'Delete address',
+          icon: const Icon(Icons.delete_outline),
+          onPressed: onDelete,
+        ),
+      ),
+    );
   }
 }

@@ -2,13 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
-import '../widgets/auth_page_header.dart';
-import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
+import '../../../shared/widgets/custom_text_field.dart';
+import '../widgets/auth_page_header.dart';
+import '../widgets/auth_surface.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -32,11 +35,25 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      final phone = _phoneController.text.trim();
-      final password = _passwordController.text;
-      print('LoginPage: Attempting login with phone: $phone');
-      context.read<AuthBloc>().add(LoginEvent(phone, password));
+      context.read<AuthBloc>().add(
+            LoginEvent(
+              _phoneController.text.trim(),
+              _passwordController.text,
+            ),
+          );
     }
+  }
+
+  void _routeAuthenticated(AuthAuthenticated state) {
+    if (state.role == 'farmer') {
+      context.go(RoutePaths.farmerDashboard);
+      return;
+    }
+    if (state.role == 'transport_provider') {
+      context.go(RoutePaths.transportProviderDashboard);
+      return;
+    }
+    context.go(RoutePaths.buyerDashboard);
   }
 
   @override
@@ -46,25 +63,15 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            final role = state.role;
-            print('LoginPage: Navigation triggered for role: $role');
-            if (role == 'farmer') {
-              context.go(RoutePaths.farmerDashboard);
-            } else if (role == 'transport_provider') {
-              context.go(RoutePaths.transportProviderDashboard);
-            } else {
-              context.go(RoutePaths.buyerDashboard);
-            }
+            _routeAuthenticated(state);
           } else if (state is AuthError) {
-            print('LoginPage: Auth error - ${state.message}');
             CustomSnackbar.showError(context, state.message);
           }
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          return AppScreen(
             child: Form(
               key: _formKey,
               child: Column(
@@ -72,57 +79,72 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const AuthPageHeader(
                     title: 'Welcome back',
-                    subtitle: 'Sign in with your phone number to continue to your account.',
+                    subtitle:
+                        'Sign in to shop fresh produce, manage farm orders, or continue delivery work.',
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  AuthSurface(
                     child: Column(
                       children: [
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
+                          prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
-                          validator: (v) => v!.length < 10 ? 'Enter valid phone' : null,
+                          validator: (value) =>
+                              value == null || value.trim().length < 10
+                                  ? 'Enter a valid phone number'
+                                  : null,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
                           obscureText: _isPasswordHidden,
                           textInputAction: TextInputAction.done,
-                          validator: (v) => v!.isEmpty ? 'Required' : null,
+                          validator: (value) =>
+                              value == null || value.isEmpty ? 'Required' : null,
                           suffixIcon: IconButton(
+                            tooltip: _isPasswordHidden
+                                ? 'Show password'
+                                : 'Hide password',
                             icon: Icon(
-                              _isPasswordHidden ? Icons.visibility : Icons.visibility_off,
+                              _isPasswordHidden
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
                             ),
                             onPressed: () => setState(() {
                               _isPasswordHidden = !_isPasswordHidden;
                             }),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: isLoading
+                                ? null
+                                : () => context.go(RoutePaths.forgotPassword),
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         CustomButton(
                           onPressed: _login,
                           isLoading: isLoading,
                           label: 'Login',
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            TextButton(
-                              onPressed: () => context.go(RoutePaths.forgotPassword),
-                              child: const Text('Forgot password?'),
-                            ),
-                            TextButton(
-                              onPressed: () => context.go(RoutePaths.register),
-                              child: const Text('Create account'),
-                            ),
-                          ],
+                          icon: const Icon(Icons.login_outlined),
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed:
+                        isLoading ? null : () => context.go(RoutePaths.register),
+                    icon: const Icon(Icons.person_add_alt_1_outlined),
+                    label: const Text('Create a Mambonami account'),
                   ),
                 ],
               ),

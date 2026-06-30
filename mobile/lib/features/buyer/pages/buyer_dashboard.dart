@@ -92,7 +92,7 @@ class BuyerDashboard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
-              SectionHeader(
+              const SectionHeader(
                 title: 'Quick Actions',
                 subtitle: 'Shop, track, and manage your orders',
               ),
@@ -149,9 +149,9 @@ class BuyerDashboard extends StatelessWidget {
                 height: 160,
                 child: featuredProducts.isEmpty
                     ? ListView(
+                        padding: EdgeInsets.zero,
                         scrollDirection: Axis.horizontal,
                         children: const [
-                          SizedBox(width: 16),
                           _FeatureCard(
                             icon: Icons.eco,
                             title: 'Organic Week',
@@ -176,7 +176,8 @@ class BuyerDashboard extends StatelessWidget {
                           final product = featuredProducts[index];
                           return _ProductFeatureCard(
                             product: product,
-                            onTap: () => context.push(RoutePaths.productDetailPath(product.uuid)),
+                            onTap: () => context
+                                .push(RoutePaths.productDetailPath(product.uuid)),
                           );
                         },
                       ),
@@ -345,21 +346,19 @@ class _ProductFeatureCard extends StatelessWidget {
         margin: const EdgeInsets.only(top: 4, bottom: 4),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.shadow.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.72),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ),
                 child: product.imageUrl != null && product.imageUrl!.isNotEmpty
                     ? Image.network(
                         product.imageUrl!,
@@ -367,9 +366,13 @@ class _ProductFeatureCard extends StatelessWidget {
                         width: double.infinity,
                       )
                     : Container(
-                        color: AppColors.buyerAccent.withOpacity(0.12),
+                        color: AppColors.buyerAccent.withValues(alpha: 0.12),
                         child: const Center(
-                          child: Icon(Icons.eco, size: 40, color: AppColors.buyerAccent),
+                          child: Icon(
+                            Icons.eco,
+                            size: 40,
+                            color: AppColors.buyerAccent,
+                          ),
                         ),
                       ),
               ),
@@ -379,6 +382,39 @@ class _ProductFeatureCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      if (product.isOrganic)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Organic',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      Icon(
+                        product.isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 18,
+                        color: product.isFavorite
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     product.displayName,
                     maxLines: 1,

@@ -54,7 +54,9 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
             if (subOrders.isEmpty) {
               return EmptyState(
                 title: 'No order requests',
-                description: 'You have not received any farm orders yet. Check back after your products are listed.',
+                description:
+                    'You have not received any farm orders yet. Check back after your products are listed.',
+                icon: Icons.assignment_turned_in_outlined,
                 buttonText: 'Refresh list',
                 onButtonPressed: _refresh,
               );

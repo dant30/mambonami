@@ -8,6 +8,8 @@ import '../../../shared/layouts/custom_app_bar.dart';
 import 'package:flutter/services.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/skeleton.dart';
 import '../widgets/notification_tile.dart';
 
@@ -25,19 +27,26 @@ class NotificationsPage extends StatelessWidget {
             icon: const Icon(Icons.mark_email_read_outlined),
             onPressed: () async {
               HapticFeedback.lightImpact();
+              final notificationBloc = context.read<NotificationBloc>();
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Mark all as read'),
                   content: const Text('Mark all notifications as read?'),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Confirm'),
+                    ),
                   ],
                 ),
               );
               if (confirmed == true) {
-                context.read<NotificationBloc>().add(MarkAllReadEvent());
+                notificationBloc.add(MarkAllReadEvent());
               }
             },
           ),
@@ -56,22 +65,43 @@ class NotificationsPage extends StatelessWidget {
             if (state.notifications.isEmpty) {
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<NotificationBloc>().add(FetchNotificationsEvent());
+                  context
+                      .read<NotificationBloc>()
+                      .add(FetchNotificationsEvent());
                 },
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(bottom: 8 + MediaQuery.of(context).padding.bottom),
-                  children: const [SizedBox(height: 200), Center(child: Text('No notifications'))],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: constraints.maxHeight,
+                        child: EmptyState(
+                          title: 'No notifications',
+                          description:
+                              'Order updates, account alerts, and delivery activity will appear here.',
+                          icon: Icons.notifications_none_outlined,
+                          buttonText: 'Refresh',
+                          onButtonPressed: () {
+                            context
+                                .read<NotificationBloc>()
+                                .add(FetchNotificationsEvent());
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             }
-            final groupedItems = _buildGroupedNotificationItems(state.notifications);
+            final groupedItems =
+                _buildGroupedNotificationItems(state.notifications);
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<NotificationBloc>().add(FetchNotificationsEvent());
               },
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 8 + MediaQuery.of(context).padding.bottom),
+                padding: EdgeInsets.fromLTRB(
+                    0, 8, 0, 8 + MediaQuery.of(context).padding.bottom),
                 itemCount: groupedItems.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
@@ -92,7 +122,9 @@ class NotificationsPage extends StatelessWidget {
                     onTap: () => _handleNotificationTap(context, notif),
                     onMarkRead: notif.isUnread
                         ? () {
-                            context.read<NotificationBloc>().add(MarkNotificationReadEvent(notif.id));
+                            context
+                                .read<NotificationBloc>()
+                                .add(MarkNotificationReadEvent(notif.id));
                           }
                         : null,
                   );
@@ -100,21 +132,12 @@ class NotificationsPage extends StatelessWidget {
               ),
             );
           } else if (state is NotificationError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(state.message, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => context.read<NotificationBloc>().add(FetchNotificationsEvent()),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              ),
+            return AppErrorWidget(
+              message: state.message,
+              buttonText: 'Retry',
+              onRetry: () => context
+                  .read<NotificationBloc>()
+                  .add(FetchNotificationsEvent()),
             );
           }
           return const SizedBox();
@@ -123,12 +146,16 @@ class NotificationsPage extends StatelessWidget {
     );
   }
 
-  void _handleNotificationTap(BuildContext context, NotificationModel notification) {
-    final deepLinkInfo = DeepLinkHandler.parseNotificationPayload(notification.metadata);
+  void _handleNotificationTap(
+      BuildContext context, NotificationModel notification) {
+    final deepLinkInfo =
+        DeepLinkHandler.parseNotificationPayload(notification.metadata);
     final routePath = deepLinkInfo?.toRoutePath();
     if (routePath != null) {
       if (notification.isUnread) {
-        context.read<NotificationBloc>().add(MarkNotificationReadEvent(notification.id));
+        context
+            .read<NotificationBloc>()
+            .add(MarkNotificationReadEvent(notification.id));
       }
       context.go(routePath);
       return;
@@ -137,7 +164,8 @@ class NotificationsPage extends StatelessWidget {
     _showNotificationDetails(context, notification);
   }
 
-  List<dynamic> _buildGroupedNotificationItems(List<NotificationModel> notifications) {
+  List<dynamic> _buildGroupedNotificationItems(
+      List<NotificationModel> notifications) {
     final sortedNotifications = [...notifications]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
@@ -157,10 +185,14 @@ class NotificationsPage extends StatelessWidget {
   String _groupLabel(DateTime date) {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
-    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
       return 'Today';
     }
-    if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+    if (date.year == yesterday.year &&
+        date.month == yesterday.month &&
+        date.day == yesterday.day) {
       return 'Yesterday';
     }
     const monthNames = [

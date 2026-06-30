@@ -43,6 +43,7 @@ class _AvailableOrdersPageState extends State<AvailableOrdersPage> {
                 title: 'No available orders',
                 message:
                     'New delivery work will appear here when farms mark orders ready for transport.',
+                icon: Icons.local_shipping_outlined,
                 buttonText: 'Refresh',
                 onButtonPressed: () {
                   context.read<TripBloc>().add(FetchAvailableOrdersEvent());

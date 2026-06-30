@@ -13,6 +13,7 @@ import '../../core/api_client.dart';
 import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';
+import '../../shared/layouts/app_screen.dart';
 import '../../shared/utils/form_validators.dart';
 import '../../shared/widgets/avatar.dart';
 import '../../shared/widgets/custom_card.dart';
@@ -139,17 +140,18 @@ class _ProfilePageState extends State<ProfilePage> {
       bottomNavigationBar: const AppBottomNavigationBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+          : AppScreen(
               child: Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
+                    CustomCard(
+                      margin: EdgeInsets.zero,
+                      child: Row(
                         children: [
-                          Column(
+                          Stack(
+                            alignment: Alignment.bottomRight,
                             children: [
                               Avatar(
                                 imageUrl: _profileImageUrl,
@@ -157,49 +159,74 @@ class _ProfilePageState extends State<ProfilePage> {
                                 firstName: _firstName,
                                 lastName: _lastName,
                                 username: _username,
-                                size: 80,
+                                size: 76,
                               ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: _pickAvatarImage,
-                                child: Text(
-                                  'Change photo',
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                              IconButton.filled(
+                                tooltip: 'Change photo',
+                                iconSize: 17,
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 32,
+                                  height: 32,
                                 ),
+                                padding: EdgeInsets.zero,
+                                onPressed: _pickAvatarImage,
+                                icon: const Icon(Icons.edit_outlined),
                               ),
                             ],
                           ),
-                          Positioned(
-                            bottom: 30,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickAvatarImage,
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: 2),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  displayName.isNotEmpty
+                                      ? displayName
+                                      : (_username ?? 'Your profile'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w900),
                                 ),
-                                child: Icon(Icons.edit, color: Theme.of(context).colorScheme.onPrimary, size: 18),
-                              ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _phoneController.text,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                                if (_role != null) ...[
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    _role!.replaceAll('_', ' ').toUpperCase(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    if (displayName.isNotEmpty)
-                      Text(
-                        displayName,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
                     const SizedBox(height: 24),
-                    SectionHeader(
+                    const SectionHeader(
                       title: 'Personal Information',
                       padding: EdgeInsets.zero,
                     ),
@@ -219,7 +246,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 20),
                     if (_role != null) ...[
-                      SectionHeader(
+                      const SectionHeader(
                         title: 'Profile Summary',
                         padding: EdgeInsets.zero,
                       ),
@@ -252,7 +279,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 20),
                     ],
-                    SectionHeader(
+                    const SectionHeader(
                       title: 'Account Settings',
                       padding: EdgeInsets.zero,
                     ),
@@ -282,7 +309,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       enabled: false,
                     ),
                     const SizedBox(height: 24),
-                    SectionHeader(
+                    const SectionHeader(
                       title: 'Change Password',
                       padding: EdgeInsets.zero,
                     ),
@@ -292,7 +319,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'Current password',
                       obscureText: true,
                       textInputAction: TextInputAction.next,
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
                     CustomTextField(
@@ -300,11 +326,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'New password',
                       obscureText: true,
                       textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if (v.length < 6) return 'At least 6 characters';
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 12),
                     CustomTextField(
@@ -312,11 +333,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'Confirm new password',
                       obscureText: true,
                       textInputAction: TextInputAction.done,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if (v != _newPasswordController.text) return 'Passwords do not match';
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 12),
                     CustomButton(
@@ -325,7 +341,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'Update password',
                     ),
                     const SizedBox(height: 24),
-                    SectionHeader(
+                    const SectionHeader(
                       title: 'Actions',
                       padding: EdgeInsets.zero,
                     ),
