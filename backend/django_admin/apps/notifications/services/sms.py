@@ -19,6 +19,16 @@ def _format_phone_number(phone_number: str) -> str:
     return f'+254{cleaned}'
 
 
+def _is_success_response(result: Dict[str, Any]) -> bool:
+    if not isinstance(result, dict):
+        return False
+    if result.get('status') in ('success', 'ok', True):
+        return True
+    if result.get('success') is True:
+        return True
+    return False
+
+
 class OTSSMS:
     """OTS (Olympus Telecom Solutions) SMS Gateway."""
 
@@ -27,8 +37,11 @@ class OTSSMS:
         self.api_token = getattr(settings, 'OTS_API_TOKEN', '')
         self.sender_id = getattr(settings, 'OTS_SENDER_ID', 'MAMBONAMI')
         self.sandbox = getattr(settings, 'OTS_SANDBOX', True)
+        self.debug = getattr(settings, 'OTS_DEBUG', False)
 
     def _get_headers(self) -> Dict[str, str]:
+        if self.api_token.lower().startswith('bearer '):
+            logger.warning('OTS_API_TOKEN contains a Bearer prefix. Remove the prefix from the token value.')
         return {
             'Authorization': f'Bearer {self.api_token}',
             'Content-Type': 'application/json',
@@ -62,6 +75,10 @@ class OTSSMS:
             'message': message,
             'type': 'plain',
         }
+        logger.debug('Sending OTS SMS to %s with payload %s', formatted_number, payload)
+        if self.debug:
+            logger.debug('OTS request endpoint: %s', endpoint)
+            logger.debug('OTS request headers: %s', self._get_headers())
 
         try:
             response = requests.post(
@@ -72,9 +89,12 @@ class OTSSMS:
             )
             response.raise_for_status()
             result = response.json()
-            logger.info('SMS sent to %s: %s', formatted_number, result)
+            success = _is_success_response(result)
+            logger.info('OTS SMS request result for %s: %s', formatted_number, result)
+            if self.debug:
+                logger.debug('OTS SMS response body: %s', result)
             return {
-                'status': 'success',
+                'status': 'success' if success else 'failed',
                 'response': result,
                 'message_id': result.get('message_id') or result.get('id'),
             }

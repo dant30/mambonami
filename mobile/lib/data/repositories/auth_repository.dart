@@ -126,13 +126,15 @@ class AuthRepository {
       if (userRole.isEmpty || userPhone.isEmpty) {
         throw Exception('Missing required user fields (role or phone)');
       }
+      final formattedPhone = _normalizePhoneNumber(userPhone);
+      user['phone'] = formattedPhone;
 
       // Save tokens and user info to secure storage
       await _secureStorage.saveTokens(accessToken, refreshToken);
       await _secureStorage.saveUserRole(userRole);
-      await _secureStorage.saveUserPhone(userPhone);
+      await _secureStorage.saveUserPhone(formattedPhone);
       await _cacheManager.saveJson(kCachedProfileKey, user);
-      await _databaseHelper.insertOrUpdateRecord(kUserTable, userPhone, user);
+      await _databaseHelper.insertOrUpdateRecord(kUserTable, formattedPhone, user);
 
       return user;
     } catch (e) {
@@ -146,6 +148,11 @@ class AuthRepository {
       if (response.statusCode == 200) {
         final profile = normalizeMap(response.data);
         if (profile.isNotEmpty) {
+        final phone = stringValue(profile['phone']);
+        if (phone.isNotEmpty) {
+          final formattedPhone = _normalizePhoneNumber(phone);
+          profile['phone'] = formattedPhone;
+        }
         await _cacheManager.saveJson(kCachedProfileKey, profile);
         final userId = stringValue(profile['phone']);
         if (userId.isNotEmpty) {

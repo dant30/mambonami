@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/utils/form_validators.dart';
 import '../widgets/auth_page_header.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';

@@ -13,6 +13,7 @@ import '../../core/api_client.dart';
 import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';
+import '../../shared/utils/form_validators.dart';
 import '../../shared/widgets/avatar.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/custom_image_picker.dart';
@@ -66,10 +67,12 @@ class _ProfilePageState extends State<ProfilePage> {
       _emailController.text = profile['email']?.toString() ?? '';
       _firstNameController.text = profile['first_name']?.toString() ?? '';
       _lastNameController.text = profile['last_name']?.toString() ?? '';
-      _phoneController.text = profile['phone']?.toString() ??
-          (context.read<AuthBloc>().state is AuthAuthenticated
-              ? (context.read<AuthBloc>().state as AuthAuthenticated).phone
-              : '');
+      _phoneController.text = FormValidators.formatPhone(
+        profile['phone']?.toString() ??
+            (context.read<AuthBloc>().state is AuthAuthenticated
+                ? (context.read<AuthBloc>().state as AuthAuthenticated).phone
+                : ''),
+      );
       _role = profile['role']?.toString();
       _transportProfile = profile['transport_profile'] is Map<String, dynamic>
           ? profile['transport_profile'] as Map<String, dynamic>

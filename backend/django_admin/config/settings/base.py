@@ -270,7 +270,8 @@ OTS_API_URL = env('OTS_API_URL', default='https://sms.ots.co.ke/api/v3/')
 OTS_API_TOKEN = env('OTS_API_TOKEN', default='')
 OTS_SENDER_ID = env('OTS_SENDER_ID', default='MAMBONAMI')
 OTS_SANDBOX = env.bool('OTS_SANDBOX', default=True)
-
+# Add debug flag to help diagnose SMS provider auth and routing during development
+OTS_DEBUG = env.bool('OTS_DEBUG', default=False)
 # Deprecated Africa's Talking settings
 # AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
 # AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')

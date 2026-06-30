@@ -12,6 +12,7 @@ import '../themes/app_shadows.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/avatar.dart';
 import '../widgets/pill_badge.dart';
+import '../utils/form_validators.dart';
 
 class _DrawerItem {
   final IconData icon;
@@ -44,9 +45,10 @@ class AppDrawer extends StatelessWidget {
       username = authState.username ?? '';
     }
 
+    final formattedPhone = phone.isNotEmpty ? FormValidators.formatPhone(phone) : '';
     final displayName =
-        username.isNotEmpty ? username : (phone.isNotEmpty ? phone : 'Guest');
-    final displayPhone = phone.isNotEmpty ? phone : 'Not signed in';
+        username.isNotEmpty ? username : (formattedPhone.isNotEmpty ? formattedPhone : 'Guest');
+    final displayPhone = formattedPhone.isNotEmpty ? formattedPhone : 'Not signed in';
     final roleLabel = AppRole.displayLabel(role);
     final homeRoute = AppRole.homePathFor(role);
     final isDark = Theme.of(context).brightness == Brightness.dark;

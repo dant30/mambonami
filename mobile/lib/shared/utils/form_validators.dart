@@ -14,6 +14,26 @@ class FormValidators {
     return null;
   }
 
+  static String normalizePhone(String? value) {
+    if (value == null || value.trim().isEmpty) return '';
+    final cleaned = value.replaceAll(RegExp(r'[\s\-]'), '');
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    if (cleaned.startsWith('0')) {
+      return '+254${cleaned.substring(1)}';
+    }
+    if (cleaned.startsWith('254')) {
+      return '+$cleaned';
+    }
+    return '+254$cleaned';
+  }
+
+  static String formatPhone(String? value) {
+    final normalized = normalizePhone(value);
+    return normalized;
+  }
+
   static String? validateOTP(String? value) {
     if (value == null || value.isEmpty) {
       return 'OTP code is required';
