@@ -6,6 +6,7 @@ import '../features/auth/auth_guard.dart';
 import '../core/deep_link_handler.dart';
 import 'route_paths.dart';
 import '../features/auth/pages/login_page.dart';
+import '../features/auth/pages/splash_page.dart';
 import '../features/auth/pages/register_init_page.dart';
 import '../features/auth/pages/register_verify_page.dart';
 import '../features/auth/pages/forgot_password_page.dart';
@@ -84,9 +85,10 @@ class NotFoundPage extends StatelessWidget {
 
 class AppRouter {
   late final GoRouter router = GoRouter(
-    initialLocation: RoutePaths.login,
+    initialLocation: RoutePaths.splash,
     redirect: (context, state) => _handleDeepLinksAndAuth(context, state),
     routes: [
+      GoRoute(path: RoutePaths.splash, builder: (_, __) => const SplashPage()),
       GoRoute(path: RoutePaths.login, builder: (_, __) => const LoginPage()),
       GoRoute(
           path: RoutePaths.register,
@@ -380,6 +382,29 @@ class AppRouter {
   /// and routed appropriately based on user authentication state and deep link type
   String? _handleDeepLinksAndAuth(BuildContext context, GoRouterState state) {
     final authState = context.read<AuthBloc>().state;
+    final path = state.uri.path;
+    final isPublicAuthRoute = path == RoutePaths.splash ||
+        path == RoutePaths.login ||
+        path == RoutePaths.register ||
+        path == RoutePaths.forgotPassword ||
+        path.startsWith('${RoutePaths.register}/');
+
+    if (path == RoutePaths.splash) {
+      if (authState is AuthAuthenticated) {
+        return AppRole.homePathFor(authState.role);
+      }
+      return null;
+    }
+
+    if (isPublicAuthRoute) {
+      if (authState is AuthAuthenticated &&
+          (path == RoutePaths.login ||
+              path == RoutePaths.register ||
+              path.startsWith('${RoutePaths.register}/'))) {
+        return AppRole.homePathFor(authState.role);
+      }
+      return null;
+    }
 
     // First, try to parse deep link from the incoming URI
     final deepLinkInfo = DeepLinkHandler.parseUri(state.uri);
@@ -404,6 +429,7 @@ class AppRouter {
       final role = authState.role;
       const knownRoutes = <String>{
         RoutePaths.login,
+        RoutePaths.splash,
         RoutePaths.register,
         RoutePaths.registerVerify,
         RoutePaths.forgotPassword,
@@ -428,7 +454,7 @@ class AppRouter {
         RoutePaths.support,
       };
 
-      final path = state.uri.path;
+      if (path == RoutePaths.splash) return AppRole.homePathFor(role);
       if (AppRole.isHomePathForRole(path, role)) return null;
       if (path == RoutePaths.login ||
           path == RoutePaths.register ||
@@ -447,9 +473,7 @@ class AppRouter {
       }
       return null;
     } else if (authState is AuthUnauthenticated) {
-      if (state.uri.path == RoutePaths.login ||
-          state.uri.path == RoutePaths.register ||
-          state.uri.path.startsWith('${RoutePaths.register}/')) {
+      if (isPublicAuthRoute) {
         return null;
       }
       return RoutePaths.login;

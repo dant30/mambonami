@@ -52,14 +52,20 @@ class AuthTrustStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: const [
-        _TrustChip(icon: Icons.verified_user_outlined, label: 'Verified trade'),
-        _TrustChip(icon: Icons.lock_outline, label: 'Secure account'),
-        _TrustChip(icon: Icons.eco_outlined, label: 'Fresh market'),
-      ],
+    return SizedBox(
+      height: 32,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.zero,
+        children: const [
+          _TrustChip(icon: Icons.verified_user_outlined, label: 'Verified'),
+          SizedBox(width: 8),
+          _TrustChip(icon: Icons.lock_outline, label: 'Secure'),
+          SizedBox(width: 8),
+          _TrustChip(icon: Icons.eco_outlined, label: 'Fresh'),
+        ],
+      ),
     );
   }
 }
@@ -74,7 +80,7 @@ class _TrustChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
@@ -85,8 +91,8 @@ class _TrustChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: theme.colorScheme.onPrimaryContainer),
-          const SizedBox(width: 6),
+          Icon(icon, size: 14, color: theme.colorScheme.onPrimaryContainer),
+          const SizedBox(width: 5),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
