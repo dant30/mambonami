@@ -12,6 +12,7 @@ class CreateOrderRequest {
   final double deliveryLng;
   final String scheduledDate;
   final String scheduledTimeWindow;
+  final String? paymentMethod;
 
   CreateOrderRequest({
     required this.items,
@@ -24,6 +25,7 @@ class CreateOrderRequest {
     required this.deliveryLng,
     required this.scheduledDate,
     required this.scheduledTimeWindow,
+    this.paymentMethod,
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +39,7 @@ class CreateOrderRequest {
     'delivery_lng': deliveryLng,
     'scheduled_date': scheduledDate,
     'scheduled_time_window': scheduledTimeWindow,
+    'payment_method': paymentMethod,
   };
 }
 

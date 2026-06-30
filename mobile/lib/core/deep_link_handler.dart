@@ -24,6 +24,7 @@ enum DeepLinkType {
   productDetail,
   productCatalog,
   farmerProductList,
+  cart,
   disputeDetail,
   farmerDashboard,
   buyerDashboard,
@@ -57,6 +58,8 @@ class DeepLinkInfo {
         return uuid != null ? RoutePaths.productDetailPath(uuid!) : null;
       case DeepLinkType.productCatalog:
         return RoutePaths.products;
+      case DeepLinkType.cart:
+        return RoutePaths.cart;
       case DeepLinkType.farmerProductList:
         return RoutePaths.farmerProducts;
       case DeepLinkType.farmerDashboard:
@@ -130,8 +133,8 @@ class DeepLinkHandler {
           type: DeepLinkType.farmerProductList, params: uri.queryParameters);
     }
 
-    // Route order tracking: /orders/uuid
-    if (pathSegments.length >= 2 && pathSegments[0] == 'orders') {
+    // Route order tracking: /order/uuid or /orders/uuid
+    if (pathSegments.length >= 2 && (pathSegments[0] == 'orders' || pathSegments[0] == 'order')) {
       final uuid = pathSegments[1];
       debugPrint('[DeepLinkHandler] Detected order tracking: $uuid');
       return DeepLinkInfo(
@@ -141,8 +144,8 @@ class DeepLinkHandler {
       );
     }
 
-    // Route product details: /products/uuid
-    if (pathSegments.length >= 2 && pathSegments[0] == 'products') {
+    // Route product details: /product/uuid or /products/uuid
+    if (pathSegments.length >= 2 && (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
       final uuid = pathSegments[1];
       debugPrint('[DeepLinkHandler] Detected product detail: $uuid');
       return DeepLinkInfo(
@@ -152,11 +155,17 @@ class DeepLinkHandler {
       );
     }
 
-    // Route product catalog: /products
-    if (pathSegments.length == 1 && pathSegments[0] == 'products') {
+    // Route product catalog: /products or /product
+    if (pathSegments.length == 1 && (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
       debugPrint('[DeepLinkHandler] Detected product catalog');
       return DeepLinkInfo(
           type: DeepLinkType.productCatalog, params: uri.queryParameters);
+    }
+
+    // Route cart: /cart
+    if (pathSegments.length == 1 && pathSegments[0] == 'cart') {
+      debugPrint('[DeepLinkHandler] Detected cart');
+      return DeepLinkInfo(type: DeepLinkType.cart, params: uri.queryParameters);
     }
 
     // Route dispute details: /disputes/uuid
@@ -216,6 +225,33 @@ class DeepLinkHandler {
       debugPrint('[DeepLinkHandler] Failed to parse notification deepLink: $e');
       return null;
     }
+  }
+
+  static DeepLinkInfo? parseNotificationPayload(Map<String, dynamic> data) {
+    return parseNotificationData(data) ?? _createDeepLinkFromMetadata(data);
+  }
+
+  static DeepLinkInfo? _createDeepLinkFromMetadata(Map<String, dynamic> data) {
+    final orderId = extractOrderId(data);
+    if (orderId != null && data['type'] == 'farmer_order') {
+      debugPrint('[DeepLinkHandler] Creating farmer order deep link: $orderId');
+      return DeepLinkInfo(
+        type: DeepLinkType.farmerOrderDetail,
+        id: orderId.toString(),
+        params: data.cast<String, String>(),
+      );
+    }
+
+    final orderUuid = extractOrderUuid(data);
+    if (orderUuid != null && data['type'] == 'order_tracking') {
+      return DeepLinkInfo(
+        type: DeepLinkType.orderTracking,
+        uuid: orderUuid,
+        params: data.cast<String, String>(),
+      );
+    }
+
+    return null;
   }
 
   /// Extract order ID from notification metadata

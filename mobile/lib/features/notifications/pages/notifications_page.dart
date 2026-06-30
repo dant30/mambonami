@@ -1,9 +1,14 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../blocs/notification/notification_bloc.dart';
+import '../../../core/deep_link_handler.dart';
+import '../../../data/models/notification.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import 'package:flutter/services.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../widgets/notification_tile.dart';
 
 class NotificationsPage extends StatelessWidget {
@@ -12,13 +17,41 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Notifications'),
+      appBar: CustomAppBar(
+        title: 'Notifications',
+        actions: [
+          IconButton(
+            tooltip: 'Mark all read',
+            icon: const Icon(Icons.mark_email_read_outlined),
+            onPressed: () async {
+              HapticFeedback.lightImpact();
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Mark all as read'),
+                  content: const Text('Mark all notifications as read?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                context.read<NotificationBloc>().add(MarkAllReadEvent());
+              }
+            },
+          ),
+        ],
+      ),
       drawer: const AppDrawer(),
       bottomNavigationBar: const AppBottomNavigationBar(),
       body: BlocBuilder<NotificationBloc, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: SkeletonList(itemCount: 6),
+            );
           } else if (state is NotificationLoaded) {
             if (state.notifications.isEmpty) {
               return RefreshIndicator(
@@ -32,19 +65,31 @@ class NotificationsPage extends StatelessWidget {
                 ),
               );
             }
+            final groupedItems = _buildGroupedNotificationItems(state.notifications);
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<NotificationBloc>().add(FetchNotificationsEvent());
               },
               child: ListView.separated(
                 padding: EdgeInsets.fromLTRB(0, 8, 0, 8 + MediaQuery.of(context).padding.bottom),
-                itemCount: state.notifications.length,
+                itemCount: groupedItems.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final notif = state.notifications[index];
+                  final item = groupedItems[index];
+                  if (item is String) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        item,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    );
+                  }
+
+                  final notif = item as NotificationModel;
                   return NotificationTile(
                     notification: notif,
-                    onTap: () => _showNotificationDetails(context, notif),
+                    onTap: () => _handleNotificationTap(context, notif),
                     onMarkRead: notif.isUnread
                         ? () {
                             context.read<NotificationBloc>().add(MarkNotificationReadEvent(notif.id));
@@ -76,6 +121,63 @@ class NotificationsPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _handleNotificationTap(BuildContext context, NotificationModel notification) {
+    final deepLinkInfo = DeepLinkHandler.parseNotificationPayload(notification.metadata);
+    final routePath = deepLinkInfo?.toRoutePath();
+    if (routePath != null) {
+      if (notification.isUnread) {
+        context.read<NotificationBloc>().add(MarkNotificationReadEvent(notification.id));
+      }
+      context.go(routePath);
+      return;
+    }
+
+    _showNotificationDetails(context, notification);
+  }
+
+  List<dynamic> _buildGroupedNotificationItems(List<NotificationModel> notifications) {
+    final sortedNotifications = [...notifications]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    final items = <dynamic>[];
+    String? currentGroup;
+    for (final notification in sortedNotifications) {
+      final group = _groupLabel(notification.createdAt);
+      if (group != currentGroup) {
+        currentGroup = group;
+        items.add(group);
+      }
+      items.add(notification);
+    }
+    return items;
+  }
+
+  String _groupLabel(DateTime date) {
+    final now = DateTime.now();
+    final yesterday = now.subtract(const Duration(days: 1));
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      return 'Today';
+    }
+    if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+      return 'Yesterday';
+    }
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${monthNames[date.month - 1]} ${date.day}';
   }
 
   void _showNotificationDetails(BuildContext context, dynamic notification) {

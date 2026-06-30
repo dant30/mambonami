@@ -25,6 +25,7 @@ class CartPage extends StatelessWidget {
         title: 'My Cart',
         showNotificationAction: true,
         showBackButton: true,
+        fallbackRoute: RoutePaths.buyerDashboard,
       ),
       body: ValueListenableBuilder<List<CartItem>>(
         valueListenable: cartRepository.items,

@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart'; // ✅ for LatLng (optional but ensures type)
 
 import 'core/api_client.dart';
 import 'core/secure_storage.dart';
@@ -20,10 +21,12 @@ import 'data/repositories/auth_repository.dart';
 import 'data/repositories/cart_repository.dart';
 import 'data/repositories/product_repository.dart';
 import 'data/repositories/order_repository.dart';
+import 'data/repositories/address_repository.dart';
 import 'data/repositories/trip_repository.dart';
 import 'data/repositories/notification_repository.dart';
 import 'data/repositories/dispute_repository.dart';
 import 'blocs/auth/auth_bloc.dart';
+import 'blocs/locale/locale_cubit.dart';
 import 'blocs/product/product_bloc.dart';
 import 'blocs/order/order_bloc.dart';
 import 'blocs/trip/trip_bloc.dart';
@@ -55,11 +58,12 @@ void main() async {
     debugPrint(stackTrace.toString());
   }
 
-  await setupDependencies(firebaseAvailable);
-  runApp(MyApp());
+  final appRouter = AppRouter();
+  await setupDependencies(firebaseAvailable, appRouter);
+  runApp(MyApp(appRouter: appRouter));
 }
 
-Future<void> setupDependencies(bool firebaseAvailable) async {
+Future<void> setupDependencies(bool firebaseAvailable, AppRouter appRouter) async {
   // Core
   if (!getIt.isRegistered<SecureStorage>()) {
     getIt.registerSingleton<SecureStorage>(SecureStorage());
@@ -97,6 +101,9 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   if (!getIt.isRegistered<OrderRepository>()) {
     getIt.registerSingleton<OrderRepository>(OrderRepository());
   }
+  if (!getIt.isRegistered<AddressRepository>()) {
+    getIt.registerSingleton<AddressRepository>(AddressRepository());
+  }
   if (!getIt.isRegistered<TripRepository>()) {
     getIt.registerSingleton<TripRepository>(TripRepository());
   }
@@ -105,6 +112,10 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
   }
   if (!getIt.isRegistered<DisputeRepository>()) {
     getIt.registerSingleton<DisputeRepository>(DisputeRepository());
+  }
+
+  if (!getIt.isRegistered<GoRouter>()) {
+    getIt.registerSingleton<GoRouter>(appRouter.router);
   }
 
   // BLoCs
@@ -123,15 +134,16 @@ Future<void> setupDependencies(bool firebaseAvailable) async {
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  final AppRouter appRouter;
 
-  final _router = AppRouter().router;
+  MyApp({super.key, required this.appRouter});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => LocaleCubit()),
         BlocProvider(create: (_) => AuthBloc(authRepository: getIt<AuthRepository>(), secureStorage: getIt<SecureStorage>())),
         BlocProvider(create: (_) => ProductBloc(productRepository: getIt<ProductRepository>())),
         BlocProvider(create: (_) => OrderBloc(orderRepository: getIt<OrderRepository>())),
@@ -141,17 +153,28 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
-          return MaterialApp.router(
-            title: 'MAMBONAMI',
-            theme: getLightTheme(),
-            darkTheme: getDarkTheme(),
-            themeMode: themeState.themeMode,
-            routerConfig: _router,
-            debugShowCheckedModeBanner: false,
-            builder: (context, child) {
-              return DeepLinkAuthListener(
-                router: _router,
-                child: child ?? const SizedBox.shrink(),
+          return BlocBuilder<LocaleCubit, LocaleState>(
+            builder: (context, localeState) {
+              return MaterialApp.router(
+                title: 'MAMBONAMI',
+                theme: getLightTheme(),
+                darkTheme: getDarkTheme(),
+                themeMode: themeState.themeMode,
+                locale: localeState.locale,
+                supportedLocales: LocaleCubit.supportedLocales,
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                routerConfig: appRouter.router,
+                debugShowCheckedModeBanner: false,
+                builder: (context, child) {
+                  return DeepLinkAuthListener(
+                    appRouter: appRouter,
+                    child: child ?? const SizedBox.shrink(),
+                  );
+                },
               );
             },
           );

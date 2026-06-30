@@ -6,6 +6,7 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/app_screen.dart';
@@ -23,17 +24,26 @@ class BuyerDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final orderState = context.watch<OrderBloc>().state;
+    final productState = context.watch<ProductBloc>().state;
     
     String username = '';
     if (authState is AuthAuthenticated) {
       username = authState.username ?? authState.phone;
     }
 
-    // Get recent orders count
-    int recentOrdersCount = 0;
-    if (orderState is MyOrdersLoaded) {
-      recentOrdersCount = orderState.orders.length;
-    }
+    final orders = orderState is MyOrdersLoaded ? orderState.orders : const <dynamic>[];
+    final orderCount = orders.length;
+    final activeOrderCount = orders.where((order) {
+      return order.status != 'delivered' && order.status != 'cancelled';
+    }).length;
+
+    final wishCount = productState is ProductLoaded
+        ? productState.products.where((product) => ProductBloc.isFavorite(product)).length
+        : 0;
+
+    final featuredProducts = productState is ProductLoaded
+        ? productState.products.take(3).cast<Product>().toList()
+        : <Product>[];
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -66,17 +76,17 @@ class BuyerDashboard extends StatelessWidget {
                 stats: [
                   DashboardStat(
                     label: 'Orders',
-                    value: recentOrdersCount.toString(),
+                    value: orderCount.toString(),
                     icon: Icons.receipt_long_outlined,
                   ),
                   DashboardStat(
                     label: 'Active',
-                    value: '3',
+                    value: activeOrderCount.toString(),
                     icon: Icons.shopping_bag_outlined,
                   ),
                   DashboardStat(
                     label: 'Saved',
-                    value: '12',
+                    value: wishCount.toString(),
                     icon: Icons.favorite_border,
                   ),
                 ],
@@ -136,32 +146,40 @@ class BuyerDashboard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _FeatureCard(
-                      icon: Icons.eco,
-                      title: 'Organic Week',
-                      subtitle: '20% off organic produce',
-                      color: AppColors.buyerAccent,
-                    ),
-                    const SizedBox(width: 12),
-                    _FeatureCard(
-                      icon: Icons.local_shipping,
-                      title: 'Free Delivery',
-                      subtitle: 'On orders over KES 2,000',
-                      color: AppColors.providerAccent,
-                    ),
-                    const SizedBox(width: 12),
-                    _FeatureCard(
-                      icon: Icons.percent,
-                      title: 'Farmer Specials',
-                      subtitle: 'Direct from farm',
-                      color: AppColors.farmerAccent,
-                    ),
-                  ],
-                ),
+                height: 160,
+                child: featuredProducts.isEmpty
+                    ? ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: const [
+                          SizedBox(width: 16),
+                          _FeatureCard(
+                            icon: Icons.eco,
+                            title: 'Organic Week',
+                            subtitle: 'Coming soon',
+                            color: AppColors.buyerAccent,
+                          ),
+                          SizedBox(width: 12),
+                          _FeatureCard(
+                            icon: Icons.local_shipping,
+                            title: 'Free Delivery',
+                            subtitle: 'On orders over KES 2,000',
+                            color: AppColors.providerAccent,
+                          ),
+                        ],
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: featuredProducts.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final product = featuredProducts[index];
+                          return _ProductFeatureCard(
+                            product: product,
+                            onTap: () => context.push(RoutePaths.productDetailPath(product.uuid)),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -303,6 +321,84 @@ class _FeatureCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProductFeatureCard extends StatelessWidget {
+  final Product product;
+  final VoidCallback onTap;
+
+  const _ProductFeatureCard({
+    required this.product,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 220,
+        margin: const EdgeInsets.only(top: 4, bottom: 4),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.shadow.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        product.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      )
+                    : Container(
+                        color: AppColors.buyerAccent.withOpacity(0.12),
+                        child: const Center(
+                          child: Icon(Icons.eco, size: 40, color: AppColors.buyerAccent),
+                        ),
+                      ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

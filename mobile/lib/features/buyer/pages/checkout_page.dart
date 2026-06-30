@@ -9,6 +9,9 @@ import '../../../data/models/cart_item.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/dtos/order_dto.dart';
+import '../../../data/models/address.dart';
+import '../../../data/repositories/address_repository.dart';
+import '../../../features/buyer/pages/address_picker_page.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_card.dart';
@@ -35,10 +38,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Position? _currentPosition;
   String _locationStatus = 'Fetching location...';
   int _currentStep = 0;
+  final TextEditingController _promoController = TextEditingController();
+  String? _promoMessage;
+  double _discountAmount = 0.0;
+  bool _promoApplied = false;
+  final List<String> _paymentMethods = const ['M-Pesa', 'Card', 'Cash on Delivery'];
+  String _selectedPaymentMethod = 'M-Pesa';
+  Address? _selectedAddress;
+  late final AddressRepository _addressRepository;
+  late final OrderRepository _orderRepository;
 
   @override
   void initState() {
     super.initState();
+    _addressRepository = GetIt.instance<AddressRepository>();
+    _orderRepository = GetIt.instance<OrderRepository>();
+    _addressRepository.init().then((_) {
+      final saved = _addressRepository.defaultAddress;
+      if (saved != null && mounted) {
+        _prefillFromAddress(saved);
+      }
+    });
     _fetchLocation();
   }
 
@@ -49,6 +69,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _postalCodeController.dispose();
     _landmarkController.dispose();
     _timeWindowController.dispose();
+    _promoController.dispose();
     super.dispose();
   }
 
@@ -96,6 +117,66 @@ class _CheckoutPageState extends State<CheckoutPage> {
       setState(() {
         _scheduledDate = picked;
       });
+    }
+  }
+
+  void _prefillFromAddress(Address address) {
+    setState(() {
+      _selectedAddress = address;
+      _streetController.text = address.street;
+      _cityController.text = address.city;
+      _postalCodeController.text = address.postalCode;
+      _landmarkController.text = address.landmark ?? '';
+    });
+  }
+
+  Future<void> _pickSavedAddress() async {
+    final selected = await Navigator.of(context).push<Address>(
+      MaterialPageRoute(builder: (_) => const AddressPickerPage()),
+    );
+    if (selected != null) {
+      _prefillFromAddress(selected);
+    }
+  }
+
+  void _applyPromoCode() {
+    final cartRepository = GetIt.instance<CartRepository>();
+    final code = _promoController.text.trim().toUpperCase();
+    final subtotal = cartRepository.subtotal;
+    final deliveryFee = subtotal > 200 ? 0.0 : 100.0;
+
+    if (code.isEmpty) {
+      setState(() {
+        _promoMessage = 'Enter a promo code to save.';
+        _discountAmount = 0.0;
+        _promoApplied = false;
+      });
+      return;
+    }
+
+    switch (code) {
+      case 'MAMBO10':
+        setState(() {
+          _discountAmount = subtotal * 0.10;
+          _promoApplied = true;
+          _promoMessage = '10% off applied.';
+        });
+        break;
+      case 'FREESHIP':
+        setState(() {
+          _discountAmount = deliveryFee;
+          _promoApplied = deliveryFee > 0;
+          _promoMessage = deliveryFee > 0
+              ? 'Free shipping applied.'
+              : 'Shipping is already free.';
+        });
+        break;
+      default:
+        setState(() {
+          _discountAmount = 0.0;
+          _promoApplied = false;
+          _promoMessage = 'Invalid promo code.';
+        });
     }
   }
 
@@ -148,13 +229,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryLng: _currentPosition!.longitude,
         scheduledDate: DateFormat('yyyy-MM-dd').format(_scheduledDate!),
         scheduledTimeWindow: _timeWindowController.text.trim(),
+        paymentMethod: _selectedPaymentMethod,
       );
 
       final order = await orderRepository.createOrder(request);
       cartRepository.clear();
       
       if (mounted) {
-        final orderUuid = order['uuid']?.toString() ?? '';
+        final orderUuid = order['order_uuid']?.toString() ?? order['uuid']?.toString() ?? '';
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Order placed successfully!'),
@@ -162,7 +244,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         );
         if (orderUuid.isNotEmpty) {
-          context.go(RoutePaths.orderTrackingPath(orderUuid));
+          context.go(RoutePaths.orderConfirmationPath(orderUuid));
         }
       }
     } catch (error) {
@@ -220,7 +302,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
           }
 
           final subtotal = cartRepository.subtotal;
-          final total = subtotal > 200 ? subtotal : subtotal + 100;
+          final deliveryFee = subtotal > 200 ? 0.0 : 100.0;
+          final discount = _discountAmount.clamp(0.0, subtotal + deliveryFee);
+          final total = subtotal - discount + deliveryFee;
 
           return Stack(
             children: [
@@ -257,13 +341,135 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               'Ksh ${subtotal.toStringAsFixed(2)}'),
                           const SizedBox(height: 10),
                           _summaryRow(context, 'Delivery',
-                              subtotal > 200 ? 'Free' : 'Ksh 100'),
+                              deliveryFee == 0 ? 'Free' : 'Ksh 100'),
+                          if (discount > 0) ...[
+                            const SizedBox(height: 10),
+                            _summaryRow(context, 'Discount',
+                                '-Ksh ${discount.toStringAsFixed(2)}'),
+                          ],
                           const Divider(height: 20),
                           _summaryRow(
                             context,
                             'Total',
                             'Ksh ${total.toStringAsFixed(2)}',
                             isTotal: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    CustomCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.local_offer_outlined,
+                                  color: theme.colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('Promo & Payment',
+                                  style: theme.textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _promoController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter promo code',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton(
+                                onPressed: _applyPromoCode,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 18),
+                                ),
+                                child: const Text('Apply'),
+                              ),
+                            ],
+                          ),
+                          if (_promoMessage != null) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              _promoMessage!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: _promoApplied
+                                    ? Colors.green
+                                    : theme.colorScheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          Text('Payment method',
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 8),
+                          ..._paymentMethods.map(
+                            (method) => RadioListTile<String>(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(method),
+                              value: method,
+                              groupValue: _selectedPaymentMethod,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedPaymentMethod = value;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    CustomCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.location_on_outlined,
+                                  color: theme.colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('Saved Address',
+                                  style: theme.textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          if (_selectedAddress != null) ...[
+                            Text(
+                              '${_selectedAddress!.label}: ${_selectedAddress!.detailedAddress}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 12),
+                          ] else ...[
+                            Text(
+                              'Select a saved address to auto-fill the delivery form.',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          CustomButton(
+                            label: _selectedAddress == null
+                                ? 'Choose saved address'
+                                : 'Change saved address',
+                            onPressed: _pickSavedAddress,
                           ),
                         ],
                       ),

@@ -226,7 +226,41 @@ Order Placed → Paid (Escrow) → Farmer Confirmed → Farmer Ready → Transpo
 - Safaricom charges PayBill and B2C fees.
 - Platform charges a commission on product sales and delivery fees.
 
-## 11. Critical Gaps & Pre-Deployment Checklist ⚠️⚠️
+## 12. Shared Models & Platform Primitives ✅
+
+This platform includes shared Python primitives to keep backend model logic consistent across Django and FastAPI components.
+
+- `shared/enums.py`
+  - `OrderStatus` defines order lifecycle states: `cart`, `placed`, `paid_escrow`, `transport_assigned`, `picked_up`, `delivered`, `cancelled`, `disputed`.
+  - `VehicleType` captures transport provider vehicle categories: `motorcycle`, `pickup`, `van`, `lorry`.
+  - `NotificationChannel` standardizes delivery channels: `in_app`, `sms`, `email`.
+
+- `shared/db_models/mixins.py`
+  - `TimestampMixin` provides `created_at` and `updated_at` fields for auditability.
+  - `SoftDeleteMixin` provides `is_deleted`, `deleted_at`, `delete()`, and `restore()` for logical deletion workflows.
+
+## 13. Mobile Navigation & Deep-Linking Priority ✅
+
+Mobile app behavior must support direct entry points and fallback navigation when users arrive from external links or notifications.
+
+- Deep links should resolve to productive buyer and farmer experiences even if the app starts from the login screen.
+- Buyer cart deep links (`/cart`) are supported and preserve user flow by redirecting unauthenticated users to login and then to cart.
+- Screens opened directly through deep links should show a fallback back action when there is no existing navigator history.
+- Notification payloads may include `deepLink` metadata that maps onto existing app routes.
+
+## 14. Feature Priorities ⚠️
+
+- Buyer cart & checkout flow, including deep linking from notifications and web links.
+- Order tracking and notification delivery acknowledgements.
+- Transport provider matching by vehicle type and delivery capacity.
+- Soft delete support for entities that should be hidden rather than permanently removed.
+- Universal shared backend enums and model mixins to prevent divergence across services.
+
+## 15. Pre-Deployment Validation ✅
+
+- Verify deep-link routing for buyer cart, product detail, order tracking, and farmer order detail.
+- Confirm notification deep link metadata flows to the correct in-app screens.
+- Validate that soft-deleted records are excluded from active queries but recoverable when required.
 
 ### 11.1 PayBill Float Funding Risk ⚠️⚠️
 

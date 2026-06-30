@@ -25,6 +25,8 @@ import '../features/buyer/pages/product_catalog_page.dart';
 import '../features/buyer/pages/product_detail_page.dart';
 import '../features/buyer/pages/cart_page.dart';
 import '../features/buyer/pages/checkout_page.dart';
+import '../features/buyer/pages/address_picker_page.dart';
+import '../features/buyer/pages/order_confirmation_page.dart';
 import '../features/buyer/pages/dispute_page.dart';
 import '../data/models/product.dart';
 import '../data/models/order.dart';
@@ -240,11 +242,32 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.addressPicker,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: AppRole.buyerRoles,
+          child: AddressPickerPage(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.checkout,
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.buyerRoles,
           child: CheckoutPage(),
         ),
+      ),
+      GoRoute(
+        path: RoutePaths.orderConfirmation,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid'];
+          if (uuid == null) {
+            return const Scaffold(
+                body: Center(child: Text('Missing order id')));
+          }
+          return AuthGuard(
+            allowedRoles: AppRole.buyerRoles,
+            child: OrderConfirmationPage(orderUuid: uuid),
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.dispute,

@@ -14,6 +14,7 @@ import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';
 import '../../shared/widgets/avatar.dart';
+import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/custom_image_picker.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/custom_text_field.dart';
@@ -33,13 +34,21 @@ class _ProfilePageState extends State<ProfilePage> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _loading = true;
+  bool _isChangingPassword = false;
+  bool _isDeletingAccount = false;
   String? _profileImageUrl;
   File? _selectedAvatarFile;
   String? _firstName;
   String? _lastName;
   String? _username;
+  String? _role;
+  Map<String, dynamic>? _transportProfile;
+  Map<String, dynamic>? _farmProfile;
 
   final AuthRepository _authRepository = GetIt.I<AuthRepository>();
 
@@ -61,6 +70,13 @@ class _ProfilePageState extends State<ProfilePage> {
           (context.read<AuthBloc>().state is AuthAuthenticated
               ? (context.read<AuthBloc>().state as AuthAuthenticated).phone
               : '');
+      _role = profile['role']?.toString();
+      _transportProfile = profile['transport_profile'] is Map<String, dynamic>
+          ? profile['transport_profile'] as Map<String, dynamic>
+          : null;
+      _farmProfile = profile['farm_profile'] is Map<String, dynamic>
+          ? profile['farm_profile'] as Map<String, dynamic>
+          : null;
 
       setState(() {
         _profileImageUrl = profile['profile_image']?.toString();
@@ -104,6 +120,9 @@ class _ProfilePageState extends State<ProfilePage> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _phoneController.dispose();
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -196,6 +215,40 @@ class _ProfilePageState extends State<ProfilePage> {
                       validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
+                    if (_role != null) ...[
+                      SectionHeader(
+                        title: 'Profile Summary',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomCard(
+                        margin: EdgeInsets.zero,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Role: ${_role!}', style: Theme.of(context).textTheme.bodyLarge),
+                            const SizedBox(height: 12),
+                            if (_transportProfile != null) ...[
+                              _buildStatRow('Deliveries', '${_transportProfile!['total_deliveries'] ?? '—'}'),
+                              const SizedBox(height: 8),
+                              _buildStatRow('Rating', '${_transportProfile!['rating'] ?? '—'}'),
+                              const SizedBox(height: 8),
+                              _buildStatRow('Vehicle', '${_transportProfile!['vehicle_type'] ?? '—'}'),
+                              const SizedBox(height: 8),
+                              _buildStatRow('Approved', _transportProfile!['is_approved'] == true ? 'Yes' : 'No'),
+                            ],
+                            if (_farmProfile != null) ...[
+                              _buildStatRow('Total sales', '${_farmProfile!['total_sales'] ?? '—'}'),
+                              const SizedBox(height: 8),
+                              _buildStatRow('M-Pesa', '${_farmProfile!['mpesa_number'] ?? '—'}'),
+                              const SizedBox(height: 8),
+                              _buildStatRow('Coop verified', _farmProfile!['coop_verified'] == true ? 'Yes' : 'No'),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     SectionHeader(
                       title: 'Account Settings',
                       padding: EdgeInsets.zero,
@@ -227,6 +280,49 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 24),
                     SectionHeader(
+                      title: 'Change Password',
+                      padding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      controller: _oldPasswordController,
+                      label: 'Current password',
+                      obscureText: true,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      controller: _newPasswordController,
+                      label: 'New password',
+                      obscureText: true,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Required';
+                        if (v.length < 6) return 'At least 6 characters';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm new password',
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Required';
+                        if (v != _newPasswordController.text) return 'Passwords do not match';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomButton(
+                      onPressed: _isChangingPassword ? null : _changePassword,
+                      isLoading: _isChangingPassword,
+                      label: 'Update password',
+                    ),
+                    const SizedBox(height: 24),
+                    SectionHeader(
                       title: 'Actions',
                       padding: EdgeInsets.zero,
                     ),
@@ -237,6 +333,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       onPressed: _confirmLogout,
                       label: 'Log out',
                       color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    CustomButton(
+                      onPressed: _confirmDeleteAccount,
+                      isLoading: _isDeletingAccount,
+                      label: 'Delete account',
+                      color: Theme.of(context).colorScheme.error,
+                      outlined: true,
                     ),
                   ],
                 ),
@@ -293,6 +397,32 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _changePassword() async {
+    if (_oldPasswordController.text.isEmpty || _newPasswordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      CustomSnackbar.showError(context, 'Please fill all password fields.');
+      return;
+    }
+    if (_newPasswordController.text != _confirmPasswordController.text) {
+      CustomSnackbar.showError(context, 'Passwords do not match.');
+      return;
+    }
+    setState(() => _isChangingPassword = true);
+    try {
+      await _authRepository.changePassword(
+        _oldPasswordController.text.trim(),
+        _newPasswordController.text.trim(),
+      );
+      CustomSnackbar.showSuccess(context, 'Password updated successfully.');
+      _oldPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    } catch (e) {
+      CustomSnackbar.showError(context, 'Password change failed: ${e.toString()}');
+    } finally {
+      setState(() => _isChangingPassword = false);
+    }
+  }
+
   void _confirmLogout() {
     showDialog(
       context: context,
@@ -311,4 +441,50 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
-  }}
+  }
+
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text('This action cannot be undone. Do you want to delete your account?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await _deleteAccount();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    setState(() => _isDeletingAccount = true);
+    try {
+      await _authRepository.deleteAccount();
+      context.read<AuthBloc>().add(LogoutEvent());
+    } catch (e) {
+      CustomSnackbar.showError(context, 'Failed to delete account: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isDeletingAccount = false);
+    }
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          Text(value, style: Theme.of(context).textTheme.bodyLarge),
+        ],
+      ),
+    );
+  }
+}

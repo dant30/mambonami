@@ -3,6 +3,7 @@
     VerifyOTPSerializer,
     PasswordResetInitSerializer,
     PasswordResetVerifySerializer,
+    ChangePasswordSerializer,
     UserDetailSerializer,
     LoginSerializer,
 )
@@ -12,6 +13,7 @@ __all__ = [
     'VerifyOTPSerializer',
     'PasswordResetInitSerializer',
     'PasswordResetVerifySerializer',
+    'ChangePasswordSerializer',
     'UserDetailSerializer',
     'LoginSerializer',
 ]

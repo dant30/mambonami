@@ -53,6 +53,7 @@ class OrderCreateSerializer(serializers.Serializer):
     delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Longitude of delivery location")
     scheduled_date = serializers.DateField()
     scheduled_time_window = serializers.CharField(max_length=50)
+    payment_method = serializers.CharField(required=False, allow_blank=True, max_length=64)
     items = CartItemSerializer(many=True)
 
     def validate_delivery_lat(self, value):

@@ -23,6 +23,8 @@ class _FavoriteTracker {
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository productRepository;
 
+  static bool isFavorite(Product product) => _FavoriteTracker.isFavorite(product);
+
   ProductBloc({required this.productRepository}) : super(ProductInitial()) {
     on<FetchProductsEvent>(_onFetchProducts);
     on<FetchProductDetailEvent>(_onFetchProductDetail);
@@ -31,6 +33,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<DeleteProductEvent>(_onDeleteProduct);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
   }
+
+  Product _syncFavorite(Product product) =>
+      product.copyWith(isFavorite: _FavoriteTracker.isFavorite(product));
+
+  List<Product> _syncFavorites(List<Product> products) =>
+      products.map(_syncFavorite).toList();
 
   Future<void> _onFetchProducts(FetchProductsEvent event, Emitter<ProductState> emit) async {
     emit(ProductLoading());
@@ -41,7 +49,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         farmerId: event.farmerId,
       );
       if (cached.isNotEmpty) {
-        emit(ProductLoaded(cached));
+        emit(ProductLoaded(_syncFavorites(cached)));
       }
     } catch (_) {}
 
@@ -50,7 +58,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         categoryCode: event.categoryCode,
         farmerId: event.farmerId,
       );
-      emit(ProductLoaded(products));
+      emit(ProductLoaded(_syncFavorites(products)));
     } catch (e) {
       // If we already emitted cached list above, avoid replacing with an error
       if (state is! ProductLoaded) {
@@ -63,7 +71,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     emit(ProductLoading());
     try {
       final product = await productRepository.getProductByUuid(event.uuid);
-      emit(ProductDetailLoaded(product));
+      emit(ProductDetailLoaded(_syncFavorite(product)));
     } catch (e) {
       emit(ProductError(e.toString()));
     }
@@ -101,9 +109,21 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   Future<void> _onToggleFavorite(ToggleFavoriteEvent event, Emitter<ProductState> emit) async {
     _FavoriteTracker.toggle(event.product);
+    final updatedProduct = event.product.copyWith(isFavorite: _FavoriteTracker.isFavorite(event.product));
+
     if (state is ProductLoaded) {
-      final currentProducts = (state as ProductLoaded).products;
+      final currentProducts = (state as ProductLoaded).products.map((product) {
+        return product.uuid == updatedProduct.uuid ? updatedProduct : product;
+      }).toList();
       emit(ProductLoaded(currentProducts));
+      return;
+    }
+
+    if (state is ProductDetailLoaded) {
+      final currentDetail = (state as ProductDetailLoaded).product;
+      if (currentDetail.uuid == updatedProduct.uuid) {
+        emit(ProductDetailLoaded(updatedProduct));
+      }
     }
   }
 }

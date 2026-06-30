@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../../blocs/locale/locale_cubit.dart';
 import '../../blocs/theme/theme_bloc.dart';
 import '../../core/constants.dart';
 import '../../data/local/cache_manager.dart';
@@ -23,6 +26,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true;
+  bool _orderUpdatesEnabled = true;
+  String _notificationPermission = 'Unknown';
   bool _loading = true;
 
   @override
@@ -32,10 +37,19 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadPrefs() async {
-    final enabled = await CacheManager.instance.getBool(kNotificationsEnabledKey);
+    final notificationsEnabled = await CacheManager.instance.getBool(kNotificationsEnabledKey);
+    final orderUpdatesEnabled = await CacheManager.instance.getBool(kOrderUpdatesEnabledKey);
+    // load firebase notification permission status
+    try {
+      final settings = await FirebaseMessaging.instance.getNotificationSettings();
+      _notificationPermission = settings.authorizationStatus.name;
+    } catch (_) {
+      _notificationPermission = 'unknown';
+    }
     if (!mounted) return;
     setState(() {
-      _notificationsEnabled = enabled ?? true;
+      _notificationsEnabled = notificationsEnabled ?? true;
+      _orderUpdatesEnabled = orderUpdatesEnabled ?? true;
       _loading = false;
     });
   }
@@ -50,11 +64,46 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _requestNotificationPermission() async {
+    final settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: true,
+      sound: true,
+    );
+    if (!mounted) return;
+    setState(() => _notificationPermission = settings.authorizationStatus.name);
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+      CustomSnackbar.showSuccess(context, 'Notification permission granted');
+    } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      CustomSnackbar.showError(context, 'Notification permission denied');
+    }
+  }
+
+  Future<void> _openSystemNotificationSettings() async {
+    await openAppSettings();
+  }
+
+  Future<void> _saveOrderUpdates(bool enabled) async {
+    await CacheManager.instance.saveBool(kOrderUpdatesEnabledKey, enabled);
+    if (!mounted) return;
+    setState(() => _orderUpdatesEnabled = enabled);
+    CustomSnackbar.showSuccess(
+      context,
+      enabled ? 'Order updates enabled' : 'Order updates disabled',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeCubit = context.read<ThemeCubit>();
     final themeMode = context.watch<ThemeCubit>().state.themeMode;
 
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Scaffold(
       appBar: const CustomAppBar(title: 'Settings'),
       drawer: const AppDrawer(),
@@ -100,18 +149,61 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 18),
                   const SectionHeader(
+                    title: 'Language',
+                    subtitle: 'Choose app language',
+                  ),
+                  CustomCard(
+                    margin: EdgeInsets.zero,
+                    child: Column(
+                      children: LocaleCubit.supportedLocales.map((localeOption) {
+                        return RadioListTile<Locale>(
+                          value: localeOption,
+                          groupValue: locale,
+                          onChanged: (newLocale) {
+                            if (newLocale != null) {
+                              context.read<LocaleCubit>().setLocale(newLocale);
+                            }
+                          },
+                          title: Text(localeOption.languageCode == 'sw' ? 'Kiswahili' : 'English'),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const SectionHeader(
                     title: 'Notifications',
                     subtitle: 'Control account and order updates',
                   ),
                   CustomCard(
                     margin: EdgeInsets.zero,
                     padding: EdgeInsets.zero,
-                    child: SwitchListTile(
-                      value: _notificationsEnabled,
-                      onChanged: _saveNotifications,
-                      title: const Text('Push notifications'),
-                      subtitle: const Text('Delivery, order, and account alerts'),
-                      secondary: const Icon(Icons.notifications_active_outlined),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.notifications_none_outlined),
+                          title: const Text('App notification permission'),
+                          subtitle: Text(_notificationPermission),
+                          trailing: TextButton(
+                            onPressed: _requestNotificationPermission,
+                            child: const Text('Request'),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        SwitchListTile(
+                          value: _notificationsEnabled,
+                          onChanged: _saveNotifications,
+                          title: const Text('Push notifications'),
+                          subtitle: const Text('Delivery, order, and account alerts'),
+                          secondary: const Icon(Icons.notifications_active_outlined),
+                        ),
+                        SwitchListTile(
+                          value: _orderUpdatesEnabled,
+                          onChanged: _saveOrderUpdates,
+                          title: const Text('Order updates'),
+                          subtitle: const Text('Track order progress and status changes'),
+                          secondary: const Icon(Icons.track_changes_outlined),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 18),

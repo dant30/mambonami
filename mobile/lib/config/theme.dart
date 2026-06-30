@@ -25,6 +25,13 @@ ThemeData buildTheme(ThemeData themeData) {
     textTheme: themed,
     primaryTextTheme: GoogleFonts.interTextTheme(themeData.primaryTextTheme),
     useMaterial3: true,
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+    }),
   );
 }
 

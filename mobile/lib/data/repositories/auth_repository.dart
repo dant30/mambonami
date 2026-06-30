@@ -195,6 +195,36 @@ class AuthRepository {
     }
   }
 
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    try {
+      final response = await _apiClient.dio.post(
+        kPasswordChangeEndpoint,
+        data: {
+          'old_password': oldPassword,
+          'new_password': newPassword,
+          'confirm_password': newPassword,
+        },
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to change password');
+      }
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final response = await _apiClient.dio.delete(kProfileEndpoint);
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Failed to delete account');
+      }
+      await logout();
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<void> logout() async {
     await _secureStorage.clearAll();
     await _cacheManager.remove(kCachedProfileKey);

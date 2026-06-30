@@ -1,7 +1,11 @@
 // mobile/lib/features/transport/pages/trip_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../blocs/trip/trip_bloc.dart';
@@ -61,6 +65,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   _buildStatusCard(context, trip),
                   const SizedBox(height: 16),
                   _buildLocationCard(context, trip),
+                  const SizedBox(height: 16),
+                  _buildMapCard(context, trip),
                   const SizedBox(height: 16),
                   _buildTimelineCard(context, trip),
                   const SizedBox(height: 16),
@@ -176,7 +182,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.location_on, size: 24, color: Colors.green),
+                const Icon(Icons.location_on, size: 24, color: Colors.green),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -196,7 +202,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.location_on, size: 24, color: Colors.red),
+                const Icon(Icons.location_on, size: 24, color: Colors.red),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -217,6 +223,113 @@ class _TripDetailPageState extends State<TripDetailPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildMapCard(BuildContext context, var trip) {
+    if (trip.pickupLat == null || trip.pickupLng == null || trip.deliveryLat == null || trip.deliveryLng == null) {
+      return const SizedBox();
+    }
+
+    final pickup = LatLng(trip.pickupLat!, trip.pickupLng!);
+    final delivery = LatLng(trip.deliveryLat!, trip.deliveryLng!);
+    final distanceKm = _calculateDistanceKm(pickup, delivery);
+    final etaText = _formatEta(distanceKm);
+    final midpoint = LatLng(
+      (pickup.latitude + delivery.latitude) / 2,
+      (pickup.longitude + delivery.longitude) / 2,
+    );
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Route & ETA',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(target: midpoint, zoom: 10),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('pickup'),
+                    position: pickup,
+                    infoWindow: const InfoWindow(title: 'Pickup'),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                  ),
+                  Marker(
+                    markerId: const MarkerId('delivery'),
+                    position: delivery,
+                    infoWindow: const InfoWindow(title: 'Delivery'),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                  ),
+                },
+                zoomControlsEnabled: false,
+                myLocationButtonEnabled: false,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text('Distance: ${distanceKm.toStringAsFixed(1)} km',
+                style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 4),
+            Text('Estimated ETA: $etaText',
+                style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('Open in Maps'),
+                    onPressed: () => _openNavigation(trip),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _calculateDistanceKm(LatLng start, LatLng end) {
+    final meters = Geolocator.distanceBetween(
+      start.latitude,
+      start.longitude,
+      end.latitude,
+      end.longitude,
+    );
+    return meters / 1000;
+  }
+
+  String _formatEta(double distanceKm) {
+    const averageSpeedKmh = 40.0;
+    final minutes = (distanceKm / averageSpeedKmh) * 60;
+    final rounded = minutes < 5 ? 5 : minutes.round();
+    return '$rounded min';
+  }
+
+  Future<void> _openNavigation(var trip) async {
+    final origin = '${trip.pickupLat},${trip.pickupLng}';
+    final destination = '${trip.deliveryLat},${trip.deliveryLng}';
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&travelmode=driving',
+    );
+
+    if (!await canLaunchUrl(uri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open navigation app.')),
+      );
+      return;
+    }
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Widget _buildTimelineCard(BuildContext context, var trip) {

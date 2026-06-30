@@ -39,10 +39,16 @@ const Duration kApiReceiveTimeout = Duration(seconds: 30);
 // Local cache keys
 const String kThemeModeKey = 'theme_mode';
 const String kNotificationsEnabledKey = 'notifications_enabled';
+const String kOrderUpdatesEnabledKey = 'order_updates_enabled';
+const String kAppLocaleKey = 'app_locale';
 const String kCachedProfileKey = 'cached_user_profile';
 const String kUserTable = 'users';
 const String kProductTable = 'products';
 const String kCartItemTable = 'cart_items';
+const String kAddressTable = 'saved_addresses';
 // Product cache TTL
 const Duration kProductCacheTTL = Duration(hours: 6);
+
+// Auth endpoints
+const String kPasswordChangeEndpoint = '/api/users/password-change/';
 

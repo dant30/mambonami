@@ -51,6 +51,9 @@ class Product {
   final bool isActive;
   final String? imageUrl;
   final String? description;
+  final bool isFavorite;
+  final double averageRating;
+  final int reviewCount;
   final DateTime createdAt;
   final DateTime updatedAt;
   final double? pickupLat;
@@ -79,6 +82,9 @@ class Product {
     required this.isActive,
     this.imageUrl,
     this.description,
+    this.isFavorite = false,
+    this.averageRating = 0.0,
+    this.reviewCount = 0,
     required this.createdAt,
     required this.updatedAt,
     this.pickupLat,
@@ -109,6 +115,11 @@ class Product {
       isActive: _parseBool(json['is_active']),
       imageUrl: json['image']?.toString(),
       description: json['description']?.toString(),
+      isFavorite: _parseBool(json['is_favorite'] ?? json['isFavorite']),
+      averageRating: _parseDouble(json['average_rating'] ?? json['averageRating']),
+      reviewCount: json['review_count'] is int
+          ? json['review_count']
+          : int.tryParse((json['review_count'] ?? json['reviewCount'])?.toString() ?? '') ?? 0,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
       pickupLat: _parseNullableDouble(json['pickup_lat']),
@@ -139,6 +150,9 @@ class Product {
     'is_active': isActive,
     'image': imageUrl,
     'description': description,
+    'is_favorite': isFavorite,
+    'average_rating': averageRating,
+    'review_count': reviewCount,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt.toIso8601String(),
     'pickup_lat': pickupLat,
@@ -147,6 +161,103 @@ class Product {
   };
 
   String get displayName => variety != null && variety!.isNotEmpty ? '$name ($variety)' : name;
+
+  Product copyWith({
+    int? id,
+    String? uuid,
+    int? farmerId,
+    String? farmerPhone,
+    String? farmerName,
+    ProductCategory? category,
+    String? name,
+    String? variety,
+    String? sku,
+    double? pricePerUnit,
+    double? availableQuantity,
+    double? reservedQuantity,
+    String? unit,
+    DateTime? harvestDate,
+    int? shelfLifeDays,
+    DateTime? expiryDate,
+    bool? isOrganic,
+    int? remainingShelfLife,
+    bool? isActive,
+    String? imageUrl,
+    String? description,
+    bool? isFavorite,
+    double? averageRating,
+    int? reviewCount,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    double? pickupLat,
+    double? pickupLng,
+    double? weightPerUnit,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      farmerId: farmerId ?? this.farmerId,
+      farmerPhone: farmerPhone ?? this.farmerPhone,
+      farmerName: farmerName ?? this.farmerName,
+      category: category ?? this.category,
+      name: name ?? this.name,
+      variety: variety ?? this.variety,
+      sku: sku ?? this.sku,
+      pricePerUnit: pricePerUnit ?? this.pricePerUnit,
+      availableQuantity: availableQuantity ?? this.availableQuantity,
+      reservedQuantity: reservedQuantity ?? this.reservedQuantity,
+      unit: unit ?? this.unit,
+      harvestDate: harvestDate ?? this.harvestDate,
+      shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
+      expiryDate: expiryDate ?? this.expiryDate,
+      isOrganic: isOrganic ?? this.isOrganic,
+      remainingShelfLife: remainingShelfLife ?? this.remainingShelfLife,
+      isActive: isActive ?? this.isActive,
+      imageUrl: imageUrl ?? this.imageUrl,
+      description: description ?? this.description,
+      isFavorite: isFavorite ?? this.isFavorite,
+      averageRating: averageRating ?? this.averageRating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      pickupLat: pickupLat ?? this.pickupLat,
+      pickupLng: pickupLng ?? this.pickupLng,
+      weightPerUnit: weightPerUnit ?? this.weightPerUnit,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        uuid,
+        farmerId,
+        farmerPhone,
+        farmerName,
+        category,
+        name,
+        variety,
+        sku,
+        pricePerUnit,
+        availableQuantity,
+        reservedQuantity,
+        unit,
+        harvestDate,
+        shelfLifeDays,
+        expiryDate,
+        isOrganic,
+        remainingShelfLife,
+        isActive,
+        imageUrl,
+        description,
+        isFavorite,
+        averageRating,
+        reviewCount,
+        createdAt,
+        updatedAt,
+        pickupLat,
+        pickupLng,
+        weightPerUnit,
+      ];
 }
 
 bool _parseBool(dynamic value) {

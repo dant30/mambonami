@@ -9,6 +9,7 @@ from ..serializers import (
     VerifyOTPSerializer,
     PasswordResetInitSerializer,
     PasswordResetVerifySerializer,
+    ChangePasswordSerializer,
     UserDetailSerializer,
     LoginSerializer,
 )
@@ -97,7 +98,18 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
         )
 
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+class PasswordChangeView(generics.GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+
+
+class ProfileView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -112,3 +124,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         user.last_name = request.data.get('last_name', user.last_name)
         user.save(update_fields=['email', 'username', 'first_name', 'last_name'])
         return Response(self.get_serializer(user).data)
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+        return Response({'message': 'Account deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)

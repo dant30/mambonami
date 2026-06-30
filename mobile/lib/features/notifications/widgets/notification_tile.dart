@@ -27,20 +27,28 @@ class NotificationTile extends StatelessWidget {
             color: notification.isRead ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7) : Theme.of(context).colorScheme.onPrimary,
           ),
         ),
-        title: Text(
-          notification.title,
-          style: TextStyle(
-            fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
+        title: Tooltip(
+          message: notification.title,
+          child: Text(
+            notification.title,
+            style: TextStyle(
+              fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(
-              notification.body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Tooltip(
+              message: notification.body,
+              child: Text(
+                notification.body,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             if (notification.metadata.isNotEmpty) ...[
               const SizedBox(height: 8),

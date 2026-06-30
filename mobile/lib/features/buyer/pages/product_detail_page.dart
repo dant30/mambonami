@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
@@ -12,6 +13,7 @@ import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/cart_action_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/rating_stars.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productUuid;
@@ -25,6 +27,7 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   Product? _product;
+  int _quantity = 1;
 
   @override
   void initState() {
@@ -38,7 +41,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Product Detail', showNotificationAction: true, actions: const [CartActionButton()]),
+      appBar: CustomAppBar(
+        title: 'Product Detail',
+        showNotificationAction: true,
+        actions: const [CartActionButton()],
+        fallbackRoute: RoutePaths.products,
+      ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (_product != null && state is! ProductLoading) {
@@ -164,9 +172,57 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ),
           const SizedBox(height: 20),
-          Text(product.displayName, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Text(product.category.name.toUpperCase(), style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(product.displayName, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text(product.category.name.toUpperCase(), style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
+                    const SizedBox(height: 12),
+                    if (product.averageRating > 0 || product.reviewCount > 0)
+                      Row(
+                        children: [
+                          RatingStars(rating: product.averageRating, size: 18),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${product.averageRating.toStringAsFixed(1)} · ${product.reviewCount} review${product.reviewCount == 1 ? '' : 's'}',
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.75)),
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        'No reviews yet',
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.65)),
+                      ),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  IconButton(
+                    onPressed: () => context.read<ProductBloc>().add(ToggleFavoriteEvent(product)),
+                    icon: Icon(
+                      product.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: product.isFavorite ? Colors.redAccent : theme.colorScheme.onSurface,
+                    ),
+                    tooltip: product.isFavorite ? 'Remove from wishlist' : 'Save product',
+                  ),
+                  IconButton(
+                    onPressed: () => Share.share(
+                      'Check out ${product.displayName} on Mambonami: https://mambonami.com/product/${product.uuid}',
+                    ),
+                    icon: const Icon(Icons.share),
+                    tooltip: 'Share product',
+                  ),
+                ],
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
           CustomCard(
             padding: const EdgeInsets.all(20),
@@ -197,17 +253,45 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
           ],
+          const SizedBox(height: 16),
+          CustomCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Text('Quantity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity -= 1) : null,
+                      icon: const Icon(Icons.remove_circle_outline),
+                      color: _quantity > 1 ? theme.colorScheme.primary : theme.disabledColor,
+                    ),
+                    Text(
+                      '$_quantity',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    IconButton(
+                      onPressed: product.availableQuantity > _quantity ? () => setState(() => _quantity += 1) : null,
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: product.availableQuantity > _quantity ? theme.colorScheme.primary : theme.disabledColor,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 20),
           CustomButton(
-            label: available ? 'Add to cart' : 'Unavailable',
+            label: available ? 'Add $_quantity to cart' : 'Unavailable',
             enabled: available,
             onPressed: available
                 ? () {
                     final cartRepository = GetIt.instance<CartRepository>();
-                    cartRepository.addProduct(product, 1);
+                    cartRepository.addProduct(product, _quantity.toDouble());
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Added ${product.displayName} to cart.'),
+                        content: Text('Added $_quantity x ${product.displayName} to cart.'),
                         action: SnackBarAction(
                           label: 'View cart',
                           onPressed: () => context.go(RoutePaths.cart),

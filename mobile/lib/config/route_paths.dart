@@ -35,11 +35,14 @@ class RoutePaths {
   static const productDetail = '/product/:uuid';
   static String productDetailPath(String uuid) => '/product/$uuid';
   static const cart = '/cart';
+  static const addressPicker = '/address-picker';
   static const checkout = '/checkout';
+  static const orderConfirmation = '/checkout/confirmation/:uuid';
   static const dispute = '/dispute';
   static const profile = '/profile';
   static const settings = '/settings';
   static const support = '/support';
   static const orderTracking = '/order/:uuid';
   static String orderTrackingPath(String uuid) => '/order/$uuid';
+  static String orderConfirmationPath(String uuid) => '/checkout/confirmation/$uuid';
 }

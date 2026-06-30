@@ -1,6 +1,7 @@
 ﻿import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 import '../core/api_client.dart';
 import '../core/constants.dart';
@@ -14,6 +15,7 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
+  String? _pendingRoute;
 
   Future<void> init() async {
     if (_isInitialized) return;
@@ -47,6 +49,7 @@ class NotificationService {
       // Handle when app is in background and user taps notification
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
 
+      _resolvePendingDeepLink();
       _isInitialized = true;
     } catch (error, stackTrace) {
       debugPrint('NotificationService initialization failed: $error');
@@ -83,10 +86,7 @@ class NotificationService {
   void _handleDeepLink(Map<String, dynamic> data) {
     debugPrint('[NotificationService] Processing deep link from notification');
 
-    // Try to parse deep link from notification data
-    final deepLinkInfo = DeepLinkHandler.parseNotificationData(data) ??
-        _createDeepLinkFromMetadata(data);
-
+    final deepLinkInfo = DeepLinkHandler.parseNotificationPayload(data);
     if (deepLinkInfo != null) {
       final routePath = deepLinkInfo.toRoutePath();
       if (routePath != null) {
@@ -96,41 +96,27 @@ class NotificationService {
     }
   }
 
-  /// Create deep link info from legacy notification metadata format
-  /// Fallback for notifications that don't use 'deepLink' key
-  DeepLinkInfo? _createDeepLinkFromMetadata(Map<String, dynamic> data) {
-    // Check for farmer order notifications
-    final orderId = DeepLinkHandler.extractOrderId(data);
-    if (orderId != null && data['type'] == 'farmer_order') {
-      debugPrint('[NotificationService] Creating farmer order deep link: $orderId');
-      return DeepLinkInfo(
-        type: DeepLinkType.farmerOrderDetail,
-        id: orderId.toString(),
-        params: data.cast<String, String>(),
-      );
-    }
-
-    // Check for order tracking notifications
-    final orderUuid = DeepLinkHandler.extractOrderUuid(data);
-    if (orderUuid != null && data['type'] == 'order_tracking') {
-      return DeepLinkInfo(
-        type: DeepLinkType.orderTracking,
-        uuid: orderUuid,
-        params: data.cast<String, String>(),
-      );
-    }
-
-    return null;
-  }
-
-  /// Navigate to a route from deep link
-  /// Stores pending deep link if router is not available
   void _navigateToDeepLink(String routePath) {
     try {
       debugPrint('[NotificationService] Received deep link route: $routePath');
-      // Router integration happens through the app's startup listeners.
+      if (getIt.isRegistered<GoRouter>()) {
+        getIt<GoRouter>().go(routePath);
+        return;
+      }
+      _pendingRoute = routePath;
     } catch (e) {
       debugPrint('[NotificationService] Failed to navigate: $e');
+    }
+  }
+
+  void _resolvePendingDeepLink() {
+    if (_pendingRoute != null && getIt.isRegistered<GoRouter>()) {
+      try {
+        getIt<GoRouter>().go(_pendingRoute!);
+        _pendingRoute = null;
+      } catch (e) {
+        debugPrint('[NotificationService] Failed to resolve pending deep link: $e');
+      }
     }
   }
 
@@ -193,5 +179,26 @@ class NotificationService {
       body: notification.body,
       notificationDetails: details,
     );
+  }
+
+  /// Returns the current notification permission settings for the device.
+  /// Uses Firebase Messaging platform API.
+  Future<NotificationSettings> getPermissionSettings() async {
+    try {
+      return await _fcm.getNotificationSettings();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Convenience helper to indicate whether notifications are effectively enabled.
+  Future<bool> isPermissionGranted() async {
+    try {
+      final settings = await getPermissionSettings();
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (e) {
+      return false;
+    }
   }
 }

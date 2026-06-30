@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../config/routes.dart';
 
@@ -8,12 +7,12 @@ import '../config/routes.dart';
 /// Monitors auth state changes and navigates to stored deep links after successful authentication
 class DeepLinkAuthListener extends StatefulWidget {
   final Widget child;
-  final GoRouter router;
+  final AppRouter appRouter;
 
   const DeepLinkAuthListener({
     super.key,
     required this.child,
-    required this.router,
+    required this.appRouter,
   });
 
   @override
@@ -46,8 +45,7 @@ class _DeepLinkAuthListenerState extends State<DeepLinkAuthListener> {
   }
 
   void _handlePostLoginDeepLink(String role) {
-    final appRouter = AppRouter();
-    final storedDeepLink = appRouter.getStoredDeepLink();
+    final storedDeepLink = widget.appRouter.getStoredDeepLink();
 
     if (storedDeepLink != null) {
       final routePath = storedDeepLink.toRoutePath();
@@ -55,8 +53,8 @@ class _DeepLinkAuthListenerState extends State<DeepLinkAuthListener> {
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
             debugPrint('[DeepLinkAuthListener] Navigating to post-login deep link: $routePath');
-            widget.router.go(routePath);
-            appRouter.clearStoredDeepLink();
+            widget.appRouter.router.go(routePath);
+            widget.appRouter.clearStoredDeepLink();
           }
         });
       }

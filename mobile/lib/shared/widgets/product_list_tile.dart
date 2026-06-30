@@ -64,8 +64,11 @@ class ProductListTile extends StatelessWidget {
                           onPressed: () {
                             context.read<ProductBloc>().add(ToggleFavoriteEvent(product));
                           },
-                          icon: const Icon(Icons.favorite_border),
-                          tooltip: 'Save product',
+                          icon: Icon(
+                            product.isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: product.isFavorite ? Colors.redAccent : null,
+                          ),
+                          tooltip: product.isFavorite ? 'Remove from wishlist' : 'Save product',
                           visualDensity: VisualDensity.compact,
                         ),
                       ],

@@ -1,5 +1,6 @@
 // mobile/lib/shared/widgets/custom_button.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomButton extends StatelessWidget {
   final String? label;
@@ -141,7 +142,14 @@ class CustomButton extends StatelessWidget {
             );
 
     final button = ElevatedButton(
-      onPressed: isDisabled ? null : onPressed,
+      onPressed: isDisabled
+          ? null
+          : () {
+              try {
+                HapticFeedback.lightImpact();
+              } catch (_) {}
+              onPressed?.call();
+            },
       style: style != null
           ? defaultStyle.merge(style)
           : defaultStyle,
