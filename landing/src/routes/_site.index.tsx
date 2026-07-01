@@ -10,15 +10,19 @@ import { Particles } from "@/components/site/Particles";
 import { useCountUp } from "@/hooks/use-count-up";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/")({
   head: () => ({
     meta: [
-      { title: "MAMBONAMI — Fresh from Farm to Table" },
-      { name: "description", content: "Connecting Kenyan farmers directly to your kitchen. Fair prices, fresh produce, doorstep delivery." },
-      { property: "og:title", content: "MAMBONAMI — Fresh from Farm to Table" },
-      { property: "og:description", content: "Buy directly from local farmers. Fresh produce delivered to your door." },
+      ...seoMeta({
+        title: "MAMBONAMI | Fresh Produce From Kenyan Farms to Your Door",
+        description:
+          "Buy fresh Kenyan produce directly from verified farmers. MAMBONAMI serves retailers, restaurants, hotels, and households with fair prices, M-Pesa escrow, and reliable delivery.",
+        path: "/",
+      }),
     ],
+    links: seoLinks("/"),
   }),
   component: Home,
 });
@@ -61,13 +65,13 @@ function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-36 text-primary-foreground">
           <div className="max-w-2xl animate-fade-in-up">
             <span className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-medium text-secondary mb-6">
-              <Sprout className="w-3.5 h-3.5 animate-float" /> Farmers • Retailers • Consumers
+              <Sprout className="w-3.5 h-3.5 animate-float" /> Farmers | Retailers | Consumers
             </span>
             <h1 className="font-display text-5xl md:text-7xl font-black leading-[1.05] mb-6">
               From <span className="text-gradient animate-gradient bg-gradient-hero italic">farm</span> to retailers, restaurants &amp; homes.
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/85 mb-10 max-w-xl">
-              MAMBONAMI is Kenya's direct-trade marketplace — connecting farmers with retailers, hotels, restaurants, and families. Fair prices, transparent sourcing, doorstep delivery.
+              MAMBONAMI is Kenya's direct-trade marketplace, connecting farmers with retailers, hotels, restaurants, and families. Fair prices, transparent sourcing, doorstep delivery.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" onClick={notifyComingSoon} className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-7 py-3.5 font-semibold hover:bg-secondary/90 transition shadow-glow hover:scale-105 duration-300">
@@ -98,7 +102,7 @@ function Home() {
         <div className="flex gap-12 py-4 animate-marquee whitespace-nowrap text-sm uppercase tracking-[0.25em] font-semibold text-secondary">
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex gap-12 shrink-0">
-              <span>🥬 Fresh Daily</span><span>🏪 Trusted by 300+ Retailers</span><span>🍽️ Restaurant Supply</span><span>🚚 Bulk &amp; Wholesale</span><span>🌍 47 Counties</span><span>💳 M-Pesa Escrow</span>
+              <span>Fresh Daily</span><span>Trusted by 300+ Retailers</span><span>Restaurant Supply</span><span>Bulk &amp; Wholesale</span><span>47 Counties</span><span>M-Pesa Escrow</span>
             </div>
           ))}
         </div>
@@ -130,7 +134,7 @@ function Home() {
             {[
               { Icon: Sprout, title: "For Farmers", body: "List harvests, get fair prices, receive secure M-Pesa payments straight to your phone." },
               { Icon: Store, title: "For Retailers", body: "Stock your shelves with consistent, traceable produce. Bulk pricing, scheduled deliveries, invoiced." },
-              { Icon: Building2, title: "For Restaurants & Hotels", body: "Reliable wholesale supply for kitchens — chef-grade quality with same-day procurement." },
+              { Icon: Building2, title: "For Restaurants & Hotels", body: "Reliable wholesale supply for kitchens, with chef-grade quality and same-day procurement." },
               { Icon: ShoppingBasket, title: "For Consumers", body: "Browse seasonal produce by location, order in seconds, and pay only when delivered." },
             ].map(({ Icon, title, body }, i) => (
               <div key={title} className="glass-card rounded-2xl p-8 shadow-soft hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
@@ -156,14 +160,14 @@ function Home() {
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
               </div>
               <p className="text-sm font-medium">"My income doubled in 3 months."</p>
-              <p className="text-xs text-muted-foreground mt-1">— Wanjiku, Nyeri</p>
+              <p className="text-xs text-muted-foreground mt-1">Wanjiku, Nyeri</p>
             </div>
           </div>
           <div>
             <span className="text-secondary font-semibold uppercase tracking-wider text-sm">Empowering Growers</span>
             <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 mb-6">Real farmers. Real impact.</h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-              We work with farming cooperatives across Kenya — verifying farms, training on best practices, and ensuring every shilling reaches the people who grew the food.
+              We work with farming cooperatives across Kenya, verifying farms, training on best practices, and ensuring every shilling reaches the people who grew the food.
             </p>
             <ul className="space-y-3">
               {["Verified cooperative membership", "Transparent escrow payments", "Real-time harvest tracking", "Direct buyer relationships"].map((f) => (
@@ -250,7 +254,7 @@ function Home() {
       </section>
 
 
-      {/* How it works — 3 steps */}
+      {/* How it works: 3 steps */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute -top-20 right-1/4 w-72 h-72 rounded-full bg-secondary/20 blur-3xl animate-blob -z-10" />
         <div className="absolute bottom-0 left-1/4 w-80 h-80 rounded-full bg-primary/20 blur-3xl animate-blob -z-10" style={{ animationDelay: "3s" }} />
@@ -261,9 +265,9 @@ function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-6 relative">
             {[
-              { Icon: PackageSearch, title: "Browse & order", body: "Discover seasonal produce from verified farms across 47 counties — filter by location, crop, or delivery date.", step: "01" },
-              { Icon: Leaf, title: "Harvested for you", body: "Your order is picked the same morning, quality-checked, and packed at the farm — never sitting in a warehouse.", step: "02" },
-              { Icon: Truck, title: "Delivered fresh", body: "Doorstep delivery in under 24 hours with M-Pesa escrow — pay only when it arrives in perfect condition.", step: "03" },
+              { Icon: PackageSearch, title: "Browse & order", body: "Discover seasonal produce from verified farms across 47 counties, filtered by location, crop, or delivery date.", step: "01" },
+              { Icon: Leaf, title: "Harvested for you", body: "Your order is picked the same morning, quality-checked, and packed at the farm, never sitting in a warehouse.", step: "02" },
+              { Icon: Truck, title: "Delivered fresh", body: "Doorstep delivery in under 24 hours with M-Pesa escrow, so you pay only when it arrives in perfect condition.", step: "03" },
             ].map(({ Icon, title, body, step }, i) => (
               <div key={title} className="glass-card rounded-2xl p-8 hover-lift relative animate-fade-in-up" style={{ animationDelay: `${i * 120}ms` }}>
                 <div className="absolute top-6 right-6 font-display text-5xl font-black text-primary/10">{step}</div>
@@ -325,7 +329,7 @@ function NewsletterSection() {
       return;
     }
     setDone(true);
-    toast.success("You're on the list! 🌱", { description: "We'll email you the moment MAMBONAMI launches." });
+    toast.success("You're on the list!", { description: "We'll email you the moment MAMBONAMI launches." });
     setEmail("");
   };
   return (

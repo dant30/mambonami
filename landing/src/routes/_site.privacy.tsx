@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — MAMBONAMI" },
-      { name: "description", content: "How MAMBONAMI collects, uses, and protects your data." },
-      { property: "og:title", content: "Privacy Policy — MAMBONAMI" },
-      { property: "og:description", content: "How MAMBONAMI collects, uses, and protects your data." },
-      { property: "og:url", content: "https://mambo-garden-hub.lovable.app/privacy" },
+      ...seoMeta({
+        title: "Privacy Policy | MAMBONAMI",
+        description: "How MAMBONAMI collects, uses, stores, and protects user data for farmers, buyers, retailers, and transport partners.",
+        path: "/privacy",
+      }),
     ],
-    links: [{ rel: "canonical", href: "https://mambo-garden-hub.lovable.app/privacy" }],
+    links: seoLinks("/privacy"),
   }),
   component: PrivacyPage,
 });

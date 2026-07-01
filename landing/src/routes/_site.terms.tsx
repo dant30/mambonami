@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/terms")({
   head: () => ({ meta: [{ title: "Terms of Service — MAMBONAMI" }, { name: "description", content: "Terms governing use of MAMBONAMI." }] }),

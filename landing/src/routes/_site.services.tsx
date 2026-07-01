@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Users, Package, Truck, CreditCard, LifeBuoy, BarChart3 } from "lucide-react";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/services")({
   head: () => ({
     meta: [
-      { title: "Services — MAMBONAMI" },
-      { name: "description", content: "Farmer onboarding, order management, logistics, secure M-Pesa escrow payments and support." },
-      { property: "og:title", content: "MAMBONAMI Services" },
-      { property: "og:description", content: "Everything you need to buy and sell fresh produce, end to end." },
+      ...seoMeta({
+        title: "MAMBONAMI Services | Farmer Onboarding, Logistics & M-Pesa Escrow",
+        description:
+          "MAMBONAMI provides farmer onboarding, produce listings, order management, logistics coordination, secure M-Pesa escrow payments, and buyer support across Kenya.",
+        path: "/services",
+      }),
     ],
+    links: seoLinks("/services"),
   }),
   component: Services,
 });

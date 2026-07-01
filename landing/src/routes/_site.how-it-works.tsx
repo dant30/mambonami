@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How It Works — MAMBONAMI" },
-      { name: "description", content: "Browse, order and pay via M-Pesa. Funds released only when produce is delivered." },
-      { property: "og:title", content: "How MAMBONAMI Works" },
-      { property: "og:description", content: "Simple steps from farm listing to home delivery." },
+      ...seoMeta({
+        title: "How MAMBONAMI Works | Direct Farm Orders & Delivery in Kenya",
+        description:
+          "See how MAMBONAMI lets buyers browse verified farm produce, order fresh harvests, pay through M-Pesa escrow, and receive reliable delivery.",
+        path: "/how-it-works",
+      }),
     ],
+    links: seoLinks("/how-it-works"),
   }),
   component: HowItWorks,
 });

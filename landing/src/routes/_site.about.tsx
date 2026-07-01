@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import farmerImg from "@/assets/farmer.jpg";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/about")({
   head: () => ({
     meta: [
-      { title: "About — MAMBONAMI" },
-      { name: "description", content: "Our mission: connect Kenyan farmers directly to consumers with fair trade and transparency." },
-      { property: "og:title", content: "About MAMBONAMI" },
-      { property: "og:description", content: "Empowering local farmers, feeding families with fresh produce." },
+      ...seoMeta({
+        title: "About MAMBONAMI | Fair Trade Fresh Produce in Kenya",
+        description:
+          "Learn how MAMBONAMI connects Kenyan growers directly with retailers, restaurants, hotels, and households through fair pricing, transparent sourcing, and trusted delivery.",
+        path: "/about",
+      }),
     ],
+    links: seoLinks("/about"),
   }),
   component: About,
 });

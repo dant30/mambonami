@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — MAMBONAMI" },
-      { name: "description", content: "Get in touch with the MAMBONAMI team. We're here to help farmers and buyers." },
-      { property: "og:title", content: "Contact MAMBONAMI" },
-      { property: "og:description", content: "Reach our team for partnerships, support, or general questions." },
+      ...seoMeta({
+        title: "Contact MAMBONAMI | Fresh Produce Partnerships & Support",
+        description:
+          "Contact MAMBONAMI for farmer partnerships, restaurant and retail supply, delivery support, and general questions about Kenya fresh produce sourcing.",
+        path: "/contact",
+      }),
     ],
+    links: seoLinks("/contact"),
   }),
   component: Contact,
 });

@@ -7,15 +7,19 @@ import g4 from "@/assets/gallery-4.jpg";
 import g5 from "@/assets/gallery-5.jpg";
 import g6 from "@/assets/gallery-6.jpg";
 import { notifyComingSoon } from "@/lib/coming-soon";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/products")({
   head: () => ({
     meta: [
-      { title: "Products — MAMBONAMI" },
-      { name: "description", content: "Explore the blossoming Kenyan farm produce available on MAMBONAMI — vegetables, fruits, grains and more, sourced directly from verified farms." },
-      { property: "og:title", content: "Products — MAMBONAMI" },
-      { property: "og:description", content: "Fresh, seasonal Kenyan produce from farm to table." },
+      ...seoMeta({
+        title: "Fresh Kenyan Produce | Vegetables, Fruits, Grains | MAMBONAMI",
+        description:
+          "Explore seasonal Kenyan produce on MAMBONAMI, including vegetables, fruits, grains, cereals, herbs, and specialty crops sourced directly from verified farms.",
+        path: "/products",
+      }),
     ],
+    links: seoLinks("/products"),
   }),
   component: Products,
 });

@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { seoLinks, seoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_site/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ — MAMBONAMI" },
-      { name: "description", content: "Answers to common questions about ordering, delivery, payments and becoming a farmer partner." },
-      { property: "og:title", content: "MAMBONAMI FAQ" },
-      { property: "og:description", content: "Common questions answered." },
+      ...seoMeta({
+        title: "MAMBONAMI FAQ | Ordering, Delivery, Payments & Farmer Partners",
+        description:
+          "Answers to common questions about buying fresh produce, delivery, M-Pesa escrow payments, and becoming a farmer partner on MAMBONAMI.",
+        path: "/faq",
+      }),
     ],
+    links: seoLinks("/faq"),
   }),
   component: FAQ,
 });

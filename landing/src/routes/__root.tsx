@@ -9,6 +9,15 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import {
+  defaultDescription,
+  marketplaceJsonLd,
+  organizationJsonLd,
+  seoMeta,
+  siteName,
+  siteUrl,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -72,20 +81,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Farm Fresh Connect is a website that connects farmers, buyers, and transporters for fresh produce." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d1a952d-3b93-4c43-8dfa-7c06534ffcc9/id-preview-310a655b--245e26c4-f024-47ce-852e-6e5cab7b9d6f.lovable.app-1780046619177.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d1a952d-3b93-4c43-8dfa-7c06534ffcc9/id-preview-310a655b--245e26c4-f024-47ce-852e-6e5cab7b9d6f.lovable.app-1780046619177.png" },
+      { name: "theme-color", content: "#2f6f45" },
+      { name: "application-name", content: siteName },
+      { name: "apple-mobile-web-app-title", content: siteName },
+      ...seoMeta({ description: defaultDescription }),
     ],
     links: [
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", href: "/favicon.ico" },
+      { rel: "manifest", href: "/site.webmanifest" },
+      { rel: "canonical", href: siteUrl },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: appCss,
@@ -93,6 +101,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify([organizationJsonLd, websiteJsonLd, marketplaceJsonLd]),
       },
     ],
   }),
