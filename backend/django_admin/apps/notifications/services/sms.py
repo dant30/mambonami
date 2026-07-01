@@ -66,6 +66,37 @@ def _provider_error_message(result: Dict[str, Any]) -> str:
     return ''
 
 
+def _provider_message_id(result: Dict[str, Any]) -> str:
+    if not isinstance(result, dict):
+        return ''
+    for key in ('message_id', 'id', 'queue_uid', 'uid'):
+        value = result.get(key)
+        if isinstance(value, str) and value:
+            return value
+    for key in ('data', 'response'):
+        nested = result.get(key)
+        if isinstance(nested, dict):
+            message_id = _provider_message_id(nested)
+            if message_id:
+                return message_id
+    return ''
+
+
+def _provider_status_url(result: Dict[str, Any]) -> str:
+    if not isinstance(result, dict):
+        return ''
+    value = result.get('check_status_url')
+    if isinstance(value, str) and value:
+        return value
+    for key in ('data', 'response'):
+        nested = result.get(key)
+        if isinstance(nested, dict):
+            status_url = _provider_status_url(nested)
+            if status_url:
+                return status_url
+    return ''
+
+
 class OTSSMS:
     """OTS (Olympus Telecom Solutions) SMS Gateway."""
 
@@ -174,7 +205,8 @@ class OTSSMS:
                 'status': 'success' if success else 'failed',
                 'status_code': response.status_code,
                 'response': result,
-                'message_id': result.get('message_id') or result.get('id'),
+                'message_id': _provider_message_id(result),
+                'check_status_url': _provider_status_url(result),
                 'message': _provider_error_message(result),
             }
 
@@ -215,6 +247,43 @@ class OTSSMS:
             return {'status': 'success', 'response': result}
         except requests.exceptions.RequestException as exc:
             logger.error('Bulk SMS failed: %s', exc)
+            return {'status': 'failed', 'error': str(exc)}
+
+    def check_queue_status(self, queue_uid: str) -> Dict[str, Any]:
+        if not self.api_token:
+            return {'status': 'failed', 'message': 'OTS API token not configured'}
+
+        endpoint = f"{self.api_url.rstrip('/')}/sms/queue/{queue_uid}"
+        try:
+            response = requests.get(
+                endpoint,
+                headers=self._get_headers(),
+                timeout=30,
+            )
+            try:
+                result = response.json()
+            except ValueError:
+                body = response.text[:500]
+                response.raise_for_status()
+                return {
+                    'status': 'failed',
+                    'error': f'OTS returned non-JSON response with HTTP {response.status_code}',
+                    'status_code': response.status_code,
+                    'response': body,
+                }
+
+            response.raise_for_status()
+            return {
+                'status': 'success' if _is_success_response(result) else 'failed',
+                'status_code': response.status_code,
+                'response': result,
+                'message': _provider_error_message(result),
+            }
+        except requests.exceptions.Timeout:
+            logger.error('OTS queue status timeout for %s', queue_uid)
+            return {'status': 'failed', 'error': 'Request timeout'}
+        except requests.exceptions.RequestException as exc:
+            logger.error('OTS queue status failed for %s: %s', queue_uid, exc)
             return {'status': 'failed', 'error': str(exc)}
 
 
