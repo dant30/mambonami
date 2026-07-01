@@ -77,6 +77,17 @@ class OTSSMS:
             'Accept': 'application/json',
         }
 
+    def _build_payload(self, recipient, message: str) -> Dict[str, Any]:
+        return {
+            'recipient': recipient,
+            'to': recipient,
+            'sender': self.sender_id,
+            'sender_id': self.sender_id,
+            'from': self.sender_id,
+            'message': message,
+            'type': 'plain',
+        }
+
     def send(self, notification) -> bool:
         result = self.send_sms(notification.user.phone, notification.body)
         if result.get('status') == 'success':
@@ -98,12 +109,7 @@ class OTSSMS:
 
         formatted_number = _format_phone_number(phone_number)
         endpoint = f"{self.api_url.rstrip('/')}/sms/send"
-        payload = {
-            'to': formatted_number,
-            'from': self.sender_id,
-            'message': message,
-            'type': 'plain',
-        }
+        payload = self._build_payload(formatted_number, message)
         logger.debug('Sending OTS SMS to %s with payload %s', formatted_number, payload)
         if self.debug:
             logger.debug('OTS request endpoint: %s', endpoint)
@@ -150,12 +156,7 @@ class OTSSMS:
 
         formatted_numbers = [_format_phone_number(phone) for phone in phone_numbers]
         endpoint = f"{self.api_url.rstrip('/')}/sms/send"
-        payload = {
-            'to': formatted_numbers,
-            'from': self.sender_id,
-            'message': message,
-            'type': 'plain',
-        }
+        payload = self._build_payload(formatted_numbers, message)
 
         try:
             response = requests.post(
