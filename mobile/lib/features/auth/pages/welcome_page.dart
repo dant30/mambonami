@@ -90,14 +90,14 @@ class WelcomePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.login),
-              label: 'Continue to login',
+              onPressed: () => context.go(RoutePaths.otp, extra: {'phone': ''}),
+              label: 'Continue with phone',
               icon: const Icon(Icons.arrow_forward_rounded),
             ),
             const SizedBox(height: 12),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.register),
-              label: 'Create account',
+              onPressed: () => context.go(RoutePaths.roleSelect),
+              label: 'Choose your role',
               outlined: true,
               icon: const Icon(Icons.person_add_alt_1_outlined),
             ),

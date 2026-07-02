@@ -78,7 +78,7 @@ class _RoleSelectPageState extends State<RoleSelectPage> {
                 )),
             const SizedBox(height: 8),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.register),
+              onPressed: () => context.go(RoutePaths.success),
               label: 'Continue',
               icon: const Icon(Icons.arrow_forward_rounded),
             ),

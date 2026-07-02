@@ -70,9 +70,9 @@ class SuccessPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.login),
-              label: 'Continue',
-              icon: const Icon(Icons.arrow_forward_rounded),
+              onPressed: () => context.go(RoutePaths.buyerDashboard),
+              label: 'Go to dashboard',
+              icon: const Icon(Icons.dashboard_outlined),
             ),
             const Spacer(flex: 1),
           ],

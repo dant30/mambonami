@@ -74,7 +74,7 @@ class _SplashPageState extends State<SplashPage>
       context.go(AppRole.homePathFor(state.role));
       return;
     }
-    context.go(RoutePaths.login);
+    context.go(RoutePaths.welcome);
   }
 
   @override

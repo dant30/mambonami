@@ -2,6 +2,10 @@
 class RoutePaths {
   static const splash = '/splash';
   static const login = '/login';
+  static const welcome = '/welcome';
+  static const otp = '/otp';
+  static const roleSelect = '/role-select';
+  static const success = '/success';
   static const register = '/register';
   static const registerVerify = '/register/verify';
   static const forgotPassword = '/forgot-password';

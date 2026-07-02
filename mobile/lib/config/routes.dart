@@ -7,6 +7,10 @@ import '../core/deep_link_handler.dart';
 import 'route_paths.dart';
 import '../features/auth/pages/login_page.dart';
 import '../features/auth/pages/splash_page.dart';
+import '../features/auth/pages/welcome_page.dart';
+import '../features/auth/pages/otp_page.dart';
+import '../features/auth/pages/role_select_page.dart';
+import '../features/auth/pages/success_page.dart';
 import '../features/auth/pages/register_init_page.dart';
 import '../features/auth/pages/register_verify_page.dart';
 import '../features/auth/pages/forgot_password_page.dart';
@@ -89,7 +93,18 @@ class AppRouter {
     redirect: (context, state) => _handleDeepLinksAndAuth(context, state),
     routes: [
       GoRoute(path: RoutePaths.splash, builder: (_, __) => const SplashPage()),
+      GoRoute(path: RoutePaths.welcome, builder: (_, __) => const WelcomePage()),
       GoRoute(path: RoutePaths.login, builder: (_, __) => const LoginPage()),
+      GoRoute(
+        path: RoutePaths.otp,
+        builder: (context, state) {
+          final extra = state.extra;
+          final phone = extra is Map<String, dynamic> ? extra['phone'] as String? : null;
+          return OtpPage(phone: phone ?? 'your phone');
+        },
+      ),
+      GoRoute(path: RoutePaths.roleSelect, builder: (_, __) => const RoleSelectPage()),
+      GoRoute(path: RoutePaths.success, builder: (_, __) => const SuccessPage()),
       GoRoute(
           path: RoutePaths.register,
           builder: (_, __) => const RegisterInitPage()),
