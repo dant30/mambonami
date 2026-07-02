@@ -104,10 +104,27 @@ class AppRouter {
         },
       ),
       GoRoute(path: RoutePaths.roleSelect, builder: (_, __) => const RoleSelectPage()),
-      GoRoute(path: RoutePaths.success, builder: (_, __) => const SuccessPage()),
       GoRoute(
-          path: RoutePaths.register,
-          builder: (_, __) => const RegisterInitPage()),
+        path: RoutePaths.success,
+        builder: (context, state) {
+          final extra = state.extra;
+          final role = extra is Map<String, dynamic>
+              ? extra['role'] as String?
+              : null;
+          return SuccessPage(role: role);
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.register,
+        builder: (context, state) {
+          final extra = state.extra;
+          String? preselectedRole;
+          if (extra is Map<String, dynamic> && extra['role'] is String) {
+            preselectedRole = extra['role'] as String;
+          }
+          return RegisterInitPage(initialRole: preselectedRole);
+        },
+      ),
       GoRoute(
         path: RoutePaths.registerVerify,
         builder: (context, state) {

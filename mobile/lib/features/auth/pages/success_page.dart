@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../config/route_paths.dart';
+import '../../../config/role_routes.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class SuccessPage extends StatelessWidget {
-  const SuccessPage({super.key});
+  final String? role;
+
+  const SuccessPage({super.key, this.role});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +72,7 @@ class SuccessPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomButton(
-              onPressed: () => context.go(RoutePaths.buyerDashboard),
+              onPressed: () => context.go(AppRole.homePathFor(role)),
               label: 'Go to dashboard',
               icon: const Icon(Icons.dashboard_outlined),
             ),

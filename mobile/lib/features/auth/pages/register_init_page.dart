@@ -15,7 +15,9 @@ import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
 class RegisterInitPage extends StatefulWidget {
-  const RegisterInitPage({super.key});
+  final String? initialRole;
+
+  const RegisterInitPage({super.key, this.initialRole});
 
   @override
   State<RegisterInitPage> createState() => _RegisterInitPageState();
@@ -24,7 +26,13 @@ class RegisterInitPage extends StatefulWidget {
 class _RegisterInitPageState extends State<RegisterInitPage> {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _selectedRole = 'buyer';
+  late String _selectedRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedRole = widget.initialRole ?? 'buyer';
+  }
 
   static const List<_RoleOption> _roles = [
     _RoleOption(

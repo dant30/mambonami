@@ -11,6 +11,7 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
+import '../../../shared/widgets/otp_input_field.dart';
 import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
@@ -140,17 +141,11 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                           icon: Icons.verified_user_outlined,
                         ),
                         const SizedBox(height: 16),
-                        CustomTextField(
+                        OtpInputField(
                           controller: _otpController,
-                          label: 'OTP Code',
-                          hintText: '1234',
-                          prefixIcon: const Icon(Icons.pin_outlined),
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) =>
-                              value == null || value.trim().length != 4
-                                  ? 'Enter 4-digit OTP'
-                                  : null,
+                          onCompleted: (value) => _otpController.text = value,
+                          fieldWidth: 60,
+                          spacing: 10,
                         ),
                         const SizedBox(height: 14),
                         CustomTextField(
