@@ -6,7 +6,9 @@ import 'app_shadows.dart';
 import 'app_theme_extension.dart';
 
 ThemeData darkTheme = ThemeData(
+  useMaterial3: true,
   brightness: Brightness.dark,
+  fontFamily: 'Poppins',
   primaryColor: AppColors.primaryDark,
   scaffoldBackgroundColor: AppColors.backgroundDark,
   colorScheme: ColorScheme.dark(
@@ -32,18 +34,24 @@ ThemeData darkTheme = ThemeData(
     elevation: 0,
     scrolledUnderElevation: 0,
     centerTitle: true,
+    titleTextStyle: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.foregroundDark,
+      fontFamily: 'Poppins',
+    ),
   ),
   inputDecorationTheme: InputDecorationTheme(
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(16),
       borderSide: const BorderSide(color: AppColors.outlineDark),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(16),
       borderSide: const BorderSide(color: AppColors.outlineDark),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(16),
       borderSide: const BorderSide(color: AppColors.primaryDark, width: 1.4),
     ),
     filled: true,
@@ -51,6 +59,7 @@ ThemeData darkTheme = ThemeData(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     labelStyle: TextStyle(
       color: AppColors.foregroundDark.withValues(alpha: 0.72),
+      fontWeight: FontWeight.w600,
     ),
     hintStyle: TextStyle(
       color: AppColors.foregroundDark.withValues(alpha: 0.48),
@@ -61,28 +70,40 @@ ThemeData darkTheme = ThemeData(
       backgroundColor: AppColors.primaryDark,
       foregroundColor: AppColors.primaryForegroundDark,
       elevation: 0,
-      minimumSize: const Size(double.infinity, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      minimumSize: const Size(double.infinity, 52),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
     ),
   ),
   textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(foregroundColor: AppColors.primaryDark),
+    style: TextButton.styleFrom(
+      foregroundColor: AppColors.primaryDark,
+      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    ),
   ),
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       backgroundColor: AppColors.primaryDark,
       foregroundColor: AppColors.primaryForegroundDark,
-      minimumSize: const Size(48, 46),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      minimumSize: const Size(48, 50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: AppColors.primaryDark,
+      side: const BorderSide(color: AppColors.outlineDark, width: 1.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700),
     ),
   ),
   cardTheme: CardThemeData(
     elevation: 0,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(18),
       side: const BorderSide(color: AppColors.outlineDark),
     ),
     margin: EdgeInsets.zero,
@@ -122,14 +143,14 @@ ThemeData darkTheme = ThemeData(
     iconColor: AppColors.foregroundDark,
     contentPadding: EdgeInsets.symmetric(horizontal: 16),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
   ),
   chipTheme: ChipThemeData(
     backgroundColor: AppColors.surfaceHighDark,
     selectedColor: AppColors.primaryDark.withValues(alpha: 0.16),
     side: const BorderSide(color: AppColors.outlineDark),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
   ),
   extensions: <ThemeExtension<dynamic>>[

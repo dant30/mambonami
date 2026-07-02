@@ -5,25 +5,28 @@ class AppShadows {
 
   static const List<BoxShadow> soft = [
     BoxShadow(
-      color: Color(0x14000000),
-      blurRadius: 22,
+      color: Color(0x140F1F15),
+      blurRadius: 24,
+      spreadRadius: 0,
       offset: Offset(0, 10),
     ),
   ];
 
   static const List<BoxShadow> glow = [
     BoxShadow(
-      color: Color(0x2B136F45),
-      blurRadius: 28,
+      color: Color(0x332FA84F),
+      blurRadius: 30,
+      spreadRadius: 0,
       offset: Offset(0, 14),
     ),
   ];
 
   static const List<BoxShadow> floating = [
     BoxShadow(
-      color: Color(0x18000000),
-      blurRadius: 30,
-      offset: Offset(0, 16),
+      color: Color(0x1A0F1F15),
+      blurRadius: 34,
+      spreadRadius: 0,
+      offset: Offset(0, 18),
     ),
   ];
 }
