@@ -43,7 +43,7 @@ class SectionHeader extends StatelessWidget {
                 height: hasSubtitle ? 38 : 22,
                 decoration: BoxDecoration(
                   color: effectiveAccent,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               const SizedBox(width: 12),

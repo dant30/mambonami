@@ -23,7 +23,7 @@ class AuthSurface extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: surface.withValues(alpha: isDark ? 0.88 : 0.94),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.7),
         ),

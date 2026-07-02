@@ -110,6 +110,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
+                          hintText: '07XXXXXXXX',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.done,

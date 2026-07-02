@@ -143,6 +143,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         CustomTextField(
                           controller: _otpController,
                           label: 'OTP Code',
+                          hintText: '1234',
                           prefixIcon: const Icon(Icons.pin_outlined),
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.next,
@@ -155,6 +156,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         CustomTextField(
                           controller: _usernameController,
                           label: 'Username',
+                          hintText: 'mambo_user',
                           prefixIcon: const Icon(Icons.person_outline),
                           textInputAction: TextInputAction.next,
                           validator: (value) =>
@@ -166,6 +168,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password',
+                          hintText: 'Create a secure password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           obscureText: _isPasswordHidden,
                           textInputAction: TextInputAction.next,
@@ -191,6 +194,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         CustomTextField(
                           controller: _confirmPasswordController,
                           label: 'Confirm Password',
+                          hintText: 'Re-enter your password',
                           prefixIcon: const Icon(Icons.lock_person_outlined),
                           obscureText: _isConfirmPasswordHidden,
                           textInputAction: TextInputAction.next,

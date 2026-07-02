@@ -44,7 +44,7 @@ class CustomSnackbar {
         behavior: behavior,
         elevation: 0,
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         action: actionLabel != null && onAction != null
             ? SnackBarAction(
                 label: actionLabel,

@@ -79,7 +79,7 @@ class CustomTextField extends StatelessWidget {
         hintText: hintText,
         helperText: helperText,
         errorText: errorText,
-        contentPadding: contentPadding,
+        contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         alignLabelWithHint: maxLines != 1,
         isDense: true,
         errorMaxLines: 3,

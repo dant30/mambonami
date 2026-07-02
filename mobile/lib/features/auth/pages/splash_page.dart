@@ -114,7 +114,28 @@ class _SplashPageState extends State<SplashPage>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const AppLogo(size: 86),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                theme.colorScheme.primary.withValues(alpha: 0.16),
+                                theme.colorScheme.surface,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.16),
+                                blurRadius: 28,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: const AppLogo(size: 86),
+                        ),
                         const SizedBox(height: 22),
                         Text(
                           'MAMBONAMI',
@@ -136,7 +157,7 @@ class _SplashPageState extends State<SplashPage>
                           width: 126,
                           child: LinearProgressIndicator(
                             minHeight: 3,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(999),
                             backgroundColor: theme.colorScheme.outline
                                 .withValues(alpha: 0.28),
                             color: theme.colorScheme.primary,

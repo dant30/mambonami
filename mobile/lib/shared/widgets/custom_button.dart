@@ -39,7 +39,7 @@ class CustomButton extends StatelessWidget {
     this.color,
     this.textColor,
     this.disabledColor,
-    this.borderRadius = 8.0,
+    this.borderRadius = 16.0,
     this.padding =
         const EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
     this.style,
@@ -95,6 +95,7 @@ class CustomButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         side: borderSide,
       ),
+      shadowColor: Colors.transparent,
     );
 
     final content = isLoading

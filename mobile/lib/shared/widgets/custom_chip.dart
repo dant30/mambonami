@@ -52,7 +52,7 @@ class CustomChip extends StatelessWidget {
         color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline,
         width: isSelected ? 1.5 : 0.5,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       visualDensity: VisualDensity.compact,
     );

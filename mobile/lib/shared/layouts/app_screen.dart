@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../themes/app_theme_extension.dart';
+
 class AppScreen extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -42,28 +44,31 @@ class AppScreen extends StatelessWidget {
   }
 
   LinearGradient _backgroundGradient(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF0F1712),
-          Color(0xFF16251B),
-          Color(0xFF101713),
-        ],
-      );
+    final theme = Theme.of(context);
+    final extension = theme.extension<AppThemeExtension>();
+    if (extension != null) {
+      return extension.heroGradient;
     }
 
-    return const LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        Color(0xFFF7FAF5),
-        Color(0xFFEEF6EC),
-        Color(0xFFF9FBF7),
-      ],
-    );
+    return theme.brightness == Brightness.dark
+        ? const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0F1712),
+              Color(0xFF16251B),
+              Color(0xFF101713),
+            ],
+          )
+        : const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF7FAF5),
+              Color(0xFFEEF6EC),
+              Color(0xFFF9FBF7),
+            ],
+          );
   }
 }
 

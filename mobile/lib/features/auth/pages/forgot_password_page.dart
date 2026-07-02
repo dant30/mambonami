@@ -145,6 +145,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
+                          hintText: '07XXXXXXXX',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,

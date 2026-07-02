@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../themes/app_theme_extension.dart';
+
 class CustomCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -32,7 +34,7 @@ class CustomCard extends StatelessWidget {
     this.color,
     this.gradient,
     this.border,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius = const BorderRadius.all(Radius.circular(18)),
     this.clipBehavior = Clip.antiAlias,
     this.shadowColor,
     this.width,
@@ -69,9 +71,10 @@ class CustomCard extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: shadowColor ??
+                      theme.extension<AppThemeExtension>()?.softShadow.first.color ??
                       theme.shadowColor.withValues(alpha: 0.08),
-                  blurRadius: elevation * 2,
-                  offset: Offset(0, elevation / 2),
+                  blurRadius: elevation * 2.5,
+                  offset: Offset(0, elevation / 1.8),
                 ),
               ]
             : null,

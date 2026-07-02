@@ -88,6 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
+                          hintText: '07XXXXXXXX',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
@@ -100,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password',
+                          hintText: 'Enter your password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           obscureText: _isPasswordHidden,
                           textInputAction: TextInputAction.done,

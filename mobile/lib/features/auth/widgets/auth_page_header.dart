@@ -25,6 +25,21 @@ class AuthPageHeader extends StatelessWidget {
             leading!,
             const SizedBox(height: 16),
           ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Fresh marketplace access',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             title,
             style: theme.textTheme.headlineSmall?.copyWith(
