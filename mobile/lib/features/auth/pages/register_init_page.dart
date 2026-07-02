@@ -79,10 +79,24 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
     }
   }
 
+  String get _pageTitle {
+    switch (_selectedRole) {
+      case 'farmer':
+        return 'Farmer registration';
+      case 'retailer':
+        return 'Retailer registration';
+      case 'transport_provider':
+        return 'Transport registration';
+      case 'buyer':
+      default:
+        return 'Buyer registration';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Register'),
+      appBar: CustomAppBar(title: _pageTitle),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is RegisterInitSuccess) {
@@ -106,10 +120,15 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthPageHeader(
-                    title: 'Create your account',
-                    subtitle:
-                        'Choose how you use Mambonami, then verify your phone number.',
+                  AuthPageHeader(
+                    title: _pageTitle,
+                    subtitle: _selectedRole == 'farmer'
+                        ? 'Set up your farm profile, add your phone, and verify access to farmer tools.'
+                        : _selectedRole == 'transport_provider'
+                            ? 'Set up your transport profile, verify your phone, and start accepting orders.'
+                            : _selectedRole == 'retailer'
+                                ? 'Set up your retailer account and begin sourcing fresh produce.'
+                                : 'Set up your buyer account and verify your phone number.',
                   ),
                   AuthSurface(
                     child: Column(

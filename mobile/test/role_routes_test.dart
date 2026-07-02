@@ -20,6 +20,14 @@ void main() {
       expect(AppRole.isHomePathForRole('/buyer/orders', AppRole.buyer), isTrue);
       expect(AppRole.isHomePathForRole('/farmer', AppRole.buyer), isFalse);
     });
+
+    test('returns the expected registration route for each supported role', () {
+      expect(AppRole.registrationPathFor(AppRole.farmer), RoutePaths.registerFarmer);
+      expect(AppRole.registrationPathFor(AppRole.buyer), RoutePaths.registerBuyer);
+      expect(AppRole.registrationPathFor(AppRole.transportProvider), RoutePaths.registerTransport);
+      expect(AppRole.registrationPathFor(AppRole.retailer), RoutePaths.registerRetailer);
+      expect(AppRole.registrationPathFor('unknown'), RoutePaths.register);
+    });
   });
 
   testWidgets('GreetingHeader shows a time-based emoji', (tester) async {

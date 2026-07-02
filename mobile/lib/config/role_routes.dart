@@ -35,6 +35,20 @@ class AppRole {
         (path == homePath || path.startsWith('$homePath/'));
   }
 
+  static String registrationPathFor(String? role) {
+    switch (role) {
+      case farmer:
+        return RoutePaths.registerFarmer;
+      case buyer:
+      case retailer:
+        return role == retailer ? RoutePaths.registerRetailer : RoutePaths.registerBuyer;
+      case transportProvider:
+        return RoutePaths.registerTransport;
+      default:
+        return RoutePaths.register;
+    }
+  }
+
   static String displayLabel(String? role) {
     switch (role) {
       case buyer:

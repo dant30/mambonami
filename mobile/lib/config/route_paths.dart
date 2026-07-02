@@ -7,6 +7,10 @@ class RoutePaths {
   static const roleSelect = '/role-select';
   static const success = '/success';
   static const register = '/register';
+  static const registerFarmer = '/register/farmer';
+  static const registerBuyer = '/register/buyer';
+  static const registerTransport = '/register/transport';
+  static const registerRetailer = '/register/retailer';
   static const registerVerify = '/register/verify';
   static const forgotPassword = '/forgot-password';
 

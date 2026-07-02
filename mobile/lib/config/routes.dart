@@ -126,6 +126,22 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: RoutePaths.registerFarmer,
+        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.farmer),
+      ),
+      GoRoute(
+        path: RoutePaths.registerBuyer,
+        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.buyer),
+      ),
+      GoRoute(
+        path: RoutePaths.registerTransport,
+        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.transportProvider),
+      ),
+      GoRoute(
+        path: RoutePaths.registerRetailer,
+        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.retailer),
+      ),
+      GoRoute(
         path: RoutePaths.registerVerify,
         builder: (context, state) {
           final extra = state.extra;

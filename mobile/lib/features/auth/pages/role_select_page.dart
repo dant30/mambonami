@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
@@ -79,7 +80,7 @@ class _RoleSelectPageState extends State<RoleSelectPage> {
             const SizedBox(height: 8),
             CustomButton(
               onPressed: () => context.go(
-                RoutePaths.register,
+                AppRole.registrationPathFor(_selectedRole),
                 extra: {'role': _selectedRole},
               ),
               label: 'Continue',

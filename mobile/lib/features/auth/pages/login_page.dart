@@ -143,8 +143,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 16),
                   TextButton.icon(
-                    onPressed:
-                        isLoading ? null : () => context.go(RoutePaths.register),
+                    onPressed: isLoading
+                        ? null
+                        : () => context.go(RoutePaths.roleSelect),
                     icon: const Icon(Icons.person_add_alt_1_outlined),
                     label: const Text('Create a Mambonami account'),
                   ),
