@@ -1,91 +1,76 @@
-﻿// mobile/lib/shared/layouts/bottom_nav_bar.dart
+﻿// lib/shared/layouts/bottom_nav_bar.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-class BottomNavBar extends StatelessWidget {
+import '../themes/app_colors.dart';
+import '../../config/role_routes.dart';
+
+class MambonamisBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final List<BottomNavItem> items;
+  final UserRole role;
 
-  static const _animationDuration = Duration(milliseconds: 220);
-
-  const BottomNavBar({
+  const MambonamisBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    required this.items,
+    required this.role,
   });
+
+  List<BottomNavigationBarItem> _itemsForRole(UserRole role) {
+    switch (role) {
+      case UserRole.farmer:
+        return [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Products'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Analytics'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ];
+      case UserRole.buyer:
+        return [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Market'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
+          const BottomNavigationBarItem(icon: Icon(Icons.favorite_rounded), label: 'Wishlist'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ];
+      case UserRole.transport:
+        return [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
+          const BottomNavigationBarItem(icon: Icon(Icons.navigation_rounded), label: 'Map'),
+          const BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ];
+      case UserRole.retailer:
+        return [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
+          const BottomNavigationBarItem(icon: Icon(Icons.store_rounded), label: 'Suppliers'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Reports'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ];
+      case UserRole.admin:
+        return [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people_rounded), label: 'Users'),
+          const BottomNavigationBarItem(icon: Icon(Icons.assessment_rounded), label: 'Reports'),
+          const BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ];
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      elevation: 10,
-      shadowColor: theme.shadowColor.withValues(alpha: 0.12),
-      color: theme.colorScheme.surface,
-      child: SafeArea(
-        top: false,
-        child: AnimatedContainer(
-          duration: _animationDuration,
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            border: Border(
-              top: BorderSide(
-                color: theme.colorScheme.outline.withValues(alpha: 0.65),
-                width: 1,
-              ),
-            ),
-          ),
-          child: NavigationBar(
-            height: 68,
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) {
-              HapticFeedback.selectionClick();
-              onTap(index);
-            },
-            backgroundColor: theme.colorScheme.surface,
-            surfaceTintColor: theme.colorScheme.surfaceTint,
-            indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.14),
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: items.map((item) {
-              return NavigationDestination(
-                icon: item.badgeCount > 0
-                    ? Badge(
-                        label: Text(item.badgeCount > 99
-                            ? '99+'
-                            : item.badgeCount.toString()),
-                        child: Icon(item.icon),
-                      )
-                    : Icon(item.icon),
-                selectedIcon: item.badgeCount > 0
-                    ? Badge(
-                        label: Text(item.badgeCount > 99
-                            ? '99+'
-                            : item.badgeCount.toString()),
-                        child: Icon(item.activeIcon ?? item.icon),
-                      )
-                    : Icon(item.activeIcon ?? item.icon),
-                label: item.label,
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class BottomNavItem {
-  final IconData icon;
-  final IconData? activeIcon;
-  final String label;
-  final int badgeCount;
-
-  const BottomNavItem({
-    required this.icon,
-    this.activeIcon,
-    required this.label,
-    this.badgeCount = 0,
-  });
-}
+  Widget build(BuildContext context) => BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: AppColors.primaryGreen,
+        unselectedItemColor: AppColors.textMuted,
+        selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+        unselectedLabelStyle: const TextStyle(fontSize: 10),
+        elevation: 8,
+        items: _itemsForRole(role),
+      );

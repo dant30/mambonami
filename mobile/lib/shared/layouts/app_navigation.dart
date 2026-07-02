@@ -71,26 +71,15 @@ class AppBottomNavigationBar extends StatelessWidget {
           notifState.notifications.where((n) => n.isUnread).length;
     }
 
-    return BottomNavBar(
+    final authState = context.read<AuthBloc>().state;
+    final currentRole = authState is AuthAuthenticated
+        ? AppRole.parseUserRole(authState.role)
+        : UserRole.buyer;
+
+    return MambonamisBottomNav(
       currentIndex: _selectedIndex(location),
       onTap: (index) => _handleTap(context, index),
-      items: [
-        const BottomNavItem(
-            icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
-        BottomNavItem(
-            icon: Icons.notifications_outlined,
-            activeIcon: Icons.notifications,
-            label: 'Notifications',
-            badgeCount: unreadNotifications),
-        const BottomNavItem(
-            icon: Icons.support_agent_outlined,
-            activeIcon: Icons.support_agent,
-            label: 'Support'),
-        const BottomNavItem(
-            icon: Icons.person_outline,
-            activeIcon: Icons.person,
-            label: 'Profile'),
-      ],
+      role: currentRole,
     );
   }
 }

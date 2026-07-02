@@ -6,6 +6,7 @@ class AppColors {
   // Brand
   static const Color primaryLight = Color(0xFF1B7F3B);
   static const Color primaryDark = Color(0xFF4EC36F);
+  static const Color primaryGreen = primaryLight;
   static const Color primaryForegroundLight = Colors.white;
   static const Color primaryForegroundDark = Color(0xFF062311);
 
@@ -19,6 +20,7 @@ class AppColors {
   static const Color backgroundLight = Color(0xFFF7FAF7);
   static const Color backgroundDark = Color(0xFF0F1712);
   static const Color foregroundLight = Color(0xFF0F1F15);
+  static const Color textMuted = Color(0xFF5A7A63);
   static const Color foregroundDark = Color(0xFFF2F8F2);
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color cardDark = Color(0xFF17241C);

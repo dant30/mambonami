@@ -1,5 +1,13 @@
 import 'route_paths.dart';
 
+enum UserRole {
+  buyer,
+  retailer,
+  farmer,
+  transport,
+  admin,
+}
+
 class AppRole {
   static const buyer = 'buyer';
   static const retailer = 'retailer';
@@ -26,6 +34,23 @@ class AppRole {
         return '/admin';
       default:
         return RoutePaths.login;
+    }
+  }
+
+  static UserRole parseUserRole(String? role) {
+    switch (role) {
+      case buyer:
+        return UserRole.buyer;
+      case retailer:
+        return UserRole.retailer;
+      case farmer:
+        return UserRole.farmer;
+      case transportProvider:
+        return UserRole.transport;
+      case admin:
+        return UserRole.admin;
+      default:
+        return UserRole.buyer;
     }
   }
 
