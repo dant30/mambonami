@@ -74,3 +74,4 @@ class MambonamisBottomNav extends StatelessWidget {
         elevation: 8,
         items: _itemsForRole(role),
       );
+}
