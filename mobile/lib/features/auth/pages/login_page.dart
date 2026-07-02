@@ -7,10 +7,10 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
 class LoginPage extends StatefulWidget {
@@ -58,6 +58,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: const CustomAppBar(title: 'Login'),
       body: BlocConsumer<AuthBloc, AuthState>(
@@ -77,18 +79,51 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthPageHeader(
-                    title: 'Welcome back',
-                    subtitle:
-                        'Sign in to shop fresh produce, manage farm orders, or continue delivery work.',
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                                blurRadius: 18,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: const AppLogo(size: 56),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Welcome back 👋',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Sign in to continue to fresh produce and trusted delivery.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 20),
                   AuthSurface(
                     child: Column(
                       children: [
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
-                          hintText: '07XXXXXXXX',
+                          hintText: '+254 700 000 000',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
@@ -121,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                             }),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -141,13 +176,49 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'or',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  TextButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () => context.go(RoutePaths.roleSelect),
-                    icon: const Icon(Icons.person_add_alt_1_outlined),
-                    label: const Text('Create a Mambonami account'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null : () {},
+                      icon: const Icon(Icons.g_mobiledata_rounded),
+                      label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () => context.go(RoutePaths.roleSelect),
+                      icon: const Icon(Icons.person_add_alt_1_outlined),
+                      label: const Text('Create a Mambonami account'),
+                    ),
                   ),
                 ],
               ),

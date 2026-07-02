@@ -141,6 +141,32 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                           icon: Icons.verified_user_outlined,
                         ),
                         const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.16),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.sms_outlined, color: theme.colorScheme.primary),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'We have sent a secure one-time passcode to ${widget.phone}. Enter it below to finish setting up your account.',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         OtpInputField(
                           controller: _otpController,
                           onCompleted: (value) => _otpController.text = value,
@@ -230,7 +256,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         ),
                         if (widget.role == 'farmer') ...[
                           const SizedBox(height: 18),
-                          _RoleSectionHeader(
+                          const _RoleSectionHeader(
                             icon: Icons.agriculture_outlined,
                             title: 'Farmer details',
                             color: AppColors.farmerAccent,
@@ -261,7 +287,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                         ],
                         if (widget.role == 'transport_provider') ...[
                           const SizedBox(height: 18),
-                          _RoleSectionHeader(
+                          const _RoleSectionHeader(
                             icon: Icons.local_shipping_outlined,
                             title: 'Transport provider details',
                             color: AppColors.providerAccent,
@@ -275,7 +301,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                             ),
                             items: _vehicleTypes
                                 .map(
-                                  (type) => DropdownMenuItem(
+                                  (type) => DropdownMenuItem<String>(
                                     value: type,
                                     child: Text(
                                       type[0].toUpperCase() + type.substring(1),
@@ -350,8 +376,8 @@ class _VerificationSummary extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.outline),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.6)),
       ),
       child: Column(
         children: [
@@ -413,7 +439,7 @@ class _RoleSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Row(

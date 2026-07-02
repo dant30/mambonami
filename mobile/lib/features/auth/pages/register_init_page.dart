@@ -11,7 +11,6 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
 class RegisterInitPage extends StatefulWidget {
@@ -95,6 +94,8 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: CustomAppBar(title: _pageTitle),
       body: BlocConsumer<AuthBloc, AuthState>(
@@ -120,16 +121,51 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AuthPageHeader(
-                    title: _pageTitle,
-                    subtitle: _selectedRole == 'farmer'
+                  Center(
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Icon(
+                        _selectedRole == 'farmer'
+                            ? Icons.agriculture_outlined
+                            : _selectedRole == 'transport_provider'
+                                ? Icons.local_shipping_outlined
+                                : _selectedRole == 'retailer'
+                                    ? Icons.storefront_outlined
+                                    : Icons.shopping_bag_outlined,
+                        color: theme.colorScheme.primary,
+                        size: 34,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Create your $_selectedRole account',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _selectedRole == 'farmer'
                         ? 'Set up your farm profile, add your phone, and verify access to farmer tools.'
                         : _selectedRole == 'transport_provider'
                             ? 'Set up your transport profile, verify your phone, and start accepting orders.'
                             : _selectedRole == 'retailer'
                                 ? 'Set up your retailer account and begin sourcing fresh produce.'
                                 : 'Set up your buyer account and verify your phone number.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.45,
+                    ),
                   ),
+                  const SizedBox(height: 20),
                   AuthSurface(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +173,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
-                          hintText: '07XXXXXXXX',
+                          hintText: '+254 700 000 000',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.done,

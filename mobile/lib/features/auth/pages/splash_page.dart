@@ -1,4 +1,6 @@
 // mobile/lib/features/auth/pages/splash_page.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -22,8 +24,10 @@ class _SplashPageState extends State<SplashPage>
   late final Animation<double> _scale;
   late final Animation<Offset> _slide;
   final Future<void> _minimumDisplay =
-      Future<void>.delayed(const Duration(milliseconds: 1450));
+      Future<void>.delayed(const Duration(milliseconds: 1500));
   bool _handled = false;
+  int _activeDot = 0;
+  Timer? _dotTimer;
 
   @override
   void initState() {
@@ -45,6 +49,11 @@ class _SplashPageState extends State<SplashPage>
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
+    _dotTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+      if (!mounted) return;
+      setState(() => _activeDot = (_activeDot + 1) % 3);
+    });
+
     context.read<AuthBloc>().add(CheckAuthStatusEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -54,6 +63,7 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   void dispose() {
+    _dotTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -80,27 +90,20 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) => _finish(state),
       child: Scaffold(
-        body: DecoratedBox(
-          decoration: BoxDecoration(
+        body: Container(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? const [
-                      Color(0xFF0F1712),
-                      Color(0xFF16251B),
-                      Color(0xFF101713),
-                    ]
-                  : const [
-                      Color(0xFFF7FAF5),
-                      Color(0xFFEEF6EC),
-                      Color(0xFFF9FBF7),
-                    ],
+              colors: [
+                Color(0xFF1C8E4B),
+                Color(0xFF34B35C),
+                Color(0xFF0F6E35),
+              ],
             ),
           ),
           child: SafeArea(
@@ -115,53 +118,57 @@ class _SplashPageState extends State<SplashPage>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(18),
+                          width: 124,
+                          height: 124,
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                theme.colorScheme.primary.withValues(alpha: 0.16),
-                                theme.colorScheme.surface,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(28),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(36),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.16),
-                                blurRadius: 28,
+                                color: Colors.black.withValues(alpha: 0.16),
+                                blurRadius: 30,
                                 offset: const Offset(0, 12),
                               ),
                             ],
                           ),
-                          child: const AppLogo(size: 86),
+                          child: const AppLogo(size: 84),
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 24),
                         Text(
                           'MAMBONAMI',
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
-                            letterSpacing: 0,
+                            letterSpacing: -0.8,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Fresh market, trusted delivery',
+                          'Fresh from farm to your door',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w700,
+                            color: Colors.white.withValues(alpha: 0.84),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 28),
-                        SizedBox(
-                          width: 126,
-                          child: LinearProgressIndicator(
-                            minHeight: 3,
-                            borderRadius: BorderRadius.circular(999),
-                            backgroundColor: theme.colorScheme.outline
-                                .withValues(alpha: 0.28),
-                            color: theme.colorScheme.primary,
-                          ),
+                        const SizedBox(height: 40),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(3, (index) {
+                            final active = index == _activeDot;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: active ? 18 : 8,
+                              height: 8,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                color: active
+                                    ? Colors.white
+                                    : Colors.white.withValues(alpha: 0.45),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),

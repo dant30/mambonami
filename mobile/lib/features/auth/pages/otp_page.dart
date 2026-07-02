@@ -65,6 +65,11 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final maskedPhone = widget.phone.isNotEmpty
+        ? widget.phone.replaceRange(4, widget.phone.length - 2, '***')
+        : 'your phone';
+
     return Scaffold(
       appBar: const CustomAppBar(title: 'Verify OTP'),
       body: AppScreen(
@@ -73,20 +78,37 @@ class _OtpPageState extends State<OtpPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            Center(
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  Icons.sms_outlined,
+                  color: theme.colorScheme.primary,
+                  size: 34,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(
               'Verify your phone',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Enter the 4-digit code sent to ${widget.phone.isNotEmpty ? widget.phone : 'your phone'}.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    height: 1.5,
-                  ),
+              'Enter the 4-digit code sent to $maskedPhone.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             AuthSurface(

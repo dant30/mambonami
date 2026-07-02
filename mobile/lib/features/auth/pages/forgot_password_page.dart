@@ -12,7 +12,6 @@ import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
@@ -92,6 +91,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: const CustomAppBar(title: 'Reset Password'),
       body: BlocConsumer<AuthBloc, AuthState>(
@@ -123,12 +124,41 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AuthPageHeader(
-                    title: 'Reset password',
-                    subtitle: _otpSent
-                        ? 'Verify the OTP and choose a new password for your account.'
-                        : 'Enter your phone number and we will send a secure reset OTP.',
+                  Center(
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Icon(
+                        Icons.lock_reset_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 34,
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _otpSent ? 'Secure code sent' : 'Forgot password?',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _otpSent
+                        ? 'Enter the 4-digit confirmation code and create a new password.'
+                        : 'Enter your registered phone number and we will send a secure reset code via SMS.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   AuthSurface(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,7 +175,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
-                          hintText: '07XXXXXXXX',
+                          hintText: '+254 700 000 000',
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
@@ -160,8 +190,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           CustomTextField(
                             controller: _otpController,
                             label: 'OTP Code',
-                            prefixIcon:
-                                const Icon(Icons.pin_outlined),
+                            prefixIcon: const Icon(Icons.pin_outlined),
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             autofocus: true,
@@ -200,7 +229,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             _resendSeconds > 0
                                 ? 'Resend OTP available in $_resendSeconds seconds'
                                 : 'You can resend the OTP if it did not arrive.',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: theme.textTheme.bodySmall,
                           ),
                           const SizedBox(height: 18),
                           CustomButton(
