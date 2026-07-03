@@ -121,10 +121,32 @@ class _OtpInputFieldState extends State<OtpInputField> {
     }
   }
 
-  InputDecoration _defaultDecoration() {
-    return const InputDecoration(
-      border: OutlineInputBorder(),
+  InputDecoration _buildDecoration(BuildContext context, int index) {
+    final theme = Theme.of(context);
+    final isFilled = _controllers[index].text.isNotEmpty;
+    final borderColor = isFilled
+        ? theme.colorScheme.primary
+        : theme.colorScheme.outline;
+
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor.withOpacity(0.6), width: 2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 2.2),
+      ),
+      filled: true,
+      fillColor: isFilled
+          ? theme.colorScheme.primary.withOpacity(0.08)
+          : theme.colorScheme.surfaceVariant.withOpacity(0.08),
       counterText: '',
+      contentPadding: const EdgeInsets.symmetric(vertical: 18),
     );
   }
 
@@ -153,7 +175,7 @@ class _OtpInputFieldState extends State<OtpInputField> {
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                decoration: widget.decoration ?? _defaultDecoration(),
+                decoration: widget.decoration ?? _buildDecoration(context, index),
                 onChanged: (value) => _onChanged(value, index),
               ),
             ),

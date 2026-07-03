@@ -26,7 +26,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _otpSent = false;
+  bool _codeSent = false;
+  bool _showCodeEntry = false;
   bool _isPasswordHidden = true;
   int _resendSeconds = 0;
   Timer? _resendTimer;
@@ -56,7 +57,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _resetFlow() {
     setState(() {
-      _otpSent = false;
+      _codeSent = false;
+      _showCodeEntry = false;
       _otpController.clear();
       _newPasswordController.clear();
       _resendSeconds = 0;
@@ -69,6 +71,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             ForgotPasswordInitEvent(_phoneController.text.trim()),
           );
     }
+  }
+
+  void _enterCode() {
+    setState(() {
+      _showCodeEntry = true;
+    });
   }
 
   void _verifyReset() {
@@ -99,12 +107,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         listener: (context, state) {
           if (state is ForgotPasswordInitSuccess) {
             setState(() {
-              _otpSent = true;
+              _codeSent = true;
               _startResendTimer();
             });
             CustomSnackbar.showSuccess(
               context,
-              'OTP sent to your phone. Check your messages.',
+              'Reset code sent. Check your phone.',
             );
           } else if (state is ForgotPasswordSuccess) {
             CustomSnackbar.showSuccess(
@@ -141,7 +149,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _otpSent ? 'Secure code sent' : 'Forgot password?',
+                    _codeSent ? 'Secure code sent' : 'Forgot password?',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
@@ -149,8 +157,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _otpSent
-                        ? 'Enter the 4-digit confirmation code and create a new password.'
+                    _codeSent
+                        ? 'A reset code has been sent. Enter it to choose a new password.'
                         : 'Enter your registered phone number and we will send a secure reset code via SMS.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -164,10 +172,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         AuthStepBadge(
-                          label: _otpSent
-                              ? 'Step 2 of 2: Verify OTP'
-                              : 'Step 1 of 2: Confirm phone',
-                          icon: _otpSent
+                          label: _codeSent
+                              ? 'Step 2 of 2: Enter code'
+                              : 'Step 1 of 2: Send reset code',
+                          icon: _codeSent
                               ? Icons.password_outlined
                               : Icons.phone_iphone_outlined,
                         ),
@@ -179,93 +187,124 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           prefixIcon: const Icon(Icons.phone_outlined),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
-                          enabled: !_otpSent,
+                          enabled: !_codeSent,
                           validator: (value) =>
                               value == null || value.trim().length < 10
                                   ? 'Enter a valid phone number'
                                   : null,
                         ),
-                        if (_otpSent) ...[
+                        if (_codeSent) ...[
                           const SizedBox(height: 14),
-                          CustomTextField(
-                            controller: _otpController,
-                            label: 'OTP Code',
-                            prefixIcon: const Icon(Icons.pin_outlined),
-                            keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.next,
-                            autofocus: true,
-                            validator: (value) =>
-                                value == null || value.trim().length != 4
-                                    ? 'Enter 4-digit OTP'
-                                    : null,
-                          ),
-                          const SizedBox(height: 14),
-                          CustomTextField(
-                            controller: _newPasswordController,
-                            label: 'New Password',
-                            prefixIcon: const Icon(Icons.lock_reset_outlined),
-                            obscureText: _isPasswordHidden,
-                            textInputAction: TextInputAction.done,
-                            validator: (value) =>
-                                value == null || value.length < 6
-                                    ? 'Min 6 characters'
-                                    : null,
-                            suffixIcon: IconButton(
-                              tooltip: _isPasswordHidden
-                                  ? 'Show password'
-                                  : 'Hide password',
-                              icon: Icon(
-                                _isPasswordHidden
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                              onPressed: () => setState(() {
-                                _isPasswordHidden = !_isPasswordHidden;
-                              }),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(18),
                             ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.16),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    'A reset code has been sent to ${_phoneController.text.trim()}.',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          CustomButton(
+                            onPressed: isLoading ? null : _enterCode,
+                            label: 'Enter Code',
+                            icon: const Icon(Icons.arrow_forward_rounded),
                           ),
                           const SizedBox(height: 12),
                           Text(
                             _resendSeconds > 0
-                                ? 'Resend OTP available in $_resendSeconds seconds'
-                                : 'You can resend the OTP if it did not arrive.',
+                                ? 'Resend code in $_resendSeconds seconds'
+                                : 'Didn’t receive the code? Tap resend.',
+                            textAlign: TextAlign.center,
                             style: theme.textTheme.bodySmall,
                           ),
-                          const SizedBox(height: 18),
-                          CustomButton(
-                            onPressed: _verifyReset,
-                            isLoading: isLoading,
-                            label: 'Reset Password',
-                            icon: const Icon(Icons.check_circle_outline),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed:
+                                isLoading || _resendSeconds > 0 ? null : _resendOTP,
+                            child: Text(
+                              _resendSeconds > 0
+                                  ? 'Resend code ($_resendSeconds)'
+                                  : 'Resend code',
+                            ),
                           ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 8,
-                            children: [
-                              TextButton(
-                                onPressed:
-                                    isLoading || _resendSeconds > 0
-                                        ? null
-                                        : _resendOTP,
-                                child: Text(
-                                  _resendSeconds > 0
-                                      ? 'Resend OTP ($_resendSeconds)'
-                                      : 'Resend OTP',
+                          const SizedBox(height: 20),
+                          if (_showCodeEntry) ...[
+                            CustomTextField(
+                              controller: _otpController,
+                              label: 'OTP Code',
+                              prefixIcon: const Icon(Icons.pin_outlined),
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              autofocus: true,
+                              validator: (value) =>
+                                  value == null || value.trim().length != 4
+                                      ? 'Enter 4-digit OTP'
+                                      : null,
+                            ),
+                            const SizedBox(height: 14),
+                            CustomTextField(
+                              controller: _newPasswordController,
+                              label: 'New Password',
+                              prefixIcon: const Icon(Icons.lock_reset_outlined),
+                              obscureText: _isPasswordHidden,
+                              textInputAction: TextInputAction.done,
+                              validator: (value) =>
+                                  value == null || value.length < 6
+                                      ? 'Min 6 characters'
+                                      : null,
+                              suffixIcon: IconButton(
+                                tooltip: _isPasswordHidden
+                                    ? 'Show password'
+                                    : 'Hide password',
+                                icon: Icon(
+                                  _isPasswordHidden
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                 ),
+                                onPressed: () => setState(() {
+                                  _isPasswordHidden = !_isPasswordHidden;
+                                }),
                               ),
-                              TextButton(
-                                onPressed: isLoading ? null : _resetFlow,
-                                child: const Text('Use different phone'),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 18),
+                            CustomButton(
+                              onPressed: _verifyReset,
+                              isLoading: isLoading,
+                              label: 'Reset Password',
+                              icon: const Icon(Icons.check_circle_outline),
+                            ),
+                          ],
                         ] else ...[
                           const SizedBox(height: 18),
                           CustomButton(
                             onPressed: _sendResetOTP,
                             isLoading: isLoading,
-                            label: 'Send Reset OTP',
+                            label: 'Send Reset Code',
                             icon: const Icon(Icons.sms_outlined),
                           ),
                         ],

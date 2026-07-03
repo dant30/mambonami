@@ -1,7 +1,10 @@
 // mobile/lib/features/auth/pages/register_verify_page.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pinput/pinput.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
@@ -11,7 +14,6 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../../../shared/widgets/otp_input_field.dart';
 import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
@@ -41,6 +43,8 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
+  int _resendSeconds = 45;
+  Timer? _resendTimer;
   String _selectedVehicleType = 'motorcycle';
 
   static const List<String> _vehicleTypes = [
@@ -49,6 +53,12 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
     'lorry',
     'van',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendTimer();
+  }
 
   @override
   void dispose() {
@@ -60,7 +70,29 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
     _farmGpsController.dispose();
     _mpesaController.dispose();
     _licensePlateController.dispose();
+    _resendTimer?.cancel();
     super.dispose();
+  }
+
+  void _startResendTimer() {
+    _resendTimer?.cancel();
+    setState(() => _resendSeconds = 45);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_resendSeconds <= 1) {
+        timer.cancel();
+        setState(() => _resendSeconds = 0);
+        return;
+      }
+      setState(() => _resendSeconds -= 1);
+    });
+  }
+
+  void _resendOtp() {
+    if (_resendSeconds == 0) {
+      _startResendTimer();
+      CustomSnackbar.showSuccess(context, 'Verification code resent.');
+    }
   }
 
   void _verify() {
@@ -167,11 +199,77 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        OtpInputField(
+                        Pinput(
                           controller: _otpController,
+                          length: 4,
+                          defaultPinTheme: PinTheme(
+                            width: 60,
+                            height: 60,
+                            textStyle: theme.textTheme.headlineSmall?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceVariant.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: theme.colorScheme.outline,
+                                width: 1.8,
+                              ),
+                            ),
+                          ),
+                          focusedPinTheme: PinTheme(
+                            width: 60,
+                            height: 60,
+                            textStyle: theme.textTheme.headlineSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 2.2,
+                              ),
+                            ),
+                          ),
+                          submittedPinTheme: PinTheme(
+                            width: 60,
+                            height: 60,
+                            textStyle: theme.textTheme.headlineSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 2.2,
+                              ),
+                            ),
+                          ),
+                          showCursor: true,
                           onCompleted: (value) => _otpController.text = value,
-                          fieldWidth: 60,
-                          spacing: 10,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _resendSeconds > 0
+                                  ? 'Resend in 00:${_resendSeconds.toString().padLeft(2, '0')}'
+                                  : 'Resend available',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _resendSeconds == 0 ? _resendOtp : null,
+                              child: const Text('Resend'),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 14),
                         CustomTextField(

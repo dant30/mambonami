@@ -7,6 +7,7 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -25,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordHidden = true;
+  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -89,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                                color: theme.colorScheme.primary.withOpacity(0.12),
                                 blurRadius: 18,
                                 offset: const Offset(0, 10),
                               ),
@@ -109,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                           'Sign in to continue to fresh produce and trusted delivery.',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: AppColors.muted,
                             height: 1.4,
                           ),
                         ),
@@ -157,14 +159,33 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => context.go(RoutePaths.forgotPassword),
-                            child: const Text('Forgot password?'),
-                          ),
+                        // Remember me + Forgot password
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                              activeColor: AppColors.primary,
+                            ),
+                            const Text(
+                              'Remember me',
+                              style: TextStyle(fontSize: 12, color: AppColors.muted),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => context.go(RoutePaths.forgotPassword),
+                              child: const Text(
+                                'Forgot password?',
+                                style: TextStyle(
+                                  color: AppColors.secondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 10),
                         CustomButton(
@@ -187,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: Text(
                             'or',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: AppColors.muted,
                             ),
                           ),
                         ),
@@ -200,24 +221,47 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: OutlinedButton.icon(
                       onPressed: isLoading ? null : () {},
-                      icon: const Icon(Icons.g_mobiledata_rounded),
-                      label: const Text('Continue with Google'),
+                      icon: Image.network(
+                        'https://www.google.com/favicon.ico',
+                        width: 18,
+                        height: 18,
+                      ),
+                      label: const Text(
+                        'Continue with Google',
+                        style: TextStyle(fontSize: 14, color: AppColors.dark),
+                      ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 52),
+                        side: BorderSide(color: AppColors.primary.withOpacity(0.2)),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Center(
-                    child: TextButton.icon(
-                      onPressed: isLoading
-                          ? null
-                          : () => context.go(RoutePaths.roleSelect),
-                      icon: const Icon(Icons.person_add_alt_1_outlined),
-                      label: const Text('Create a Mambonami account'),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'No account? ',
+                            style: TextStyle(color: AppColors.muted),
+                          ),
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: isLoading ? null : () => context.go(RoutePaths.roleSelect),
+                              child: const Text(
+                                'Create one',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

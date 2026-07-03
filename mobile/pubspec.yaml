@@ -24,6 +24,7 @@ dependencies:
   equatable: ^2.0.5
   get_it: ^7.6.4
   flutter_slidable: ^3.0.0
+  pinput: 6.0.2
 
   # Networking & Storage
   dio: ^5.3.3

@@ -1,3 +1,4 @@
+// mobile/lib/shared/themes/app_gradients.dart
 import 'package:flutter/material.dart';
 
 class AppGradients {

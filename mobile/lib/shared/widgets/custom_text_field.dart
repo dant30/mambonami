@@ -1,5 +1,6 @@
 // mobile/lib/shared/widgets/custom_text_field.dart
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -57,7 +58,42 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveLabel = label ?? labelText;
-    
+
+    // Build decoration
+    final inputDecoration = InputDecoration(
+      labelText: effectiveLabel,
+      hintText: hintText,
+      helperText: helperText,
+      errorText: errorText,
+      contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      alignLabelWithHint: maxLines != 1,
+      isDense: true,
+      errorMaxLines: 3,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: enabled
+          ? Colors.white // always white background
+          : theme.colorScheme.surface.withValues(alpha: 0.6),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.error),
+      ),
+    );
+
+    // Apply if we want to use theme's inputDecorationTheme? We'll override with explicit.
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -74,23 +110,7 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
-      decoration: InputDecoration(
-        labelText: effectiveLabel,
-        hintText: hintText,
-        helperText: helperText,
-        errorText: errorText,
-        contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        alignLabelWithHint: maxLines != 1,
-        isDense: true,
-        errorMaxLines: 3,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: enabled
-            ? theme.inputDecorationTheme.fillColor ??
-                theme.colorScheme.surface
-            : theme.colorScheme.surface.withValues(alpha: 0.6),
-      ),
+      decoration: inputDecoration,
     );
   }
 }

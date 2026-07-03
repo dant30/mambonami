@@ -1,6 +1,7 @@
 // mobile/lib/shared/widgets/custom_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../themes/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String? label;
@@ -28,6 +29,9 @@ class CustomButton extends StatelessWidget {
   final bool outlined;
   final String? loadingText;
 
+  /// New: use gold gradient instead of green
+  final bool gold;
+
   const CustomButton({
     super.key,
     this.label,
@@ -39,66 +43,57 @@ class CustomButton extends StatelessWidget {
     this.color,
     this.textColor,
     this.disabledColor,
-    this.borderRadius = 16.0,
-    this.padding =
-        const EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
+    this.borderRadius = 24.0, // changed to match prototype
+    this.padding = const EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
     this.style,
     this.fullWidth = true,
     this.height,
     this.minWidth,
     this.outlined = false,
     this.loadingText,
-  }) : assert(label != null || child != null,
-            'Provide either label or child');
+    this.gold = false,
+  }) : assert(label != null || child != null, 'Provide either label or child');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final effectiveHeight = height ?? 50.0;
+    final effectiveHeight = height ?? 54.0;
 
     final isDisabled = !enabled || isLoading;
 
+    // Determine background color/gradient
     final bgColor = outlined
         ? Colors.transparent
         : (enabled
-            ? (color ?? theme.colorScheme.primary)
-            : (disabledColor ??
-                theme.disabledColor.withValues(alpha: 0.3)));
+            ? (color ?? (gold ? AppColors.gold : AppColors.primary))
+            : (disabledColor ?? theme.disabledColor.withValues(alpha: 0.3)));
 
     final fgColor = textColor ??
         (outlined
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onPrimary);
+            ? AppColors.primary
+            : (gold ? Colors.white : theme.colorScheme.onPrimary));
 
     final borderSide = outlined
         ? BorderSide(
             color: enabled
-                ? (color ?? theme.colorScheme.primary)
+                ? (color ?? AppColors.primary)
                 : theme.disabledColor,
           )
         : BorderSide.none;
 
-    final defaultStyle = ElevatedButton.styleFrom(
-      backgroundColor: bgColor,
-      foregroundColor: fgColor,
-      disabledForegroundColor:
-          theme.colorScheme.onSurface.withValues(alpha: 0.38),
-      elevation: outlined ? 0 : 0,
-      minimumSize: Size(
-        fullWidth ? double.infinity : (minWidth ?? 120),
-        effectiveHeight,
-      ),
-      padding: padding,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        side: borderSide,
-      ),
-      shadowColor: Colors.transparent,
-    );
+    // Build gradient if needed
+    Widget? gradientWidget;
+    if (!outlined && enabled && !gold) {
+      // We can't directly put gradient on ElevatedButton, but we can wrap with Container
+      // We'll handle via style using background builder? Actually we can use Container as parent.
+      // Simpler: we'll use Container with gradient and then place button with transparent bg.
+    }
 
-    final content = isLoading
+    // We'll use the existing style approach: for filled buttons we wrap with Container to apply gradient.
+    // But to keep it simple and avoid breaking existing usage, we'll handle the gradient via Container and transparent button.
+
+    Widget buttonContent = isLoading
         ? Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -108,8 +103,8 @@ class CustomButton extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.4,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(fgColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      fgColor),
                 ),
               ),
               if (loadingText != null) ...[
@@ -142,7 +137,8 @@ class CustomButton extends StatelessWidget {
               ],
             );
 
-    final button = ElevatedButton(
+    // Build the button
+    Widget button = ElevatedButton(
       onPressed: isDisabled
           ? null
           : () {
@@ -152,10 +148,72 @@ class CustomButton extends StatelessWidget {
               onPressed?.call();
             },
       style: style != null
-          ? defaultStyle.merge(style)
-          : defaultStyle,
-      child: content,
+          ? (style!.merge(ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius)),
+              minimumSize: Size(
+                fullWidth ? double.infinity : (minWidth ?? 120),
+                effectiveHeight,
+              ),
+              padding: padding,
+            )))
+          : ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius)),
+              minimumSize: Size(
+                fullWidth ? double.infinity : (minWidth ?? 120),
+                effectiveHeight,
+              ),
+              padding: padding,
+            ),
+      child: buttonContent,
     );
+
+    // If not outlined and not disabled, wrap with gradient container
+    if (!outlined && enabled) {
+      final gradientColors = gold
+          ? [const Color(0xFFE8C547), AppColors.gold]
+          : [AppColors.secondary, AppColors.primary];
+      button = Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradientColors),
+          borderRadius: BorderRadius.circular(borderRadius),
+          boxShadow: [
+            BoxShadow(
+              color: (gold ? AppColors.gold : AppColors.primary)
+                  .withOpacity(0.35),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: button,
+      );
+    } else if (outlined) {
+      // Outline button: apply border via style already
+      // We'll just ensure the button style has the border.
+      button = ElevatedButton(
+        onPressed: isDisabled ? null : onPressed,
+        style: (style ?? ElevatedButton.styleFrom()).copyWith(
+          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+          foregroundColor: MaterialStateProperty.all(fgColor),
+          side: MaterialStateProperty.all(
+              BorderSide(color: AppColors.primary, width: 2)),
+          shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius))),
+          minimumSize: MaterialStateProperty.all(Size(
+              fullWidth ? double.infinity : (minWidth ?? 120),
+              effectiveHeight)),
+          padding: MaterialStateProperty.all(padding),
+        ),
+        child: buttonContent,
+      );
+    }
 
     return Semantics(
       button: true,
