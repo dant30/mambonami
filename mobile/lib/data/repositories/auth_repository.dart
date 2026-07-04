@@ -41,6 +41,7 @@ class AuthRepository {
     required String username,
     required String password,
     required String role,
+    String? email,
     String? farmGps,
     String? mpesaNumber,
     String? vehicleType,
@@ -56,6 +57,7 @@ class AuthRepository {
         'confirm_password': password,
         'role': role,
       };
+      if (email != null && email.isNotEmpty) data['email'] = email;
       if (farmGps != null) data['farm_gps'] = farmGps;
       if (mpesaNumber != null) data['mpesa_number'] = mpesaNumber;
       if (vehicleType != null) data['vehicle_type'] = vehicleType;
@@ -268,7 +270,7 @@ class AuthRepository {
 
       // Log error details for debugging
       print('AuthRepository Error - Status: $statusCode, Type: ${error.type}');
-      if (data != null) {
+      if (data.isNotEmpty) {
         print('Error Response: $data');
       }
 

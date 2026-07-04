@@ -7,9 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -104,6 +104,9 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
               username: _usernameController.text.trim(),
               password: _passwordController.text,
               role: widget.role,
+              email: _emailController.text.trim().isEmpty
+                  ? null
+                  : _emailController.text.trim(),
               farmGps:
                   widget.role == 'farmer' ? _farmGpsController.text.trim() : null,
               mpesaNumber: widget.role == 'farmer'
@@ -120,41 +123,40 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
     }
   }
 
-  void _routeAuthenticated(AuthAuthenticated state) {
-    if (state.role == 'farmer') {
-      context.go(RoutePaths.farmerDashboard);
-      return;
-    }
-    if (state.role == 'transport_provider') {
-      context.go(RoutePaths.transportProviderDashboard);
-      return;
-    }
-    context.go(RoutePaths.buyerDashboard);
-  }
-
   String get _roleLabel => widget.role.replaceAll('_', ' ');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Verify OTP'),
+      backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            _routeAuthenticated(state);
+            context.go(RoutePaths.success, extra: {'role': state.role});
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
-          return AppScreen(
+          return SafeArea(
+            child: AppScreen(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _AuthBackButton(
+                      onPressed: () => context.go(
+                        AppRole.registrationPathFor(widget.role),
+                        extra: {'role': widget.role},
+                      ),
+                    ),
+                  ),
                   AuthPageHeader(
                     title: 'Verify your account',
                     subtitle:
@@ -165,6 +167,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                     ),
                   ),
                   AuthSurface(
+                    margin: EdgeInsets.zero,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -210,7 +213,8 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                               fontWeight: FontWeight.w700,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceVariant.withOpacity(0.08),
+                              color: theme.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: theme.colorScheme.outline,
@@ -242,7 +246,8 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                               fontWeight: FontWeight.w700,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.08),
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: theme.colorScheme.primary,
@@ -451,6 +456,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
                 ],
               ),
             ),
+            ),
           );
         },
       ),
@@ -486,6 +492,33 @@ class _VerificationSummary extends StatelessWidget {
             label: role.toUpperCase(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AuthBackButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _AuthBackButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surfaceHighLight,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
+        ),
       ),
     );
   }

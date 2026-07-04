@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/role_routes.dart';
 import '../../../shared/layouts/app_screen.dart';
+import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class SuccessPage extends StatefulWidget {
@@ -47,84 +50,101 @@ class _SuccessPageState extends State<SuccessPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final authState = context.watch<AuthBloc>().state;
+    final role = widget.role ??
+        (authState is AuthAuthenticated ? authState.role : null);
+    final roleLabel = AppRole.displayLabel(role).toLowerCase();
 
     return Scaffold(
       body: AppScreen(
-        useGradientBackground: true,
-        padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+        padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(flex: 1),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: 0.96),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.16),
-                    blurRadius: 30,
-                    offset: const Offset(0, 16),
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: Container(
+                width: 112,
+                height: 112,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.secondary, AppColors.primary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          size: 54,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.40),
+                      blurRadius: 40,
+                      offset: const Offset(0, 16),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'You’re all set',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Your account details have been confirmed and you can now continue into your marketplace dashboard.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Image.asset(
-                      'assets/icons/secure_payment_icon.png',
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 58,
+                ),
               ),
             ),
             const SizedBox(height: 24),
+            Container(
+              width: 64,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gold,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 20),
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: Text(
+                'Account Created!',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.dark,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Welcome to the MAMBONAMI family. Your $roleLabel account is ready.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.muted,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 28),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.network(
+                'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=300&h=180&fit=crop&auto=format',
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 180,
+                  width: double.infinity,
+                  color: AppColors.surfaceHighLight,
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/icons/secure_payment_icon.png',
+                    height: 112,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
             CustomButton(
-              onPressed: () => context.go(AppRole.homePathFor(widget.role)),
-              label: 'Go to dashboard',
-              icon: const Icon(Icons.dashboard_outlined),
+              onPressed: () => context.go(AppRole.homePathFor(role)),
+              label: 'Go to Dashboard',
+              icon: const Icon(Icons.arrow_forward_rounded),
             ),
             const Spacer(flex: 1),
           ],

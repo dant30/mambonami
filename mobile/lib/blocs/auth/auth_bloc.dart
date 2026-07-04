@@ -53,6 +53,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         username: event.username,
         password: event.password,
         role: event.role,
+        email: event.email,
         farmGps: event.farmGps,
         mpesaNumber: event.mpesaNumber,
         vehicleType: event.vehicleType,
@@ -82,7 +83,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final phone = _stringValue(user, 'phone') ?? event.phone;
       final username = _stringValue(user, 'username');
 
-      if (role == null || phone == null) {
+      if (role == null) {
         throw Exception('Invalid user data: missing role or phone');
       }
       

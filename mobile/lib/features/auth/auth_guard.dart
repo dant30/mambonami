@@ -35,7 +35,7 @@ class AuthGuard extends StatelessWidget {
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
-          context.go(fallbackPath);
+          context.go(AppRole.homePathFor(authState.role));
         }
       });
       return const UnauthorizedPage();

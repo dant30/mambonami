@@ -432,8 +432,13 @@ class AppRouter {
     final authState = context.read<AuthBloc>().state;
     final path = state.uri.path;
     final isPublicAuthRoute = path == RoutePaths.splash ||
+        path == RoutePaths.welcome ||
         path == RoutePaths.login ||
+        path == RoutePaths.otp ||
+        path == RoutePaths.roleSelect ||
+        path == RoutePaths.success ||
         path == RoutePaths.register ||
+        path == RoutePaths.registerVerify ||
         path == RoutePaths.forgotPassword ||
         path.startsWith('${RoutePaths.register}/');
 
@@ -446,8 +451,13 @@ class AppRouter {
 
     if (isPublicAuthRoute) {
       if (authState is AuthAuthenticated &&
-          (path == RoutePaths.login ||
+          (path == RoutePaths.welcome ||
+              path == RoutePaths.login ||
+              path == RoutePaths.otp ||
+              path == RoutePaths.roleSelect ||
               path == RoutePaths.register ||
+              path == RoutePaths.registerVerify ||
+              path == RoutePaths.forgotPassword ||
               path.startsWith('${RoutePaths.register}/'))) {
         return AppRole.homePathFor(authState.role);
       }
@@ -478,6 +488,10 @@ class AppRouter {
       const knownRoutes = <String>{
         RoutePaths.login,
         RoutePaths.splash,
+        RoutePaths.welcome,
+        RoutePaths.otp,
+        RoutePaths.roleSelect,
+        RoutePaths.success,
         RoutePaths.register,
         RoutePaths.registerVerify,
         RoutePaths.forgotPassword,
@@ -505,7 +519,12 @@ class AppRouter {
       if (path == RoutePaths.splash) return AppRole.homePathFor(role);
       if (AppRole.isHomePathForRole(path, role)) return null;
       if (path == RoutePaths.login ||
+          path == RoutePaths.welcome ||
+          path == RoutePaths.otp ||
+          path == RoutePaths.roleSelect ||
           path == RoutePaths.register ||
+          path == RoutePaths.registerVerify ||
+          path == RoutePaths.forgotPassword ||
           path.startsWith('${RoutePaths.register}/')) {
         return AppRole.homePathFor(role);
       }

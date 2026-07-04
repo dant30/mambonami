@@ -188,16 +188,20 @@ class DeepLinkHandler {
       );
     }
 
-    // Route transport list pages.
-    if (pathSegments.length == 2 && pathSegments[0] == 'transport_provider') {
-      if (pathSegments[1] == 'available-orders') {
+    // Route transport list pages. Support both canonical app routes and
+    // notification-friendly aliases from the product spec.
+    if (pathSegments.length == 2 &&
+        (pathSegments[0] == 'transport_provider' ||
+            pathSegments[0] == 'transport')) {
+      if (pathSegments[1] == 'available-orders' ||
+          pathSegments[1] == 'available') {
         debugPrint('[DeepLinkHandler] Detected available orders');
         return DeepLinkInfo(
           type: DeepLinkType.transportAvailableOrders,
           params: uri.queryParameters,
         );
       }
-      if (pathSegments[1] == 'my-trips') {
+      if (pathSegments[1] == 'my-trips' || pathSegments[1] == 'trips') {
         debugPrint('[DeepLinkHandler] Detected my trips');
         return DeepLinkInfo(
           type: DeepLinkType.transportMyTrips,
@@ -211,6 +215,21 @@ class DeepLinkHandler {
           params: uri.queryParameters,
         );
       }
+    }
+
+    // Route order tracking: /order/uuid, /orders/uuid, or
+    // /buyer/orders/uuid/track.
+    if (pathSegments.length >= 4 &&
+        pathSegments[0] == 'buyer' &&
+        pathSegments[1] == 'orders' &&
+        pathSegments[3] == 'track') {
+      final uuid = pathSegments[2];
+      debugPrint('[DeepLinkHandler] Detected buyer order tracking: $uuid');
+      return DeepLinkInfo(
+        type: DeepLinkType.orderTracking,
+        uuid: uuid,
+        params: uri.queryParameters,
+      );
     }
 
     // Route order tracking: /order/uuid or /orders/uuid
@@ -312,8 +331,10 @@ class DeepLinkHandler {
       return DeepLinkInfo(type: DeepLinkType.buyerDashboard);
     }
 
-    // Route provider dashboard: /transport_provider
-    if (pathSegments.length == 1 && pathSegments[0] == 'transport_provider') {
+    // Route provider dashboard: /transport_provider or /transport
+    if (pathSegments.length == 1 &&
+        (pathSegments[0] == 'transport_provider' ||
+            pathSegments[0] == 'transport')) {
       debugPrint('[DeepLinkHandler] Detected provider dashboard');
       return DeepLinkInfo(type: DeepLinkType.providerDashboard);
     }

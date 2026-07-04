@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -30,33 +30,33 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
   @override
   void initState() {
     super.initState();
-    _selectedRole = widget.initialRole ?? 'buyer';
+    _selectedRole = widget.initialRole ?? AppRole.buyer;
   }
 
   static const List<_RoleOption> _roles = [
     _RoleOption(
-      value: 'buyer',
+      value: AppRole.buyer,
       label: 'Buyer',
       description: 'Shop fresh products and track deliveries.',
       icon: Icons.shopping_bag_outlined,
       color: AppColors.buyerAccent,
     ),
     _RoleOption(
-      value: 'retailer',
+      value: AppRole.retailer,
       label: 'Retailer',
       description: 'Buy produce for resale and repeat supply.',
       icon: Icons.storefront_outlined,
       color: AppColors.supportAccent,
     ),
     _RoleOption(
-      value: 'farmer',
+      value: AppRole.farmer,
       label: 'Farmer',
       description: 'List harvests and manage incoming orders.',
       icon: Icons.agriculture_outlined,
       color: AppColors.farmerAccent,
     ),
     _RoleOption(
-      value: 'transport_provider',
+      value: AppRole.transportProvider,
       label: 'Transport',
       description: 'Claim pickups and complete deliveries.',
       icon: Icons.local_shipping_outlined,
@@ -80,15 +80,43 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
 
   String get _pageTitle {
     switch (_selectedRole) {
-      case 'farmer':
+      case AppRole.farmer:
         return 'Farmer registration';
-      case 'retailer':
+      case AppRole.retailer:
         return 'Retailer registration';
-      case 'transport_provider':
+      case AppRole.transportProvider:
         return 'Transport registration';
-      case 'buyer':
+      case AppRole.buyer:
       default:
         return 'Buyer registration';
+    }
+  }
+
+  String get _roleIconAsset {
+    switch (_selectedRole) {
+      case AppRole.farmer:
+        return 'assets/icons/farmer_icon.png';
+      case AppRole.transportProvider:
+        return 'assets/icons/transport_icon.png';
+      case AppRole.retailer:
+        return 'assets/icons/secure_payment_icon.png';
+      case AppRole.buyer:
+      default:
+        return 'assets/icons/buyer_icon.png';
+    }
+  }
+
+  String get _roleSubtitle {
+    switch (_selectedRole) {
+      case AppRole.farmer:
+        return 'Set up your farm profile, add your phone, and verify access to farmer tools.';
+      case AppRole.transportProvider:
+        return 'Set up your transport profile, verify your phone, and start accepting orders.';
+      case AppRole.retailer:
+        return 'Set up your retailer account and begin sourcing fresh produce.';
+      case AppRole.buyer:
+      default:
+        return 'Set up your buyer account and verify your phone number.';
     }
   }
 
@@ -97,7 +125,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: CustomAppBar(title: _pageTitle),
+      backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is RegisterInitSuccess) {
@@ -115,61 +143,70 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
-          return AppScreen(
+          return SafeArea(
+            child: AppScreen(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _AuthBackButton(
+                      onPressed: () => context.go(RoutePaths.roleSelect),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceHighLight,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Image.asset(_roleIconAsset, fit: BoxFit.contain),
                       ),
-                      child: Icon(
-                        _selectedRole == 'farmer'
-                            ? Icons.agriculture_outlined
-                            : _selectedRole == 'transport_provider'
-                                ? Icons.local_shipping_outlined
-                                : _selectedRole == 'retailer'
-                                    ? Icons.storefront_outlined
-                                    : Icons.shopping_bag_outlined,
-                        color: theme.colorScheme.primary,
-                        size: 34,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _pageTitle,
+                              style:
+                                  theme.textTheme.headlineSmall?.copyWith(
+                                color: AppColors.dark,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _roleSubtitle,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.muted,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Create your $_selectedRole account',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _selectedRole == 'farmer'
-                        ? 'Set up your farm profile, add your phone, and verify access to farmer tools.'
-                        : _selectedRole == 'transport_provider'
-                            ? 'Set up your transport profile, verify your phone, and start accepting orders.'
-                            : _selectedRole == 'retailer'
-                                ? 'Set up your retailer account and begin sourcing fresh produce.'
-                                : 'Set up your buyer account and verify your phone number.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.45,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
                   AuthSurface(
+                    margin: EdgeInsets.zero,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const AuthStepBadge(
+                          label: 'Step 1 of 2: Phone and role',
+                          icon: Icons.phone_iphone_outlined,
+                        ),
+                        const SizedBox(height: 16),
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
@@ -223,6 +260,7 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
                 ],
               ),
             ),
+            ),
           );
         },
       ),
@@ -246,6 +284,33 @@ class _RoleOption {
   });
 }
 
+class _AuthBackButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _AuthBackButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surfaceHighLight,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RoleTile extends StatelessWidget {
   final _RoleOption option;
   final bool selected;
@@ -264,14 +329,14 @@ class _RoleTile extends StatelessWidget {
       color: selected
           ? option.color.withValues(alpha: 0.12)
           : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.58),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: selected
                   ? option.color
@@ -286,7 +351,7 @@ class _RoleTile extends StatelessWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: option.color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(option.icon, color: option.color),
               ),

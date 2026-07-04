@@ -21,6 +21,7 @@ class RegisterVerifyEvent extends AuthEvent {
   final String username;
   final String password;
   final String role;
+  final String? email;
   final String? farmGps;
   final String? mpesaNumber;
   final String? vehicleType;
@@ -31,13 +32,25 @@ class RegisterVerifyEvent extends AuthEvent {
     required this.username,
     required this.password,
     required this.role,
+    this.email,
     this.farmGps,
     this.mpesaNumber,
     this.vehicleType,
     this.licensePlate,
   });
   @override
-  List<Object?> get props => [phone, otp, username, password, role, farmGps, mpesaNumber, vehicleType, licensePlate];
+  List<Object?> get props => [
+        phone,
+        otp,
+        username,
+        password,
+        role,
+        email,
+        farmGps,
+        mpesaNumber,
+        vehicleType,
+        licensePlate,
+      ];
 }
 
 class LoginEvent extends AuthEvent {

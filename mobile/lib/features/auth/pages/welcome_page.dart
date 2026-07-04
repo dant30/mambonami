@@ -16,7 +16,7 @@ class WelcomePage extends StatelessWidget {
         children: [
           // --- Gradient Header ---
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 44),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [AppColors.primary, AppColors.secondary],
@@ -94,11 +94,12 @@ class WelcomePage extends StatelessWidget {
                     const SizedBox(height: 24),
                     // Hero image with floating card
                     Stack(
+                      clipBehavior: Clip.none,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(32),
                           child: Image.network(
-                            'https://images.unsplash.com/photo-1542838132-92c53300491e?w=340&h=180&fit=crop',
+                            'https://images.unsplash.com/photo-1542838132-92c53300491e?w=340&h=180&fit=crop&auto=format',
                             height: 180,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -197,7 +198,7 @@ class WelcomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   CustomButton(
-                    label: 'I have an account — Log in',
+                    label: 'I have an account - Log in',
                     onPressed: () => context.go(RoutePaths.login),
                     outlined: true,
                     icon: const Icon(Icons.login_outlined),
