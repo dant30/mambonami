@@ -25,9 +25,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   String _selectedCategory = 'All';
   String _sortOption = 'Latest';
   bool _isGridView = true;
-  final ScrollController _scrollController = ScrollController();
 
-  final List<String> _categories = ['All', 'MA', 'MBO', 'NA', 'MI'];
   final List<String> _sortOptions = ['Latest', 'Price: Low-High', 'Price: High-Low', 'Popular'];
 
   @override
@@ -44,7 +42,6 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -54,12 +51,10 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
           product.displayName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           product.category.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           product.farmerName.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCategory = _selectedCategory == 'All' ||
-          product.category.code == _selectedCategory;
+      final matchesCategory = _selectedCategory == 'All' || product.category.code == _selectedCategory;
       return matchesSearch && matchesCategory;
     }).toList();
 
-    // Sort
     switch (_sortOption) {
       case 'Price: Low-High':
         filtered.sort((a, b) => a.pricePerUnit.compareTo(b.pricePerUnit));
@@ -68,10 +63,9 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
         filtered.sort((a, b) => b.pricePerUnit.compareTo(a.pricePerUnit));
         break;
       case 'Popular':
-        // Fall back to stock availability when popularity data is not available.
         filtered.sort((a, b) => b.availableQuantity.compareTo(a.availableQuantity));
         break;
-      default: // 'Latest'
+      default:
         filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
     return filtered;
@@ -89,126 +83,142 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
       drawer: const AppDrawer(),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search products, categories or farmers...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.16)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Fresh picks, right now',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text('Free delivery', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search produce, farms or categories',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-
-          // Category Filters
-          SizedBox(
-            height: 48,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = category == _selectedCategory;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() => _selectedCategory = category);
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                final categories = state is ProductLoaded
+                    ? ['All', ...state.products.map((product) => product.category.code).where((code) => code.isNotEmpty).toSet().toList()]
+                    : <String>['All'];
+                return SizedBox(
+                  height: 44,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categories.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final isSelected = category == _selectedCategory;
+                      return FilterChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          setState(() => _selectedCategory = category);
+                        },
+                        selectedColor: theme.colorScheme.primary.withValues(alpha: 0.16),
+                        checkmarkColor: theme.colorScheme.primary,
+                        labelStyle: TextStyle(
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? theme.colorScheme.primary : null,
+                        ),
+                      );
                     },
-                    selectedColor: theme.colorScheme.primary.withOpacity(0.2),
-                    checkmarkColor: theme.colorScheme.primary,
-                    labelStyle: TextStyle(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? theme.colorScheme.primary : null,
-                    ),
                   ),
                 );
               },
             ),
           ),
-
-          // Sort & View Toggle
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                // Sort Dropdown
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.24)),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButton<String>(
                     value: _sortOption,
                     items: _sortOptions.map((option) {
-                      return DropdownMenuItem(
-                        value: option,
-                        child: Text(option, style: const TextStyle(fontSize: 14)),
-                      );
+                      return DropdownMenuItem(value: option, child: Text(option, style: const TextStyle(fontSize: 14)));
                     }).toList(),
                     onChanged: (value) {
                       if (value != null) setState(() => _sortOption = value);
                     },
                     underline: const SizedBox(),
-                    icon: const Icon(Icons.sort, size: 18),
+                    icon: const Icon(Icons.tune, size: 18),
                   ),
                 ),
                 const Spacer(),
-                // View Toggle Buttons
                 IconButton(
-                  icon: Icon(
-                    _isGridView ? Icons.grid_view : Icons.list,
-                    size: 22,
-                  ),
+                  icon: Icon(_isGridView ? Icons.grid_view_rounded : Icons.list_rounded, size: 22),
                   onPressed: () => setState(() => _isGridView = !_isGridView),
                   tooltip: _isGridView ? 'Switch to list' : 'Switch to grid',
                 ),
-                // Refresh Button
                 IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    context.read<ProductBloc>().add(const FetchProductsEvent());
-                  },
+                  icon: const Icon(Icons.refresh_rounded),
+                  onPressed: () => context.read<ProductBloc>().add(const FetchProductsEvent()),
                   tooltip: 'Refresh products',
                 ),
               ],
             ),
           ),
-
-          // Products List/Grid
           Expanded(
             child: BlocBuilder<ProductBloc, ProductState>(
               builder: (context, state) {
                 if (state is ProductLoading) {
-                  return _isGridView
-                      ? const ShimmerGrid(crossAxisCount: 2)
-                      : const ShimmerList();
+                  return _isGridView ? const ShimmerGrid(crossAxisCount: 2) : const ShimmerList();
                 } else if (state is ProductLoaded) {
                   final products = _filterAndSortProducts(state.products);
                   if (products.isEmpty) {
                     return EmptyState(
                       title: 'No products found',
-                      description: _searchQuery.isNotEmpty
-                          ? 'Try adjusting your search or filters'
-                          : 'No products available right now',
+                      description: _searchQuery.isNotEmpty ? 'Try adjusting your search or filters' : 'No products available right now',
                       icon: Icons.search_off_outlined,
                       buttonText: 'Clear filters',
                       onButtonPressed: () {
@@ -220,9 +230,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                       },
                     );
                   }
-                  return _isGridView
-                      ? _buildGridView(products)
-                      : _buildListView(products);
+                  return _isGridView ? _buildGridView(products) : _buildListView(products);
                 } else if (state is ProductError) {
                   return Center(
                     child: Column(
@@ -233,9 +241,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                         Text(state.message),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () {
-                            context.read<ProductBloc>().add(const FetchProductsEvent());
-                          },
+                          onPressed: () => context.read<ProductBloc>().add(const FetchProductsEvent()),
                           child: const Text('Retry'),
                         ),
                       ],

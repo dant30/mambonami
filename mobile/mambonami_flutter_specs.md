@@ -235,7 +235,7 @@ class AppTextField extends StatelessWidget {
 
 ### `bottom_nav_bar.dart` — Role-based
 ```dart
-// lib/shared/layout/bottom_nav_bar.dart
+// lib/shared/widgets/bottom_nav_bar.dart
 
 class MambonamisBottomNav extends StatelessWidget {
   final int currentIndex;
