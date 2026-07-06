@@ -1,12 +1,14 @@
-// mobile/lib/features/auth/pages/success_page.dart
+// lib/features/auth/pages/success_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class SuccessPage extends StatefulWidget {
@@ -95,7 +97,7 @@ class _SuccessPageState extends State<SuccessPage>
               ),
               const SizedBox(height: 24),
 
-              // ─── Gold divider ──────────────────────────────────────────
+              // ─── Gold divider (matches React prototype) ──────────────
               Container(
                 width: 64,
                 height: 4,
@@ -133,13 +135,25 @@ class _SuccessPageState extends State<SuccessPage>
 
               // ─── Fresh produce image ──────────────────────────────────
               ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=300&h=180&fit=crop&auto=format',
+                borderRadius: AppRadius.xxl,
+                child: CachedNetworkImage(
+                  imageUrl:
+                      'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=300&h=180&fit=crop&auto=format',
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  placeholder: (_, __) => Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: AppColors.surfaceHighLight,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (_, __, ___) => Container(
                     height: 180,
                     width: double.infinity,
                     color: AppColors.surfaceHighLight,
@@ -152,12 +166,12 @@ class _SuccessPageState extends State<SuccessPage>
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
               // ─── Dashboard button ──────────────────────────────────────
               CustomButton(
-                onPressed: () => context.go(AppRole.homePathFor(role)),
-                label: 'Go to Dashboard',
+                onPressed: () => context.go(_dashboardPath(role)),
+                label: 'Go to Dashboard →',
                 icon: const Icon(Icons.arrow_forward_rounded),
               ),
             ],
@@ -165,5 +179,22 @@ class _SuccessPageState extends State<SuccessPage>
         ),
       ),
     );
+  }
+
+  /// Returns the correct dashboard path based on the user's role.
+  String _dashboardPath(String? role) {
+    switch (role) {
+      case 'farmer':
+        return RoutePaths.farmerDashboard;
+      case 'buyer':
+        return RoutePaths.buyerDashboard;
+      case 'transport':
+      case 'transport_provider':
+        return RoutePaths.transportProviderDashboard;
+      case 'retailer':
+        return RoutePaths.buyerDashboard; // Retailer uses buyer dashboard
+      default:
+        return RoutePaths.buyerDashboard;
+    }
   }
 }

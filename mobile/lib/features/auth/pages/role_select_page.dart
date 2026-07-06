@@ -9,6 +9,7 @@ import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_card.dart';
 
 class RoleSelectPage extends StatefulWidget {
   const RoleSelectPage({super.key});
@@ -97,7 +98,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Back button
+                // ─── Back Button ──────────────────────────────────────────
                 Align(
                   alignment: Alignment.centerLeft,
                   child: _BackButton(
@@ -109,7 +110,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
                 ),
                 const SizedBox(height: 16),
 
-                // Header with gradient background
+                // ─── Header Card (matches React prototype) ──────────────
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -123,54 +124,49 @@ class _RoleSelectPageState extends State<RoleSelectPage>
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(14),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.person_add_alt_1_outlined,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Choose your role',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.person_add_alt_1_outlined,
-                              color: Colors.white,
-                              size: 24,
+                            const SizedBox(height: 4),
+                            Text(
+                              'How will you use MAMBONAMI?',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Choose your role',
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'How will you use MAMBONAMI?',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // Role tiles
+                // ─── Role Tiles (matches React prototype) ──────────────
                 Expanded(
                   child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
@@ -194,7 +190,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
 
                 const SizedBox(height: 16),
 
-                // Continue button
+                // ─── Continue Button ──────────────────────────────────────
                 CustomButton(
                   onPressed: _continue,
                   label: 'Continue',
@@ -202,7 +198,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
                 ),
                 const SizedBox(height: 12),
 
-                // Login link
+                // ─── Login Link ───────────────────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -229,7 +225,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
                 ),
                 const SizedBox(height: 8),
 
-                // Footer note
+                // ─── Footer Note ──────────────────────────────────────────
                 Center(
                   child: Text(
                     'You can add more roles later in settings',
@@ -248,6 +244,8 @@ class _RoleSelectPageState extends State<RoleSelectPage>
   }
 }
 
+// ─── Data Class ──────────────────────────────────────────────────────────────
+
 class _RoleOption {
   final String value;
   final String label;
@@ -263,6 +261,8 @@ class _RoleOption {
     required this.accent,
   });
 }
+
+// ─── Back Button ─────────────────────────────────────────────────────────────
 
 class _BackButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -290,6 +290,8 @@ class _BackButton extends StatelessWidget {
     );
   }
 }
+
+// ─── Role Tile (matches React prototype) ───────────────────────────────────
 
 class _RoleTile extends StatelessWidget {
   final _RoleOption option;
@@ -356,7 +358,7 @@ class _RoleTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Icon container
+                // ─── Icon Container ──────────────────────────────────────
                 Container(
                   width: 56,
                   height: 56,
@@ -380,7 +382,7 @@ class _RoleTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // Text content
+                // ─── Text Content ────────────────────────────────────────
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,7 +411,7 @@ class _RoleTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
 
-                // Selection indicator
+                // ─── Selection Indicator ──────────────────────────────────
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeOut,

@@ -11,7 +11,6 @@ class RoutePaths {
   static const registerBuyer = '/register/buyer';
   static const registerTransport = '/register/transport';
   static const registerRetailer = '/register/retailer';
-  static const registerVerify = '/register/verify';
   static const forgotPassword = '/forgot-password';
 
   static const buyerDashboard = '/buyer';

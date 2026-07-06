@@ -11,8 +11,10 @@ import '../features/auth/pages/welcome_page.dart';
 import '../features/auth/pages/otp_page.dart';
 import '../features/auth/pages/role_select_page.dart';
 import '../features/auth/pages/success_page.dart';
-import '../features/auth/pages/register_init_page.dart';
-import '../features/auth/pages/register_verify_page.dart';
+import '../features/auth/pages/buyer_register.dart';
+import '../features/auth/pages/farmer_register_page.dart';
+import '../features/auth/pages/retailer_register_page.dart';
+import '../features/auth/pages/transport_register_page.dart';
 import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
@@ -116,44 +118,23 @@ class AppRouter {
       ),
       GoRoute(
         path: RoutePaths.register,
-        builder: (context, state) {
-          final extra = state.extra;
-          String? preselectedRole;
-          if (extra is Map<String, dynamic> && extra['role'] is String) {
-            preselectedRole = extra['role'] as String;
-          }
-          return RegisterInitPage(initialRole: preselectedRole);
-        },
+        builder: (_, __) => const RoleSelectPage(),
       ),
       GoRoute(
         path: RoutePaths.registerFarmer,
-        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.farmer),
+        builder: (_, __) => const FarmerRegisterPage(),
       ),
       GoRoute(
         path: RoutePaths.registerBuyer,
-        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.buyer),
+        builder: (_, __) => const BuyerRegisterPage(),
       ),
       GoRoute(
         path: RoutePaths.registerTransport,
-        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.transportProvider),
+        builder: (_, __) => const TransportRegisterPage(),
       ),
       GoRoute(
         path: RoutePaths.registerRetailer,
-        builder: (_, __) => const RegisterInitPage(initialRole: AppRole.retailer),
-      ),
-      GoRoute(
-        path: RoutePaths.registerVerify,
-        builder: (context, state) {
-          final extra = state.extra;
-          if (extra is Map<String, String> &&
-              extra.containsKey('phone') &&
-              extra.containsKey('role')) {
-            return RegisterVerifyPage(
-                phone: extra['phone']!, role: extra['role']!);
-          }
-          return const Scaffold(
-              body: Center(child: Text('Missing registration data.')));
-        },
+        builder: (_, __) => const RetailerRegisterPage(),
       ),
       GoRoute(
           path: RoutePaths.forgotPassword,
@@ -438,7 +419,7 @@ class AppRouter {
         path == RoutePaths.roleSelect ||
         path == RoutePaths.success ||
         path == RoutePaths.register ||
-        path == RoutePaths.registerVerify ||
+
         path == RoutePaths.forgotPassword ||
         path.startsWith('${RoutePaths.register}/');
 
@@ -456,7 +437,6 @@ class AppRouter {
               path == RoutePaths.otp ||
               path == RoutePaths.roleSelect ||
               path == RoutePaths.register ||
-              path == RoutePaths.registerVerify ||
               path == RoutePaths.forgotPassword ||
               path.startsWith('${RoutePaths.register}/'))) {
         return AppRole.homePathFor(authState.role);
@@ -493,7 +473,6 @@ class AppRouter {
         RoutePaths.roleSelect,
         RoutePaths.success,
         RoutePaths.register,
-        RoutePaths.registerVerify,
         RoutePaths.forgotPassword,
         RoutePaths.buyerDashboard,
         RoutePaths.farmerDashboard,
@@ -523,7 +502,6 @@ class AppRouter {
           path == RoutePaths.otp ||
           path == RoutePaths.roleSelect ||
           path == RoutePaths.register ||
-          path == RoutePaths.registerVerify ||
           path == RoutePaths.forgotPassword ||
           path.startsWith('${RoutePaths.register}/')) {
         return AppRole.homePathFor(role);
