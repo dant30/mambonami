@@ -17,6 +17,7 @@ class AppColors {
   static const Color secondaryDark = Color(0xFF61C97C);
 
   static const Color gold = Color(0xFFD4AF37);
+  static const Color goldAccent = Color(0xFFF3E2A7);
 
   static const Color primaryGreen = primary;
 
@@ -33,8 +34,10 @@ class AppColors {
   static const Color backgroundLight = Color(0xFFF7FAF7);
 
   static const Color background = backgroundLight;
+  static const Color light = backgroundLight;
 
   static const Color foregroundLight = Color(0xFF0F1F15);
+  static const Color textDark = Color(0xFF172A1D);
 
   static const Color dark = foregroundLight;
 

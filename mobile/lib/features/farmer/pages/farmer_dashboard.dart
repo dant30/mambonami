@@ -1,5 +1,4 @@
-﻿import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -144,31 +143,18 @@ class FarmerDashboard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        SizedBox(
+                        Container(
                           height: 56,
-                          child: LineChart(
-                            LineChartData(
-                              gridData: const FlGridData(show: false),
-                              titlesData: const FlTitlesData(show: false),
-                              borderData: FlBorderData(show: false),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: const [
-                                    FlSpot(0, 12000),
-                                    FlSpot(1, 18000),
-                                    FlSpot(2, 9000),
-                                    FlSpot(3, 22000),
-                                    FlSpot(4, 31000),
-                                    FlSpot(5, 28000),
-                                    FlSpot(6, 15000),
-                                  ],
-                                  isCurved: true,
-                                  color: AppColors.secondary,
-                                  barWidth: 2.5,
-                                  dotData: const FlDotData(show: false),
-                                  belowBarData: BarAreaData(show: true, color: AppColors.secondary.withOpacity(0.15)),
-                                ),
-                              ],
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceHighLight,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Earnings trend unavailable in this build',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.muted,
+                                  ),
                             ),
                           ),
                         ),

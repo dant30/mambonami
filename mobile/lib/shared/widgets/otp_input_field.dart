@@ -10,6 +10,7 @@ class OtpInputField extends StatefulWidget {
   final bool autoFocus;
   final bool obscureText;
   final InputDecoration? decoration;
+  final Widget Function(BuildContext context, Widget child)? inputDecorationBuilder;
   final double fieldWidth;
   final double spacing;
 
@@ -22,6 +23,7 @@ class OtpInputField extends StatefulWidget {
     this.autoFocus = true,
     this.obscureText = false,
     this.decoration,
+    this.inputDecorationBuilder,
     this.fieldWidth = 55,
     this.spacing = 10,
   });
@@ -162,21 +164,27 @@ class _OtpInputFieldState extends State<OtpInputField> {
             child: RawKeyboardListener(
               focusNode: FocusNode(),
               onKey: (event) => _onKeyPress(event, index),
-              child: TextFormField(
-                controller: _controllers[index],
-                focusNode: _focusNodes[index],
-                autofocus: index == 0 && widget.autoFocus,
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.next,
-                maxLength: 1,
-                obscureText: widget.obscureText,
-                autofillHints: const [AutofillHints.oneTimeCode],
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                decoration: widget.decoration ?? _buildDecoration(context, index),
-                onChanged: (value) => _onChanged(value, index),
+              child: Builder(
+                builder: (context) {
+                  final field = TextFormField(
+                    controller: _controllers[index],
+                    focusNode: _focusNodes[index],
+                    autofocus: index == 0 && widget.autoFocus,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    maxLength: 1,
+                    obscureText: widget.obscureText,
+                    autofillHints: const [AutofillHints.oneTimeCode],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    decoration: widget.decoration ?? _buildDecoration(context, index),
+                    onChanged: (value) => _onChanged(value, index),
+                  );
+
+                  return widget.inputDecorationBuilder?.call(context, field) ?? field;
+                },
               ),
             ),
           );

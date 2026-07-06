@@ -2,18 +2,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pinput/pinput.dart';
 
+import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
-import '../../../shared/widgets/otp_input_field.dart';
 
 class OtpPage extends StatefulWidget {
-  final String phone;
+  final String? phone;
 
-  const OtpPage({super.key, required this.phone});
+  const OtpPage({super.key, this.phone});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -23,6 +25,7 @@ class _OtpPageState extends State<OtpPage> {
   final _otpController = TextEditingController();
   int _resendSeconds = 45;
   Timer? _countdownTimer;
+  String? _error;
 
   @override
   void initState() {
@@ -51,195 +54,214 @@ class _OtpPageState extends State<OtpPage> {
     });
   }
 
-  void _verifyOtp() {
-    if (_otpController.text.trim().length == 4) {
-      // In production, the OTP validation would be handled by the AuthBloc.
-      // For UI prototyping, we navigate directly to role selection.
-      context.go(RoutePaths.roleSelect, extra: {'phone': widget.phone});
-    }
-  }
-
   void _resendCode() {
     if (_resendSeconds == 0) {
       _startCountdown();
-      // Optionally call an API to resend OTP.
+      // Optionally dispatch a resend OTP event to the BLoC
+      // context.read<AuthBloc>().add(ResendOtpEvent(widget.phone ?? ''));
     }
   }
 
   String get _maskedPhone {
-    final phone = widget.phone.trim();
-    if (phone.length < 7) return phone.isEmpty ? 'your phone' : phone;
-    return '${phone.substring(0, 4)}***${phone.substring(phone.length - 2)}';
+    final phone = (widget.phone ?? '').trim();
+    if (phone.isEmpty) return 'your phone';
+    if (phone.length < 7) return phone;
+    return '${phone.substring(0, 4)} *** ${phone.substring(phone.length - 2)}';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Back button (aligned left)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: _AuthBackButton(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is OtpVerified) {
+          context.go(RoutePaths.roleSelect);
+        } else if (state is AuthError) {
+          setState(() => _error = state.message);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back button (aligned left)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded),
                   onPressed: () => context.go(RoutePaths.login),
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.centerLeft,
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-              // Icon tile
-              _AuthIconTile(icon: Icons.phone_outlined),
-              const SizedBox(height: 16),
-
-              // Title
-              Text(
-                'Verify your phone',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: AppColors.dark,
-                  fontWeight: FontWeight.w900,
+                // Icon tile (phone icon)
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGreen,
+                    borderRadius: AppRadius.lg,
+                  ),
+                  child: const Icon(
+                    Icons.phone_rounded,
+                    color: AppColors.primary,
+                    size: 32,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 16),
 
-              // Subtitle with masked phone number
-              Text(
-                'We sent a 4-digit code to\n$_maskedPhone',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.muted,
-                  height: 1.45,
+                // Title
+                Text(
+                  'Verify your phone',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: AppColors.dark,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 28),
+                const SizedBox(height: 8),
 
-              // OTP input field (custom widget with 4 boxes)
-              OtpInputField(
-                controller: _otpController,
-                onCompleted: (value) => _otpController.text = value,
-                fieldWidth: 62,
-                spacing: 12,
-                // Customize decoration to look like prototype boxes
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
+                // Subtitle with masked phone
+                RichText(
+                  text: TextSpan(
+                    text: 'We sent a 4-digit code to\n',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.muted,
+                      height: 1.45,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: _maskedPhone,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.dark,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                inputDecorationBuilder: (context, child) {
-                  // This allows us to wrap each box with a border
-                  return Container(
+                const SizedBox(height: 28),
+
+                // OTP input using Pinput
+                Pinput(
+                  length: 4,
+                  controller: _otpController,
+                  onCompleted: (otp) {
+                    // Auto‑verify when all 4 digits are entered
+                    context.read<AuthBloc>().add(OtpVerifyRequested(otp));
+                  },
+                  defaultPinTheme: PinTheme(
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: AppRadius.lg,
                       border: Border.all(
                         color: AppColors.primary.withOpacity(0.2),
                         width: 1.8,
                       ),
                     ),
-                    child: child,
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
-
-              // Verify button
-              CustomButton(
-                onPressed: _verifyOtp,
-                label: 'Verify & Continue',
-                icon: const Icon(Icons.arrow_forward_rounded),
-              ),
-              const SizedBox(height: 20),
-
-              // Timer and resend
-              Column(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        color: AppColors.muted,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _resendSeconds > 0
-                            ? 'Resend code in 00:${_resendSeconds.toString().padLeft(2, '0')}'
-                            : 'Resend code available',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.muted,
-                        ),
-                      ),
-                    ],
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _resendSeconds == 0 ? _resendCode : null,
-                    child: Text(
-                      'Resend OTP',
-                      style: TextStyle(
-                        color: _resendSeconds == 0
-                            ? AppColors.secondary
-                            : AppColors.muted,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  focusedPinTheme: PinTheme(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreen,
+                      borderRadius: AppRadius.lg,
+                      border: Border.all(color: AppColors.primary, width: 2),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  submittedPinTheme: PinTheme(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreen,
+                      borderRadius: AppRadius.lg,
+                      border: Border.all(color: AppColors.primary, width: 2),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 13,
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+                const SizedBox(height: 24),
 
-class _AuthIconTile extends StatelessWidget {
-  final IconData icon;
+                // Verify button
+                CustomButton(
+                  label: 'Verify & Continue',
+                  onPressed: () {
+                    final otp = _otpController.text.trim();
+                    if (otp.length == 4) {
+                      context.read<AuthBloc>().add(OtpVerifyRequested(otp));
+                    } else {
+                      setState(() => _error = 'Enter 4-digit OTP');
+                    }
+                  },
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                ),
+                const SizedBox(height: 16),
 
-  const _AuthIconTile({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceHighLight,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Icon(icon, color: AppColors.primary, size: 28),
-      ),
-    );
-  }
-}
-
-class _AuthBackButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AuthBackButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surfaceHighLight,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: const SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.primary,
-            size: 20,
+                // Timer and resend
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      size: 13,
+                      color: AppColors.muted,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _resendSeconds > 0
+                          ? 'Resend code in 00:${_resendSeconds.toString().padLeft(2, '0')}'
+                          : 'Resend code available',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _resendSeconds == 0 ? _resendCode : null,
+                  child: Text(
+                    'Resend OTP',
+                    style: TextStyle(
+                      color: _resendSeconds == 0
+                          ? AppColors.secondary
+                          : AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

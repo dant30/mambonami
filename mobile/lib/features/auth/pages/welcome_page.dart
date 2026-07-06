@@ -1,11 +1,11 @@
-// mobile/lib/features/auth/pages/welcome_page.dart
+// lib/features/auth/pages/welcome_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
-import '../../../shared/widgets/app_logo.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -19,7 +19,7 @@ class WelcomePage extends StatelessWidget {
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: Column(
         children: [
-          // --- Gradient Header ---
+          // ─── Gradient Header ──────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.fromLTRB(20, 28, 20, 44),
             decoration: BoxDecoration(
@@ -40,11 +40,11 @@ class WelcomePage extends StatelessWidget {
               children: [
                 // Decorative circles
                 Positioned(
-                  top: -30,
-                  right: -30,
+                  top: -40,
+                  right: -40,
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 200,
+                    height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withOpacity(0.08),
@@ -55,148 +55,148 @@ class WelcomePage extends StatelessWidget {
                   bottom: -20,
                   left: -20,
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 140,
+                    height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.08),
+                      color: AppColors.goldAccent.withOpacity(0.08),
                     ),
                   ),
                 ),
                 // Content
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Logo + title row
-                    Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/logo.png',
-                            errorBuilder: (_, __, ___) => const AppLogo(size: 44),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'MAMBONAMI',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            Text(
-                              'Fresh from farm to your door',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white.withOpacity(0.8),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Hero image with floating card
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(32),
-                          child: CachedNetworkImage(
-                            imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=200&fit=crop&auto=format&q=80',
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
-                              height: 180,
-                              width: double.infinity,
-                              color: Colors.white.withOpacity(0.2),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => Container(
-                              height: 180,
-                              width: double.infinity,
-                              color: Colors.white.withOpacity(0.2),
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: Colors.white.withOpacity(0.6),
-                                size: 48,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 12,
-                          bottom: -20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.12),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              borderRadius: AppRadius.large,
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                                const SizedBox(width: 8),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '12,400+ Verified Farmers',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.dark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'across Kenya',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        color: AppColors.muted,
-                                      ),
-                                    ),
-                                  ],
+                            padding: const EdgeInsets.all(8),
+                            child: Image.asset('assets/icons/logo.png'),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MAMBONAMI',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
                                 ),
-                              ],
+                              ),
+                              Text(
+                                'Fresh from farm to your door',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Hero image
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          ClipRRect(
+                            borderRadius: AppRadius.xxlRadius,
+                            child: CachedNetworkImage(
+                              imageUrl:
+                                  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=200&fit=crop&auto=format&q=80',
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                height: 180,
+                                width: double.infinity,
+                                color: Colors.white.withOpacity(0.2),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                height: 180,
+                                width: double.infinity,
+                                color: Colors.white.withOpacity(0.2),
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.white60,
+                                  size: 48,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          Positioned(
+                            left: 12,
+                            bottom: -20,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: AppRadius.mdRadius,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '12,400+ Verified Farmers',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        'across Kenya',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: AppColors.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          // --- Rest of content ---
+          // ─── Content Section ──────────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              padding: const EdgeInsets.fromLTRB(24, 36, 24, 24),
               child: Column(
                 children: [
                   Text(
@@ -205,7 +205,7 @@ class WelcomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.foregroundDark : AppColors.dark,
+                      color: isDark ? AppColors.foregroundDark : AppColors.textDark,
                       height: 1.2,
                     ),
                   ),
@@ -215,56 +215,52 @@ class WelcomePage extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.foregroundDark.withOpacity(0.7) : AppColors.muted,
+                      color: isDark ? AppColors.foregroundDark.withOpacity(0.7) : AppColors.textMuted,
                       height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Role icons (using asset images)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _roleIcon('assets/icons/farmer_icon.png', 'Farmer'),
-                      _roleIcon('assets/icons/buyer_icon.png', 'Buyer'),
-                      _roleIcon('assets/icons/transport_icon.png', 'Transport'),
-                      _roleIcon('assets/icons/secure_payment_icon.png', 'Secure Pay'),
+                      _RoleIcon(asset: 'assets/icons/farmer_icon.png', label: 'Farmer'),
+                      _RoleIcon(asset: 'assets/icons/buyer_icon.png', label: 'Buyer'),
+                      _RoleIcon(asset: 'assets/icons/transport_icon.png', label: 'Transport'),
+                      _RoleIcon(asset: 'assets/icons/secure_payment_icon.png', label: 'Secure Pay'),
                     ],
                   ),
                   const SizedBox(height: 24),
+                  // ─── Get Started (→ login) ──────────────────────────────
                   CustomButton(
                     label: 'Get Started',
-                    onPressed: () => context.go(RoutePaths.roleSelect),
-                    icon: const Icon(Icons.arrow_forward_rounded),
+                    onPressed: () => context.go(RoutePaths.login),
                   ),
                   const SizedBox(height: 12),
                   CustomButton(
                     label: 'I have an account — Log in',
                     onPressed: () => context.go(RoutePaths.login),
                     outlined: true,
-                    icon: const Icon(Icons.login_outlined),
                   ),
                   const SizedBox(height: 16),
-                  Text.rich(
-                    TextSpan(
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text: 'By continuing you agree to our ',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark ? AppColors.foregroundDark.withOpacity(0.6) : AppColors.textMuted,
+                      ),
                       children: [
-                        TextSpan(
-                          text: 'By continuing you agree to our ',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? AppColors.foregroundDark.withOpacity(0.6) : AppColors.muted,
-                          ),
-                        ),
                         TextSpan(
                           text: 'Terms & Privacy Policy',
                           style: TextStyle(
                             fontSize: 10,
-                            color: AppColors.primary,
+                            color: isDark ? AppColors.primaryDark : AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -274,8 +270,15 @@ class WelcomePage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _roleIcon(String asset, String label) {
+class _RoleIcon extends StatelessWidget {
+  final String asset;
+  final String label;
+  const _RoleIcon({required this.asset, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Container(
@@ -283,31 +286,11 @@ class WelcomePage extends StatelessWidget {
           height: 56,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: AppRadius.lgRadius,
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 2))],
           ),
-          child: Image.asset(
-            asset,
-            errorBuilder: (_, __, ___) => Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.account_circle_outlined,
-                size: 30,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
+          padding: const EdgeInsets.all(8),
+          child: Image.asset(asset),
         ),
         const SizedBox(height: 6),
         Text(
@@ -315,7 +298,7 @@ class WelcomePage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w600,
-            color: AppColors.muted,
+            color: AppColors.textMuted,
           ),
         ),
       ],

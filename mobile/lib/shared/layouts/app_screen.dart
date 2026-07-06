@@ -14,7 +14,7 @@ class AppScreen extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 20),
     this.scrollable = true,
-    this.useGradientBackground = true,
+    this.useGradientBackground = false,
     this.physics,
   });
 

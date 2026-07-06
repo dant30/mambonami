@@ -319,23 +319,3 @@ bool _parseBool(dynamic value) {
   }
   return false;
 }
-}
-
-bool _parseBool(dynamic value) {
-  if (value is bool) return value;
-  if (value == null) return false;
-  if (value is num) return value != 0;
-  final normalized = value.toString().toLowerCase();
-  return normalized == 'true' || normalized == '1' || normalized == 'yes';
-}
-
-double _parseDouble(dynamic value, {double fallback = 0.0}) {
-  if (value is double) return value;
-  if (value is int) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '') ?? fallback;
-}
-
-double? _parseNullableDouble(dynamic value) {
-  if (value == null) return null;
-  return double.tryParse(value.toString());
-}

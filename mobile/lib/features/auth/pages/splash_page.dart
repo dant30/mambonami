@@ -8,8 +8,8 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
-import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -20,10 +20,11 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final AnimationController _ctrl;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
   late final Animation<Offset> _slide;
+
   final Future<void> _minimumDisplay =
       Future<void>.delayed(const Duration(milliseconds: 1500));
   bool _handled = false;
@@ -33,28 +34,33 @@ class _SplashPageState extends State<SplashPage>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+
+    // ─── Animations ────────────────────────────────────────────────
+    _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..forward();
-    _fade = Tween<double>(begin: 0.35, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+
+    _fade = Tween<double>(begin: 0.35, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
     );
     _scale = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutCubic),
     );
     _slide = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
     );
 
+    // ─── Animated dots ─────────────────────────────────────────────
     _dotTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
       if (!mounted) return;
       setState(() => _activeDot = (_activeDot + 1) % 3);
     });
 
+    // ─── Auth check ────────────────────────────────────────────────
     context.read<AuthBloc>().add(CheckAuthStatusEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -65,12 +71,14 @@ class _SplashPageState extends State<SplashPage>
   @override
   void dispose() {
     _dotTimer?.cancel();
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
+  /// Navigate to the correct screen after auth state is resolved.
   Future<void> _finish(AuthState state) async {
     if (_handled) return;
+    // Wait for a definitive auth state (not loading/initial)
     if (state is! AuthAuthenticated &&
         state is! AuthUnauthenticated &&
         state is! AuthError) {
@@ -83,9 +91,9 @@ class _SplashPageState extends State<SplashPage>
 
     if (state is AuthAuthenticated) {
       context.go(AppRole.homePathFor(state.role));
-      return;
+    } else {
+      context.go(RoutePaths.welcome);
     }
-    context.go(RoutePaths.welcome);
   }
 
   @override
@@ -101,9 +109,9 @@ class _SplashPageState extends State<SplashPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primary,   // #1B7F3B
+                AppColors.primary, // #1B7F3B
                 AppColors.secondary, // #2FA84F
-                Color(0xFF3DC76A),   // light green (prototype)
+                Color(0xFF3DC76A), // light green (matches prototype)
               ],
             ),
           ),
@@ -149,7 +157,7 @@ class _SplashPageState extends State<SplashPage>
                   ),
                 ),
 
-                // ─── Centered content ──────────────────────────────────
+                // ─── Centered animated content ──────────────────────────
                 Center(
                   child: FadeTransition(
                     opacity: _fade,
@@ -167,18 +175,22 @@ class _SplashPageState extends State<SplashPage>
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(32),
-                                boxShadow: [
+                                borderRadius: AppRadius.extraExtraLarge,
+                                boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.16),
+                                    color: Colors.black26,
                                     blurRadius: 30,
-                                    offset: const Offset(0, 12),
+                                    offset: Offset(0, 10),
                                   ),
                                 ],
                               ),
-                              child: const AppLogo(size: 72),
+                              child: Image.asset(
+                                'assets/icons/logo.png',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                             const SizedBox(height: 24),
+
                             // App name
                             Text(
                               'MAMBONAMI',
@@ -189,6 +201,7 @@ class _SplashPageState extends State<SplashPage>
                               ),
                             ),
                             const SizedBox(height: 8),
+
                             // Tagline
                             Text(
                               'Fresh from farm to your door',
@@ -198,6 +211,7 @@ class _SplashPageState extends State<SplashPage>
                               ),
                             ),
                             const SizedBox(height: 40),
+
                             // Animated dots
                             Row(
                               mainAxisSize: MainAxisSize.min,
@@ -207,8 +221,7 @@ class _SplashPageState extends State<SplashPage>
                                   duration: const Duration(milliseconds: 300),
                                   width: active ? 20 : 8,
                                   height: 8,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
                                   decoration: BoxDecoration(
                                     color: active
                                         ? Colors.white

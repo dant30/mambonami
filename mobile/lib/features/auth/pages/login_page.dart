@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
-import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
@@ -37,9 +36,9 @@ class _LoginPageState extends State<LoginPage> {
   void _login() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            LoginEvent(
-              _phoneController.text.trim(),
-              _passwordController.text,
+            LoginRequested(
+              phone: _phoneController.text.trim(),
+              password: _passwordController.text,
             ),
           );
     }
@@ -53,8 +52,9 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            context.go(AppRole.homePathFor(state.role));
+          if (state is OtpSent) {
+            // Navigate to OTP verification screen (as in React prototype)
+            context.go(RoutePaths.otp, extra: state.phone);
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    
+
                     // Logo + Welcome header (matches React prototype)
                     Row(
                       children: [
@@ -125,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 28),
-                    
+
                     // Phone field
                     CustomTextField(
                       controller: _phoneController,
@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                               : null,
                     ),
                     const SizedBox(height: 14),
-                    
+
                     // Password field
                     CustomTextField(
                       controller: _passwordController,
@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    
+
                     // Remember me + Forgot password row
                     Row(
                       children: [
@@ -224,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    
+
                     // Login button
                     CustomButton(
                       onPressed: _login,
@@ -232,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: 'Login',
                     ),
                     const SizedBox(height: 18),
-                    
+
                     // "or" divider
                     Row(
                       children: [
@@ -260,7 +260,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Google sign-in button
                     OutlinedButton.icon(
                       onPressed: isLoading ? null : () {},
@@ -289,7 +289,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 22),
-                    
+
                     // "No account? Create one" link
                     Center(
                       child: Text.rich(

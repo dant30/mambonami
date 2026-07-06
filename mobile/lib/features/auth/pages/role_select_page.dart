@@ -91,7 +91,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
       body: SafeArea(
         child: AppScreen(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          useGradientBackground: true,
+          useGradientBackground: false,
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: Column(

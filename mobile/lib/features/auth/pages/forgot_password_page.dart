@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -21,20 +22,14 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
-  final _newPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _codeSent = false;
-  bool _showCodeEntry = false;
-  bool _isPasswordHidden = true;
   int _resendSeconds = 0;
   Timer? _resendTimer;
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _otpController.dispose();
-    _newPasswordController.dispose();
     _resendTimer?.cancel();
     super.dispose();
   }
@@ -57,22 +52,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
             ForgotPasswordInitEvent(_phoneController.text.trim()),
-          );
-    }
-  }
-
-  void _enterCode() {
-    setState(() => _showCodeEntry = true);
-  }
-
-  void _verifyReset() {
-    if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(
-            ForgotPasswordVerifyEvent(
-              phone: _phoneController.text.trim(),
-              otp: _otpController.text.trim(),
-              newPassword: _newPasswordController.text,
-            ),
           );
     }
   }
@@ -101,19 +80,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             if (state is ForgotPasswordInitSuccess) {
               setState(() {
                 _codeSent = true;
-                _showCodeEntry = false;
                 _startResendTimer();
               });
               CustomSnackbar.showSuccess(
                 context,
                 'Reset code sent. Check your phone.',
               );
-            } else if (state is ForgotPasswordSuccess) {
-              CustomSnackbar.showSuccess(
-                context,
-                'Password reset successful. Please login.',
-              );
-              context.go(RoutePaths.login);
             } else if (state is AuthError) {
               CustomSnackbar.showError(context, state.message);
             }
@@ -122,75 +94,77 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             final isLoading = state is AuthLoading;
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Back button
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: _AuthBackButton(
-                          onPressed: () => context.go(RoutePaths.login),
+                      // Back button (matches prototype)
+                      const BackButton(),
+                      const SizedBox(height: 24),
+
+                      // Icon tile
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightGreen,
+                          borderRadius: AppRadius.lg,
+                        ),
+                        child: const Icon(
+                          Icons.shield_rounded,
+                          color: AppColors.primaryGreen,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Title & subtitle
+                      Text(
+                        _codeSent ? 'Code Sent!' : 'Forgot Password?',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: AppColors.textDark,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _codeSent
+                            ? 'A 4-digit reset code was sent to $_maskedPhone. Check your SMS.'
+                            : "Enter your registered phone number. We'll send a reset code via SMS.",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textMuted,
+                          height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 28),
 
-                      // Icon + title + subtitle
-                      if (!_codeSent || _showCodeEntry) ...[
-                        _AuthIconTile(
-                          icon: _showCodeEntry
-                              ? Icons.password_outlined
-                              : Icons.shield_outlined,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _showCodeEntry ? 'Enter reset code' : 'Forgot Password?',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: AppColors.dark,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _showCodeEntry
-                              ? 'Enter the OTP and choose a new password.'
-                              : "Enter your registered phone number. We'll send a reset code via SMS.",
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.muted,
-                            height: 1.45,
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                      ],
-
-                      // ── Step 1: Phone ───────────────────────────────
                       if (!_codeSent) ...[
+                        // ── Phone input ──
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Phone Number',
-                          hintText: '+254 700 000 000',
-                          prefixIcon: const Icon(Icons.phone_outlined),
+                          hint: '+254 700 000 000',
                           keyboardType: TextInputType.phone,
+                          prefixIcon: const Icon(
+                            Icons.phone_rounded,
+                            color: AppColors.textMuted,
+                            size: 18,
+                          ),
+                          validator: (v) =>
+                              v == null || v.isEmpty ? 'Enter phone number' : null,
                           textInputAction: TextInputAction.done,
-                          validator: (value) =>
-                              value == null || value.trim().length < 10
-                                  ? 'Enter a valid phone number'
-                                  : null,
                         ),
                         const SizedBox(height: 24),
                         CustomButton(
+                          label: 'Send Reset Code',
                           onPressed: _sendResetOTP,
                           isLoading: isLoading,
-                          label: 'Send Reset Code',
-                          icon: const Icon(Icons.sms_outlined),
                         ),
-                      ],
-
-                      // ── Step 2: Code Sent (waiting for user to tap Enter Code) ──
-                      if (_codeSent && !_showCodeEntry) ...[
+                      ] else ...[
+                        // ── Code Sent confirmation ──
                         Center(
                           child: Column(
                             children: [
@@ -198,109 +172,69 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 width: 80,
                                 height: 80,
                                 decoration: const BoxDecoration(
-                                  color: AppColors.surfaceHighLight,
+                                  color: AppColors.lightGreen,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.send_rounded,
-                                  color: AppColors.primary,
-                                  size: 34,
+                                  color: AppColors.primaryGreen,
+                                  size: 36,
                                 ),
                               ),
-                              const SizedBox(height: 18),
-                              Text(
+                              const SizedBox(height: 16),
+                              const Text(
                                 'Code Sent!',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w900,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                'A 4-digit reset code was sent to $_maskedPhone. Check your SMS.',
+                              RichText(
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.muted,
-                                  height: 1.45,
+                                text: TextSpan(
+                                  text: 'A 4-digit reset code was sent to ',
+                                  style: const TextStyle(
+                                    color: AppColors.textMuted,
+                                    fontSize: 13,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: _maskedPhone,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textDark,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 24),
                               CustomButton(
-                                onPressed: isLoading ? null : _enterCode,
                                 label: 'Enter Code',
-                                icon: const Icon(Icons.arrow_forward_rounded),
+                                onPressed: () => context.go(
+                                  RoutePaths.otp,
+                                  extra: _phoneController.text.trim(),
+                                ),
                               ),
                               const SizedBox(height: 12),
                               TextButton(
-                                onPressed: isLoading || _resendSeconds > 0
-                                    ? null
-                                    : _resendOTP,
+                                onPressed: _resendSeconds == 0 ? _resendOTP : null,
                                 child: Text(
                                   _resendSeconds > 0
                                       ? 'Resend in 00:${_resendSeconds.toString().padLeft(2, '0')}'
                                       : 'Resend code',
+                                  style: TextStyle(
+                                    color: _resendSeconds == 0
+                                        ? AppColors.secondaryGreen
+                                        : AppColors.textMuted,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ],
-
-                      // ── Step 3: OTP + New Password ──────────────────
-                      if (_codeSent && _showCodeEntry) ...[
-                        CustomTextField(
-                          controller: _otpController,
-                          label: 'OTP Code',
-                          prefixIcon: const Icon(Icons.pin_outlined),
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.next,
-                          autofocus: true,
-                          validator: (value) =>
-                              value == null || value.trim().length != 4
-                                  ? 'Enter 4-digit OTP'
-                                  : null,
-                        ),
-                        const SizedBox(height: 14),
-                        CustomTextField(
-                          controller: _newPasswordController,
-                          label: 'New Password',
-                          prefixIcon: const Icon(Icons.lock_reset_outlined),
-                          obscureText: _isPasswordHidden,
-                          textInputAction: TextInputAction.done,
-                          validator: (value) =>
-                              value == null || value.length < 6
-                                  ? 'Min 6 characters'
-                                  : null,
-                          suffixIcon: IconButton(
-                            tooltip: _isPasswordHidden
-                                ? 'Show password'
-                                : 'Hide password',
-                            icon: Icon(
-                              _isPasswordHidden
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(() {
-                              _isPasswordHidden = !_isPasswordHidden;
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        CustomButton(
-                          onPressed: _verifyReset,
-                          isLoading: isLoading,
-                          label: 'Reset Password',
-                          icon: const Icon(Icons.check_circle_outline),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: isLoading || _resendSeconds > 0
-                              ? null
-                              : _resendOTP,
-                          child: Text(
-                            _resendSeconds > 0
-                                ? 'Resend in 00:${_resendSeconds.toString().padLeft(2, '0')}'
-                                : 'Resend code',
                           ),
                         ),
                       ],
@@ -310,54 +244,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Reusable widgets ────────────────────────────────────────────────────────
-
-class _AuthIconTile extends StatelessWidget {
-  final IconData icon;
-
-  const _AuthIconTile({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHighLight,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Icon(icon, color: AppColors.primary, size: 28),
-    );
-  }
-}
-
-class _AuthBackButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AuthBackButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surfaceHighLight,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: const SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
         ),
       ),
     );
