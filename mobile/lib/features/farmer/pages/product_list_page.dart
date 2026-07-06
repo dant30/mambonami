@@ -7,8 +7,12 @@ import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/section_header.dart';
 import '../widgets/product_card.dart';
 
 class ProductListPage extends StatefulWidget {
@@ -19,10 +23,19 @@ class ProductListPage extends StatefulWidget {
 }
 
 class _ProductListPageState extends State<ProductListPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedFilter = 'All';
+
   @override
   void initState() {
     super.initState();
     _fetchProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _fetchProducts() {
@@ -48,6 +61,19 @@ class _ProductListPageState extends State<ProductListPage> {
     if (confirmed == true) {
       context.read<ProductBloc>().add(DeleteProductEvent(product.uuid));
     }
+  }
+
+  List<Product> _filteredProducts(List<Product> products) {
+    final query = _searchController.text.toLowerCase();
+    return products.where((product) {
+      final matchesFilter = _selectedFilter == 'All' ||
+          (_selectedFilter == 'Active' && product.isActive) ||
+          (_selectedFilter == 'Inactive' && !product.isActive);
+      final matchesSearch = query.isEmpty ||
+          product.displayName.toLowerCase().contains(query) ||
+          product.category.name.toLowerCase().contains(query);
+      return matchesFilter && matchesSearch;
+    }).toList();
   }
 
   void _navigateToCreate() {
@@ -125,64 +151,139 @@ class _ProductListPageState extends State<ProductListPage> {
             );
           }
 
+          final visibleProducts = _filteredProducts(products);
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppGradients.hero,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('My Products', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                    Text(
+                      'Inventory at a glance',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                    ),
                     const SizedBox(height: 6),
-                    Text('Manage your catalog and listings', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                    Text(
+                      'Track your catalog, status, and freshness in one place.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _SummaryChip(label: '${products.length} listings', color: AppColors.primary),
+                        _SummaryChip(label: '${products.where((p) => p.isActive).length} active', color: AppColors.secondary),
+                        _SummaryChip(label: '${products.where((p) => !p.isActive).length} paused', color: AppColors.warning),
+                      ],
+                    ),
                   ],
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Search products or categories',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 8,
+                  children: ['All', 'Active', 'Inactive'].map((filter) {
+                    final selected = _selectedFilter == filter;
+                    return FilterChip(
+                      label: Text(filter),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _selectedFilter = filter),
+                      selectedColor: AppColors.primary.withOpacity(0.16),
+                      checkmarkColor: AppColors.primary,
+                      labelStyle: TextStyle(color: selected ? AppColors.primary : AppColors.muted, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SectionHeader(title: 'Your listings', subtitle: 'Tap a card to edit or manage stock', trailing: TextButton(onPressed: _navigateToCreate, child: const Text('Add'))),
               ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
                     _fetchProducts();
                   },
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final bottomInset = MediaQuery.of(context).padding.bottom + 56.0; // account for system inset and possible bottom nav
-                      return GridView.builder(
-                        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.65,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
+                  child: visibleProducts.isEmpty
+                      ? ListView(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: EmptyState(
+                                title: 'No matching products',
+                                description: 'Try a different search or filter.',
+                                icon: Icons.search_off,
+                              ),
+                            ),
+                          ],
+                        )
+                      : GridView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.66,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: visibleProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = visibleProducts[index];
+                            return FarmerProductCard(
+                              product: product,
+                              onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+                              onDelete: () => _confirmDelete(product),
+                            );
+                          },
                         ),
-                        itemCount: products.length,
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-                          return FarmerProductCard(
-                            product: product,
-                            onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
-                            onDelete: () => _confirmDelete(product),
-                          );
-                        },
-                      );
-                    },
-                  ),
                 ),
               ),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _SummaryChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _SummaryChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.16), borderRadius: BorderRadius.circular(999)),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 }

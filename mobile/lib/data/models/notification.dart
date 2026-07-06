@@ -6,6 +6,9 @@
   final String body;
   final Map<String, dynamic> metadata;
   final String status; // pending, sent, failed, read
+  final String type;
+  final String? targetRoute;
+  final String? imageUrl;
   final DateTime createdAt;
   final DateTime? readAt;
 
@@ -17,6 +20,9 @@
     required this.body,
     required this.metadata,
     required this.status,
+    this.type = 'general',
+    this.targetRoute,
+    this.imageUrl,
     required this.createdAt,
     this.readAt,
   });
@@ -34,6 +40,9 @@
               ? Map<String, dynamic>.from(json['metadata'] as Map)
               : <String, dynamic>{},
       status: json['status']?.toString() ?? 'pending',
+      type: json['type']?.toString() ?? json['notification_type']?.toString() ?? 'general',
+      targetRoute: json['target_route']?.toString() ?? json['targetRoute']?.toString(),
+      imageUrl: json['image_url']?.toString() ?? json['imageUrl']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       readAt: json['read_at'] != null ? DateTime.tryParse(json['read_at'].toString()) : null,
     );
@@ -47,6 +56,9 @@
     'body': body,
     'metadata': metadata,
     'status': status,
+    'type': type,
+    'target_route': targetRoute,
+    'image_url': imageUrl,
     'created_at': createdAt.toIso8601String(),
     'read_at': readAt?.toIso8601String(),
   };

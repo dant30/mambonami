@@ -112,6 +112,22 @@ class _TripDetailPageState extends State<TripDetailPage> {
               ),
             ),
             const SizedBox(height: 12),
+            if (trip.driverName != null || trip.vehiclePlate != null || trip.etaMinutes != null || trip.distanceKm != null)
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  if (trip.driverName != null && trip.driverName!.isNotEmpty)
+                    _buildInfoChip(Icons.person_outline, 'Driver ${trip.driverName!}'),
+                  if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
+                    _buildInfoChip(Icons.local_shipping_outlined, trip.vehiclePlate!),
+                  if (trip.etaMinutes != null)
+                    _buildInfoChip(Icons.access_time, '${trip.etaMinutes!} min ETA'),
+                  if (trip.distanceKm != null)
+                    _buildInfoChip(Icons.route_outlined, '${trip.distanceKm!.toStringAsFixed(1)} km'),
+                ],
+              ),
+            const SizedBox(height: 12),
             if (trip.agreedFee != null)
               Row(
                 children: [
@@ -219,6 +235,24 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 ),
               ],
             ),
+            if (trip.currentLat != null && trip.currentLng != null) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.gps_fixed, size: 24, color: Colors.blue),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Current location', style: Theme.of(context).textTheme.labelSmall),
+                        Text('${trip.currentLat!.toStringAsFixed(2)}, ${trip.currentLng!.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -294,6 +328,24 @@ class _TripDetailPageState extends State<TripDetailPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
       ),
     );
   }

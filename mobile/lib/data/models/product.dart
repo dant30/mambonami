@@ -22,11 +22,11 @@ class ProductCategory {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'code': code,
-    'name': name,
-    'is_active': isActive,
-  };
+        'id': id,
+        'code': code,
+        'name': name,
+        'is_active': isActive,
+      };
 }
 
 class Product {
@@ -59,6 +59,11 @@ class Product {
   final double? pickupLat;
   final double? pickupLng;
   final double weightPerUnit;
+  final double? minOrderQuantity;
+  final double? distanceKm;
+  final String? location;
+  final String? badge;
+  final String? promoLabel;
 
   Product({
     required this.id,
@@ -90,6 +95,11 @@ class Product {
     this.pickupLat,
     this.pickupLng,
     this.weightPerUnit = 0.0,
+    this.minOrderQuantity,
+    this.distanceKm,
+    this.location,
+    this.badge,
+    this.promoLabel,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -125,40 +135,50 @@ class Product {
       pickupLat: _parseNullableDouble(json['pickup_lat']),
       pickupLng: _parseNullableDouble(json['pickup_lng']),
       weightPerUnit: _parseDouble(json['weight_per_unit']),
+      minOrderQuantity: _parseNullableDouble(json['min_order_quantity'] ?? json['minimum_order_quantity'] ?? json['minOrderQuantity']),
+      distanceKm: _parseNullableDouble(json['distance_km'] ?? json['distanceKm']),
+      location: json['location']?.toString(),
+      badge: json['badge']?.toString(),
+      promoLabel: json['promo_label']?.toString() ?? json['promoLabel']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'uuid': uuid,
-    'farmer': farmerId,
-    'farmer_phone': farmerPhone,
-    'farmer_name': farmerName,
-    'category_detail': category.toJson(),
-    'name': name,
-    'variety': variety,
-    'sku': sku,
-    'price_per_unit': pricePerUnit,
-    'available_quantity': availableQuantity,
-    'reserved_quantity': reservedQuantity,
-    'unit': unit,
-    'harvest_date': harvestDate.toIso8601String(),
-    'shelf_life_days': shelfLifeDays,
-    'expiry_date': expiryDate?.toIso8601String(),
-    'is_organic': isOrganic,
-    'remaining_shelf_life': remainingShelfLife,
-    'is_active': isActive,
-    'image': imageUrl,
-    'description': description,
-    'is_favorite': isFavorite,
-    'average_rating': averageRating,
-    'review_count': reviewCount,
-    'created_at': createdAt.toIso8601String(),
-    'updated_at': updatedAt.toIso8601String(),
-    'pickup_lat': pickupLat,
-    'pickup_lng': pickupLng,
-    'weight_per_unit': weightPerUnit,
-  };
+        'id': id,
+        'uuid': uuid,
+        'farmer': farmerId,
+        'farmer_phone': farmerPhone,
+        'farmer_name': farmerName,
+        'category_detail': category.toJson(),
+        'name': name,
+        'variety': variety,
+        'sku': sku,
+        'price_per_unit': pricePerUnit,
+        'available_quantity': availableQuantity,
+        'reserved_quantity': reservedQuantity,
+        'unit': unit,
+        'harvest_date': harvestDate.toIso8601String(),
+        'shelf_life_days': shelfLifeDays,
+        'expiry_date': expiryDate?.toIso8601String(),
+        'is_organic': isOrganic,
+        'remaining_shelf_life': remainingShelfLife,
+        'is_active': isActive,
+        'image': imageUrl,
+        'description': description,
+        'is_favorite': isFavorite,
+        'average_rating': averageRating,
+        'review_count': reviewCount,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+        'pickup_lat': pickupLat,
+        'pickup_lng': pickupLng,
+        'weight_per_unit': weightPerUnit,
+        'min_order_quantity': minOrderQuantity,
+        'distance_km': distanceKm,
+        'location': location,
+        'badge': badge,
+        'promo_label': promoLabel,
+      };
 
   String get displayName => variety != null && variety!.isNotEmpty ? '$name ($variety)' : name;
 
@@ -192,6 +212,11 @@ class Product {
     double? pickupLat,
     double? pickupLng,
     double? weightPerUnit,
+    double? minOrderQuantity,
+    double? distanceKm,
+    String? location,
+    String? badge,
+    String? promoLabel,
   }) {
     return Product(
       id: id ?? this.id,
@@ -223,6 +248,11 @@ class Product {
       pickupLat: pickupLat ?? this.pickupLat,
       pickupLng: pickupLng ?? this.pickupLng,
       weightPerUnit: weightPerUnit ?? this.weightPerUnit,
+      minOrderQuantity: minOrderQuantity ?? this.minOrderQuantity,
+      distanceKm: distanceKm ?? this.distanceKm,
+      location: location ?? this.location,
+      badge: badge ?? this.badge,
+      promoLabel: promoLabel ?? this.promoLabel,
     );
   }
 
@@ -257,7 +287,38 @@ class Product {
         pickupLat,
         pickupLng,
         weightPerUnit,
+        minOrderQuantity,
+        distanceKm,
+        location,
+        badge,
+        promoLabel,
       ];
+}
+
+double _parseDouble(dynamic value) {
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
+double? _parseNullableDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+bool _parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'y';
+  }
+  return false;
+}
 }
 
 bool _parseBool(dynamic value) {

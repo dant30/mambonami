@@ -424,12 +424,34 @@ class _ProductFeatureCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  if (product.promoLabel != null && product.promoLabel!.isNotEmpty)
+                    Text(
+                      product.promoLabel!,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 4),
                   Text(
                     'KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
+                  if (product.distanceKm != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '≈ ${product.distanceKm!.toStringAsFixed(1)} km away',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

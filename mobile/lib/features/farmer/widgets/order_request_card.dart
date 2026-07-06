@@ -1,6 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../data/models/order.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_card.dart';
 
 class OrderRequestCard extends StatelessWidget {
   final SubOrder subOrder;
@@ -15,12 +17,12 @@ class OrderRequestCard extends StatelessWidget {
   Color _statusColor(BuildContext context) {
     switch (subOrder.status.toLowerCase()) {
       case 'ready':
-        return Theme.of(context).colorScheme.primary;
+        return AppColors.primary;
       case 'confirmed':
-        return Theme.of(context).colorScheme.secondary;
+        return AppColors.secondary;
       case 'pending':
       default:
-        return Theme.of(context).colorScheme.tertiaryContainer;
+        return AppColors.warning;
     }
   }
 
@@ -40,69 +42,49 @@ class OrderRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _statusColor(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return CustomCard(
+      padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Order #${subOrder.id}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.16),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        _statusLabel(),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: statusColor,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: Text(
+                    'Order #${subOrder.id}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Text('Farmer: ${subOrder.farmerName}', style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(height: 6),
-                Text('${subOrder.items.length} item(s)', style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 6),
-                Text('Subtotal: Ksh ${subOrder.subtotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 14),
-                Text(
-                  subOrder.items.map((item) => '${item.quantity.toStringAsFixed(0)}x ${item.productName}').join(', '),
-                  style: Theme.of(context).textTheme.bodySmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    _statusLabel(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 10),
+            Text('Buyer: ${subOrder.farmerName}', style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 4),
+            Text('${subOrder.items.length} item(s)', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.muted)),
+            const SizedBox(height: 8),
+            Text('Subtotal: KES ${subOrder.subtotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Text(
+              subOrder.items.map((item) => '${item.quantity.toStringAsFixed(0)}x ${item.productName}').join(', '),
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

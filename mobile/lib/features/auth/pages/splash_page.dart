@@ -6,9 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
-import '../../../config/route_paths.dart';
 import '../../../config/role_routes.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/widgets/app_logo.dart';
+import '../../../shared/themes/app_colors.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -100,81 +101,130 @@ class _SplashPageState extends State<SplashPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF1C8E4B),
-                Color(0xFF34B35C),
-                Color(0xFF0F6E35),
+                AppColors.primary,   // #1B7F3B
+                AppColors.secondary, // #2FA84F
+                Color(0xFF3DC76A),   // light green (prototype)
               ],
             ),
           ),
           child: SafeArea(
-            child: Center(
-              child: FadeTransition(
-                opacity: _fade,
-                child: SlideTransition(
-                  position: _slide,
-                  child: ScaleTransition(
-                    scale: _scale,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 124,
-                          height: 124,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(36),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.16),
-                                blurRadius: 30,
-                                offset: const Offset(0, 12),
-                              ),
-                            ],
-                          ),
-                          child: const AppLogo(size: 84),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'MAMBONAMI',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.8,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Fresh from farm to your door',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.84),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(3, (index) {
-                            final active = index == _activeDot;
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: active ? 18 : 8,
-                              height: 8,
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: active
-                                    ? Colors.white
-                                    : Colors.white.withValues(alpha: 0.45),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
+            child: Stack(
+              children: [
+                // ─── Decorative circles (prototype) ────────────────────
+                Positioned(
+                  top: 64,
+                  right: 32,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.08),
                     ),
                   ),
                 ),
-              ),
+                Positioned(
+                  bottom: 96,
+                  left: 16,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.gold.withOpacity(0.08),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 200,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.04),
+                    ),
+                  ),
+                ),
+
+                // ─── Centered content ──────────────────────────────────
+                Center(
+                  child: FadeTransition(
+                    opacity: _fade,
+                    child: SlideTransition(
+                      position: _slide,
+                      child: ScaleTransition(
+                        scale: _scale,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Logo container
+                            Container(
+                              width: 112,
+                              height: 112,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(32),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.16),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
+                              ),
+                              child: const AppLogo(size: 72),
+                            ),
+                            const SizedBox(height: 24),
+                            // App name
+                            Text(
+                              'MAMBONAMI',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.8,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Tagline
+                            Text(
+                              'Fresh from farm to your door',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white.withOpacity(0.84),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+                            // Animated dots
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(3, (index) {
+                                final active = index == _activeDot;
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  width: active ? 20 : 8,
+                                  height: 8,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    color: active
+                                        ? Colors.white
+                                        : Colors.white.withOpacity(0.45),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

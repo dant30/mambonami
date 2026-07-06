@@ -76,6 +76,18 @@ class OrderTrackingPage extends StatelessWidget {
                               _detailRow(context, 'Created', DateFormat('MMM d, yyyy • hh:mm a').format(order.createdAt.toLocal())),
                               const SizedBox(height: 12),
                               _detailRow(context, 'Weight', '${order.totalWeightKg.toStringAsFixed(2)} kg'),
+                              if (order.buyerName != null && order.buyerName!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _detailRow(context, 'Buyer', order.buyerName!),
+                              ],
+                              if (order.paybillNumber != null && order.paybillNumber!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _detailRow(context, 'Paybill', order.paybillNumber!),
+                              ],
+                              if (order.paymentReference != null && order.paymentReference!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _detailRow(context, 'Payment ref', order.paymentReference!),
+                              ],
                               if (order.assignedProviderName != null) ...[
                                 const SizedBox(height: 12),
                                 _detailRow(context, 'Provider', order.assignedProviderName!),
@@ -111,6 +123,28 @@ class OrderTrackingPage extends StatelessWidget {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        if (order.timeline.isNotEmpty)
+                          CustomCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Progress', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 12),
+                                ...order.timeline.map((entry) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(Icons.check_circle_outline, size: 18),
+                                          const SizedBox(width: 8),
+                                          Expanded(child: Text(entry, style: Theme.of(context).textTheme.bodyMedium)),
+                                        ],
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 16),
                         CustomCard(
                           child: Column(

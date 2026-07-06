@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../blocs/order/order_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../data/models/order.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/section_header.dart';
 import '../widgets/order_request_card.dart';
-import '../../../data/models/order.dart';
 
 class OrderRequestsPage extends StatefulWidget {
   const OrderRequestsPage({super.key});
@@ -19,6 +22,8 @@ class OrderRequestsPage extends StatefulWidget {
 }
 
 class _OrderRequestsPageState extends State<OrderRequestsPage> {
+  String _selectedFilter = 'All';
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +36,12 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
 
   void _openDetail(SubOrder subOrder) {
     context.go(RoutePaths.farmerOrderRequestDetailPath(subOrder.id), extra: subOrder);
+  }
+
+  List<SubOrder> _filteredOrders(List<SubOrder> subOrders) {
+    final normalized = _selectedFilter.toLowerCase();
+    if (normalized == 'all') return subOrders;
+    return subOrders.where((subOrder) => subOrder.status.toLowerCase() == normalized).toList();
   }
 
   @override
@@ -54,49 +65,100 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
             if (subOrders.isEmpty) {
               return EmptyState(
                 title: 'No order requests',
-                description:
-                    'You have not received any farm orders yet. Check back after your products are listed.',
+                description: 'You have not received any farm orders yet. Check back after your products are listed.',
                 icon: Icons.assignment_turned_in_outlined,
                 buttonText: 'Refresh list',
                 onButtonPressed: _refresh,
               );
             }
 
+            final filteredOrders = _filteredOrders(subOrders);
+            final pendingCount = subOrders.where((order) => order.isPending).length;
+            final confirmedCount = subOrders.where((order) => order.status.toLowerCase() == 'confirmed').length;
+            final readyCount = subOrders.where((order) => order.status.toLowerCase() == 'ready').length;
+
             return Column(
               children: [
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(18),
+                    gradient: AppGradients.hero,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Order Requests', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                      Text(
+                        'Incoming requests',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 6),
-                      Text('Confirm and fulfill incoming farm orders', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                      Text(
+                        'Confirm, prep, and fulfill orders without missing your pickup window.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _SummaryChip(label: '$pendingCount pending', color: AppColors.warning),
+                          _SummaryChip(label: '$confirmedCount confirmed', color: AppColors.secondary),
+                          _SummaryChip(label: '$readyCount ready', color: AppColors.primary),
+                        ],
+                      ),
                     ],
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Wrap(
+                    spacing: 8,
+                    children: ['All', 'Pending', 'Confirmed', 'Ready'].map((filter) {
+                      final selected = _selectedFilter == filter;
+                      return FilterChip(
+                        label: Text(filter),
+                        selected: selected,
+                        onSelected: (_) => setState(() => _selectedFilter = filter),
+                        selectedColor: AppColors.primary.withOpacity(0.16),
+                        checkmarkColor: AppColors.primary,
+                        labelStyle: TextStyle(color: selected ? AppColors.primary : AppColors.muted, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SectionHeader(title: 'Open requests', subtitle: 'Tap a request to review or act on it'),
                 ),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      itemBuilder: (context, index) {
-                        final subOrder = subOrders[index];
-                        return OrderRequestCard(subOrder: subOrder, onTap: () => _openDetail(subOrder));
-                      },
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemCount: subOrders.length,
-                    ),
+                    child: filteredOrders.isEmpty
+                        ? ListView(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: EmptyState(
+                                  title: 'No matching requests',
+                                  description: 'Try a different filter to see more orders.',
+                                  icon: Icons.filter_alt_off,
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            itemBuilder: (context, index) {
+                              final subOrder = filteredOrders[index];
+                              return OrderRequestCard(subOrder: subOrder, onTap: () => _openDetail(subOrder));
+                            },
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            itemCount: filteredOrders.length,
+                          ),
                   ),
                 ),
               ],
@@ -110,6 +172,22 @@ class _OrderRequestsPageState extends State<OrderRequestsPage> {
           return const Center(child: Text('Unable to load order requests.'));
         },
       ),
+    );
+  }
+}
+
+class _SummaryChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _SummaryChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.16), borderRadius: BorderRadius.circular(999)),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 }

@@ -20,6 +20,12 @@ class Order extends Equatable {
   final DateTime scheduledDate;
   final String scheduledTimeWindow;
   final String? assignedProviderName;
+  final String? buyerName;
+  final String? buyerPhone;
+  final String? paybillNumber;
+  final DateTime? paymentExpiresAt;
+  final String? paymentReference;
+  final List<String> timeline;
   final List<SubOrder> subOrders;
   final DateTime createdAt;
 
@@ -42,6 +48,12 @@ class Order extends Equatable {
     required this.scheduledDate,
     required this.scheduledTimeWindow,
     this.assignedProviderName,
+    this.buyerName,
+    this.buyerPhone,
+    this.paybillNumber,
+    this.paymentExpiresAt,
+    this.paymentReference,
+    this.timeline = const [],
     required this.subOrders,
     required this.createdAt,
   });
@@ -74,6 +86,12 @@ class Order extends Equatable {
       scheduledDate: parseDate(json['scheduled_date']),
       scheduledTimeWindow: parseString(json['scheduled_time_window']),
       assignedProviderName: _parseAssignedProviderName(json),
+      buyerName: parseString(json['buyer_name'] ?? json['buyerName']),
+      buyerPhone: parseString(json['buyer_phone'] ?? json['buyerPhone']),
+      paybillNumber: parseString(json['paybill_number'] ?? json['paybillNumber']),
+      paymentExpiresAt: json['payment_expires_at'] != null ? parseDate(json['payment_expires_at']) : null,
+      paymentReference: parseString(json['payment_reference'] ?? json['paymentReference']),
+      timeline: _parseTimeline(json['timeline'] ?? json['status_steps'] ?? json['timeline_steps']),
       subOrders: parseSubOrders(json['sub_orders']),
       createdAt: parseDate(json['created_at']),
     );
@@ -254,4 +272,13 @@ String? _parseAssignedProviderName(Map<String, dynamic> json) {
 
   if (assignedProvider != null) return assignedProvider.toString();
   return null;
+}
+List<String> _parseTimeline(dynamic value) {
+  if (value is List) {
+    return value.whereType<String>().toList();
+  }
+  if (value is String && value.isNotEmpty) {
+    return [value];
+  }
+  return [];
 }

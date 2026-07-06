@@ -46,6 +46,22 @@ class ProductGridTile extends StatelessWidget {
                         child: const Center(
                             child: Icon(Icons.shopping_basket, size: 42)),
                       ),
+                if ((product.badge ?? '').isNotEmpty || (product.promoLabel ?? '').isNotEmpty)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        product.badge ?? product.promoLabel ?? '',
+                        style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -96,6 +112,16 @@ class ProductGridTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
+                    if (product.promoLabel != null && product.promoLabel!.isNotEmpty)
+                      Text(
+                        product.promoLabel!,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     if (product.averageRating > 0 || product.reviewCount > 0)
                       Row(
                         children: [

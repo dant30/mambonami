@@ -1,10 +1,11 @@
+// mobile/lib/features/auth/pages/success_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/role_routes.dart';
-import '../../../shared/layouts/app_screen.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 
@@ -56,98 +57,111 @@ class _SuccessPageState extends State<SuccessPage>
     final roleLabel = AppRole.displayLabel(role).toLowerCase();
 
     return Scaffold(
-      body: AppScreen(
-        padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Spacer(flex: 1),
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: Container(
-                width: 112,
-                height: 112,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.secondary, AppColors.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.40),
-                      blurRadius: 40,
-                      offset: const Offset(0, 16),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ─── Animated checkmark ────────────────────────────────────
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: Container(
+                  width: 112,
+                  height: 112,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.secondary, AppColors.primary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.white,
-                  size: 58,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.40),
+                        blurRadius: 40,
+                        offset: const Offset(0, 16),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 58,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: 64,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.gold,
-                borderRadius: BorderRadius.circular(999),
+              const SizedBox(height: 24),
+
+              // ─── Gold divider ──────────────────────────────────────────
+              Container(
+                width: 64,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Text(
-                'Account Created!',
+              const SizedBox(height: 20),
+
+              // ─── Title ──────────────────────────────────────────────────
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Text(
+                  'Account Created! 🎉',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.dark,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // ─── Subtitle ──────────────────────────────────────────────
+              Text(
+                'Welcome to the MAMBONAMI family. Your $roleLabel account is ready.',
                 textAlign: TextAlign.center,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.dark,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.muted,
+                  height: 1.45,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Welcome to the MAMBONAMI family. Your $roleLabel account is ready.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.muted,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 28),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Image.network(
-                'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=300&h=180&fit=crop&auto=format',
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+              const SizedBox(height: 28),
+
+              // ─── Fresh produce image ──────────────────────────────────
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.network(
+                  'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=300&h=180&fit=crop&auto=format',
                   height: 180,
                   width: double.infinity,
-                  color: AppColors.surfaceHighLight,
-                  alignment: Alignment.center,
-                  child: Image.asset(
-                    'assets/icons/secure_payment_icon.png',
-                    height: 112,
-                    fit: BoxFit.contain,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: AppColors.surfaceHighLight,
+                    alignment: Alignment.center,
+                    child: Image.asset(
+                      'assets/icons/secure_payment_icon.png',
+                      height: 112,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 28),
-            CustomButton(
-              onPressed: () => context.go(AppRole.homePathFor(role)),
-              label: 'Go to Dashboard',
-              icon: const Icon(Icons.arrow_forward_rounded),
-            ),
-            const Spacer(flex: 1),
-          ],
+              const SizedBox(height: 28),
+
+              // ─── Dashboard button ──────────────────────────────────────
+              CustomButton(
+                onPressed: () => context.go(AppRole.homePathFor(role)),
+                label: 'Go to Dashboard',
+                icon: const Icon(Icons.arrow_forward_rounded),
+              ),
+            ],
+          ),
         ),
       ),
     );

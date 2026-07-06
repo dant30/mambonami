@@ -11,8 +11,16 @@ class Trip {
   final double? pickupLng;
   final double? deliveryLat;
   final double? deliveryLng;
+  final double? currentLat;
+  final double? currentLng;
   final String? pickupPhoto;
   final String? deliveryPhoto;
+  final String? driverName;
+  final String? driverPhone;
+  final String? vehicleType;
+  final String? vehiclePlate;
+  final int? etaMinutes;
+  final double? distanceKm;
   final DateTime? pickedUpAt;
   final DateTime? deliveredAt;
   final DateTime createdAt;
@@ -30,8 +38,16 @@ class Trip {
     this.pickupLng,
     this.deliveryLat,
     this.deliveryLng,
+    this.currentLat,
+    this.currentLng,
     this.pickupPhoto,
     this.deliveryPhoto,
+    this.driverName,
+    this.driverPhone,
+    this.vehicleType,
+    this.vehiclePlate,
+    this.etaMinutes,
+    this.distanceKm,
     this.pickedUpAt,
     this.deliveredAt,
     required this.createdAt,
@@ -51,8 +67,16 @@ class Trip {
       pickupLng: json['pickup_lng'] != null ? double.tryParse(json['pickup_lng'].toString()) : null,
       deliveryLat: json['delivery_lat'] != null ? double.tryParse(json['delivery_lat'].toString()) : null,
       deliveryLng: json['delivery_lng'] != null ? double.tryParse(json['delivery_lng'].toString()) : null,
+      currentLat: json['current_lat'] != null ? double.tryParse(json['current_lat'].toString()) : null,
+      currentLng: json['current_lng'] != null ? double.tryParse(json['current_lng'].toString()) : null,
       pickupPhoto: json['pickup_photo']?.toString(),
       deliveryPhoto: json['delivery_photo']?.toString(),
+      driverName: json['driver_name']?.toString() ?? json['driverName']?.toString(),
+      driverPhone: json['driver_phone']?.toString() ?? json['driverPhone']?.toString(),
+      vehicleType: json['vehicle_type']?.toString() ?? json['vehicleType']?.toString(),
+      vehiclePlate: json['vehicle_plate']?.toString() ?? json['vehiclePlate']?.toString(),
+      etaMinutes: json['eta_minutes'] is int ? json['eta_minutes'] : int.tryParse(json['eta_minutes']?.toString() ?? ''),
+      distanceKm: json['distance_km'] != null ? double.tryParse(json['distance_km'].toString()) : null,
       pickedUpAt: json['picked_up_at'] != null ? DateTime.tryParse(json['picked_up_at'].toString()) : null,
       deliveredAt: json['delivered_at'] != null ? DateTime.tryParse(json['delivered_at'].toString()) : null,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
@@ -72,8 +96,16 @@ class Trip {
         'pickup_lng': pickupLng,
         'delivery_lat': deliveryLat,
         'delivery_lng': deliveryLng,
+        'current_lat': currentLat,
+        'current_lng': currentLng,
         'pickup_photo': pickupPhoto,
         'delivery_photo': deliveryPhoto,
+        'driver_name': driverName,
+        'driver_phone': driverPhone,
+        'vehicle_type': vehicleType,
+        'vehicle_plate': vehiclePlate,
+        'eta_minutes': etaMinutes,
+        'distance_km': distanceKm,
         'picked_up_at': pickedUpAt?.toIso8601String(),
         'delivered_at': deliveredAt?.toIso8601String(),
         'created_at': createdAt.toIso8601String(),

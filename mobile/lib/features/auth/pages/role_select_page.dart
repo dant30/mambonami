@@ -1,10 +1,13 @@
+// mobile/lib/features/auth/pages/role_select_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 
 import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class RoleSelectPage extends StatefulWidget {
@@ -14,8 +17,11 @@ class RoleSelectPage extends StatefulWidget {
   State<RoleSelectPage> createState() => _RoleSelectPageState();
 }
 
-class _RoleSelectPageState extends State<RoleSelectPage> {
+class _RoleSelectPageState extends State<RoleSelectPage>
+    with SingleTickerProviderStateMixin {
   String _selectedRole = AppRole.farmer;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
 
   static const List<_RoleOption> _roles = [
     _RoleOption(
@@ -48,7 +54,28 @@ class _RoleSelectPageState extends State<RoleSelectPage> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
   void _continue() {
+    HapticFeedback.selectionClick();
     context.go(
       AppRole.registrationPathFor(_selectedRole),
       extra: {'role': _selectedRole},
@@ -63,66 +90,157 @@ class _RoleSelectPageState extends State<RoleSelectPage> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: AppScreen(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: _BackButton(onPressed: () => context.go(RoutePaths.welcome)),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Choose your role',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: AppColors.dark,
-                  fontWeight: FontWeight.w900,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          useGradientBackground: true,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Back button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _BackButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      context.go(RoutePaths.welcome);
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'How will you use MAMBONAMI?',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.muted,
+                const SizedBox(height: 16),
+
+                // Header with gradient background
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.hero,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.person_add_alt_1_outlined,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Choose your role',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'How will you use MAMBONAMI?',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _roles.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final role = _roles[index];
-                    return _RoleTile(
-                      option: role,
-                      selected: _selectedRole == role.value,
-                      onTap: () => setState(() => _selectedRole = role.value),
-                    );
-                  },
+                const SizedBox(height: 20),
+
+                // Role tiles
+                Expanded(
+                  child: ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: _roles.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final role = _roles[index];
+                      final isSelected = _selectedRole == role.value;
+                      return _RoleTile(
+                        option: role,
+                        selected: isSelected,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _selectedRole = role.value);
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              CustomButton(
-                onPressed: _continue,
-                label: 'Continue',
-                icon: const Icon(Icons.arrow_forward_rounded),
-              ),
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: () => context.go(RoutePaths.login),
-                icon: const Icon(Icons.login_outlined),
-                label: const Text('Already have an account? Log in'),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'You can add more roles later in settings',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.muted,
+
+                const SizedBox(height: 16),
+
+                // Continue button
+                CustomButton(
+                  onPressed: _continue,
+                  label: 'Continue',
+                  icon: const Icon(Icons.arrow_forward_rounded),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+
+                // Login link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account? ',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.go(RoutePaths.login);
+                      },
+                      child: Text(
+                        'Log in',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Footer note
+                Center(
+                  child: Text(
+                    'You can add more roles later in settings',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.muted,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -153,8 +271,9 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Material(
-      color: AppColors.surfaceHighLight,
+      color: theme.colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onPressed,
@@ -164,7 +283,6 @@ class _BackButton extends StatelessWidget {
           height: 40,
           child: Icon(
             Icons.arrow_back_rounded,
-            color: AppColors.primary,
             size: 20,
           ),
         ),
@@ -186,73 +304,137 @@ class _RoleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        selected ? option.accent.withValues(alpha: 0.58) : Colors.transparent;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final borderColor = selected
+        ? option.accent.withValues(alpha: 0.58)
+        : (isDark
+            ? theme.colorScheme.outline.withValues(alpha: 0.3)
+            : Colors.transparent);
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: option.accent.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(16),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: option.accent.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
                 ),
-                child: Image.asset(option.asset, fit: BoxFit.contain),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      option.label,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppColors.dark,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      option.description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.muted,
-                            height: 1.35,
-                          ),
-                    ),
-                  ],
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
                 ),
+              ],
+      ),
+      child: Material(
+        color: selected
+            ? Colors.white
+            : (isDark
+                ? theme.colorScheme.surfaceContainerHighest
+                : Colors.white),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          splashColor: option.accent.withValues(alpha: 0.08),
+          highlightColor: option.accent.withValues(alpha: 0.04),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: borderColor,
+                width: selected ? 2 : 1,
               ),
-              const SizedBox(width: 10),
-              Icon(
-                selected
-                    ? Icons.check_circle_rounded
-                    : Icons.chevron_right_rounded,
-                color: selected ? option.accent : AppColors.muted,
-                size: 22,
-              ),
-            ],
+            ),
+            child: Row(
+              children: [
+                // Icon container
+                Container(
+                  width: 56,
+                  height: 56,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: option.accent.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(16),
+                    border: selected
+                        ? Border.all(
+                            color: option.accent.withValues(alpha: 0.2),
+                            width: 1.5,
+                          )
+                        : null,
+                  ),
+                  child: Image.asset(
+                    option.asset,
+                    fit: BoxFit.contain,
+                    colorBlendMode: selected ? null : BlendMode.saturation,
+                    color: selected ? null : Colors.grey.withValues(alpha: 0.4),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Text content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        option.label,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: selected ? AppColors.dark : AppColors.dark,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        option.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: selected
+                              ? AppColors.muted
+                              : AppColors.muted.withValues(alpha: 0.7),
+                          height: 1.35,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Selection indicator
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? option.accent : Colors.transparent,
+                    border: Border.all(
+                      color: selected
+                          ? option.accent
+                          : AppColors.muted.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: selected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        )
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

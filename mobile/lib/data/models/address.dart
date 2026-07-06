@@ -7,6 +7,10 @@ class Address extends Equatable {
   final String city;
   final String postalCode;
   final String? landmark;
+  final double? latitude;
+  final double? longitude;
+  final bool isDefault;
+  final String? phone;
   final DateTime createdAt;
 
   Address({
@@ -16,6 +20,10 @@ class Address extends Equatable {
     required this.city,
     required this.postalCode,
     this.landmark,
+    this.latitude,
+    this.longitude,
+    this.isDefault = false,
+    this.phone,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -27,6 +35,12 @@ class Address extends Equatable {
       city: json['city']?.toString() ?? '',
       postalCode: json['postal_code']?.toString() ?? '',
       landmark: json['landmark']?.toString(),
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      isDefault: json['is_default'] is bool
+          ? json['is_default'] as bool
+          : json['is_default'] is String && (json['is_default'] as String).toLowerCase() == 'true',
+      phone: json['phone']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
@@ -38,6 +52,10 @@ class Address extends Equatable {
         'city': city,
         'postal_code': postalCode,
         'landmark': landmark,
+        'latitude': latitude,
+        'longitude': longitude,
+        'is_default': isDefault,
+        'phone': phone,
         'created_at': createdAt.toIso8601String(),
       };
 
@@ -52,5 +70,5 @@ class Address extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, label, street, city, postalCode, landmark, createdAt];
+  List<Object?> get props => [id, label, street, city, postalCode, landmark, latitude, longitude, isDefault, phone, createdAt];
 }

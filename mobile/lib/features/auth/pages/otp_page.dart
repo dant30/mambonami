@@ -1,10 +1,11 @@
+// mobile/lib/features/auth/pages/otp_page.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/route_paths.dart';
-import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/otp_input_field.dart';
@@ -52,6 +53,8 @@ class _OtpPageState extends State<OtpPage> {
 
   void _verifyOtp() {
     if (_otpController.text.trim().length == 4) {
+      // In production, the OTP validation would be handled by the AuthBloc.
+      // For UI prototyping, we navigate directly to role selection.
       context.go(RoutePaths.roleSelect, extra: {'phone': widget.phone});
     }
   }
@@ -59,6 +62,7 @@ class _OtpPageState extends State<OtpPage> {
   void _resendCode() {
     if (_resendSeconds == 0) {
       _startCountdown();
+      // Optionally call an API to resend OTP.
     }
   }
 
@@ -75,20 +79,25 @@ class _OtpPageState extends State<OtpPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: AppScreen(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Back button (aligned left)
               Align(
                 alignment: Alignment.centerLeft,
                 child: _AuthBackButton(
                   onPressed: () => context.go(RoutePaths.login),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
+
+              // Icon tile
               _AuthIconTile(icon: Icons.phone_outlined),
               const SizedBox(height: 16),
+
+              // Title
               Text(
                 'Verify your phone',
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -97,27 +106,55 @@ class _OtpPageState extends State<OtpPage> {
                 ),
               ),
               const SizedBox(height: 8),
+
+              // Subtitle with masked phone number
               Text(
                 'We sent a 4-digit code to\n$_maskedPhone',
+                textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.muted,
                   height: 1.45,
                 ),
               ),
               const SizedBox(height: 28),
+
+              // OTP input field (custom widget with 4 boxes)
               OtpInputField(
                 controller: _otpController,
                 onCompleted: (value) => _otpController.text = value,
                 fieldWidth: 62,
                 spacing: 12,
+                // Customize decoration to look like prototype boxes
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                inputDecorationBuilder: (context, child) {
+                  // This allows us to wrap each box with a border
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.2),
+                        width: 1.8,
+                      ),
+                    ),
+                    child: child,
+                  );
+                },
               ),
               const SizedBox(height: 28),
+
+              // Verify button
               CustomButton(
                 onPressed: _verifyOtp,
                 label: 'Verify & Continue',
                 icon: const Icon(Icons.arrow_forward_rounded),
               ),
               const SizedBox(height: 20),
+
+              // Timer and resend
               Column(
                 children: [
                   Row(
@@ -142,7 +179,15 @@ class _OtpPageState extends State<OtpPage> {
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _resendSeconds == 0 ? _resendCode : null,
-                    child: const Text('Resend OTP'),
+                    child: Text(
+                      'Resend OTP',
+                      style: TextStyle(
+                        color: _resendSeconds == 0
+                            ? AppColors.secondary
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -161,14 +206,16 @@ class _AuthIconTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHighLight,
-        borderRadius: BorderRadius.circular(18),
+    return Center(
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHighLight,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Icon(icon, color: AppColors.primary, size: 28),
       ),
-      child: Icon(icon, color: AppColors.primary, size: 28),
     );
   }
 }

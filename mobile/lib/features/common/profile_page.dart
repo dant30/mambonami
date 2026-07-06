@@ -49,6 +49,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _lastName;
   String? _username;
   String? _role;
+  String? _location;
   Map<String, dynamic>? _transportProfile;
   Map<String, dynamic>? _farmProfile;
 
@@ -82,12 +83,19 @@ class _ProfilePageState extends State<ProfilePage> {
           ? profile['farm_profile'] as Map<String, dynamic>
           : null;
 
+      final fullName = [profile['first_name']?.toString(), profile['last_name']?.toString()].where((value) => value != null && value.isNotEmpty).join(' ').trim();
+      if (fullName.isNotEmpty) {
+        _firstNameController.text = profile['first_name']?.toString() ?? '';
+        _lastNameController.text = profile['last_name']?.toString() ?? '';
+      }
+
       setState(() {
         _profileImageUrl = profile['profile_image']?.toString();
         _selectedAvatarFile = null;
         _firstName = profile['first_name']?.toString();
         _lastName = profile['last_name']?.toString();
         _username = profile['username']?.toString();
+        _location = profile['location']?.toString();
       });
     } catch (e) {
       CustomSnackbar.showError(context, 'Failed to load profile: ${e.toString()}');
@@ -219,6 +227,15 @@ class _ProfilePageState extends State<ProfilePage> {
                                         ),
                                   ),
                                 ],
+                                if ((_location ?? '').isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _location!,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -273,6 +290,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               _buildStatRow('M-Pesa', '${_farmProfile!['mpesa_number'] ?? '—'}'),
                               const SizedBox(height: 8),
                               _buildStatRow('Coop verified', _farmProfile!['coop_verified'] == true ? 'Yes' : 'No'),
+                            ],
+                            if ((_role ?? '').toLowerCase() == 'farmer') ...[
+                              const SizedBox(height: 8),
+                              _buildStatRow('Farm', '${_farmProfile?['farm_name'] ?? '—'}'),
                             ],
                           ],
                         ),

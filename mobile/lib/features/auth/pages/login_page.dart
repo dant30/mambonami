@@ -70,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Back button (matches React prototype)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: _AuthBackButton(
@@ -77,6 +78,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 28),
+                    
+                    // Logo + Welcome header (matches React prototype)
                     Row(
                       children: [
                         Container(
@@ -88,8 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.16),
+                                color: AppColors.primary.withValues(alpha: 0.16),
                                 blurRadius: 14,
                                 offset: const Offset(0, 4),
                               ),
@@ -103,9 +105,8 @@ class _LoginPageState extends State<LoginPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome back',
-                                style:
-                                    theme.textTheme.headlineSmall?.copyWith(
+                                'Welcome back 👋',
+                                style: theme.textTheme.headlineSmall?.copyWith(
                                   color: AppColors.dark,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -124,6 +125,8 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 28),
+                    
+                    // Phone field
                     CustomTextField(
                       controller: _phoneController,
                       label: 'Phone Number',
@@ -137,6 +140,8 @@ class _LoginPageState extends State<LoginPage> {
                               : null,
                     ),
                     const SizedBox(height: 14),
+                    
+                    // Password field
                     CustomTextField(
                       controller: _passwordController,
                       label: 'Password',
@@ -147,8 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                       validator: (value) =>
                           value == null || value.isEmpty ? 'Required' : null,
                       suffixIcon: IconButton(
-                        tooltip:
-                            _isPasswordHidden ? 'Show password' : 'Hide password',
+                        tooltip: _isPasswordHidden ? 'Show password' : 'Hide password',
                         icon: Icon(
                           _isPasswordHidden
                               ? Icons.visibility_outlined
@@ -160,12 +164,13 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    
+                    // Remember me + Forgot password row
                     Row(
                       children: [
                         InkWell(
                           borderRadius: BorderRadius.circular(8),
-                          onTap: () =>
-                              setState(() => _rememberMe = !_rememberMe),
+                          onTap: () => setState(() => _rememberMe = !_rememberMe),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -219,12 +224,16 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 14),
+                    
+                    // Login button
                     CustomButton(
                       onPressed: _login,
                       isLoading: isLoading,
                       label: 'Login',
                     ),
                     const SizedBox(height: 18),
+                    
+                    // "or" divider
                     Row(
                       children: [
                         Expanded(
@@ -251,6 +260,8 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    
+                    // Google sign-in button
                     OutlinedButton.icon(
                       onPressed: isLoading ? null : () {},
                       icon: Image.network(
@@ -278,6 +289,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 22),
+                    
+                    // "No account? Create one" link
                     Center(
                       child: Text.rich(
                         TextSpan(

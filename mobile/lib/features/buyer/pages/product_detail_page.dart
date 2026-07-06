@@ -183,6 +183,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     const SizedBox(height: 8),
                     Text(product.category.name.toUpperCase(), style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
                     const SizedBox(height: 12),
+                    if (product.badge != null || product.promoLabel != null || product.minOrderQuantity != null || product.location != null || product.distanceKm != null)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (product.badge != null && product.badge!.isNotEmpty)
+                            _buildPill(context, Icons.local_offer_outlined, product.badge!),
+                          if (product.promoLabel != null && product.promoLabel!.isNotEmpty)
+                            _buildPill(context, Icons.discount_outlined, product.promoLabel!),
+                          if (product.minOrderQuantity != null && product.minOrderQuantity! > 0)
+                            _buildPill(context, Icons.inventory_2_outlined, 'Min order ${product.minOrderQuantity!.toStringAsFixed(0)} ${product.unit}'),
+                          if (product.location != null && product.location!.isNotEmpty)
+                            _buildPill(context, Icons.location_on_outlined, product.location!),
+                          if (product.distanceKm != null)
+                            _buildPill(context, Icons.route_outlined, '${product.distanceKm!.toStringAsFixed(1)} km away'),
+                        ],
+                      ),
+                    const SizedBox(height: 12),
                     if (product.averageRating > 0 || product.reviewCount > 0)
                       Row(
                         children: [
@@ -230,7 +248,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               children: [
                 _buildInfoRow(context, 'Price', 'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}'),
                 _buildInfoRow(context, 'Available', '${product.availableQuantity.toStringAsFixed(0)} ${product.unit}'),
+                if (product.minOrderQuantity != null && product.minOrderQuantity! > 0)
+                  _buildInfoRow(context, 'Minimum order', '${product.minOrderQuantity!.toStringAsFixed(0)} ${product.unit}'),
                 _buildInfoRow(context, 'Weight per unit', '${product.weightPerUnit.toStringAsFixed(2)} kg'),
+                if (product.location != null && product.location!.isNotEmpty)
+                  _buildInfoRow(context, 'Location', product.location!),
+                if (product.distanceKm != null)
+                  _buildInfoRow(context, 'Distance', '${product.distanceKm!.toStringAsFixed(1)} km away'),
                 if (product.pickupLat != null && product.pickupLng != null)
                   _buildInfoRow(context, 'Pickup location', '${product.pickupLat!.toStringAsFixed(5)}, ${product.pickupLng!.toStringAsFixed(5)}'),
                 _buildInfoRow(context, 'Farmer', product.farmerName.isNotEmpty ? product.farmerName : product.farmerPhone),
@@ -301,6 +325,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   }
                 : () {},
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPill(BuildContext context, IconData icon, String label) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(label, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
         ],
       ),
     );

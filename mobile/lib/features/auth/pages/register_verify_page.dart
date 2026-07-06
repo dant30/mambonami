@@ -9,12 +9,11 @@ import 'package:pinput/pinput.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/role_routes.dart';
 import '../../../config/route_paths.dart';
-import '../../../shared/layouts/app_screen.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../widgets/auth_page_header.dart';
 import '../widgets/auth_surface.dart';
 
 class RegisterVerifyPage extends StatefulWidget {
@@ -128,6 +127,7 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
@@ -141,410 +141,421 @@ class _RegisterVerifyPageState extends State<RegisterVerifyPage> {
         builder: (context, state) {
           final isLoading = state is AuthLoading;
           return SafeArea(
-            child: AppScreen(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _AuthBackButton(
-                      onPressed: () => context.go(
-                        AppRole.registrationPathFor(widget.role),
-                        extra: {'role': widget.role},
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ─── Green Gradient Header ─────────────────────────────
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(28),
                     ),
                   ),
-                  AuthPageHeader(
-                    title: 'Verify your account',
-                    subtitle:
-                        'Complete your secure marketplace profile for ${_roleLabel.toLowerCase()} access.',
-                    leading: _VerificationSummary(
-                      phone: widget.phone,
-                      role: _roleLabel,
-                    ),
-                  ),
-                  AuthSurface(
-                    margin: EdgeInsets.zero,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const AuthStepBadge(
-                          label: 'Final step: OTP and profile',
-                          icon: Icons.verified_user_outlined,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Back button
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_rounded,
+                            color: Colors.white),
+                        onPressed: () => context.go(
+                          AppRole.registrationPathFor(widget.role),
+                          extra: {'role': widget.role},
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.16),
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.centerLeft,
+                      ),
+                      const SizedBox(height: 4),
+                      // Title
+                      Text(
+                        'Verify your account',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Complete your secure marketplace profile for ${_roleLabel.toLowerCase()} access.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.85),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Summary row (phone & role)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            _summaryChip(Icons.phone_outlined, widget.phone),
+                            const SizedBox(width: 16),
+                            _summaryChip(Icons.badge_outlined,
+                                _roleLabel.toUpperCase()),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ─── Form (scrollable) ──────────────────────────────────
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                    child: AuthSurface(
+                      margin: EdgeInsets.zero,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const AuthStepBadge(
+                              label: 'Final step: OTP and profile',
+                              icon: Icons.verified_user_outlined,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.sms_outlined, color: theme.colorScheme.primary),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'We have sent a secure one-time passcode to ${widget.phone}. Enter it below to finish setting up your account.',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    height: 1.4,
+                            const SizedBox(height: 16),
+
+                            // OTP hint
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary
+                                    .withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: theme.colorScheme.primary
+                                      .withOpacity(0.16),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sms_outlined,
+                                      color: theme.colorScheme.primary),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'We have sent a secure one-time passcode to ${widget.phone}. Enter it below to finish setting up your account.',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color: theme.colorScheme
+                                            .onSurfaceVariant,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // OTP input
+                            Pinput(
+                              controller: _otpController,
+                              length: 4,
+                              defaultPinTheme: PinTheme(
+                                width: 60,
+                                height: 60,
+                                textStyle: theme.textTheme.headlineSmall
+                                    ?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerHighest
+                                      .withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: theme.colorScheme.outline,
+                                    width: 1.8,
                                   ),
                                 ),
                               ),
+                              focusedPinTheme: PinTheme(
+                                width: 60,
+                                height: 60,
+                                textStyle: theme.textTheme.headlineSmall
+                                    ?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: theme.colorScheme.primary,
+                                    width: 2.2,
+                                  ),
+                                ),
+                              ),
+                              submittedPinTheme: PinTheme(
+                                width: 60,
+                                height: 60,
+                                textStyle: theme.textTheme.headlineSmall
+                                    ?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary
+                                      .withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: theme.colorScheme.primary,
+                                    width: 2.2,
+                                  ),
+                                ),
+                              ),
+                              showCursor: true,
+                              onCompleted: (value) =>
+                                  _otpController.text = value,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _resendSeconds > 0
+                                      ? 'Resend in 00:${_resendSeconds.toString().padLeft(2, '0')}'
+                                      : 'Resend available',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _resendSeconds == 0
+                                      ? _resendOtp
+                                      : null,
+                                  child: const Text('Resend'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Username
+                            CustomTextField(
+                              controller: _usernameController,
+                              label: 'Username',
+                              hintText: 'mambo_user',
+                              prefixIcon: const Icon(Icons.person_outline),
+                              textInputAction: TextInputAction.next,
+                              validator: (value) =>
+                                  value == null || value.trim().isEmpty
+                                      ? 'Required'
+                                      : null,
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Password
+                            CustomTextField(
+                              controller: _passwordController,
+                              label: 'Password',
+                              hintText: 'Create a secure password',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              obscureText: _isPasswordHidden,
+                              textInputAction: TextInputAction.next,
+                              validator: (value) =>
+                                  value == null || value.length < 6
+                                      ? 'Min 6 chars'
+                                      : null,
+                              suffixIcon: IconButton(
+                                tooltip: _isPasswordHidden
+                                    ? 'Show password'
+                                    : 'Hide password',
+                                icon: Icon(
+                                  _isPasswordHidden
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () => setState(() {
+                                  _isPasswordHidden = !_isPasswordHidden;
+                                }),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Confirm password
+                            CustomTextField(
+                              controller: _confirmPasswordController,
+                              label: 'Confirm Password',
+                              hintText: 'Re-enter your password',
+                              prefixIcon: const Icon(Icons.lock_person_outlined),
+                              obscureText: _isConfirmPasswordHidden,
+                              textInputAction: TextInputAction.next,
+                              validator: (value) =>
+                                  value != _passwordController.text
+                                      ? 'Passwords do not match'
+                                      : null,
+                              suffixIcon: IconButton(
+                                tooltip: _isConfirmPasswordHidden
+                                    ? 'Show password'
+                                    : 'Hide password',
+                                icon: Icon(
+                                  _isConfirmPasswordHidden
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () => setState(() {
+                                  _isConfirmPasswordHidden =
+                                      !_isConfirmPasswordHidden;
+                                }),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Email (optional)
+                            CustomTextField(
+                              controller: _emailController,
+                              label: 'Email (optional)',
+                              prefixIcon: const Icon(Icons.mail_outline),
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: (value) {
+                                if (value != null &&
+                                    value.isNotEmpty &&
+                                    !value.contains('@')) {
+                                  return 'Enter valid email';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            // Role-specific fields
+                            if (widget.role == 'farmer') ...[
+                              const SizedBox(height: 18),
+                              _RoleSectionHeader(
+                                icon: Icons.agriculture_outlined,
+                                title: 'Farmer details',
+                                color: AppColors.farmerAccent,
+                              ),
+                              const SizedBox(height: 12),
+                              CustomTextField(
+                                controller: _farmGpsController,
+                                label: 'Farm GPS (lat,lng)',
+                                prefixIcon: const Icon(Icons.map_outlined),
+                                textInputAction: TextInputAction.next,
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? 'Required for farmers'
+                                        : null,
+                              ),
+                              const SizedBox(height: 14),
+                              CustomTextField(
+                                controller: _mpesaController,
+                                label: 'M-Pesa Number',
+                                prefixIcon: const Icon(Icons.payments_outlined),
+                                keyboardType: TextInputType.phone,
+                                textInputAction: TextInputAction.next,
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? 'Required for farmers'
+                                        : null,
+                              ),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Pinput(
-                          controller: _otpController,
-                          length: 4,
-                          defaultPinTheme: PinTheme(
-                            width: 60,
-                            height: 60,
-                            textStyle: theme.textTheme.headlineSmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: theme.colorScheme.outline,
-                                width: 1.8,
+
+                            if (widget.role == 'transport_provider') ...[
+                              const SizedBox(height: 18),
+                              _RoleSectionHeader(
+                                icon: Icons.local_shipping_outlined,
+                                title: 'Transport provider details',
+                                color: AppColors.providerAccent,
                               ),
-                            ),
-                          ),
-                          focusedPinTheme: PinTheme(
-                            width: 60,
-                            height: 60,
-                            textStyle: theme.textTheme.headlineSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 2.2,
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedVehicleType,
+                                decoration: const InputDecoration(
+                                  labelText: 'Vehicle Type',
+                                  prefixIcon: Icon(Icons.fire_truck_outlined),
+                                ),
+                                items: _vehicleTypes
+                                    .map(
+                                      (type) => DropdownMenuItem<String>(
+                                        value: type,
+                                        child: Text(
+                                          type[0].toUpperCase() +
+                                              type.substring(1),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() =>
+                                        _selectedVehicleType = value);
+                                  }
+                                },
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Required for transport providers'
+                                        : null,
                               ),
-                            ),
-                          ),
-                          submittedPinTheme: PinTheme(
-                            width: 60,
-                            height: 60,
-                            textStyle: theme.textTheme.headlineSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 2.2,
+                              const SizedBox(height: 14),
+                              CustomTextField(
+                                controller: _licensePlateController,
+                                label: 'License Plate',
+                                prefixIcon: const Icon(
+                                    Icons.confirmation_number_outlined),
+                                textInputAction: TextInputAction.done,
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? 'Required for transport providers'
+                                        : null,
                               ),
+                            ],
+
+                            const SizedBox(height: 22),
+                            CustomButton(
+                              onPressed: _verify,
+                              isLoading: isLoading,
+                              label: 'Complete registration',
+                              icon: const Icon(Icons.verified_outlined),
                             ),
-                          ),
-                          showCursor: true,
-                          onCompleted: (value) => _otpController.text = value,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
+                            const SizedBox(height: 8),
                             Text(
-                              _resendSeconds > 0
-                                  ? 'Resend in 00:${_resendSeconds.toString().padLeft(2, '0')}'
-                                  : 'Resend available',
+                              'Your details help keep marketplace payments, deliveries, and order ownership secure.',
+                              textAlign: TextAlign.center,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            TextButton(
-                              onPressed: _resendSeconds == 0 ? _resendOtp : null,
-                              child: const Text('Resend'),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        CustomTextField(
-                          controller: _usernameController,
-                          label: 'Username',
-                          hintText: 'mambo_user',
-                          prefixIcon: const Icon(Icons.person_outline),
-                          textInputAction: TextInputAction.next,
-                          validator: (value) =>
-                              value == null || value.trim().isEmpty
-                                  ? 'Required'
-                                  : null,
-                        ),
-                        const SizedBox(height: 14),
-                        CustomTextField(
-                          controller: _passwordController,
-                          label: 'Password',
-                          hintText: 'Create a secure password',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          obscureText: _isPasswordHidden,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) =>
-                              value == null || value.length < 6
-                                  ? 'Min 6 chars'
-                                  : null,
-                          suffixIcon: IconButton(
-                            tooltip: _isPasswordHidden
-                                ? 'Show password'
-                                : 'Hide password',
-                            icon: Icon(
-                              _isPasswordHidden
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(() {
-                              _isPasswordHidden = !_isPasswordHidden;
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        CustomTextField(
-                          controller: _confirmPasswordController,
-                          label: 'Confirm Password',
-                          hintText: 'Re-enter your password',
-                          prefixIcon: const Icon(Icons.lock_person_outlined),
-                          obscureText: _isConfirmPasswordHidden,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) =>
-                              value != _passwordController.text
-                                  ? 'Passwords do not match'
-                                  : null,
-                          suffixIcon: IconButton(
-                            tooltip: _isConfirmPasswordHidden
-                                ? 'Show password'
-                                : 'Hide password',
-                            icon: Icon(
-                              _isConfirmPasswordHidden
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(() {
-                              _isConfirmPasswordHidden =
-                                  !_isConfirmPasswordHidden;
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        CustomTextField(
-                          controller: _emailController,
-                          label: 'Email (optional)',
-                          prefixIcon: const Icon(Icons.mail_outline),
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value != null &&
-                                value.isNotEmpty &&
-                                !value.contains('@')) {
-                              return 'Enter valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        if (widget.role == 'farmer') ...[
-                          const SizedBox(height: 18),
-                          const _RoleSectionHeader(
-                            icon: Icons.agriculture_outlined,
-                            title: 'Farmer details',
-                            color: AppColors.farmerAccent,
-                          ),
-                          const SizedBox(height: 12),
-                          CustomTextField(
-                            controller: _farmGpsController,
-                            label: 'Farm GPS (lat,lng)',
-                            prefixIcon: const Icon(Icons.map_outlined),
-                            textInputAction: TextInputAction.next,
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? 'Required for farmers'
-                                    : null,
-                          ),
-                          const SizedBox(height: 14),
-                          CustomTextField(
-                            controller: _mpesaController,
-                            label: 'M-Pesa Number',
-                            prefixIcon: const Icon(Icons.payments_outlined),
-                            keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? 'Required for farmers'
-                                    : null,
-                          ),
-                        ],
-                        if (widget.role == 'transport_provider') ...[
-                          const SizedBox(height: 18),
-                          const _RoleSectionHeader(
-                            icon: Icons.local_shipping_outlined,
-                            title: 'Transport provider details',
-                            color: AppColors.providerAccent,
-                          ),
-                          const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            initialValue: _selectedVehicleType,
-                            decoration: const InputDecoration(
-                              labelText: 'Vehicle Type',
-                              prefixIcon: Icon(Icons.fire_truck_outlined),
-                            ),
-                            items: _vehicleTypes
-                                .map(
-                                  (type) => DropdownMenuItem<String>(
-                                    value: type,
-                                    child: Text(
-                                      type[0].toUpperCase() + type.substring(1),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _selectedVehicleType = value);
-                              }
-                            },
-                            validator: (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Required for transport providers'
-                                    : null,
-                          ),
-                          const SizedBox(height: 14),
-                          CustomTextField(
-                            controller: _licensePlateController,
-                            label: 'License Plate',
-                            prefixIcon:
-                                const Icon(Icons.confirmation_number_outlined),
-                            textInputAction: TextInputAction.done,
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? 'Required for transport providers'
-                                    : null,
-                          ),
-                        ],
-                        const SizedBox(height: 22),
-                        CustomButton(
-                          onPressed: _verify,
-                          isLoading: isLoading,
-                          label: 'Complete registration',
-                          icon: const Icon(Icons.verified_outlined),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your details help keep marketplace payments, deliveries, and order ownership secure.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              ],
             ),
           );
         },
       ),
     );
   }
-}
 
-class _VerificationSummary extends StatelessWidget {
-  final String phone;
-  final String role;
-
-  const _VerificationSummary({
-    required this.phone,
-    required this.role,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.6)),
-      ),
-      child: Column(
-        children: [
-          _SummaryRow(icon: Icons.phone_outlined, label: phone),
-          const SizedBox(height: 8),
-          _SummaryRow(
-            icon: Icons.badge_outlined,
-            label: role.toUpperCase(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AuthBackButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AuthBackButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surfaceHighLight,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: const SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _SummaryRow({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  // Helper: summary chip inside header
+  Widget _summaryChip(IconData icon, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+        Icon(icon, size: 16, color: Colors.white.withOpacity(0.8)),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
           ),
         ),
       ],
@@ -569,9 +580,9 @@ class _RoleSectionHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.28)),
+        border: Border.all(color: color.withOpacity(0.28)),
       ),
       child: Row(
         children: [

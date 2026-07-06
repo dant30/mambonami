@@ -23,7 +23,7 @@ class NotificationTile extends StatelessWidget {
           radius: 22,
           backgroundColor: notification.isRead ? Theme.of(context).colorScheme.surfaceVariant : Theme.of(context).colorScheme.primary,
           child: Icon(
-            notification.isRead ? Icons.notifications_none : Icons.notifications,
+            notification.type == 'order' ? Icons.receipt_long : notification.type == 'delivery' ? Icons.local_shipping : Icons.notifications,
             color: notification.isRead ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7) : Theme.of(context).colorScheme.onPrimary,
           ),
         ),
@@ -50,6 +50,13 @@ class NotificationTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (notification.targetRoute != null && notification.targetRoute!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Route: ${notification.targetRoute}',
+                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700),
+              ),
+            ],
             if (notification.metadata.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(

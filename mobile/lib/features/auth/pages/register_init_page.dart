@@ -10,8 +10,6 @@ import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
-import '../../../shared/widgets/custom_text_field.dart';
-import '../widgets/auth_surface.dart';
 
 class RegisterInitPage extends StatefulWidget {
   final String? initialRole;
@@ -35,32 +33,36 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
 
   static const List<_RoleOption> _roles = [
     _RoleOption(
-      value: AppRole.buyer,
-      label: 'Buyer',
-      description: 'Shop fresh products and track deliveries.',
-      icon: Icons.shopping_bag_outlined,
-      color: AppColors.buyerAccent,
-    ),
-    _RoleOption(
-      value: AppRole.retailer,
-      label: 'Retailer',
-      description: 'Buy produce for resale and repeat supply.',
-      icon: Icons.storefront_outlined,
-      color: AppColors.supportAccent,
-    ),
-    _RoleOption(
       value: AppRole.farmer,
       label: 'Farmer',
-      description: 'List harvests and manage incoming orders.',
+      description: 'Sell fresh produce directly to buyers across Kenya.',
       icon: Icons.agriculture_outlined,
-      color: AppColors.farmerAccent,
+      asset: 'assets/icons/farmer_icon.png',
+      color: AppColors.primary,
+    ),
+    _RoleOption(
+      value: AppRole.buyer,
+      label: 'Buyer / Consumer',
+      description: 'Buy fresh farm produce delivered to your door.',
+      icon: Icons.shopping_bag_outlined,
+      asset: 'assets/icons/buyer_icon.png',
+      color: AppColors.secondary,
     ),
     _RoleOption(
       value: AppRole.transportProvider,
-      label: 'Transport',
-      description: 'Claim pickups and complete deliveries.',
+      label: 'Transport Provider',
+      description: 'Deliver orders and earn daily income.',
       icon: Icons.local_shipping_outlined,
+      asset: 'assets/icons/transport_icon.png',
       color: AppColors.providerAccent,
+    ),
+    _RoleOption(
+      value: AppRole.retailer,
+      label: 'Retailer / Business',
+      description: 'Bulk orders for your grocery or restaurant.',
+      icon: Icons.storefront_outlined,
+      asset: 'assets/icons/secure_payment_icon.png',
+      color: AppColors.supportAccent,
     ),
   ];
 
@@ -75,48 +77,6 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
       context.read<AuthBloc>().add(
             RegisterInitEvent(_phoneController.text.trim(), _selectedRole),
           );
-    }
-  }
-
-  String get _pageTitle {
-    switch (_selectedRole) {
-      case AppRole.farmer:
-        return 'Farmer registration';
-      case AppRole.retailer:
-        return 'Retailer registration';
-      case AppRole.transportProvider:
-        return 'Transport registration';
-      case AppRole.buyer:
-      default:
-        return 'Buyer registration';
-    }
-  }
-
-  String get _roleIconAsset {
-    switch (_selectedRole) {
-      case AppRole.farmer:
-        return 'assets/icons/farmer_icon.png';
-      case AppRole.transportProvider:
-        return 'assets/icons/transport_icon.png';
-      case AppRole.retailer:
-        return 'assets/icons/secure_payment_icon.png';
-      case AppRole.buyer:
-      default:
-        return 'assets/icons/buyer_icon.png';
-    }
-  }
-
-  String get _roleSubtitle {
-    switch (_selectedRole) {
-      case AppRole.farmer:
-        return 'Set up your farm profile, add your phone, and verify access to farmer tools.';
-      case AppRole.transportProvider:
-        return 'Set up your transport profile, verify your phone, and start accepting orders.';
-      case AppRole.retailer:
-        return 'Set up your retailer account and begin sourcing fresh produce.';
-      case AppRole.buyer:
-      default:
-        return 'Set up your buyer account and verify your phone number.';
     }
   }
 
@@ -146,120 +106,74 @@ class _RegisterInitPageState extends State<RegisterInitPage> {
           return SafeArea(
             child: AppScreen(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _AuthBackButton(
-                      onPressed: () => context.go(RoutePaths.roleSelect),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Row(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceHighLight,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Image.asset(_roleIconAsset, fit: BoxFit.contain),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: _AuthBackButton(
+                        onPressed: () => context.go(RoutePaths.roleSelect),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _pageTitle,
-                              style:
-                                  theme.textTheme.headlineSmall?.copyWith(
-                                color: AppColors.dark,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _roleSubtitle,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.muted,
-                                height: 1.35,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  AuthSurface(
-                    margin: EdgeInsets.zero,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AuthStepBadge(
-                          label: 'Step 1 of 2: Phone and role',
-                          icon: Icons.phone_iphone_outlined,
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: _phoneController,
-                          label: 'Phone Number',
-                          hintText: '+254 700 000 000',
-                          prefixIcon: const Icon(Icons.phone_outlined),
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.done,
-                          validator: (value) =>
-                              value == null || value.trim().length < 10
-                                  ? 'Enter a valid phone number'
-                                  : null,
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          'Account type',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 10),
-                        ..._roles.map(
-                          (role) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _RoleTile(
-                              option: role,
-                              selected: _selectedRole == role.value,
-                              onTap: () =>
-                                  setState(() => _selectedRole = role.value),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        CustomButton(
-                          onPressed: _sendOTP,
-                          isLoading: isLoading,
-                          label: 'Send OTP',
-                          icon: const Icon(Icons.sms_outlined),
-                        ),
-                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () => context.go(RoutePaths.login),
-                    icon: const Icon(Icons.login_outlined),
-                    label: const Text('Already have an account? Login'),
-                  ),
-                ],
+                    const SizedBox(height: 28),
+                    Text(
+                      'Choose your role',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: AppColors.dark,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'How will you use MAMBONAMI?',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Expanded(
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _roles.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final role = _roles[index];
+                          return _RoleTile(
+                            option: role,
+                            selected: _selectedRole == role.value,
+                            onTap: () => setState(() => _selectedRole = role.value),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    CustomButton(
+                      onPressed: _sendOTP,
+                      isLoading: isLoading,
+                      label: 'Continue',
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () => context.go(RoutePaths.login),
+                      icon: const Icon(Icons.login_outlined),
+                      label: const Text('Already have an account? Log in'),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'You can add more roles later in settings',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             ),
           );
         },
@@ -273,6 +187,7 @@ class _RoleOption {
   final String label;
   final String description;
   final IconData icon;
+  final String asset;
   final Color color;
 
   const _RoleOption({
@@ -280,6 +195,7 @@ class _RoleOption {
     required this.label,
     required this.description,
     required this.icon,
+    required this.asset,
     required this.color,
   });
 }
@@ -325,37 +241,41 @@ class _RoleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final borderColor = selected ? option.color.withOpacity(0.58) : Colors.transparent;
+
     return Material(
-      color: selected
-          ? option.color.withValues(alpha: 0.12)
-          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.58),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: selected
-                  ? option.color
-                  : theme.colorScheme.outline.withValues(alpha: 0.72),
-              width: selected ? 1.4 : 1,
-            ),
+            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 56,
+                height: 56,
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: option.color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
+                  color: option.color.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(option.icon, color: option.color),
+                child: Image.asset(option.asset, fit: BoxFit.contain),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,27 +283,28 @@ class _RoleTile extends StatelessWidget {
                     Text(
                       option.label,
                       style: theme.textTheme.titleSmall?.copyWith(
+                        color: AppColors.dark,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       option.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppColors.muted,
+                        height: 1.35,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Icon(
                 selected
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked_outlined,
-                color: selected ? option.color : theme.colorScheme.outline,
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_right_rounded,
+                color: selected ? option.color : AppColors.muted,
+                size: 22,
               ),
             ],
           ),

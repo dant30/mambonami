@@ -1,28 +1,39 @@
 // mobile/lib/features/auth/pages/welcome_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/app_logo.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: Column(
         children: [
           // --- Gradient Header ---
           Container(
             padding: const EdgeInsets.fromLTRB(20, 28, 20, 44),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: isDark
+                  ? LinearGradient(
+                      colors: [AppColors.primaryDark, AppColors.secondaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : LinearGradient(
+                      colors: [AppColors.primary, AppColors.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
             ),
             child: Stack(
@@ -66,25 +77,30 @@ class WelcomePage extends StatelessWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Image.asset('assets/icons/logo.png'),
+                          child: Image.asset(
+                            'assets/icons/logo.png',
+                            errorBuilder: (_, __, ___) => const AppLogo(size: 44),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'MAMBONAMI',
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
+                                letterSpacing: -0.5,
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Fresh from farm to your door',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.white70,
+                                color: Colors.white.withOpacity(0.8),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -98,11 +114,32 @@ class WelcomePage extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(32),
-                          child: Image.network(
-                            'https://images.unsplash.com/photo-1542838132-92c53300491e?w=340&h=180&fit=crop&auto=format',
+                          child: CachedNetworkImage(
+                            imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=200&fit=crop&auto=format&q=80',
                             height: 180,
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                              height: 180,
+                              width: double.infinity,
+                              color: Colors.white.withOpacity(0.2),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) => Container(
+                              height: 180,
+                              width: double.infinity,
+                              color: Colors.white.withOpacity(0.2),
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: Colors.white.withOpacity(0.6),
+                                size: 48,
+                              ),
+                            ),
                           ),
                         ),
                         Positioned(
@@ -117,6 +154,7 @@ class WelcomePage extends StatelessWidget {
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.12),
                                   blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -127,7 +165,7 @@ class WelcomePage extends StatelessWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       '12,400+ Verified Farmers',
                                       style: TextStyle(
                                         fontSize: 11,
@@ -135,7 +173,7 @@ class WelcomePage extends StatelessWidget {
                                         color: AppColors.dark,
                                       ),
                                     ),
-                                    const Text(
+                                    Text(
                                       'across Kenya',
                                       style: TextStyle(
                                         fontSize: 9,
@@ -161,22 +199,24 @@ class WelcomePage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     "Kenya's #1 Farm\nMarketplace",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
+                      color: isDark ? AppColors.foregroundDark : AppColors.dark,
                       height: 1.2,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Direct from farmers. Fair prices. Fresh produce.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.muted,
+                      color: isDark ? AppColors.foregroundDark.withOpacity(0.7) : AppColors.muted,
+                      height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -198,7 +238,7 @@ class WelcomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   CustomButton(
-                    label: 'I have an account - Log in',
+                    label: 'I have an account — Log in',
                     onPressed: () => context.go(RoutePaths.login),
                     outlined: true,
                     icon: const Icon(Icons.login_outlined),
@@ -207,9 +247,12 @@ class WelcomePage extends StatelessWidget {
                   Text.rich(
                     TextSpan(
                       children: [
-                        const TextSpan(
+                        TextSpan(
                           text: 'By continuing you agree to our ',
-                          style: TextStyle(fontSize: 10, color: AppColors.muted),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? AppColors.foregroundDark.withOpacity(0.6) : AppColors.muted,
+                          ),
                         ),
                         TextSpan(
                           text: 'Terms & Privacy Policy',
@@ -221,6 +264,7 @@ class WelcomePage extends StatelessWidget {
                         ),
                       ],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -244,10 +288,26 @@ class WelcomePage extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.06),
                 blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Image.asset(asset),
+          child: Image.asset(
+            asset,
+            errorBuilder: (_, __, ___) => Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.account_circle_outlined,
+                size: 30,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 6),
         Text(
