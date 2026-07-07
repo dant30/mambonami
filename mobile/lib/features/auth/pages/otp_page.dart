@@ -151,8 +151,12 @@ class _OtpPageState extends State<OtpPage> {
                   length: 4,
                   controller: _otpController,
                   onCompleted: (otp) {
-                    // Auto‑verify when all 4 digits are entered
-                    context.read<AuthBloc>().add(OtpVerifyRequested(otp));
+                    context.read<AuthBloc>().add(
+                      OtpVerifyRequested(
+                        phone: widget.phone ?? '',
+                        otp: otp,
+                      ),
+                    );
                   },
                   defaultPinTheme: PinTheme(
                     width: 64,
@@ -218,7 +222,12 @@ class _OtpPageState extends State<OtpPage> {
                   onPressed: () {
                     final otp = _otpController.text.trim();
                     if (otp.length == 4) {
-                      context.read<AuthBloc>().add(OtpVerifyRequested(otp));
+                      context.read<AuthBloc>().add(
+                        OtpVerifyRequested(
+                          phone: widget.phone ?? '',
+                          otp: otp,
+                        ),
+                      );
                     } else {
                       setState(() => _error = 'Enter 4-digit OTP');
                     }

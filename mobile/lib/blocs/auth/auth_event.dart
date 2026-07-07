@@ -70,10 +70,11 @@ class LoginRequested extends AuthEvent {
 }
 
 class OtpVerifyRequested extends AuthEvent {
+  final String phone;
   final String otp;
-  const OtpVerifyRequested(this.otp);
+  const OtpVerifyRequested({required this.phone, required this.otp});
   @override
-  List<Object> get props => [otp];
+  List<Object> get props => [phone, otp];
 }
 
 class RegisterRequested extends AuthEvent {

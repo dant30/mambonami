@@ -1,9 +1,12 @@
 ﻿// mobile/lib/features/buyer/pages/checkout_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
+
 import '../../../config/route_paths.dart';
 import '../../../data/models/cart_item.dart';
 import '../../../data/repositories/cart_repository.dart';
@@ -17,6 +20,8 @@ import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+import '../../../shared/themes/app_colors.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -48,6 +53,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
   late final AddressRepository _addressRepository;
   late final OrderRepository _orderRepository;
 
+  // M-Pesa specific
+  late String _accountNumber;
+  static const String _paybillNumber = '123456';
+  bool _copiedPaybill = false;
+  bool _copiedAccount = false;
+  int _countdownSeconds = 840; // 14 minutes
+  Timer? _countdownTimer;
+  bool _paymentConfirmed = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +74,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
     });
     _fetchLocation();
+    _generateAccountNumber();
+    _startCountdown();
   }
 
   @override
@@ -70,7 +86,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _landmarkController.dispose();
     _timeWindowController.dispose();
     _promoController.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  void _generateAccountNumber() {
+    // Generate a random 6-digit number for demo; in production, use server-generated order ID
+    final random = DateTime.now().millisecondsSinceEpoch.toString().substring(7, 13);
+    _accountNumber = 'ORD-$random';
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdownSeconds <= 1) {
+        timer.cancel();
+        setState(() => _countdownSeconds = 0);
+        return;
+      }
+      setState(() => _countdownSeconds--);
+    });
+  }
+
+  String get _formattedCountdown {
+    final mins = (_countdownSeconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (_countdownSeconds % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
   }
 
   Future<void> _fetchLocation() async {
@@ -114,9 +155,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       lastDate: now.add(const Duration(days: 30)),
     );
     if (picked != null) {
-      setState(() {
-        _scheduledDate = picked;
-      });
+      setState(() => _scheduledDate = picked);
     }
   }
 
@@ -180,6 +219,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
+  void _copyToClipboard(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    CustomSnackbar.showSuccess(context, '$label copied!');
+    if (label == 'PayBill') {
+      setState(() => _copiedPaybill = true);
+      Future.delayed(const Duration(seconds: 2), () => setState(() => _copiedPaybill = false));
+    } else if (label == 'Account') {
+      setState(() => _copiedAccount = true);
+      Future.delayed(const Duration(seconds: 2), () => setState(() => _copiedAccount = false));
+    }
+  }
+
   Future<void> _submitOrder() async {
     final cartRepository = GetIt.instance<CartRepository>();
     final orderRepository = GetIt.instance<OrderRepository>();
@@ -234,7 +285,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
       final order = await orderRepository.createOrder(request);
       cartRepository.clear();
-      
+
       if (mounted) {
         final orderUuid = order['order_uuid']?.toString() ?? order['uuid']?.toString() ?? '';
         ScaffoldMessenger.of(context).showSnackBar(
@@ -277,16 +328,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cartRepository = GetIt.instance<CartRepository>();
-    final dateText = _scheduledDate == null
-        ? 'Choose delivery date'
-        : DateFormat.yMMMd().format(_scheduledDate!);
+    final subtotal = cartRepository.subtotal;
+    final deliveryFee = subtotal > 200 ? 0.0 : 100.0;
+    final discount = _discountAmount.clamp(0.0, subtotal + deliveryFee);
+    final total = subtotal - discount + deliveryFee;
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Checkout',
-        showNotificationAction: true,
+      appBar: const CustomAppBar(
+        title: 'M-Pesa Payment',
         showBackButton: true,
-        backgroundColor: theme.colorScheme.surface,
+        fallbackRoute: RoutePaths.buyerDashboard,
       ),
       body: ValueListenableBuilder<List<CartItem>>(
         valueListenable: cartRepository.items,
@@ -301,11 +352,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
             );
           }
 
-          final subtotal = cartRepository.subtotal;
-          final deliveryFee = subtotal > 200 ? 0.0 : 100.0;
-          final discount = _discountAmount.clamp(0.0, subtotal + deliveryFee);
-          final total = subtotal - discount + deliveryFee;
-
           return Stack(
             children: [
               SingleChildScrollView(
@@ -313,39 +359,153 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Step Indicator
-                    _buildStepIndicator(context),
-                    const SizedBox(height: 20),
+                    // ─── Gradient Header (matches React prototype) ───────
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, AppColors.secondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Image.asset(
+                              'assets/icons/secure_payment_icon.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pay via M-Pesa',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Text(
+                                  'Funds held securely in escrow',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-                    // Order Summary Card
+                    // ─── M-Pesa Instructions ──────────────────────────────
                     CustomCard(
                       padding: const EdgeInsets.all(20),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Text(
+                            'FOLLOW THESE STEPS',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: AppColors.muted,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ..._buildSteps(),
+                          const SizedBox(height: 16),
+                          // PayBill & Account row
                           Row(
                             children: [
-                              Icon(Icons.receipt_long_outlined,
-                                  color: theme.colorScheme.primary),
-                              const SizedBox(width: 8),
-                              Text('Order Summary',
-                                  style: theme.textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w700)),
+                              Expanded(
+                                child: _InfoBox(
+                                  label: 'Paybill Number',
+                                  value: _paybillNumber,
+                                  onCopy: () => _copyToClipboard(_paybillNumber, 'PayBill'),
+                                  isCopied: _copiedPaybill,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _InfoBox(
+                                  label: 'Account Number',
+                                  value: _accountNumber,
+                                  onCopy: () => _copyToClipboard(_accountNumber, 'Account'),
+                                  isCopied: _copiedAccount,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _summaryRow(
-                              context, 'Items', '${cartRepository.itemCount}'),
+                          // Expiry countdown
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.amber[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.timer_outlined, color: AppColors.gold),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Payment expires in',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                const Spacer(),
+                                Text(
+                                  _formattedCountdown,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.gold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ─── Payment Summary ──────────────────────────────────
+                    CustomCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.receipt_long_outlined, color: theme.colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Payment Summary',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _summaryRow(context, 'Subtotal', 'Ksh ${subtotal.toStringAsFixed(2)}'),
                           const SizedBox(height: 10),
-                          _summaryRow(context, 'Subtotal',
-                              'Ksh ${subtotal.toStringAsFixed(2)}'),
-                          const SizedBox(height: 10),
-                          _summaryRow(context, 'Delivery',
-                              deliveryFee == 0 ? 'Free' : 'Ksh 100'),
+                          _summaryRow(context, 'Delivery Fee', deliveryFee == 0 ? 'Free' : 'Ksh ${deliveryFee.toStringAsFixed(2)}'),
                           if (discount > 0) ...[
                             const SizedBox(height: 10),
-                            _summaryRow(context, 'Discount',
-                                '-Ksh ${discount.toStringAsFixed(2)}'),
+                            _summaryRow(context, 'Discount', '-Ksh ${discount.toStringAsFixed(2)}'),
                           ],
                           const Divider(height: 20),
                           _summaryRow(
@@ -359,6 +519,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ),
                     const SizedBox(height: 16),
 
+                    // ─── Promo Code ────────────────────────────────────────
                     CustomCard(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -366,15 +527,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.local_offer_outlined,
-                                  color: theme.colorScheme.primary),
+                              Icon(Icons.local_offer_outlined, color: theme.colorScheme.primary),
                               const SizedBox(width: 8),
-                              Text('Promo & Payment',
-                                  style: theme.textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w700)),
+                              Text(
+                                'Promo Code',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -385,6 +548,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
                                 ),
                               ),
@@ -392,8 +556,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               OutlinedButton(
                                 onPressed: _applyPromoCode,
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 18),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                                 ),
                                 child: const Text('Apply'),
                               ),
@@ -404,79 +567,43 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             Text(
                               _promoMessage!,
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: _promoApplied
-                                    ? Colors.green
-                                    : theme.colorScheme.error,
+                                color: _promoApplied ? Colors.green : theme.colorScheme.error,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 16),
-                          Text('Payment method',
-                              style: theme.textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 8),
-                          ..._paymentMethods.map(
-                            (method) => RadioListTile<String>(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(method),
-                              value: method,
-                              groupValue: _selectedPaymentMethod,
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _selectedPaymentMethod = value;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    CustomCard(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                    // ─── Escrow Info Banner ───────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.location_on_outlined,
-                                  color: theme.colorScheme.primary),
-                              const SizedBox(width: 8),
-                              Text('Saved Address',
-                                  style: theme.textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w700)),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          if (_selectedAddress != null) ...[
-                            Text(
-                              '${_selectedAddress!.label}: ${_selectedAddress!.detailedAddress}',
-                              style: theme.textTheme.bodyMedium,
+                          Icon(Icons.shield_outlined, color: AppColors.primary),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Your payment is held in escrow by MAMBONAMI until delivery is confirmed. You can dispute within 48 hours of delivery.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.muted,
+                                height: 1.4,
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                          ] else ...[
-                            Text(
-                              'Select a saved address to auto-fill the delivery form.',
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          CustomButton(
-                            label: _selectedAddress == null
-                                ? 'Choose saved address'
-                                : 'Change saved address',
-                            onPressed: _pickSavedAddress,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
 
-                    // Delivery Details
+                    // ─── Delivery Details (collapsible or always visible) ──
+                    const SizedBox(height: 16),
                     CustomCard(
                       padding: const EdgeInsets.all(20),
                       child: Form(
@@ -486,20 +613,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.location_on_outlined,
-                                    color: theme.colorScheme.primary),
+                                Icon(Icons.location_on_outlined, color: theme.colorScheme.primary),
                                 const SizedBox(width: 8),
-                                Text('Delivery Details',
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700)),
+                                Text(
+                                  'Delivery Details',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 16),
-                            
+
                             // Location Status
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
                                 color: _currentPosition != null
                                     ? Colors.green.withOpacity(0.08)
@@ -517,17 +645,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       ? const SizedBox(
                                           width: 20,
                                           height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
+                                          child: CircularProgressIndicator(strokeWidth: 2),
                                         )
                                       : Icon(
                                           _currentPosition != null
                                               ? Icons.check_circle
                                               : Icons.warning_amber_rounded,
-                                          color: _currentPosition != null
-                                              ? Colors.green
-                                              : Colors.orange,
+                                          color: _currentPosition != null ? Colors.green : Colors.orange,
                                         ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -548,17 +672,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             ),
                             const SizedBox(height: 16),
 
-                            // Address Fields
+                            // Address fields
                             TextFormField(
                               controller: _streetController,
                               decoration: const InputDecoration(
                                 labelText: 'Street address',
                                 prefixIcon: Icon(Icons.home_outlined),
                               ),
-                              validator: (value) =>
-                                  value?.trim().isEmpty == true
-                                      ? 'Enter a street address'
-                                      : null,
+                              validator: (value) => value?.trim().isEmpty == true ? 'Enter a street address' : null,
                             ),
                             const SizedBox(height: 16),
                             Row(
@@ -570,10 +691,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       labelText: 'City',
                                       prefixIcon: Icon(Icons.location_city),
                                     ),
-                                    validator: (value) =>
-                                        value?.trim().isEmpty == true
-                                            ? 'Enter a city'
-                                            : null,
+                                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a city' : null,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -584,10 +702,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       labelText: 'Postal code',
                                       prefixIcon: Icon(Icons.code),
                                     ),
-                                    validator: (value) =>
-                                        value?.trim().isEmpty == true
-                                            ? 'Enter a postal code'
-                                            : null,
+                                    validator: (value) => value?.trim().isEmpty == true ? 'Enter a postal code' : null,
                                   ),
                                 ),
                               ],
@@ -608,13 +723,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   readOnly: true,
                                   decoration: InputDecoration(
                                     labelText: 'Delivery date',
-                                    hintText: dateText,
-                                    prefixIcon:
-                                        const Icon(Icons.calendar_today),
+                                    hintText: _scheduledDate == null
+                                        ? 'Choose delivery date'
+                                        : DateFormat.yMMMd().format(_scheduledDate!),
+                                    prefixIcon: const Icon(Icons.calendar_today),
                                   ),
-                                  validator: (_) => _scheduledDate == null
-                                      ? 'Choose a delivery date'
-                                      : null,
+                                  validator: (_) => _scheduledDate == null ? 'Choose a delivery date' : null,
                                 ),
                               ),
                             ),
@@ -626,10 +740,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 hintText: 'e.g. 9am - 12pm',
                                 prefixIcon: Icon(Icons.access_time),
                               ),
-                              validator: (value) =>
-                                  value?.trim().isEmpty == true
-                                      ? 'Enter a delivery window'
-                                      : null,
+                              validator: (value) => value?.trim().isEmpty == true ? 'Enter a delivery window' : null,
                             ),
                           ],
                         ),
@@ -639,18 +750,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               ),
 
-              // Sticky Checkout Button
+              // ─── Sticky "I Have Paid — Confirm" Button ────────────────
               Positioned(
                 bottom: 0,
                 left: 0,
                 right: 0,
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    16,
-                    16,
-                    16 + MediaQuery.of(context).padding.bottom,
-                  ),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     border: Border(
@@ -665,7 +771,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           compact: true,
                         )
                       : CustomButton(
-                          label: 'Place Order (Ksh ${total.toStringAsFixed(2)})',
+                          label: 'I Have Paid — Confirm',
                           onPressed: _submitOrder,
                         ),
                 ),
@@ -677,55 +783,58 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildStepIndicator(BuildContext context) {
-    final theme = Theme.of(context);
-    final steps = ['Address', 'Review', 'Confirm'];
-    
-    return Row(
-      children: List.generate(3, (index) {
-        final isActive = index <= _currentStep;
-        return Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isActive
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.outline.withOpacity(0.3),
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: isActive ? Colors.white : theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
+  List<Widget> _buildSteps() {
+    const steps = [
+      'Open your M-Pesa app or dial *334#',
+      'Select Lipa na M-Pesa → Pay Bill',
+      'Enter Business Number: 123456',
+      'Enter Account Number: ORD-XXXXX',
+      'Enter Amount: KES X,XXX',
+      'Enter your M-Pesa PIN and confirm',
+    ];
+    return steps.asMap().entries.map((entry) {
+      final index = entry.key;
+      final step = entry.value;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              if (index < 2)
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: _currentStep > index
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outline.withOpacity(0.3),
-                  ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                step,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.dark,
+                  height: 1.4,
                 ),
-            ],
-          ),
-        );
-      }),
-    );
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
-  Widget _summaryRow(BuildContext context, String label, String value,
-      {bool isTotal = false}) {
+  Widget _summaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
     final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -733,9 +842,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         Text(
           label,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isTotal
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurface.withOpacity(0.75),
+            color: isTotal ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.75),
             fontWeight: isTotal ? FontWeight.w700 : FontWeight.w400,
           ),
         ),
@@ -747,6 +854,74 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Helper Widget ──────────────────────────────────────────────────────────
+
+class _InfoBox extends StatelessWidget {
+  final String label;
+  final String value;
+  final VoidCallback onCopy;
+  final bool isCopied;
+
+  const _InfoBox({
+    required this.label,
+    required this.value,
+    required this.onCopy,
+    required this.isCopied,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.muted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                icon: Icon(
+                  isCopied ? Icons.check_circle : Icons.copy,
+                  color: isCopied ? AppColors.success : AppColors.muted,
+                  size: 16,
+                ),
+                onPressed: onCopy,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Copy',
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

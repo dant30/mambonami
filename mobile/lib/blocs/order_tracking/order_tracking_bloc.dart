@@ -90,6 +90,12 @@ class OrderTrackingBloc extends Bloc<OrderTrackingEvent, OrderTrackingState> {
       assignedProviderName: o.assignedProviderName,
       subOrders: o.subOrders,
       createdAt: o.createdAt,
+      totalDistanceKm: o.totalDistanceKm,
+      etaMinutes: o.etaMinutes,
+      providerPhotoUrl: o.providerPhotoUrl,
+      providerVehicle: o.providerVehicle,
+      providerPhone: o.providerPhone,
+      providerRating: o.providerRating,
     );
   }
 }

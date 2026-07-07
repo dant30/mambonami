@@ -1,9 +1,13 @@
+// mobile/lib/features/buyer/pages/address_picker_page.dart
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+
 import '../../../data/models/address.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
@@ -29,16 +33,20 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Select Address',
         showBackButton: true,
+        backgroundColor: theme.scaffoldBackgroundColor,
       ),
       body: ValueListenableBuilder<List<Address>>(
         valueListenable: _addressRepository.addresses,
         builder: (context, addresses, _) {
           return AppScreen(
             scrollable: false,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -46,12 +54,12 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
                   title: 'Saved addresses',
                   subtitle: 'Choose where your order should be delivered',
                 ),
+                const SizedBox(height: 8),
                 if (addresses.isEmpty) ...[
                   Expanded(
                     child: EmptyState(
                       title: 'No saved addresses',
-                      description:
-                          'Add a delivery address to make checkout faster.',
+                      description: 'Add a delivery address to make checkout faster.',
                       icon: Icons.location_on_outlined,
                       buttonText: 'Add address',
                       onButtonPressed: _showAddAddressDialog,
@@ -60,6 +68,7 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
                 ] else ...[
                   Expanded(
                     child: ListView.separated(
+                      padding: EdgeInsets.zero,
                       itemCount: addresses.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
@@ -72,7 +81,7 @@ class _AddressPickerPageState extends State<AddressPickerPage> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   CustomButton(
                     label: 'Add New Address',
                     icon: const Icon(Icons.add_location_alt_outlined),
@@ -214,7 +223,7 @@ class _AddressTile extends StatelessWidget {
           height: 42,
           decoration: BoxDecoration(
             color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.small,
           ),
           child: Icon(
             Icons.location_on_outlined,

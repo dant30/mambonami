@@ -1,12 +1,19 @@
 ﻿// mobile/lib/features/buyer/pages/dispute_page.dart
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/widgets/cart_action_button.dart';
-import '../../../shared/widgets/custom_card.dart';
-import '../../../data/dtos/dispute_dto.dart';
+
 import '../../../blocs/dispute/dispute_bloc.dart';
+import '../../../data/dtos/dispute_dto.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/cart_action_button.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_image_picker.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
 
 class DisputePage extends StatefulWidget {
   const DisputePage({super.key});
@@ -21,12 +28,12 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
   final TextEditingController _orderUuidController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  List<File> _evidenceImages = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Load disputes on init
     context.read<DisputeBloc>().add(const FetchMyDisputesEvent());
   }
 
@@ -39,15 +46,34 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
     super.dispose();
   }
 
+  Future<void> _pickImages() async {
+    final picked = await CustomImagePicker.pickMultipleImages(maxCount: 5 - _evidenceImages.length);
+    if (picked.isNotEmpty) {
+      setState(() {
+        _evidenceImages.addAll(picked);
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _evidenceImages.removeAt(index);
+    });
+  }
+
   Future<void> _submitDispute() async {
     if (!_formKey.currentState!.validate()) return;
-    
+    if (_evidenceImages.isEmpty) {
+      CustomSnackbar.showWarning(context, 'Please add at least one evidence photo.');
+      return;
+    }
+
     final request = CreateDisputeRequest(
       orderUuid: _orderUuidController.text.trim(),
       subject: _subjectController.text.trim(),
       description: _descriptionController.text.trim(),
     );
-    
+
     if (!mounted) return;
     context.read<DisputeBloc>().add(CreateDisputeEvent(request));
   }
@@ -56,16 +82,16 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
     _orderUuidController.clear();
     _subjectController.clear();
     _descriptionController.clear();
+    setState(() => _evidenceImages.clear());
     _tabController.animateTo(0);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Dispute submitted successfully')),
-    );
-    // Refresh disputes list
+    CustomSnackbar.showSuccess(context, 'Dispute submitted successfully.');
     context.read<DisputeBloc>().add(const FetchMyDisputesEvent());
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Disputes',
@@ -77,6 +103,9 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
         children: [
           TabBar(
             controller: _tabController,
+            indicatorColor: theme.colorScheme.primary,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
             tabs: const [
               Tab(text: 'My Disputes'),
               Tab(text: 'New Dispute'),
@@ -97,12 +126,11 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
   }
 
   Widget _buildDisputesListTab(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocListener<DisputeBloc, DisputeState>(
       listener: (context, state) {
         if (state is DisputeError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${state.message}')),
-          );
+          CustomSnackbar.showError(context, 'Error: ${state.message}');
         }
       },
       child: BlocBuilder<DisputeBloc, DisputeState>(
@@ -117,18 +145,18 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline, size: 48, color: Colors.grey[400]),
+                    Icon(Icons.info_outline, size: 48, color: theme.colorScheme.onSurfaceVariant),
                     const SizedBox(height: 16),
                     Text(
                       'No disputes yet',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: theme.textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Create a new dispute if you need help with an order',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -153,9 +181,9 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                             Expanded(
                               child: Text(
                                 dispute.subject,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                             _buildStatusBadge(dispute.status),
@@ -164,7 +192,7 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                         const SizedBox(height: 8),
                         Text(
                           dispute.description,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -174,15 +202,15 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                           children: [
                             Text(
                               'Order: ${dispute.orderUuid.substring(0, 8)}...',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             Text(
                               DateFormat('MMM dd, yyyy').format(dispute.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -195,9 +223,7 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
           }
 
           if (state is DisputeError) {
-            return Center(
-              child: Text('Error: ${state.message}'),
-            );
+            return Center(child: Text('Error: ${state.message}'));
           }
 
           return const Center(child: Text('No disputes found'));
@@ -207,31 +233,30 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
   }
 
   Widget _buildNewDisputeTab(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocListener<DisputeBloc, DisputeState>(
       listener: (context, state) {
         if (state is DisputeCreated) {
           _onDisputeCreated(context);
         } else if (state is DisputeError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${state.message}')),
-          );
+          CustomSnackbar.showError(context, 'Error: ${state.message}');
         }
       },
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Need help with an order?',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Share the issue below and our team will respond shortly.',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             Form(
@@ -269,21 +294,17 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                     validator: (value) =>
                         value?.trim().isEmpty == true ? 'Enter a description' : null,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  // Evidence photos section
+                  _buildEvidenceSection(context),
+                  const SizedBox(height: 20),
                   BlocBuilder<DisputeBloc, DisputeState>(
                     builder: (context, state) {
                       final isLoading = state is DisputeLoading;
-                      return ElevatedButton(
+                      return CustomButton(
+                        label: 'Submit Dispute',
                         onPressed: isLoading ? null : _submitDispute,
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Submit Dispute'),
+                        isLoading: isLoading,
                       );
                     },
                   ),
@@ -296,22 +317,91 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
     );
   }
 
+  Widget _buildEvidenceSection(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Evidence Photos (max 5)',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (_evidenceImages.isNotEmpty)
+          SizedBox(
+            height: 80,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _evidenceImages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _evidenceImages[index],
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        const SizedBox(height: 8),
+        if (_evidenceImages.length < 5)
+          OutlinedButton.icon(
+            onPressed: _pickImages,
+            icon: const Icon(Icons.add_photo_alternate_outlined),
+            label: Text('Add Photo (${_evidenceImages.length}/5)'),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: theme.colorScheme.outline),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildStatusBadge(String status) {
     Color backgroundColor;
     Color textColor = Colors.white;
 
     switch (status.toLowerCase()) {
       case 'open':
-        backgroundColor = Colors.blue;
+        backgroundColor = AppColors.warning;
         break;
       case 'resolved':
-        backgroundColor = Colors.green;
+        backgroundColor = AppColors.success;
         break;
       case 'closed':
-        backgroundColor = Colors.grey;
+        backgroundColor = AppColors.muted;
         break;
       default:
-        backgroundColor = Colors.grey[400]!;
+        backgroundColor = AppColors.muted;
     }
 
     return Container(
@@ -321,11 +411,11 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status,
+        status.toUpperCase(),
         style: TextStyle(
           color: textColor,
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

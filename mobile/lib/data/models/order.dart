@@ -28,6 +28,12 @@ class Order extends Equatable {
   final List<String> timeline;
   final List<SubOrder> subOrders;
   final DateTime createdAt;
+  final double? totalDistanceKm;
+  final int? etaMinutes;
+  final String? providerPhotoUrl;
+  final String? providerVehicle;
+  final String? providerPhone;
+  final double? providerRating;
 
   const Order({
     required this.id,
@@ -56,6 +62,12 @@ class Order extends Equatable {
     this.timeline = const [],
     required this.subOrders,
     required this.createdAt,
+    this.totalDistanceKm,
+    this.etaMinutes,
+    this.providerPhotoUrl,
+    this.providerVehicle,
+    this.providerPhone,
+    this.providerRating,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -94,6 +106,12 @@ class Order extends Equatable {
       timeline: _parseTimeline(json['timeline'] ?? json['status_steps'] ?? json['timeline_steps']),
       subOrders: parseSubOrders(json['sub_orders']),
       createdAt: parseDate(json['created_at']),
+      totalDistanceKm: parseDouble(json['total_distance_km'] ?? json['distance_km']).isFinite ? parseDouble(json['total_distance_km'] ?? json['distance_km']) : null,
+      etaMinutes: parseInt(json['eta_minutes'] ?? json['eta']).isFinite ? parseInt(json['eta_minutes'] ?? json['eta']) : null,
+      providerPhotoUrl: _parseProviderPhotoUrl(json),
+      providerVehicle: _parseProviderVehicle(json),
+      providerPhone: _parseProviderPhone(json),
+      providerRating: parseDouble(json['provider_rating']).isFinite ? parseDouble(json['provider_rating']) : null,
     );
   }
 
@@ -273,6 +291,40 @@ String? _parseAssignedProviderName(Map<String, dynamic> json) {
   if (assignedProvider != null) return assignedProvider.toString();
   return null;
 }
+
+String? _parseProviderPhotoUrl(Map<String, dynamic> json) {
+  final assignedProvider = json['assigned_provider'];
+  final direct = parseString(json['provider_photo_url'] ?? json['provider_photo']);
+  if (direct.isNotEmpty) return direct;
+  if (assignedProvider is Map<String, dynamic>) {
+    final photo = parseString(assignedProvider['photo_url'] ?? assignedProvider['photo']);
+    if (photo.isNotEmpty) return photo;
+  }
+  return null;
+}
+
+String? _parseProviderVehicle(Map<String, dynamic> json) {
+  final assignedProvider = json['assigned_provider'];
+  final direct = parseString(json['provider_vehicle'] ?? json['vehicle']);
+  if (direct.isNotEmpty) return direct;
+  if (assignedProvider is Map<String, dynamic>) {
+    final vehicle = parseString(assignedProvider['vehicle']);
+    if (vehicle.isNotEmpty) return vehicle;
+  }
+  return null;
+}
+
+String? _parseProviderPhone(Map<String, dynamic> json) {
+  final assignedProvider = json['assigned_provider'];
+  final direct = parseString(json['provider_phone'] ?? json['phone']);
+  if (direct.isNotEmpty) return direct;
+  if (assignedProvider is Map<String, dynamic>) {
+    final phone = parseString(assignedProvider['phone']);
+    if (phone.isNotEmpty) return phone;
+  }
+  return null;
+}
+
 List<String> _parseTimeline(dynamic value) {
   if (value is List) {
     return value.whereType<String>().toList();

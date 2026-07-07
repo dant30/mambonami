@@ -86,6 +86,94 @@ class AuthRepository {
     }
   }
 
+  Future<void> loginSendOtp(String phone, String password) async {
+    try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
+      final endpoints = <String>[
+        '/api/auth/login/send-otp/',
+        '/api/users/login/send-otp/',
+        kLoginEndpoint,
+      ];
+
+      Object? lastError;
+      for (final endpoint in endpoints) {
+        try {
+          final response = await _apiClient.dio.post(
+            endpoint,
+            data: {
+              'phone': normalizedPhone,
+              'password': password,
+            },
+          );
+
+          if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+            return;
+          }
+          lastError = Exception('Failed to initiate login OTP flow');
+        } on DioException catch (error) {
+          lastError = error;
+          if (endpoint == kLoginEndpoint) {
+            break;
+          }
+        }
+      }
+
+      if (lastError != null) {
+        throw _handleError(lastError);
+      }
+      throw Exception('Failed to initiate login OTP flow');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> loginVerifyOtp({
+    required String phone,
+    required String otp,
+    String? password,
+  }) async {
+    try {
+      final normalizedPhone = _normalizePhoneNumber(phone);
+      final endpoints = <String>[
+        '/api/auth/login/verify-otp/',
+        '/api/users/login/verify-otp/',
+        '/api/users/login/verify/',
+      ];
+
+      Object? lastError;
+      for (final endpoint in endpoints) {
+        try {
+          final response = await _apiClient.dio.post(
+            endpoint,
+            data: {
+              'phone': normalizedPhone,
+              'otp': otp,
+              if (password != null && password.isNotEmpty) 'password': password,
+            },
+          );
+
+          if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+            return _persistAuthenticatedUser(response.data, normalizedPhone);
+          }
+          lastError = Exception('Invalid OTP');
+        } on DioException catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (password != null && password.isNotEmpty) {
+        return login(normalizedPhone, password);
+      }
+
+      if (lastError != null) {
+        throw _handleError(lastError);
+      }
+      throw Exception('Invalid OTP');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
@@ -98,50 +186,43 @@ class AuthRepository {
         throw Exception('Login failed with status ${response.statusCode}');
       }
 
-      // Validate response structure
-      final responseData = normalizeMap(response.data);
-      if (responseData.isEmpty) {
-        throw Exception('Invalid response format from server');
-      }
-
-      // Extract tokens
-      if (responseData['tokens'] == null) {
-        throw Exception('Missing or invalid tokens in response');
-      }
-      final tokens = normalizeMap(responseData['tokens']);
-      final accessToken = stringValue(tokens['access']);
-      final refreshToken = stringValue(tokens['refresh']);
-
-      if (accessToken.isEmpty || refreshToken.isEmpty) {
-        throw Exception('Missing access or refresh token');
-      }
-
-      // Extract user data
-      if (responseData['user'] == null) {
-        throw Exception('Missing or invalid user data in response');
-      }
-      final user = normalizeMap(responseData['user']);
-
-      // Validate required user fields
-      final userRole = stringValue(user['role']);
-      final userPhone = stringValue(user['phone']);
-      if (userRole.isEmpty || userPhone.isEmpty) {
-        throw Exception('Missing required user fields (role or phone)');
-      }
-      final formattedPhone = _normalizePhoneNumber(userPhone);
-      user['phone'] = formattedPhone;
-
-      // Save tokens and user info to secure storage
-      await _secureStorage.saveTokens(accessToken, refreshToken);
-      await _secureStorage.saveUserRole(userRole);
-      await _secureStorage.saveUserPhone(formattedPhone);
-      await _cacheManager.saveJson(kCachedProfileKey, user);
-      await _databaseHelper.insertOrUpdateRecord(kUserTable, formattedPhone, user);
-
-      return user;
+      return _persistAuthenticatedUser(response.data, normalizedPhone);
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  Future<Map<String, dynamic>> _persistAuthenticatedUser(dynamic responseData, String normalizedPhone) async {
+    final data = normalizeMap(responseData);
+    if (data.isEmpty) {
+      throw Exception('Invalid response format from server');
+    }
+
+    final tokens = normalizeMap(data['tokens']);
+    final accessToken = stringValue(tokens['access']);
+    final refreshToken = stringValue(tokens['refresh']);
+
+    if (accessToken.isEmpty || refreshToken.isEmpty) {
+      throw Exception('Missing access or refresh token');
+    }
+
+    final user = normalizeMap(data['user']);
+    final userRole = stringValue(user['role']);
+    final userPhone = stringValue(user['phone']);
+    if (userRole.isEmpty || userPhone.isEmpty) {
+      throw Exception('Missing required user fields (role or phone)');
+    }
+
+    final formattedPhone = _normalizePhoneNumber(userPhone);
+    user['phone'] = formattedPhone;
+
+    await _secureStorage.saveTokens(accessToken, refreshToken);
+    await _secureStorage.saveUserRole(userRole);
+    await _secureStorage.saveUserPhone(formattedPhone);
+    await _cacheManager.saveJson(kCachedProfileKey, user);
+    await _databaseHelper.insertOrUpdateRecord(kUserTable, formattedPhone, user);
+
+    return user;
   }
 
   Future<Map<String, dynamic>> getProfile() async {

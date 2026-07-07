@@ -16,9 +16,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterInitEvent>(_onRegisterInit);
     on<RegisterVerifyEvent>(_onRegisterVerify);
     on<LoginEvent>(_onLogin);
-      on<LoginRequested>(_onLoginRequested);
-      on<OtpVerifyRequested>(_onOtpVerifyRequested);
-      on<RegisterRequested>(_onRegisterRequested);
+    on<LoginRequested>(_onLoginRequested);
+    on<OtpVerifyRequested>(_onOtpVerifyRequested);
+    on<RegisterRequested>(_onRegisterRequested);
+    on<LogoutEvent>(_onLogout);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
@@ -75,37 +76,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
-    try {
-      final user = await authRepository.login(event.phone, event.password);
-      
-      final role = _stringValue(user, 'role');
-      final phone = _stringValue(user, 'phone') ?? event.phone;
-      final username = _stringValue(user, 'username');
-
-      if (role == null) {
-        throw Exception('Invalid user data: missing role or phone');
-      }
-      
-      emit(AuthAuthenticated(role, phone, username));
-    } catch (e) {
-      emit(AuthError(e.toString()));
-    }
+    await _onLoginRequested(
+      LoginRequested(phone: event.phone, password: event.password),
+      emit,
+    );
   }
 
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final user = await authRepository.login(event.phone, event.password);
-      final role = _stringValue(user, 'role');
-      final phone = _stringValue(user, 'phone') ?? event.phone;
-      final username = _stringValue(user, 'username');
-
-      if (role == null) {
-        throw Exception('Invalid user data: missing role or phone');
-      }
-
-      emit(AuthAuthenticated(role, phone, username));
+      await authRepository.loginSendOtp(event.phone, event.password);
+      emit(OtpSent(phone: event.phone, password: event.password));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -114,11 +95,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onOtpVerifyRequested(OtpVerifyRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      // OTP verification is handled in the current auth flow as a placeholder.
       if (event.otp.length != 4) {
         throw Exception('Enter a valid 4-digit code');
       }
-      emit(OtpVerified());
+
+      final phone = event.phone.isNotEmpty ? event.phone : (state is OtpSent ? (state as OtpSent).phone : null);
+      final password = state is OtpSent ? (state as OtpSent).password : null;
+      if (phone == null || phone.isEmpty) {
+        throw Exception('Missing phone number for OTP verification');
+      }
+
+      final user = await authRepository.loginVerifyOtp(
+        phone: phone,
+        otp: event.otp,
+        password: password,
+      );
+
+      final role = _stringValue(user, 'role');
+      final resolvedPhone = _stringValue(user, 'phone') ?? phone;
+      final username = _stringValue(user, 'username');
+
+      if (role == null) {
+        throw Exception('Invalid user data: missing role or phone');
+      }
+
+      emit(AuthAuthenticated(role, resolvedPhone, username));
     } catch (e) {
       emit(AuthError(e.toString()));
     }

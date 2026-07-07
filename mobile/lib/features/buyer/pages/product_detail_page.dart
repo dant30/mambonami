@@ -4,16 +4,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/cart_action_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/rating_stars.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productUuid;
@@ -46,6 +50,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         showNotificationAction: true,
         actions: const [CartActionButton()],
         fallbackRoute: RoutePaths.products,
+        backgroundColor: AppColors.background,
       ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
@@ -54,7 +59,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           }
 
           if (state is ProductLoading) {
-            return const LoadingIndicator();
+            return const LoadingIndicator(message: 'Loading product...');
           }
 
           if (state is ProductDetailLoaded) {
@@ -106,14 +111,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildDetail(BuildContext context, Product product) {
     final theme = Theme.of(context);
     final available = product.availableQuantity > 0;
+    final isDark = theme.brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ─── Hero Image ──────────────────────────────────────────────
           ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: AppRadius.extraLarge,
             child: Stack(
               children: [
                 if (product.imageUrl != null && product.imageUrl!.isNotEmpty)
@@ -124,16 +131,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       height: 260,
-                      color: theme.colorScheme.primary.withOpacity(0.08),
-                      child: const Center(child: Icon(Icons.image_not_supported, size: 52)),
+                      color: AppColors.primary.withOpacity(0.08),
+                      child: const Icon(Icons.image_not_supported, size: 52, color: AppColors.muted),
                     ),
                   )
                 else
                   Container(
                     height: 260,
-                    width: double.infinity,
-                    color: theme.colorScheme.primary.withOpacity(0.08),
-                    child: const Center(child: Icon(Icons.shopping_basket, size: 60)),
+                    color: AppColors.primary.withOpacity(0.08),
+                    child: const Icon(Icons.shopping_basket, size: 60, color: AppColors.muted),
                   ),
                 Positioned(
                   bottom: 0,
@@ -143,7 +149,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [theme.colorScheme.background.withOpacity(0.0), theme.colorScheme.background.withOpacity(0.95)],
+                        colors: [
+                          AppColors.background.withOpacity(0.0),
+                          AppColors.background.withOpacity(isDark ? 0.92 : 0.95),
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -153,17 +162,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: available ? theme.colorScheme.primary : theme.colorScheme.error,
-                            borderRadius: BorderRadius.circular(12),
+                            color: available ? AppColors.primary : AppColors.error,
+                            borderRadius: AppRadius.medium,
                           ),
                           child: Text(
                             available ? 'In stock' : 'Out of stock',
-                            style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.w700),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         const Spacer(),
                         if (product.unit.isNotEmpty)
-                          Text('${product.unit.toUpperCase()}', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.75))),
+                          Text(
+                            product.unit.toUpperCase(),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: AppColors.muted,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -172,6 +190,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // ─── Title & Rating ──────────────────────────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -179,15 +199,34 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(product.displayName, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      product.displayName,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.dark,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(product.category.name.toUpperCase(), style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
+                    Text(
+                      product.category.name.toUpperCase(),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    if (product.badge != null || product.promoLabel != null || product.minOrderQuantity != null || product.location != null || product.distanceKm != null)
+                    // Tags
+                    if (product.badge != null ||
+                        product.promoLabel != null ||
+                        (product.minOrderQuantity != null && product.minOrderQuantity! > 0) ||
+                        product.location != null ||
+                        product.distanceKm != null)
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
+                          if (product.isOrganic)
+                            _buildPill(context, Icons.eco_outlined, 'Organic'),
                           if (product.badge != null && product.badge!.isNotEmpty)
                             _buildPill(context, Icons.local_offer_outlined, product.badge!),
                           if (product.promoLabel != null && product.promoLabel!.isNotEmpty)
@@ -208,14 +247,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           const SizedBox(width: 10),
                           Text(
                             '${product.averageRating.toStringAsFixed(1)} · ${product.reviewCount} review${product.reviewCount == 1 ? '' : 's'}',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.75)),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.muted,
+                            ),
                           ),
                         ],
                       )
                     else
                       Text(
                         'No reviews yet',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.65)),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.muted,
+                        ),
                       ),
                   ],
                 ),
@@ -226,7 +269,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     onPressed: () => context.read<ProductBloc>().add(ToggleFavoriteEvent(product)),
                     icon: Icon(
                       product.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: product.isFavorite ? Colors.redAccent : theme.colorScheme.onSurface,
+                      color: product.isFavorite ? Colors.redAccent : AppColors.muted,
                     ),
                     tooltip: product.isFavorite ? 'Remove from wishlist' : 'Save product',
                   ),
@@ -234,7 +277,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     onPressed: () => Share.share(
                       'Check out ${product.displayName} on Mambonami: https://mambonami.com/product/${product.uuid}',
                     ),
-                    icon: const Icon(Icons.share),
+                    icon: const Icon(Icons.share_outlined, color: AppColors.muted),
                     tooltip: 'Share product',
                   ),
                 ],
@@ -242,63 +285,159 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ],
           ),
           const SizedBox(height: 24),
+
+          // ─── Farmer Info ──────────────────────────────────────────────
           CustomCard(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
+            margin: EdgeInsets.zero,
+            onTap: () {
+              // Navigate to farmer profile (future)
+            },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: Text(
+                    product.farmerName.isNotEmpty ? product.farmerName[0].toUpperCase() : 'F',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.farmerName.isNotEmpty ? product.farmerName : product.farmerPhone,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.dark,
+                        ),
+                      ),
+                      if (product.location != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_outlined, size: 14, color: AppColors.muted),
+                            const SizedBox(width: 4),
+                            Text(
+                              product.location!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.15),
+                    borderRadius: AppRadius.small,
+                  ),
+                  child: Text(
+                    'Verified',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ─── Details Grid ──────────────────────────────────────────────
+          CustomCard(
+            padding: const EdgeInsets.all(16),
+            margin: EdgeInsets.zero,
             child: Column(
               children: [
                 _buildInfoRow(context, 'Price', 'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}'),
                 _buildInfoRow(context, 'Available', '${product.availableQuantity.toStringAsFixed(0)} ${product.unit}'),
                 if (product.minOrderQuantity != null && product.minOrderQuantity! > 0)
                   _buildInfoRow(context, 'Minimum order', '${product.minOrderQuantity!.toStringAsFixed(0)} ${product.unit}'),
-                _buildInfoRow(context, 'Weight per unit', '${product.weightPerUnit.toStringAsFixed(2)} kg'),
-                if (product.location != null && product.location!.isNotEmpty)
-                  _buildInfoRow(context, 'Location', product.location!),
+                _buildInfoRow(context, 'Harvested', product.harvestDate.toLocal().toString().split(' ').first),
+                _buildInfoRow(context, 'Shelf life', '${product.remainingShelfLife} days remaining'),
                 if (product.distanceKm != null)
                   _buildInfoRow(context, 'Distance', '${product.distanceKm!.toStringAsFixed(1)} km away'),
                 if (product.pickupLat != null && product.pickupLng != null)
                   _buildInfoRow(context, 'Pickup location', '${product.pickupLat!.toStringAsFixed(5)}, ${product.pickupLng!.toStringAsFixed(5)}'),
-                _buildInfoRow(context, 'Farmer', product.farmerName.isNotEmpty ? product.farmerName : product.farmerPhone),
-                _buildInfoRow(context, 'Harvested', product.harvestDate.toLocal().toString().split(' ').first),
-                _buildInfoRow(context, 'Shelf life', '${product.remainingShelfLife} days remaining'),
               ],
             ),
           ),
-          if (product.description != null && product.description!.isNotEmpty) ...[
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
+
+          // ─── Description ──────────────────────────────────────────────
+          if (product.description != null && product.description!.isNotEmpty)
             CustomCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
+              margin: EdgeInsets.zero,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Description', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
-                  Text(product.description!, style: theme.textTheme.bodyMedium),
+                  Text(
+                    'Description',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.dark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product.description!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.muted,
+                      height: 1.4,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
           const SizedBox(height: 16),
+
+          // ─── Quantity Selector ────────────────────────────────────────
           CustomCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: EdgeInsets.zero,
             child: Row(
               children: [
-                Text('Quantity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  'Quantity',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.dark,
+                  ),
+                ),
                 const Spacer(),
                 Row(
                   children: [
                     IconButton(
                       onPressed: _quantity > 1 ? () => setState(() => _quantity -= 1) : null,
                       icon: const Icon(Icons.remove_circle_outline),
-                      color: _quantity > 1 ? theme.colorScheme.primary : theme.disabledColor,
+                      color: _quantity > 1 ? AppColors.primary : AppColors.muted,
                     ),
                     Text(
                       '$_quantity',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.dark,
+                      ),
                     ),
                     IconButton(
-                      onPressed: product.availableQuantity > _quantity ? () => setState(() => _quantity += 1) : null,
+                      onPressed: product.availableQuantity > _quantity
+                          ? () => setState(() => _quantity += 1)
+                          : null,
                       icon: const Icon(Icons.add_circle_outline),
-                      color: product.availableQuantity > _quantity ? theme.colorScheme.primary : theme.disabledColor,
+                      color: product.availableQuantity > _quantity
+                          ? AppColors.primary
+                          : AppColors.muted,
                     ),
                   ],
                 ),
@@ -306,6 +445,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // ─── Add to Cart Button ──────────────────────────────────────
           CustomButton(
             label: available ? 'Add $_quantity to cart' : 'Unavailable',
             enabled: available,
@@ -313,18 +454,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ? () {
                     final cartRepository = GetIt.instance<CartRepository>();
                     cartRepository.addProduct(product, _quantity.toDouble());
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added $_quantity x ${product.displayName} to cart.'),
-                        action: SnackBarAction(
-                          label: 'View cart',
-                          onPressed: () => context.go(RoutePaths.cart),
-                        ),
-                      ),
+                    CustomSnackbar.showSuccess(
+                      context,
+                      'Added $_quantity x ${product.displayName} to cart.',
                     );
                   }
-                : () {},
+                : null,
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -335,30 +472,49 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(999),
+        color: AppColors.primary.withOpacity(0.12),
+        borderRadius: AppRadius.medium,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: theme.colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(label, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Icon(icon, size: 14, color: AppColors.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(width: 16),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.muted,
+            ),
+          ),
           Expanded(
-            child: Text(value, textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.dark,
+              ),
+            ),
           ),
         ],
       ),

@@ -5,17 +5,20 @@ class ShimmerGrid extends StatelessWidget {
   final int crossAxisCount;
   final int itemCount;
   final double childAspectRatio;
+  final double? itemHeight;
 
   const ShimmerGrid({
     super.key,
     this.crossAxisCount = 2,
     this.itemCount = 6,
     this.childAspectRatio = 0.72,
+    this.itemHeight,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final placeholderHeight = itemHeight ?? 120.0;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -36,7 +39,7 @@ class ShimmerGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                height: 120,
+                height: placeholderHeight,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withOpacity(0.05),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
