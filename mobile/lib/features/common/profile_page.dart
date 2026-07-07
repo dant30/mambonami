@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+﻿// mobile/lib/features/common/profile_page.dart
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,9 @@ import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_snackbar.dart';
+import '../../shared/themes/app_colors.dart';
+import '../../shared/themes/app_gradients.dart';
+import '../../shared/themes/app_radius.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -52,6 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _location;
   Map<String, dynamic>? _transportProfile;
   Map<String, dynamic>? _farmProfile;
+  bool _isEditing = false;
 
   final AuthRepository _authRepository = GetIt.I<AuthRepository>();
 
@@ -83,7 +88,10 @@ class _ProfilePageState extends State<ProfilePage> {
           ? profile['farm_profile'] as Map<String, dynamic>
           : null;
 
-      final fullName = [profile['first_name']?.toString(), profile['last_name']?.toString()].where((value) => value != null && value.isNotEmpty).join(' ').trim();
+      final fullName = [profile['first_name']?.toString(), profile['last_name']?.toString()]
+          .where((value) => value != null && value.isNotEmpty)
+          .join(' ')
+          .trim();
       if (fullName.isNotEmpty) {
         _firstNameController.text = profile['first_name']?.toString() ?? '';
         _lastNameController.text = profile['last_name']?.toString() ?? '';
@@ -140,22 +148,86 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final displayName = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
+    final displayRole = _role != null ? _role!.replaceAll('_', ' ').toUpperCase() : '';
+
+    // Build stats based on role
+    List<_StatItem> stats = [];
+    if (_role == 'farmer') {
+      final earnings = _farmProfile?['total_sales']?.toString() ?? '0';
+      final rating = _farmProfile?['rating']?.toString() ?? '4.8 ★';
+      final orders = _farmProfile?['total_orders']?.toString() ?? '48';
+      stats = [
+        _StatItem(label: 'Earnings', value: 'KES $earnings'),
+        _StatItem(label: 'Rating', value: rating),
+        _StatItem(label: 'Orders', value: orders),
+      ];
+    } else if (_role == 'transport_provider') {
+      final deliveries = _transportProfile?['total_deliveries']?.toString() ?? '0';
+      final rating = _transportProfile?['rating']?.toString() ?? '4.8 ★';
+      final trips = _transportProfile?['total_trips']?.toString() ?? '0';
+      stats = [
+        _StatItem(label: 'Deliveries', value: deliveries),
+        _StatItem(label: 'Rating', value: rating),
+        _StatItem(label: 'Trips', value: trips),
+      ];
+    } else if (_role == 'buyer' || _role == 'retailer') {
+      final orders = '0'; // TODO: fetch from API
+      final rating = '4.5 ★';
+      final items = '0';
+      stats = [
+        _StatItem(label: 'Orders', value: orders),
+        _StatItem(label: 'Rating', value: rating),
+        _StatItem(label: 'Items', value: items),
+      ];
+    }
+
+    // Verification statuses
+    final verifications = [
+      _VerificationItem(label: 'Phone Number', verified: true),
+      _VerificationItem(label: 'National ID', verified: true),
+      _VerificationItem(label: 'Cooperative Endorsement', verified: _farmProfile?['coop_verified'] == true),
+      _VerificationItem(label: 'Farm GPS Location', verified: _farmProfile?['farm_gps'] != null && _farmProfile!['farm_gps'].isNotEmpty),
+      _VerificationItem(label: 'Bank Account', verified: false),
+    ];
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Profile'),
+      appBar: CustomAppBar(
+        title: 'My Profile',
+        showNotificationAction: true,
+        actions: [
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit_outlined),
+            onPressed: () => setState(() => _isEditing = !_isEditing),
+            tooltip: _isEditing ? 'Cancel editing' : 'Edit profile',
+          ),
+        ],
+      ),
       drawer: const AppDrawer(),
       bottomNavigationBar: const AppBottomNavigationBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : AppScreen(
-              child: Form(
-                key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    CustomCard(
-                      margin: EdgeInsets.zero,
+                    // ─── Gradient Header ──────────────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.hero,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.2),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
                       child: Row(
                         children: [
                           Stack(
@@ -167,19 +239,18 @@ class _ProfilePageState extends State<ProfilePage> {
                                 firstName: _firstName,
                                 lastName: _lastName,
                                 username: _username,
-                                size: 76,
+                                size: 72,
+                                showBorder: false,
                               ),
-                              IconButton.filled(
-                                tooltip: 'Change photo',
-                                iconSize: 17,
-                                constraints: const BoxConstraints.tightFor(
-                                  width: 32,
-                                  height: 32,
+                              if (_isEditing)
+                                IconButton.filled(
+                                  tooltip: 'Change photo',
+                                  iconSize: 16,
+                                  constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+                                  padding: EdgeInsets.zero,
+                                  onPressed: _pickAvatarImage,
+                                  icon: const Icon(Icons.camera_alt, size: 14),
                                 ),
-                                padding: EdgeInsets.zero,
-                                onPressed: _pickAvatarImage,
-                                icon: const Icon(Icons.edit_outlined),
-                              ),
                             ],
                           ),
                           const SizedBox(width: 16),
@@ -188,204 +259,316 @@ class _ProfilePageState extends State<ProfilePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  displayName.isNotEmpty
-                                      ? displayName
-                                      : (_username ?? 'Your profile'),
+                                  displayName.isNotEmpty ? displayName : (_username ?? 'Your profile'),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w900),
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   _phoneController.text,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                ),
-                                if (_role != null) ...[
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    _role!.replaceAll('_', ' ').toUpperCase(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withOpacity(0.8),
                                   ),
-                                ],
-                                if ((_location ?? '').isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _location!,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.gold.withOpacity(0.3),
+                                    borderRadius: AppRadius.small,
+                                  ),
+                                  child: Text(
+                                    displayRole.isNotEmpty ? '✓ $displayRole' : 'Guest',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.gold,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                ],
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
-                    const SectionHeader(
-                      title: 'Personal Information',
+
+                    // ─── Stats Cards ──────────────────────────────────────────
+                    if (stats.isNotEmpty)
+                      Row(
+                        children: stats.map((stat) {
+                          return Expanded(
+                            child: CustomCard(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              margin: EdgeInsets.zero,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    stat.value,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    stat.label,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.muted,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    if (stats.isNotEmpty) const SizedBox(height: 24),
+
+                    // ─── Verification Status ──────────────────────────────────
+                    SectionHeader(
+                      title: 'Verification Status',
                       padding: EdgeInsets.zero,
                     ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _firstNameController,
-                      label: 'First Name',
-                      textInputAction: TextInputAction.next,
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                    ),
                     const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _lastNameController,
-                      label: 'Last Name',
-                      textInputAction: TextInputAction.next,
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 20),
-                    if (_role != null) ...[
-                      const SectionHeader(
-                        title: 'Profile Summary',
-                        padding: EdgeInsets.zero,
+                    CustomCard(
+                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: verifications.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item.label,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                if (item.verified)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success.withOpacity(0.15),
+                                      borderRadius: AppRadius.small,
+                                    ),
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.check_circle, color: AppColors.success, size: 14),
+                                        SizedBox(width: 4),
+                                        Text('Verified', style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.w700)),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.warning.withOpacity(0.15),
+                                      borderRadius: AppRadius.small,
+                                    ),
+                                    child: const Text('Add', style: TextStyle(color: AppColors.warning, fontSize: 10, fontWeight: FontWeight.w700)),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      const SizedBox(height: 12),
-                      CustomCard(
-                        margin: EdgeInsets.zero,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Role: ${_role!}', style: Theme.of(context).textTheme.bodyLarge),
-                            const SizedBox(height: 12),
-                            if (_transportProfile != null) ...[
-                              _buildStatRow('Deliveries', '${_transportProfile!['total_deliveries'] ?? '—'}'),
-                              const SizedBox(height: 8),
-                              _buildStatRow('Rating', '${_transportProfile!['rating'] ?? '—'}'),
-                              const SizedBox(height: 8),
-                              _buildStatRow('Vehicle', '${_transportProfile!['vehicle_type'] ?? '—'}'),
-                              const SizedBox(height: 8),
-                              _buildStatRow('Approved', _transportProfile!['is_approved'] == true ? 'Yes' : 'No'),
-                            ],
-                            if (_farmProfile != null) ...[
-                              _buildStatRow('Total sales', '${_farmProfile!['total_sales'] ?? '—'}'),
-                              const SizedBox(height: 8),
-                              _buildStatRow('M-Pesa', '${_farmProfile!['mpesa_number'] ?? '—'}'),
-                              const SizedBox(height: 8),
-                              _buildStatRow('Coop verified', _farmProfile!['coop_verified'] == true ? 'Yes' : 'No'),
-                            ],
-                            if ((_role ?? '').toLowerCase() == 'farmer') ...[
-                              const SizedBox(height: 8),
-                              _buildStatRow('Farm', '${_farmProfile?['farm_name'] ?? '—'}'),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                    const SectionHeader(
-                      title: 'Account Settings',
-                      padding: EdgeInsets.zero,
                     ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _usernameController,
-                      label: 'Username',
-                      textInputAction: TextInputAction.next,
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return null;
-                        return v.contains('@') ? null : 'Enter valid email';
+                    const SizedBox(height: 24),
+
+                    // ─── Menu Items ───────────────────────────────────────────
+                    _buildMenuItem(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: 'Wallet & Payouts',
+                      subtitle: 'M-Pesa · Bank',
+                      onTap: () {
+                        // TODO: Navigate to wallet page
                       },
                     ),
                     const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _phoneController,
-                      label: 'Phone',
-                      keyboardType: TextInputType.phone,
-                      enabled: false,
+                    _buildMenuItem(
+                      icon: Icons.notifications_outlined,
+                      label: 'Notifications',
+                      subtitle: 'Order, payment alerts',
+                      onTap: () {
+                        // TODO: Navigate to notifications
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMenuItem(
+                      icon: Icons.settings_outlined,
+                      label: 'Settings',
+                      subtitle: null,
+                      onTap: () {
+                        // TODO: Navigate to settings
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMenuItem(
+                      icon: Icons.help_outline,
+                      label: 'Help & Support',
+                      subtitle: null,
+                      onTap: () {
+                        // TODO: Navigate to support
+                      },
                     ),
                     const SizedBox(height: 24),
-                    const SectionHeader(
-                      title: 'Change Password',
-                      padding: EdgeInsets.zero,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _oldPasswordController,
-                      label: 'Current password',
-                      obscureText: true,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _newPasswordController,
-                      label: 'New password',
-                      obscureText: true,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirm new password',
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomButton(
-                      onPressed: _isChangingPassword ? null : _changePassword,
-                      isLoading: _isChangingPassword,
-                      label: 'Update password',
+
+                    // ─── Logout Button ─────────────────────────────────────────
+                    CustomCard(
+                      margin: EdgeInsets.zero,
+                      color: AppColors.error.withOpacity(0.08),
+                      border: BorderSide(color: AppColors.error.withOpacity(0.2)),
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: AppColors.error),
+                        title: const Text('Log Out', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700)),
+                        trailing: const Icon(Icons.chevron_right, color: AppColors.error),
+                        onTap: _confirmLogout,
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    const SectionHeader(
-                      title: 'Actions',
-                      padding: EdgeInsets.zero,
-                    ),
-                    const SizedBox(height: 16),
-                    CustomButton(onPressed: _saveProfile, isLoading: _loading, label: 'Save Changes'),
-                    const SizedBox(height: 12),
-                    CustomButton(
-                      onPressed: _confirmLogout,
-                      label: 'Log out',
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 12),
-                    CustomButton(
-                      onPressed: _confirmDeleteAccount,
-                      isLoading: _isDeletingAccount,
-                      label: 'Delete account',
-                      color: Theme.of(context).colorScheme.error,
-                      outlined: true,
-                    ),
+
+                    // ─── Edit Form (Visible when in edit mode) ──────────────
+                    if (_isEditing) ...[
+                      const Divider(height: 32),
+                      const SectionHeader(
+                        title: 'Personal Information',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: _firstNameController,
+                        label: 'First Name',
+                        textInputAction: TextInputAction.next,
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _lastNameController,
+                        label: 'Last Name',
+                        textInputAction: TextInputAction.next,
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 20),
+                      const SectionHeader(
+                        title: 'Account Settings',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: _usernameController,
+                        label: 'Username',
+                        textInputAction: TextInputAction.next,
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _emailController,
+                        label: 'Email',
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return null;
+                          return v.contains('@') ? null : 'Enter valid email';
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _phoneController,
+                        label: 'Phone',
+                        keyboardType: TextInputType.phone,
+                        enabled: false,
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionHeader(
+                        title: 'Change Password',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _oldPasswordController,
+                        label: 'Current password',
+                        obscureText: true,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _newPasswordController,
+                        label: 'New password',
+                        obscureText: true,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: _confirmPasswordController,
+                        label: 'Confirm new password',
+                        obscureText: true,
+                        textInputAction: TextInputAction.done,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomButton(
+                        onPressed: _isChangingPassword ? null : _changePassword,
+                        isLoading: _isChangingPassword,
+                        label: 'Update password',
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionHeader(
+                        title: 'Actions',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomButton(
+                        onPressed: _saveProfile,
+                        isLoading: _loading,
+                        label: 'Save Changes',
+                      ),
+                      const SizedBox(height: 12),
+                      CustomButton(
+                        onPressed: _confirmDeleteAccount,
+                        isLoading: _isDeletingAccount,
+                        label: 'Delete account',
+                        color: Theme.of(context).colorScheme.error,
+                        outlined: true,
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildMenuItem({required IconData icon, required String label, String? subtitle, required VoidCallback onTap}) {
+    final theme = Theme.of(context);
+    return CustomCard(
+      margin: EdgeInsets.zero,
+      onTap: onTap,
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.12),
+            borderRadius: AppRadius.medium,
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
+        title: Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+        subtitle: subtitle != null ? Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted)) : null,
+        trailing: const Icon(Icons.chevron_right, color: AppColors.muted),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
     );
   }
 
@@ -515,6 +698,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Helper widgets
   Widget _buildStatRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -527,4 +711,16 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+class _StatItem {
+  final String label;
+  final String value;
+  _StatItem({required this.label, required this.value});
+}
+
+class _VerificationItem {
+  final String label;
+  final bool verified;
+  _VerificationItem({required this.label, required this.verified});
 }

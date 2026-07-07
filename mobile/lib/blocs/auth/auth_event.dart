@@ -61,6 +61,28 @@ class LoginEvent extends AuthEvent {
   List<Object> get props => [phone, password];
 }
 
+class LoginRequested extends AuthEvent {
+  final String phone;
+  final String password;
+  const LoginRequested({required this.phone, required this.password});
+  @override
+  List<Object> get props => [phone, password];
+}
+
+class OtpVerifyRequested extends AuthEvent {
+  final String otp;
+  const OtpVerifyRequested(this.otp);
+  @override
+  List<Object> get props => [otp];
+}
+
+class RegisterRequested extends AuthEvent {
+  final Map<String, dynamic> dto;
+  const RegisterRequested({required this.dto});
+  @override
+  List<Object> get props => [dto];
+}
+
 class ForgotPasswordInitEvent extends AuthEvent {
   final String phone;
   const ForgotPasswordInitEvent(this.phone);

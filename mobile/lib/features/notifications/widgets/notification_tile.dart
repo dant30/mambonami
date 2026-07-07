@@ -1,3 +1,4 @@
+// mobile/lib/features/notifications/widgets/notification_tile.dart
 import 'package:flutter/material.dart';
 import '../../../data/models/notification.dart';
 

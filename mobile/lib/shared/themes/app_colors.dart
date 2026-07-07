@@ -79,6 +79,9 @@ class AppColors {
 
   static const Color error = Color(0xFFEF4444);
 
+  static const Color lightGreen = Color(0xFFE8F8EE);
+  static const Color secondaryGreen = secondary;
+
   static const Color destructiveLight = error;
 
   static const Color destructiveDark = Color(0xFFFF6B6B);

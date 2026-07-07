@@ -4,19 +4,20 @@ import 'package:flutter/material.dart';
 class AppRadius {
   AppRadius._();
 
-  static const Radius sm = Radius.circular(8);
-  static const Radius md = Radius.circular(12);
-  static const Radius lg = Radius.circular(16);
-  static const Radius xl = Radius.circular(20);
-  static const Radius xxl = Radius.circular(24);
+  static const BorderRadius sm = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius md = BorderRadius.all(Radius.circular(12));
+  static const BorderRadius lg = BorderRadius.all(Radius.circular(16));
+  static const BorderRadius xl = BorderRadius.all(Radius.circular(20));
+  static const BorderRadius xxl = BorderRadius.all(Radius.circular(24));
+  static const BorderRadius full = BorderRadius.all(Radius.circular(999));
 
-  static const BorderRadius small = BorderRadius.all(sm);
-  static const BorderRadius medium = BorderRadius.all(md);
-  static const BorderRadius large = BorderRadius.all(lg);
-  static const BorderRadius extraLarge = BorderRadius.all(xl);
-  static const BorderRadius extraExtraLarge = BorderRadius.all(xxl);
+  static const BorderRadius small = sm;
+  static const BorderRadius medium = md;
+  static const BorderRadius large = lg;
+  static const BorderRadius extraLarge = xl;
+  static const BorderRadius extraExtraLarge = xxl;
 
-  static const BorderRadius mdRadius = medium;
-  static const BorderRadius lgRadius = large;
-  static const BorderRadius xxlRadius = extraExtraLarge;
+  static const BorderRadius mdRadius = md;
+  static const BorderRadius lgRadius = lg;
+  static const BorderRadius xxlRadius = xxl;
 }

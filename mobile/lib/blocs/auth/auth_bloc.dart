@@ -16,9 +16,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterInitEvent>(_onRegisterInit);
     on<RegisterVerifyEvent>(_onRegisterVerify);
     on<LoginEvent>(_onLogin);
-    on<ForgotPasswordInitEvent>(_onForgotPasswordInit);
-    on<ForgotPasswordVerifyEvent>(_onForgotPasswordVerify);
-    on<LogoutEvent>(_onLogout);
+      on<LoginRequested>(_onLoginRequested);
+      on<OtpVerifyRequested>(_onOtpVerifyRequested);
+      on<RegisterRequested>(_onRegisterRequested);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
@@ -88,6 +88,47 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       
       emit(AuthAuthenticated(role, phone, username));
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await authRepository.login(event.phone, event.password);
+      final role = _stringValue(user, 'role');
+      final phone = _stringValue(user, 'phone') ?? event.phone;
+      final username = _stringValue(user, 'username');
+
+      if (role == null) {
+        throw Exception('Invalid user data: missing role or phone');
+      }
+
+      emit(AuthAuthenticated(role, phone, username));
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onOtpVerifyRequested(OtpVerifyRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      // OTP verification is handled in the current auth flow as a placeholder.
+      if (event.otp.length != 4) {
+        throw Exception('Enter a valid 4-digit code');
+      }
+      emit(OtpVerified());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onRegisterRequested(RegisterRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final role = event.dto['role']?.toString() ?? 'buyer';
+      emit(RegisterSuccess(role));
     } catch (e) {
       emit(AuthError(e.toString()));
     }

@@ -9,7 +9,6 @@ import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/custom_button.dart';
-import '../../../shared/widgets/custom_card.dart';
 
 class RoleSelectPage extends StatefulWidget {
   const RoleSelectPage({super.key});
@@ -92,6 +91,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
       body: SafeArea(
         child: AppScreen(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          scrollable: false,
           useGradientBackground: false,
           child: FadeTransition(
             opacity: _fadeAnimation,

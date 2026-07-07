@@ -11,6 +11,24 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
+class OtpSent extends AuthState {
+  final String phone;
+  const OtpSent(this.phone);
+
+  @override
+  List<Object> get props => [phone];
+}
+
+class OtpVerified extends AuthState {}
+
+class RegisterSuccess extends AuthState {
+  final String role;
+  const RegisterSuccess(this.role);
+
+  @override
+  List<Object> get props => [role];
+}
+
 class RegisterInitSuccess extends AuthState {}
 
 class ForgotPasswordInitSuccess extends AuthState {}

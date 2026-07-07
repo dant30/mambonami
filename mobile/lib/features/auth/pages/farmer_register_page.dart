@@ -8,7 +8,6 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../../../shared/widgets/progress_indicator.dart';
 
 class FarmerRegisterPage extends StatefulWidget {
   const FarmerRegisterPage({super.key});

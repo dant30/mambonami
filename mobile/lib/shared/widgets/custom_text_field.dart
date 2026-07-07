@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? label;
   final String? labelText;
+  final String? hint;
   final String? hintText;
   final bool obscureText;
   final TextInputType keyboardType;
@@ -32,6 +33,7 @@ class CustomTextField extends StatelessWidget {
     this.controller,
     this.label,
     this.labelText,
+    this.hint,
     this.hintText,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
@@ -62,7 +64,7 @@ class CustomTextField extends StatelessWidget {
     // Build decoration
     final inputDecoration = InputDecoration(
       labelText: effectiveLabel,
-      hintText: hintText,
+      hintText: hint ?? hintText,
       helperText: helperText,
       errorText: errorText,
       contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
