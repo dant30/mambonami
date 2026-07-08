@@ -167,7 +167,7 @@ class RetailerDashboard extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (val, _) {
-                          return Text(data[val.toInt()][0], style: const TextStyle(fontSize: 10, color: AppColors.textMuted));
+                          return Text('${data[val.toInt()][0]}', style: const TextStyle(fontSize: 10, color: AppColors.textMuted));
                         },
                         interval: 1,
                       ),
@@ -235,7 +235,7 @@ class RetailerDashboard extends StatelessWidget {
   }
 
   Widget _buildReorderList(BuildContext context) {
-    final items = [
+    final items = <Map<String, dynamic>>[
       {'name': 'Avocado', 'supplier': 'Kamau Farm', 'qty': '50 kg', 'price': 'KES 12,500', 'img': 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=50&h=50&fit=crop'},
       {'name': 'Tomatoes', 'supplier': 'Wanjiku Farm', 'qty': '100 kg', 'price': 'KES 9,000', 'img': 'https://images.unsplash.com/photo-1546470427-e26264be0b07?w=50&h=50&fit=crop'},
       {'name': 'Sukuma Wiki', 'supplier': 'Thika Farms', 'qty': '200 bunches', 'price': 'KES 4,000', 'img': 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=50&h=50&fit=crop'},
@@ -251,16 +251,16 @@ class RetailerDashboard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: AppRadius.md,
-                  child: Image.network(item['img']!, width: 48, height: 48, fit: BoxFit.cover),
+                  child: Image.network(item['img'] as String, width: 48, height: 48, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item['name']!, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(item['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700)),
                       Text('${item['supplier']} · ${item['qty']}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                      Text(item['price']!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                      Text(item['price'] as String, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
                     ],
                   ),
                 ),
@@ -279,7 +279,7 @@ class RetailerDashboard extends StatelessWidget {
   }
 
   Widget _buildActiveOrders(BuildContext context) {
-    final orders = [
+    final orders = <Map<String, dynamic>>[
       {'id': 'ORD-4821', 'farmer': 'Kamau Farm', 'item': 'Avocado 50kg', 'amount': 'KES 12,500', 'status': 'Picked Up', 'color': AppColors.secondaryGreen},
       {'id': 'ORD-4819', 'farmer': 'Wanjiku Farm', 'item': 'Tomatoes 100kg', 'amount': 'KES 9,000', 'status': 'Farmer Ready', 'color': AppColors.warning},
     ];

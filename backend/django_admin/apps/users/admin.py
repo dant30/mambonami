@@ -1,7 +1,7 @@
 ﻿# django_admin/apps/users/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, FarmerProfile, TransportProviderProfile
+from .models import User, FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile
 
 
 class FarmerProfileInline(admin.StackedInline):
@@ -16,6 +16,18 @@ class TransportProfileInline(admin.StackedInline):
     verbose_name_plural = 'Transport Provider Profile'
 
 
+class BuyerProfileInline(admin.StackedInline):
+    model = BuyerProfile
+    can_delete = False
+    verbose_name_plural = 'Buyer Profile'
+
+
+class RetailerProfileInline(admin.StackedInline):
+    model = RetailerProfile
+    can_delete = False
+    verbose_name_plural = 'Retailer Profile'
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = ('phone', 'username', 'role', 'is_phone_verified', 'is_staff', 'is_active')
@@ -28,7 +40,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('MAMBONAMI Info', {'fields': ('role', 'phone')}),
     )
-    inlines = [FarmerProfileInline, TransportProfileInline]
+    inlines = [FarmerProfileInline, TransportProfileInline, BuyerProfileInline, RetailerProfileInline]
 
 
 @admin.register(FarmerProfile)

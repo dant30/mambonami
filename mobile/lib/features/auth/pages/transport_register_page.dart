@@ -19,6 +19,7 @@ class TransportRegisterPage extends StatefulWidget {
 class _TransportRegisterPageState extends State<TransportRegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _idController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _licenseNumberController = TextEditingController();
@@ -34,6 +35,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _phoneController.dispose();
     _idController.dispose();
     _licensePlateController.dispose();
     _licenseNumberController.dispose();
@@ -108,6 +110,15 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   label: 'Full Name',
                   hint: 'David Ochieng',
                   validator: (v) => v == null || v.isEmpty ? 'Enter full name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number',
+                  hint: '+254 7XX XXX XXX',
+                  keyboardType: TextInputType.phone,
+                  prefixIcon: const Icon(Icons.phone_rounded, color: AppColors.textMuted, size: 18),
+                  validator: (v) => v == null || v.isEmpty ? 'Enter phone number' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -224,9 +235,10 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                           ctx.read<AuthBloc>().add(
                             RegisterRequested(
                               dto: {
-                                'role': 'transport',
+                                'role': 'transport_provider',
+                                'phone': _phoneController.text.trim(),
                                 'full_name': _fullNameController.text.trim(),
-                                'id_number': _idController.text.trim(),
+                                'national_id': _idController.text.trim(),
                                 'vehicle_type': _selectedVehicle,
                                 'license_plate': _licensePlateController.text.trim(),
                                 'driver_license': _licenseNumberController.text.trim(),

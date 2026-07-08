@@ -19,6 +19,7 @@ class RetailerRegisterPage extends StatefulWidget {
 
 class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _phoneController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _ownerNameController = TextEditingController();
   final _businessPhoneController = TextEditingController();
@@ -36,6 +37,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
 
   @override
   void dispose() {
+    _phoneController.dispose();
     _businessNameController.dispose();
     _ownerNameController.dispose();
     _businessPhoneController.dispose();
@@ -123,6 +125,19 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                   label: 'Business Name',
                   hint: 'Kamau Fresh Groceries',
                   validator: (v) => v == null || v.isEmpty ? 'Enter business name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number',
+                  hint: '+254 7XX XXX XXX',
+                  keyboardType: TextInputType.phone,
+                  prefixIcon: const Icon(
+                    Icons.phone_rounded,
+                    color: AppColors.textMuted,
+                    size: 18,
+                  ),
+                  validator: (v) => v == null || v.isEmpty ? 'Enter phone number' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -234,6 +249,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                             RegisterRequested(
                               dto: {
                                 'role': 'retailer',
+                                'phone': _phoneController.text.trim(),
                                 'business_name': _businessNameController.text.trim(),
                                 'owner_full_name': _ownerNameController.text.trim(),
                                 'business_phone': _businessPhoneController.text.trim(),

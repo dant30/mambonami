@@ -23,6 +23,17 @@ class User(AbstractUser):   # no BaseModel
     )
     is_phone_verified = models.BooleanField(default=False)
     email = models.EmailField(blank=True, null=True)
+    national_id = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        unique=True,
+        help_text='National identification number for KYC and verification',
+    )
+    national_id_verified = models.BooleanField(
+        default=False,
+        help_text='Has the user national ID been verified by admin?',
+    )
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['username']
@@ -51,6 +62,11 @@ class FarmerProfile(BaseModel):
         blank=True,
         validators=[validate_gps_coordinates],
         help_text='GPS coordinates in format lat,lng',
+    )
+    cooperative = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Cooperative or group affiliation for the farmer',
     )
     coop_verified = models.BooleanField(
         default=False,
@@ -91,6 +107,11 @@ class TransportProviderProfile(BaseModel):
     )
     license_plate = models.CharField(max_length=20, blank=True)
     driver_license = models.CharField(max_length=50, blank=True)
+    bank_account = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Bank account number for transport provider payouts',
+    )
     deposit_paid = models.BooleanField(default=False)
     deposit_transaction_id = models.CharField(max_length=50, blank=True)
     is_approved = models.BooleanField(
@@ -121,3 +142,43 @@ class TransportProviderProfile(BaseModel):
 
     def __str__(self):
         return f"Provider: {self.user.phone} ({self.vehicle_type or 'unassigned'})"
+
+
+class BuyerProfile(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='buyer_profile')
+    delivery_address = models.TextField(blank=True, help_text='Default delivery address for the buyer')
+    delivery_instructions = models.TextField(blank=True, help_text='Preferred delivery instructions')
+    bank_account = models.CharField(max_length=50, blank=True, help_text='Bank account for buyer refunds')
+
+    class Meta:
+        db_table = 'buyer_profiles'
+        verbose_name = 'Buyer Profile'
+        verbose_name_plural = 'Buyer Profiles'
+
+    def __str__(self):
+        return f"Buyer: {self.user.phone}"
+
+
+class RetailerProfile(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='retailer_profile')
+    business_name = models.CharField(max_length=150, blank=True, help_text='Retailer business name')
+    owner_full_name = models.CharField(max_length=150, blank=True, help_text='Retailer owner name')
+    business_phone = models.CharField(
+        max_length=15,
+        blank=True,
+        validators=[validate_phone_number],
+        help_text='Retailer contact phone number',
+    )
+    business_email = models.EmailField(blank=True, help_text='Retailer business email address')
+    business_address = models.TextField(blank=True, help_text='Retailer business address')
+    business_type = models.CharField(max_length=100, blank=True, help_text='Category of retailer business')
+    kra_pin = models.CharField(max_length=20, blank=True, help_text='KRA PIN for business registration')
+    bank_account = models.CharField(max_length=50, blank=True, help_text='Retailer bank account for payouts')
+
+    class Meta:
+        db_table = 'retailer_profiles'
+        verbose_name = 'Retailer Profile'
+        verbose_name_plural = 'Retailer Profiles'
+
+    def __str__(self):
+        return f"Retailer: {self.business_name or self.user.phone}"

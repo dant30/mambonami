@@ -194,7 +194,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                               dto: {
                                 'role': 'farmer',
                                 'full_name': _fullNameController.text.trim(),
-                                'id_number': _idController.text.trim(),
+                                'national_id': _idController.text.trim(),
                                 'mpesa_number': _phoneController.text.trim(),
                                 'cooperative': _coopController.text.trim(),
                                 'farm_gps': _gpsController.text.trim(),

@@ -42,10 +42,24 @@ class AuthRepository {
     required String password,
     required String role,
     String? email,
+    String? fullName,
+    String? ownerFullName,
+    String? nationalId,
     String? farmGps,
     String? mpesaNumber,
+    String? cooperative,
     String? vehicleType,
     String? licensePlate,
+    String? driverLicense,
+    String? bankAccount,
+    String? deliveryAddress,
+    String? deliveryInstructions,
+    String? businessName,
+    String? businessPhone,
+    String? businessEmail,
+    String? businessAddress,
+    String? businessType,
+    String? kraPin,
   }) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
@@ -58,10 +72,24 @@ class AuthRepository {
         'role': role,
       };
       if (email != null && email.isNotEmpty) data['email'] = email;
-      if (farmGps != null) data['farm_gps'] = farmGps;
-      if (mpesaNumber != null) data['mpesa_number'] = mpesaNumber;
-      if (vehicleType != null) data['vehicle_type'] = vehicleType;
-      if (licensePlate != null) data['license_plate'] = licensePlate;
+      if (fullName != null && fullName.isNotEmpty) data['full_name'] = fullName;
+      if (ownerFullName != null && ownerFullName.isNotEmpty) data['owner_full_name'] = ownerFullName;
+      if (nationalId != null && nationalId.isNotEmpty) data['national_id'] = nationalId;
+      if (farmGps != null && farmGps.isNotEmpty) data['farm_gps'] = farmGps;
+      if (mpesaNumber != null && mpesaNumber.isNotEmpty) data['mpesa_number'] = mpesaNumber;
+      if (cooperative != null && cooperative.isNotEmpty) data['cooperative'] = cooperative;
+      if (vehicleType != null && vehicleType.isNotEmpty) data['vehicle_type'] = vehicleType;
+      if (licensePlate != null && licensePlate.isNotEmpty) data['license_plate'] = licensePlate;
+      if (driverLicense != null && driverLicense.isNotEmpty) data['driver_license'] = driverLicense;
+      if (bankAccount != null && bankAccount.isNotEmpty) data['bank_account'] = bankAccount;
+      if (deliveryAddress != null && deliveryAddress.isNotEmpty) data['delivery_address'] = deliveryAddress;
+      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) data['delivery_instructions'] = deliveryInstructions;
+      if (businessName != null && businessName.isNotEmpty) data['business_name'] = businessName;
+      if (businessPhone != null && businessPhone.isNotEmpty) data['business_phone'] = businessPhone;
+      if (businessEmail != null && businessEmail.isNotEmpty) data['business_email'] = businessEmail;
+      if (businessAddress != null && businessAddress.isNotEmpty) data['business_address'] = businessAddress;
+      if (businessType != null && businessType.isNotEmpty) data['business_type'] = businessType;
+      if (kraPin != null && kraPin.isNotEmpty) data['kra_pin'] = kraPin;
 
       final response = await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
       if (response.statusCode == 201) {

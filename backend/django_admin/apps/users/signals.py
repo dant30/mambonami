@@ -1,7 +1,7 @@
 ﻿# backend/django_admin/apps/users/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import User, FarmerProfile, TransportProviderProfile
+from .models import User, FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile
 
 
 @receiver(post_save, sender=User)
@@ -13,3 +13,7 @@ def create_role_profile(sender, instance, created, **kwargs):
         FarmerProfile.objects.create(user=instance, mpesa_number=instance.phone)
     elif instance.role == 'transport_provider' and not hasattr(instance, 'transport_profile'):
         TransportProviderProfile.objects.create(user=instance)
+    elif instance.role == 'buyer' and not hasattr(instance, 'buyer_profile'):
+        BuyerProfile.objects.create(user=instance)
+    elif instance.role == 'retailer' and not hasattr(instance, 'retailer_profile'):
+        RetailerProfile.objects.create(user=instance)

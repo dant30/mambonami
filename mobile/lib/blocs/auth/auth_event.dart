@@ -22,10 +22,25 @@ class RegisterVerifyEvent extends AuthEvent {
   final String password;
   final String role;
   final String? email;
+  final String? fullName;
+  final String? ownerFullName;
+  final String? nationalId;
   final String? farmGps;
   final String? mpesaNumber;
+  final String? cooperative;
   final String? vehicleType;
   final String? licensePlate;
+  final String? driverLicense;
+  final String? bankAccount;
+  final String? deliveryAddress;
+  final String? deliveryInstructions;
+  final String? businessName;
+  final String? businessPhone;
+  final String? businessEmail;
+  final String? businessAddress;
+  final String? businessType;
+  final String? kraPin;
+
   const RegisterVerifyEvent({
     required this.phone,
     required this.otp,
@@ -33,11 +48,26 @@ class RegisterVerifyEvent extends AuthEvent {
     required this.password,
     required this.role,
     this.email,
+    this.fullName,
+    this.ownerFullName,
+    this.nationalId,
     this.farmGps,
     this.mpesaNumber,
+    this.cooperative,
     this.vehicleType,
     this.licensePlate,
+    this.driverLicense,
+    this.bankAccount,
+    this.deliveryAddress,
+    this.deliveryInstructions,
+    this.businessName,
+    this.businessPhone,
+    this.businessEmail,
+    this.businessAddress,
+    this.businessType,
+    this.kraPin,
   });
+
   @override
   List<Object?> get props => [
         phone,
@@ -46,10 +76,24 @@ class RegisterVerifyEvent extends AuthEvent {
         password,
         role,
         email,
+        fullName,
+        ownerFullName,
+        nationalId,
         farmGps,
         mpesaNumber,
+        cooperative,
         vehicleType,
         licensePlate,
+        driverLicense,
+        bankAccount,
+        deliveryAddress,
+        deliveryInstructions,
+        businessName,
+        businessPhone,
+        businessEmail,
+        businessAddress,
+        businessType,
+        kraPin,
       ];
 }
 

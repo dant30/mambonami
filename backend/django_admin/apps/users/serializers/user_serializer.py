@@ -7,7 +7,13 @@ from core.cache import RedisCache, cache_otp, delete_otp, get_otp
 from core.utils import generate_otp
 from core.validators import normalize_phone_number, validate_phone_number
 from apps.notifications.services.sms import send_otp_message
-from ..models import User, FarmerProfile, TransportProviderProfile
+from ..models import (
+    User,
+    FarmerProfile,
+    TransportProviderProfile,
+    BuyerProfile,
+    RetailerProfile,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +44,13 @@ class VerifyOTPSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
+    full_name = serializers.CharField(required=False, allow_blank=True)
+    owner_full_name = serializers.CharField(required=False, allow_blank=True)
+    national_id = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     farm_gps = serializers.CharField(required=False, allow_blank=True)
     mpesa_number = serializers.CharField(required=False, allow_blank=True)
+    cooperative = serializers.CharField(required=False, allow_blank=True)
     vehicle_type = serializers.ChoiceField(
         choices=TransportProviderProfile.VEHICLE_TYPES,
         required=False,
@@ -48,6 +58,15 @@ class VerifyOTPSerializer(serializers.Serializer):
     )
     license_plate = serializers.CharField(required=False, allow_blank=True)
     driver_license = serializers.CharField(required=False, allow_blank=True)
+    bank_account = serializers.CharField(required=False, allow_blank=True)
+    delivery_address = serializers.CharField(required=False, allow_blank=True)
+    delivery_instructions = serializers.CharField(required=False, allow_blank=True)
+    business_name = serializers.CharField(required=False, allow_blank=True)
+    business_phone = serializers.CharField(required=False, allow_blank=True)
+    business_email = serializers.EmailField(required=False, allow_blank=True)
+    business_address = serializers.CharField(required=False, allow_blank=True)
+    business_type = serializers.CharField(required=False, allow_blank=True)
+    kra_pin = serializers.CharField(required=False, allow_blank=True)
 
     def validate_phone(self, value):
         normalized_phone = normalize_phone_number(value)
@@ -82,9 +101,15 @@ class VerifyOTPSerializer(serializers.Serializer):
         if attrs['role'] == 'farmer':
             if not attrs.get('farm_gps') or not attrs.get('mpesa_number'):
                 raise serializers.ValidationError('Farm GPS and M-Pesa number are required for farmers.')
-        if attrs['role'] == 'transport_provider':
+        elif attrs['role'] == 'transport_provider':
             if not attrs.get('vehicle_type') or not attrs.get('license_plate'):
                 raise serializers.ValidationError('Vehicle type and license plate are required for transport providers.')
+        elif attrs['role'] == 'buyer':
+            if not attrs.get('delivery_address'):
+                raise serializers.ValidationError('Delivery address is required for buyers.')
+        elif attrs['role'] == 'retailer':
+            if not attrs.get('business_name') or not attrs.get('owner_full_name'):
+                raise serializers.ValidationError('Business name and owner full name are required for retailers.')
 
         return attrs
 
@@ -92,12 +117,25 @@ class VerifyOTPSerializer(serializers.Serializer):
         validated_data.pop('otp')
         validated_data.pop('confirm_password')
 
+        email = validated_data.pop('email', None)
+        full_name = validated_data.pop('full_name', None)
+        owner_full_name = validated_data.pop('owner_full_name', None)
+        national_id = validated_data.pop('national_id', None)
         farm_gps = validated_data.pop('farm_gps', None)
         mpesa_number = validated_data.pop('mpesa_number', None)
+        cooperative = validated_data.pop('cooperative', None)
         vehicle_type = validated_data.pop('vehicle_type', None)
         license_plate = validated_data.pop('license_plate', None)
         driver_license = validated_data.pop('driver_license', None)
-        email = validated_data.pop('email', None)
+        bank_account = validated_data.pop('bank_account', None)
+        delivery_address = validated_data.pop('delivery_address', None)
+        delivery_instructions = validated_data.pop('delivery_instructions', None)
+        business_name = validated_data.pop('business_name', None)
+        business_phone = validated_data.pop('business_phone', None)
+        business_email = validated_data.pop('business_email', None)
+        business_address = validated_data.pop('business_address', None)
+        business_type = validated_data.pop('business_type', None)
+        kra_pin = validated_data.pop('kra_pin', None)
 
         user = User.objects.create_user(
             phone=validated_data['phone'],
@@ -105,23 +143,64 @@ class VerifyOTPSerializer(serializers.Serializer):
             password=validated_data['password'],
             role=validated_data['role'],
             email=email,
+            national_id=national_id,
             is_phone_verified=True,
         )
+
+        if full_name and user.role in ['farmer', 'buyer', 'transport_provider']:
+            user.first_name = full_name
+            user.save(update_fields=['first_name'])
+        elif owner_full_name and user.role == 'retailer':
+            user.first_name = owner_full_name
+            user.save(update_fields=['first_name'])
 
         if user.role == 'farmer':
             farmer_profile, _ = FarmerProfile.objects.get_or_create(user=user)
             farmer_profile.farm_gps = farm_gps or ''
             farmer_profile.mpesa_number = mpesa_number or user.phone
+            farmer_profile.cooperative = cooperative or ''
             farmer_profile.coop_verified = False
-            farmer_profile.save(update_fields=['farm_gps', 'mpesa_number', 'coop_verified'])
+            if bank_account is not None:
+                farmer_profile.bank_account = bank_account
+            farmer_profile.save(update_fields=['farm_gps', 'mpesa_number', 'cooperative', 'coop_verified', 'bank_account'])
         elif user.role == 'transport_provider':
             transport_profile, _ = TransportProviderProfile.objects.get_or_create(user=user)
             transport_profile.vehicle_type = vehicle_type or ''
             transport_profile.license_plate = license_plate or ''
             transport_profile.driver_license = driver_license or ''
+            if bank_account is not None:
+                transport_profile.bank_account = bank_account
             transport_profile.deposit_paid = False
             transport_profile.is_approved = False
-            transport_profile.save(update_fields=['vehicle_type', 'license_plate', 'driver_license', 'deposit_paid', 'is_approved'])
+            transport_profile.save(update_fields=['vehicle_type', 'license_plate', 'driver_license', 'bank_account', 'deposit_paid', 'is_approved'])
+        elif user.role == 'buyer':
+            buyer_profile, _ = BuyerProfile.objects.get_or_create(user=user)
+            buyer_profile.delivery_address = delivery_address or ''
+            buyer_profile.delivery_instructions = delivery_instructions or ''
+            if bank_account is not None:
+                buyer_profile.bank_account = bank_account
+            buyer_profile.save(update_fields=['delivery_address', 'delivery_instructions', 'bank_account'])
+        elif user.role == 'retailer':
+            retailer_profile, _ = RetailerProfile.objects.get_or_create(user=user)
+            retailer_profile.business_name = business_name or ''
+            retailer_profile.owner_full_name = owner_full_name or ''
+            retailer_profile.business_phone = business_phone or ''
+            retailer_profile.business_email = business_email or ''
+            retailer_profile.business_address = business_address or ''
+            retailer_profile.business_type = business_type or ''
+            retailer_profile.kra_pin = kra_pin or ''
+            if bank_account is not None:
+                retailer_profile.bank_account = bank_account
+            retailer_profile.save(update_fields=[
+                'business_name',
+                'owner_full_name',
+                'business_phone',
+                'business_email',
+                'business_address',
+                'business_type',
+                'kra_pin',
+                'bank_account',
+            ])
 
         delete_otp(validated_data['phone'])
         return user
@@ -216,12 +295,15 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     farm_profile = serializers.SerializerMethodField()
     transport_profile = serializers.SerializerMethodField()
+    buyer_profile = serializers.SerializerMethodField()
+    retailer_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'phone', 'username', 'email', 'first_name', 'last_name', 'role',
-            'is_phone_verified', 'is_staff', 'is_superuser', 'date_joined', 'farm_profile', 'transport_profile',
+            'national_id', 'is_phone_verified', 'is_staff', 'is_superuser', 'date_joined',
+            'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
 
     def get_farm_profile(self, obj):
@@ -244,6 +326,29 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'is_approved': obj.transport_profile.is_approved,
                 'rating': obj.transport_profile.rating,
                 'total_deliveries': obj.transport_profile.total_deliveries,
+            }
+        return None
+
+    def get_buyer_profile(self, obj):
+        if hasattr(obj, 'buyer_profile'):
+            return {
+                'delivery_address': obj.buyer_profile.delivery_address,
+                'delivery_instructions': obj.buyer_profile.delivery_instructions,
+                'bank_account': obj.buyer_profile.bank_account,
+            }
+        return None
+
+    def get_retailer_profile(self, obj):
+        if hasattr(obj, 'retailer_profile'):
+            return {
+                'business_name': obj.retailer_profile.business_name,
+                'owner_full_name': obj.retailer_profile.owner_full_name,
+                'business_phone': obj.retailer_profile.business_phone,
+                'business_email': obj.retailer_profile.business_email,
+                'business_address': obj.retailer_profile.business_address,
+                'business_type': obj.retailer_profile.business_type,
+                'kra_pin': obj.retailer_profile.kra_pin,
+                'bank_account': obj.retailer_profile.bank_account,
             }
         return None
 
