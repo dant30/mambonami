@@ -81,6 +81,7 @@ class AppColors {
 
   static const Color lightGreen = Color(0xFFE8F8EE);
   static const Color secondaryGreen = secondary;
+  static const Color transportPurple = Color(0xFF4C1D95);
 
   static const Color destructiveLight = error;
 

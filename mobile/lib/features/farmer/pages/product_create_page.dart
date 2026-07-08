@@ -1,4 +1,6 @@
-﻿import 'dart:io';
+﻿// lib/features/farmer/pages/product_create_page.dart
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +13,11 @@ import '../../../data/models/product.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
+import '../../../shared/themes/app_colors.dart';
 import '../../../shared/utils/image_picker_helper.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 
 class ProductCreatePage extends StatefulWidget {
   const ProductCreatePage({super.key});
@@ -22,20 +28,20 @@ class ProductCreatePage extends StatefulWidget {
 
 class _ProductCreatePageState extends State<ProductCreatePage> {
   final _formKey = GlobalKey<FormState>();
-  final _categoryController = TextEditingController();
   final _nameController = TextEditingController();
-  final _varietyController = TextEditingController();
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
-  final _unitController = TextEditingController();
-  final _shelfLifeController = TextEditingController();
   final _descriptionController = TextEditingController();
+
   DateTime _harvestDate = DateTime.now();
   bool _isActive = true;
   File? _selectedImage;
   bool _isLoadingCategories = true;
   List<ProductCategory> _categories = [];
   ProductCategory? _selectedCategory;
+  String _selectedUnit = 'kg';
+
+  final List<String> _units = ['kg', 'bunch', 'piece', 'litre', 'tray', 'bag'];
 
   @override
   void initState() {
@@ -45,13 +51,9 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
   @override
   void dispose() {
-    _categoryController.dispose();
     _nameController.dispose();
-    _varietyController.dispose();
     _priceController.dispose();
     _quantityController.dispose();
-    _unitController.dispose();
-    _shelfLifeController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -97,28 +99,32 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final categoryId = _selectedCategory?.id ?? int.tryParse(_categoryController.text.trim());
     final price = double.tryParse(_priceController.text.trim());
     final quantity = double.tryParse(_quantityController.text.trim());
-    final shelfLife = int.tryParse(_shelfLifeController.text.trim());
 
-    if (categoryId == null || price == null || quantity == null || shelfLife == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid category, price, quantity, and shelf life values.')),
-      );
+    if (_selectedCategory == null) {
+      CustomSnackbar.showError(context, 'Please select a category.');
+      return;
+    }
+    if (price == null || price <= 0) {
+      CustomSnackbar.showError(context, 'Please enter a valid price.');
+      return;
+    }
+    if (quantity == null || quantity <= 0) {
+      CustomSnackbar.showError(context, 'Please enter a valid quantity.');
       return;
     }
 
     final productData = <String, dynamic>{
-      'category': categoryId,
+      'category': _selectedCategory!.id,
       'name': _nameController.text.trim(),
-      'variety': _varietyController.text.trim().isEmpty ? null : _varietyController.text.trim(),
       'price_per_unit': price,
       'available_quantity': quantity,
-      'unit': _unitController.text.trim(),
+      'unit': _selectedUnit,
       'harvest_date': _harvestDate.toIso8601String().split('T').first,
-      'shelf_life_days': shelfLife,
-      'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      'description': _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
       'is_active': _isActive,
       if (_selectedImage != null) 'image': _selectedImage,
     };
@@ -128,194 +134,311 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<ProductBloc, ProductState>(
+    return BlocListener<ProductBloc, ProductState>(
       listener: (context, state) {
         if (state is ProductCreated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('"${state.product.displayName}" created successfully.')),
-          );
+          CustomSnackbar.showSuccess(
+              context, '"${state.product.displayName}" created successfully.');
           context.go(RoutePaths.farmerProducts);
         }
         if (state is ProductError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          CustomSnackbar.showError(context, state.message);
         }
       },
-      builder: (context, state) {
-        final isSaving = state is ProductLoading;
-        return Scaffold(
-          appBar: const CustomAppBar(
-            title: 'Create Product',
-            showBackButton: true,
-            fallbackRoute: RoutePaths.farmerProducts,
-          ),
-          drawer: const AppDrawer(),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: const CustomAppBar(
+          title: 'Add New Product',
+          showBackButton: true,
+          fallbackRoute: RoutePaths.farmerProducts,
+        ),
+        drawer: const AppDrawer(),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Image picker ─────────────────────────────────────────
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
                     width: double.infinity,
+                    height: 160,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      color: AppColors.light,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        width: 1.5,
+                        style: BorderStyle.solid,
                       ),
-                      borderRadius: BorderRadius.circular(18),
+                      image: _selectedImage != null
+                          ? DecorationImage(
+                              image: FileImage(_selectedImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Add a new product', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 6),
-                        Text('Fill details and publish to your catalog', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  if (_isLoadingCategories)
-                    const LinearProgressIndicator()
-                  else if (_categories.isNotEmpty)
-                    DropdownButtonFormField<ProductCategory>(
-                      initialValue: _selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Category'),
-                      items: _categories
-                          .map(
-                            (category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(category.name),
-                            ),
+                    child: _selectedImage == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Upload Product Photo',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const Text(
+                                'Tap to select from gallery',
+                                style: TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           )
-                          .toList(),
-                      onChanged: isSaving
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _selectedCategory = value;
-                                _categoryController.text = value?.id.toString() ?? '';
-                              });
-                            },
-                      validator: (_) => _selectedCategory == null ? 'Select a category' : null,
-                    )
-                  else
-                    TextFormField(
-                      controller: _categoryController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Category ID', hintText: 'Enter backend category ID'),
-                      validator: (value) => value == null || value.trim().isEmpty ? 'Category is required' : null,
-                    ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Product name'),
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Product name is required' : null,
+                        : null,
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _varietyController,
-                    decoration: const InputDecoration(labelText: 'Variety (optional)'),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+                ),
+                const SizedBox(height: 20),
+
+                // ── Product name ────────────────────────────────────────
+                CustomTextField(
+                  controller: _nameController,
+                  label: 'Product Name',
+                  hint: 'e.g. Ripe Avocado',
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty
+                          ? 'Product name is required'
+                          : null,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Category dropdown ──────────────────────────────────
+                if (_isLoadingCategories)
+                  const LinearProgressIndicator()
+                else if (_categories.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _priceController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Price per unit'),
-                          validator: (value) => value == null || value.trim().isEmpty ? 'Price is required' : null,
+                      Text(
+                        'Category',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _quantityController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Available quantity'),
-                          validator: (value) => value == null || value.trim().isEmpty ? 'Quantity is required' : null,
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<ProductCategory>(
+                        value: _selectedCategory,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                         ),
+                        items: _categories
+                            .map(
+                              (category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(category.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedCategory = value),
+                        validator: (_) => _selectedCategory == null
+                            ? 'Select a category'
+                            : null,
                       ),
                     ],
+                  )
+                else
+                  CustomTextField(
+                    controller: TextEditingController() // read‑only fallback
+                      ..text = 'No categories available',
+                    label: 'Category',
+                    hint: 'Unavailable',
+                    enabled: false,
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _unitController,
-                    decoration: const InputDecoration(labelText: 'Unit (e.g. kg, crate)'),
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Unit is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _shelfLifeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Shelf life (days)'),
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Shelf life is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: isSaving ? null : _selectHarvestDate,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Harvest date',
-                          hintText: _harvestDate.toLocal().toString().split(' ').first,
-                          suffixIcon: const Icon(Icons.calendar_month),
-                        ),
-                        validator: (_) => null,
+                const SizedBox(height: 16),
+
+                // ── Price & Unit ────────────────────────────────────────
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _priceController,
+                        label: 'Price (KES)',
+                        hint: '250',
+                        keyboardType: TextInputType.number,
+                        validator: (value) => value == null || value.trim().isEmpty
+                            ? 'Price is required'
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _UnitDropdown(
+                        value: _selectedUnit,
+                        items: _units,
+                        onChanged: (v) => setState(() => _selectedUnit = v!),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // ── Quantity ────────────────────────────────────────────
+                CustomTextField(
+                  controller: _quantityController,
+                  label: 'Available Quantity',
+                  hint: 'e.g. 100',
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Quantity is required'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Harvest date ────────────────────────────────────────
+                GestureDetector(
+                  onTap: _selectHarvestDate,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Harvest Date',
+                        hintText: _harvestDate.toLocal().toString().split(' ').first,
+                        suffixIcon: const Icon(Icons.calendar_month),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    minLines: 3,
-                    maxLines: 5,
-                    decoration: const InputDecoration(labelText: 'Description (optional)'),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Product photo', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: isSaving ? null : _pickImage,
-                    icon: const Icon(Icons.photo_camera),
-                    label: const Text('Upload image'),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_selectedImage != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(_selectedImage!, height: 200, fit: BoxFit.cover),
-                    )
-                  else
-                    Text(
-                      'No image selected yet.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Active listing'),
-                    subtitle: const Text('Allow buyers to see this product'),
-                    value: _isActive,
-                    onChanged: isSaving ? null : (value) => setState(() => _isActive = value),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: isSaving ? null : _submit,
-                    child: isSaving
-                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
-                      : const Text('Create product'),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Description ──────────────────────────────────────────
+                CustomTextField(
+                  controller: _descriptionController,
+                  label: 'Description (optional)',
+                  hint: 'Describe freshness, quality, etc.',
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Active toggle ──────────────────────────────────────
+                SwitchListTile(
+                  title: const Text('Active listing'),
+                  subtitle: const Text('Allow buyers to see this product'),
+                  value: _isActive,
+                  onChanged: (value) => setState(() => _isActive = value),
+                ),
+                const SizedBox(height: 24),
+
+                // ── Submit button ──────────────────────────────────────
+                BlocBuilder<ProductBloc, ProductState>(
+                  builder: (context, state) {
+                    final isLoading = state is ProductLoading;
+                    return CustomButton(
+                      label: isLoading ? 'Listing...' : 'List Product',
+                      isLoading: isLoading,
+                      onPressed: _submit,
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+}
+
+// ── Reusable unit dropdown ──────────────────────────────────────────
+class _UnitDropdown extends StatelessWidget {
+  final String value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  const _UnitDropdown({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unit',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            value: value,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+            items: items
+                .map((i) => DropdownMenuItem(
+                      value: i,
+                      child: Text(i, style: const TextStyle(fontSize: 13)),
+                    ))
+                .toList(),
+            onChanged: onChanged,
+          ),
+        ],
+      );
 }

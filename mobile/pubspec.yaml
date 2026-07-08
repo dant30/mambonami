@@ -26,6 +26,9 @@ dependencies:
   flutter_slidable: ^3.0.0
   pinput: 6.0.2
 
+  # Charts
+  fl_chart: ^0.68.0
+
   # Networking & Storage
   dio: ^5.3.3
   shared_preferences: ^2.2.2

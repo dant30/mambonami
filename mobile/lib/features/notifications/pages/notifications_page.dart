@@ -1,23 +1,35 @@
-﻿// mobile/lib/features/notifications/pages/notifications_page.dart
+﻿// lib/features/notifications/pages/notifications_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../blocs/notification/notification_bloc.dart';
 import '../../../core/deep_link_handler.dart';
 import '../../../data/models/notification.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/skeleton.dart';
-import '../widgets/notification_tile.dart';
 
-class NotificationsPage extends StatelessWidget {
+class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
+
+  @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationBloc>().add(FetchNotificationsEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +40,7 @@ class NotificationsPage extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Notifications',
         showBackButton: true,
-        fallbackRoute: '/profile', // fallback if needed
+        fallbackRoute: '/profile',
         backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
         actions: [
           BlocBuilder<NotificationBloc, NotificationState>(
@@ -75,14 +87,14 @@ class NotificationsPage extends StatelessWidget {
           if (state is NotificationLoading) {
             return const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: SkeletonList(itemCount: 6),
+              child: SkeletonList(itemCount: 8),
             );
-          } else if (state is NotificationLoaded) {
+          }
+
+          if (state is NotificationLoaded) {
             if (state.notifications.isEmpty) {
               return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<NotificationBloc>().add(FetchNotificationsEvent());
-                },
+                onRefresh: _refresh,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
@@ -91,12 +103,11 @@ class NotificationsPage extends StatelessWidget {
                         height: constraints.maxHeight,
                         child: EmptyState(
                           title: 'No notifications',
-                          description: 'Order updates, account alerts, and delivery activity will appear here.',
+                          description:
+                              'Order updates, account alerts, and delivery activity will appear here.',
                           icon: Icons.notifications_none_outlined,
                           buttonText: 'Refresh',
-                          onButtonPressed: () {
-                            context.read<NotificationBloc>().add(FetchNotificationsEvent());
-                          },
+                          onButtonPressed: _refresh,
                         ),
                       ),
                     );
@@ -106,77 +117,72 @@ class NotificationsPage extends StatelessWidget {
             }
 
             final groupedItems = _buildGroupedNotificationItems(state.notifications);
+
             return RefreshIndicator(
-              onRefresh: () async {
-                context.read<NotificationBloc>().add(FetchNotificationsEvent());
-              },
+              onRefresh: _refresh,
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 8 + MediaQuery.of(context).padding.bottom),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
                 itemCount: groupedItems.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final item = groupedItems[index];
+
+                  // Group header (String)
                   if (item is String) {
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      padding: const EdgeInsets.only(top: 8, bottom: 4),
                       child: Text(
                         item,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.dark,
                         ),
                       ),
                     );
                   }
 
-                  final notif = item as NotificationModel;
-                  return NotificationTile(
-                    notification: notif,
-                    onTap: () => _handleNotificationTap(context, notif),
-                    onMarkRead: notif.isUnread
-                        ? () {
-                            context.read<NotificationBloc>().add(
-                                  MarkNotificationReadEvent(notif.id),
-                                );
-                          }
+                  // Notification tile
+                  final notification = item as NotificationModel;
+                  return _NotificationTile(
+                    notification: notification,
+                    onTap: () => _handleNotificationTap(context, notification),
+                    onMarkRead: notification.isUnread
+                        ? () => context
+                            .read<NotificationBloc>()
+                            .add(MarkNotificationReadEvent(notification.id))
                         : null,
                   );
                 },
               ),
             );
-          } else if (state is NotificationError) {
+          }
+
+          if (state is NotificationError) {
             return AppErrorWidget(
               message: state.message,
               buttonText: 'Retry',
-              onRetry: () => context.read<NotificationBloc>().add(FetchNotificationsEvent()),
+              onRetry: _refresh,
             );
           }
-          return const SizedBox();
+
+          return const SizedBox.shrink();
         },
       ),
     );
   }
 
-  void _handleNotificationTap(BuildContext context, NotificationModel notification) {
-    final deepLinkInfo = DeepLinkHandler.parseNotificationPayload(notification.metadata);
-    final routePath = deepLinkInfo?.toRoutePath();
-    if (routePath != null) {
-      if (notification.isUnread) {
-        context.read<NotificationBloc>().add(MarkNotificationReadEvent(notification.id));
-      }
-      context.go(routePath);
-      return;
-    }
-
-    _showNotificationDetails(context, notification);
+  Future<void> _refresh() async {
+    context.read<NotificationBloc>().add(FetchNotificationsEvent());
   }
 
+  /// Groups notifications by date (Today, Yesterday, then by month/day)
   List<dynamic> _buildGroupedNotificationItems(List<NotificationModel> notifications) {
-    final sortedNotifications = [...notifications]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final sorted = [...notifications]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     final items = <dynamic>[];
     String? currentGroup;
-    for (final notification in sortedNotifications) {
+
+    for (final notification in sorted) {
       final group = _groupLabel(notification.createdAt);
       if (group != currentGroup) {
         currentGroup = group;
@@ -190,17 +196,45 @@ class NotificationsPage extends StatelessWidget {
   String _groupLabel(DateTime date) {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
+
     if (date.year == now.year && date.month == now.month && date.day == now.day) {
       return 'Today';
     }
     if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
       return 'Yesterday';
     }
+
     const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${monthNames[date.month - 1]} ${date.day}';
+  }
+
+  void _handleNotificationTap(BuildContext context, NotificationModel notification) {
+    // Try deep link first
+    final deepLinkInfo = DeepLinkHandler.parseNotificationPayload(notification.metadata);
+    final routePath = deepLinkInfo?.toRoutePath();
+    if (routePath != null) {
+      if (notification.isUnread) {
+        context.read<NotificationBloc>().add(MarkNotificationReadEvent(notification.id));
+      }
+      context.go(routePath);
+      return;
+    }
+
+    // Fallback: show details modal
+    _showNotificationDetails(context, notification);
   }
 
   void _showNotificationDetails(BuildContext context, NotificationModel notification) {
@@ -220,8 +254,8 @@ class NotificationsPage extends StatelessWidget {
               Text(
                 notification.title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -233,8 +267,8 @@ class NotificationsPage extends StatelessWidget {
                 Text(
                   'Details',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -268,5 +302,154 @@ class NotificationsPage extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+// ─── Internal Notification Tile Widget ──────────────────────────────────────
+
+class _NotificationTile extends StatelessWidget {
+  final NotificationModel notification;
+  final VoidCallback onTap;
+  final VoidCallback? onMarkRead;
+
+  const _NotificationTile({
+    required this.notification,
+    required this.onTap,
+    this.onMarkRead,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnread = notification.isUnread;
+    final (icon, color) = _iconForType(notification.type);
+
+    return CustomCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      margin: EdgeInsets.zero,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon with colored background
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: AppColors.dark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isUnread)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    notification.body,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _timeAgo(notification.createdAt),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Mark as read button (if unread)
+            if (isUnread && onMarkRead != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onMarkRead!.call();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  (IconData, Color) _iconForType(String type) {
+    switch (type) {
+      case 'payment':
+        return (Icons.payments_rounded, AppColors.success);
+      case 'order':
+        return (Icons.shopping_bag_rounded, AppColors.primary);
+      case 'delivery':
+        return (Icons.local_shipping_rounded, AppColors.secondary);
+      case 'review':
+        return (Icons.star_rounded, AppColors.gold);
+      case 'alert':
+        return (Icons.warning_amber_rounded, AppColors.warning);
+      default:
+        return (Icons.notifications_rounded, AppColors.primary);
+    }
+  }
+
+  String _timeAgo(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inDays > 0) {
+      return '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 }

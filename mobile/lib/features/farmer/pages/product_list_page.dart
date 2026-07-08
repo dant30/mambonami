@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿// lib/features/farmer/pages/product_list_page.dart
+
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,7 +11,6 @@ import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
-import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/section_header.dart';
@@ -45,16 +46,20 @@ class _ProductListPageState extends State<ProductListPage> {
   Future<void> _confirmDelete(Product product) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete product'),
-          content: Text('Are you sure you want to delete "${product.displayName}"?'),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Delete product'),
+        content: Text('Are you sure you want to delete "${product.displayName}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
 
     if (!mounted) return;
@@ -109,30 +114,43 @@ class _ProductListPageState extends State<ProductListPage> {
         onPressed: _navigateToCreate,
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
+        backgroundColor: AppColors.primary,
       ),
       body: BlocConsumer<ProductBloc, ProductState>(
         listener: (context, state) {
           if (state is ProductCreated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Product "${state.product.displayName}" created successfully.')),
+              SnackBar(
+                content: Text('Product "${state.product.displayName}" created.'),
+                backgroundColor: AppColors.success,
+              ),
             );
             _fetchProducts();
           }
           if (state is ProductUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Product "${state.product.displayName}" updated successfully.')),
+              SnackBar(
+                content: Text('Product "${state.product.displayName}" updated.'),
+                backgroundColor: AppColors.success,
+              ),
             );
             _fetchProducts();
           }
           if (state is ProductDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Product deleted successfully.')),
+              const SnackBar(
+                content: Text('Product deleted.'),
+                backgroundColor: AppColors.success,
+              ),
             );
             _fetchProducts();
           }
           if (state is ProductError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
             );
           }
         },
@@ -156,6 +174,7 @@ class _ProductListPageState extends State<ProductListPage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Inventory summary card ──────────────────────────────────
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -169,26 +188,33 @@ class _ProductListPageState extends State<ProductListPage> {
                   children: [
                     Text(
                       'Inventory at a glance',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Track your catalog, status, and freshness in one place.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white70,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _SummaryChip(label: '${products.length} listings', color: AppColors.primary),
-                        _SummaryChip(label: '${products.where((p) => p.isActive).length} active', color: AppColors.secondary),
+                        _SummaryChip(label: '${products.length} listings', color: Colors.white.withOpacity(0.25)),
+                        _SummaryChip(label: '${products.where((p) => p.isActive).length} active', color: AppColors.success),
                         _SummaryChip(label: '${products.where((p) => !p.isActive).length} paused', color: AppColors.warning),
                       ],
                     ),
                   ],
                 ),
               ),
+
+              // ── Search bar ──────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -199,11 +225,16 @@ class _ProductListPageState extends State<ProductListPage> {
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 10),
+
+              // ── Filter chips ────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Wrap(
@@ -216,21 +247,33 @@ class _ProductListPageState extends State<ProductListPage> {
                       onSelected: (_) => setState(() => _selectedFilter = filter),
                       selectedColor: AppColors.primary.withOpacity(0.16),
                       checkmarkColor: AppColors.primary,
-                      labelStyle: TextStyle(color: selected ? AppColors.primary : AppColors.muted, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+                      labelStyle: TextStyle(
+                        color: selected ? AppColors.primary : AppColors.muted,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
                     );
                   }).toList(),
                 ),
               ),
               const SizedBox(height: 10),
+
+              // ── Section header with add button ─────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SectionHeader(title: 'Your listings', subtitle: 'Tap a card to edit or manage stock', trailing: TextButton(onPressed: _navigateToCreate, child: const Text('Add'))),
+                child: SectionHeader(
+                  title: 'Your listings',
+                  subtitle: 'Tap a card to edit or manage stock',
+                  trailing: TextButton(
+                    onPressed: _navigateToCreate,
+                    child: const Text('Add'),
+                  ),
+                ),
               ),
+
+              // ── Product grid ────────────────────────────────────────────
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async {
-                    _fetchProducts();
-                  },
+                  onRefresh: () async => _fetchProducts(),
                   child: visibleProducts.isEmpty
                       ? ListView(
                           children: [
@@ -257,7 +300,10 @@ class _ProductListPageState extends State<ProductListPage> {
                             final product = visibleProducts[index];
                             return FarmerProductCard(
                               product: product,
-                              onEdit: () => context.go(RoutePaths.farmerProductEditPath(product.uuid), extra: product),
+                              onEdit: () => context.go(
+                                RoutePaths.farmerProductEditPath(product.uuid),
+                                extra: product,
+                              ),
                               onDelete: () => _confirmDelete(product),
                             );
                           },
@@ -272,6 +318,7 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 }
 
+// ── Helper widget for summary chips ──────────────────────────────
 class _SummaryChip extends StatelessWidget {
   final String label;
   final Color color;
@@ -282,8 +329,18 @@ class _SummaryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.16), borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.25),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

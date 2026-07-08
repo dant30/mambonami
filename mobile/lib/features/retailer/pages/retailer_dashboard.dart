@@ -267,8 +267,8 @@ class RetailerDashboard extends StatelessWidget {
                 CustomButton(
                   label: 'Reorder',
                   onPressed: () {},
-                  size: 'small',
-                  width: 80,
+                  fullWidth: false,
+                  minWidth: 80,
                 ),
               ],
             ),

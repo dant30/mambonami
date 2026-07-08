@@ -43,6 +43,11 @@ class SubOrderReady extends OrderState {
   const SubOrderReady(this.subOrderId);
 }
 
+class SubOrderDeclined extends OrderState {
+  final int subOrderId;
+  const SubOrderDeclined(this.subOrderId);
+}
+
 // Transport provider states
 class AvailableOrdersLoaded extends OrderState {
   final List<Order> orders;

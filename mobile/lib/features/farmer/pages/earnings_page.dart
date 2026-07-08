@@ -1,26 +1,30 @@
-﻿import 'package:flutter/material.dart';
+﻿// lib/features/farmer/pages/earnings_page.dart
+
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../blocs/order/order_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
-import '../../../shared/layouts/app_drawer.dart';
-import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
-import '../../../shared/widgets/earnings_widgets.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/loading_indicator.dart';
-import '../../../shared/widgets/role_dashboard_widgets.dart';
+import '../../../shared/widgets/section_header.dart';
 
-class EarningsPage extends StatefulWidget {
-  const EarningsPage({super.key});
+class FarmerEarningsPage extends StatefulWidget {
+  const FarmerEarningsPage({super.key});
 
   @override
-  State<EarningsPage> createState() => _EarningsPageState();
+  State<FarmerEarningsPage> createState() => _FarmerEarningsPageState();
 }
 
-class _EarningsPageState extends State<EarningsPage> {
+class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
   @override
   void initState() {
     super.initState();
@@ -34,13 +38,7 @@ class _EarningsPageState extends State<EarningsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Earnings',
-        showNotificationAction: true,
-        showBackButton: true,
-        fallbackRoute: RoutePaths.farmerDashboard,
-      ),
-      drawer: const AppDrawer(),
+      backgroundColor: AppColors.background,
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading || state is OrderInitial) {
@@ -50,154 +48,525 @@ class _EarningsPageState extends State<EarningsPage> {
           if (state is FarmerSubOrdersLoaded) {
             final subOrders = state.subOrders;
             if (subOrders.isEmpty) {
-              return EmptyState(
-                title: 'No earnings yet',
-                description:
-                    'Your farm has not received any orders yet. Start by adding products and fulfilling order requests.',
-                buttonText: 'Refresh',
-                onButtonPressed: _refresh,
-              );
+              return _buildEmptyState();
             }
 
-            final totalRevenue =
-                subOrders.fold<double>(0.0, (sum, order) => sum + order.subtotal);
-            final currentWeekRevenue =
-                _calculateRevenue(subOrders, _isInCurrentWeek);
-            final currentMonthRevenue =
-                _calculateRevenue(subOrders, _isInCurrentMonth);
-            final currentWeekOrders = _countOrders(subOrders, _isInCurrentWeek);
-            final currentMonthOrders =
-                _countOrders(subOrders, _isInCurrentMonth);
-            final confirmedCount = subOrders.where((o) => o.isConfirmed).length;
-            final confirmedRevenue =
-                _calculateRevenue(subOrders, (o) => o.isConfirmed);
-            final readyCount = subOrders.where((o) => o.isReady).length;
-            final readyRevenue = _calculateRevenue(subOrders, (o) => o.isReady);
-            final pendingCount = subOrders.where((o) => o.isPending).length;
-            final pendingRevenue =
-                _calculateRevenue(subOrders, (o) => o.isPending);
+            // ── Derived data ──────────────────────────────────────────
+            final totalRevenue = subOrders
+                .fold<double>(0.0, (sum, order) => sum + order.subtotal);
+
+            final currentWeekRevenue = _calculateRevenue(subOrders, _isInCurrentWeek);
+            final currentMonthRevenue = _calculateRevenue(subOrders, _isInCurrentMonth);
+            final lastMonthRevenue = _calculateRevenue(subOrders, _isInLastMonth);
+
+            final weekData = _computeWeeklyRevenue(subOrders);
+            final dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+            // ── Recent payouts (use delivered orders as payouts) ──────
+            final recentPayouts = subOrders
+                .where((o) => o.status == 'delivered' || o.status == 'completed')
+                .take(5)
+                .toList();
 
             return RefreshIndicator(
               onRefresh: _refresh,
-              child: AppScreen(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    EarningsHero(
-                      label: 'Farm earnings',
-                      amount: 'Ksh ${totalRevenue.toStringAsFixed(2)}',
-                      icon: Icons.agriculture_outlined,
-                      stats: [
-                        DashboardStat(
-                          label: 'Confirmed',
-                          value: confirmedCount.toString(),
-                          icon: Icons.verified_outlined,
-                        ),
-                        DashboardStat(
-                          label: 'Ready',
-                          value: readyCount.toString(),
-                          icon: Icons.inventory_2_outlined,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    EarningsBreakdownCard(
-                      title: 'Breakdown',
-                      rows: [
-                        EarningsBreakdownRow(
-                          label: 'This Week',
-                          count: '$currentWeekOrders order(s)',
-                          amount: 'Ksh ${currentWeekRevenue.toStringAsFixed(2)}',
-                          icon: Icons.date_range_outlined,
-                        ),
-                        EarningsBreakdownRow(
-                          label: 'This Month',
-                          count: '$currentMonthOrders order(s)',
-                          amount: 'Ksh ${currentMonthRevenue.toStringAsFixed(2)}',
-                          icon: Icons.calendar_month_outlined,
-                        ),
-                        EarningsBreakdownRow(
-                          label: 'Confirmed Orders',
-                          count: '$confirmedCount order(s)',
-                          amount: 'Ksh ${confirmedRevenue.toStringAsFixed(2)}',
-                          icon: Icons.verified_outlined,
-                        ),
-                        EarningsBreakdownRow(
-                          label: 'Ready Orders',
-                          count: '$readyCount order(s)',
-                          amount: 'Ksh ${readyRevenue.toStringAsFixed(2)}',
-                          icon: Icons.inventory_2_outlined,
-                        ),
-                        EarningsBreakdownRow(
-                          label: 'Pending Orders',
-                          count: '$pendingCount order(s)',
-                          amount: 'Ksh ${pendingRevenue.toStringAsFixed(2)}',
-                          icon: Icons.pending_actions_outlined,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Recent order requests',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...subOrders.take(5).map(
-                          (subOrder) => Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              title: Text('Order #${subOrder.id}'),
-                              subtitle: Text(
-                                  '${subOrder.items.length} item(s) • Ksh ${subOrder.subtotal.toStringAsFixed(2)}'),
-                              trailing: Text(
-                                subOrder.status.toUpperCase(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(fontWeight: FontWeight.w900),
-                              ),
+              child: Column(
+                children: [
+                  // ─── Gradient Header ──────────────────────────────
+                  _buildHeader(totalRevenue),
+
+                  // ─── Scrollable body ──────────────────────────────
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Weekly chart
+                          CustomCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Weekly Earnings',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.dark,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '▲ ${_calculateChange(subOrders)}%',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.success,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 120,
+                                  child: LineChart(
+                                    LineChartData(
+                                      gridData: const FlGridData(show: false),
+                                      borderData: FlBorderData(show: false),
+                                      titlesData: FlTitlesData(
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            getTitlesWidget: (value, _) {
+                                              final index = value.toInt();
+                                              if (index >= 0 && index < dayLabels.length) {
+                                                return Text(
+                                                  dayLabels[index],
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: AppColors.muted,
+                                                  ),
+                                                );
+                                              }
+                                              return const Text('');
+                                            },
+                                          ),
+                                        ),
+                                        leftTitles: const AxisTitles(
+                                          sideTitles: SideTitles(showTitles: false),
+                                        ),
+                                        topTitles: const AxisTitles(
+                                          sideTitles: SideTitles(showTitles: false),
+                                        ),
+                                        rightTitles: const AxisTitles(
+                                          sideTitles: SideTitles(showTitles: false),
+                                        ),
+                                      ),
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: weekData
+                                              .asMap()
+                                              .entries
+                                              .map((e) => FlSpot(e.key.toDouble(), e.value))
+                                              .toList(),
+                                          isCurved: true,
+                                          color: AppColors.primary,
+                                          barWidth: 2.5,
+                                          dotData: const FlDotData(show: false),
+                                          belowBarData: BarAreaData(
+                                            show: true,
+                                            color: AppColors.primary.withOpacity(0.08),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                  ],
-                ),
+                          const SizedBox(height: 16),
+
+                          // Stat row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _StatCard(
+                                  label: 'This Month',
+                                  value: 'KES ${currentMonthRevenue.toStringAsFixed(0)}',
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _StatCard(
+                                  label: 'Last Month',
+                                  value: 'KES ${lastMonthRevenue.toStringAsFixed(0)}',
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Recent payouts
+                          const SectionHeader(title: 'Recent Payouts'),
+                          if (recentPayouts.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Center(
+                                child: Text(
+                                  'No payouts yet',
+                                  style: TextStyle(color: AppColors.muted),
+                                ),
+                              ),
+                            )
+                          else
+                            ...recentPayouts.map((order) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: CustomCard(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.light,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(
+                                            Icons.payments_rounded,
+                                            color: AppColors.primary,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'KES ${order.subtotal.toStringAsFixed(0)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 14,
+                                                  color: AppColors.dark,
+                                                ),
+                                              ),
+                                              Text(
+                                                _formatOrderDate(order),
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: AppColors.muted,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          'Order #${order.id}',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.muted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
 
           if (state is OrderError) {
-            return AppErrorWidget(message: state.message);
+            return AppErrorWidget(
+              message: state.message,
+              onRetry: _refresh,
+            );
           }
 
           return const Center(child: Text('Unable to load earnings.'));
         },
       ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
     );
   }
 
-  double _calculateRevenue(List<SubOrder> orders, bool Function(SubOrder) predicate) {
-    return orders.where(predicate).fold<double>(0.0, (sum, order) => sum + order.subtotal);
+  // ─── Header Widget ──────────────────────────────────────────────
+  Widget _buildHeader(double totalRevenue) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+      decoration: const BoxDecoration(gradient: AppGradients.hero),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              const Text(
+                'Earnings & Wallet',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Available Balance',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                Text(
+                  'KES ${totalRevenue.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white24,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          // TODO: Withdraw flow
+                        },
+                        child: const Text(
+                          'Withdraw',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          // TODO: History flow
+                        },
+                        child: const Text(
+                          'History',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  int _countOrders(List<SubOrder> orders, bool Function(SubOrder) predicate) {
-    return orders.where(predicate).length;
+  // ─── Empty state ─────────────────────────────────────────────────
+  Widget _buildEmptyState() {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const Text(
+                      'Earnings & Wallet',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Available Balance',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      Text(
+                        'KES 0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: EmptyState(
+              title: 'No earnings yet',
+              description:
+                  'Your farm has not received any orders yet. Start by adding products and fulfilling order requests.',
+              buttonText: 'Refresh',
+              onButtonPressed: _refresh,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Utility methods ──────────────────────────────────────────────
+  double _calculateRevenue(List<SubOrder> orders, bool Function(SubOrder) predicate) {
+    return orders.where(predicate).fold<double>(0.0, (sum, order) => sum + order.subtotal);
   }
 
   bool _isInCurrentWeek(SubOrder order) {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
-    final date = order.confirmedAt ?? order.readyAt;
+    final date = order.confirmedAt ?? order.createdAt;
     if (date == null) return false;
-    return !date.isBefore(DateTime(monday.year, monday.month, monday.day)) && !date.isAfter(DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59));
+    return !date.isBefore(DateTime(monday.year, monday.month, monday.day)) &&
+        !date.isAfter(DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59));
   }
 
   bool _isInCurrentMonth(SubOrder order) {
     final now = DateTime.now();
-    final date = order.confirmedAt ?? order.readyAt;
+    final date = order.confirmedAt ?? order.createdAt;
     if (date == null) return false;
     return date.year == now.year && date.month == now.month;
+  }
+
+  bool _isInLastMonth(SubOrder order) {
+    final now = DateTime.now();
+    final lastMonth = now.month == 1 ? 12 : now.month - 1;
+    final lastMonthYear = now.month == 1 ? now.year - 1 : now.year;
+    final date = order.confirmedAt ?? order.createdAt;
+    if (date == null) return false;
+    return date.year == lastMonthYear && date.month == lastMonth;
+  }
+
+  List<double> _computeWeeklyRevenue(List<SubOrder> orders) {
+    final weekData = List.filled(7, 0.0);
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    for (final order in orders) {
+      final date = order.confirmedAt ?? order.createdAt;
+      if (date == null) continue;
+      final diff = date.difference(monday).inDays;
+      if (diff >= 0 && diff < 7) {
+        weekData[diff] += order.subtotal;
+      }
+    }
+    return weekData;
+  }
+
+  String _formatOrderDate(SubOrder order) {
+    final date = order.confirmedAt ?? order.createdAt;
+    if (date == null) return 'Unknown date';
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inDays == 0) {
+      return 'Today ${DateFormat('HH:mm').format(date)}';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday ${DateFormat('HH:mm').format(date)}';
+    } else if (diff.inDays < 7) {
+      return DateFormat('EEEE').format(date);
+    } else {
+      return DateFormat('dd MMM yyyy').format(date);
+    }
+  }
+
+  String _calculateChange(List<SubOrder> orders) {
+    final thisMonth = _calculateRevenue(orders, _isInCurrentMonth);
+    final lastMonth = _calculateRevenue(orders, _isInLastMonth);
+    if (lastMonth == 0) return '0';
+    final change = ((thisMonth - lastMonth) / lastMonth * 100);
+    return change.abs().toStringAsFixed(1);
+  }
+}
+
+// ─── Helper widget ──────────────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCard(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.muted),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

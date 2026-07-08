@@ -16,14 +16,16 @@ class ProductSerializer(serializers.ModelSerializer):
     farmer_name = serializers.CharField(source='farmer.user.username', read_only=True)
     category_detail = ProductCategorySerializer(source='category', read_only=True)
     remaining_shelf_life = serializers.SerializerMethodField()
+    quantityAvailable = serializers.DecimalField(source='available_quantity', read_only=True, max_digits=12, decimal_places=2)
+    imageUrl = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = (
             'id', 'uuid', 'sku', 'farmer', 'farmer_phone', 'farmer_name',
             'category', 'category_detail', 'name', 'variety', 'price_per_unit',
-            'available_quantity', 'reserved_quantity', 'unit', 'harvest_date', 'shelf_life_days',
-            'expiry_date', 'is_organic', 'remaining_shelf_life', 'is_active', 'image', 'description',
+            'available_quantity', 'quantityAvailable', 'reserved_quantity', 'unit', 'harvest_date', 'shelf_life_days',
+            'expiry_date', 'is_organic', 'remaining_shelf_life', 'is_active', 'image', 'imageUrl', 'description',
             'pickup_lat', 'pickup_lng', 'weight_per_unit',
             'created_at', 'updated_at'
         )
@@ -35,6 +37,15 @@ class ProductSerializer(serializers.ModelSerializer):
             remaining = max(0, obj.shelf_life_days - days_passed)
             return remaining
         return 0
+    
+    def get_imageUrl(self, obj):
+        """Return the image URL or None if no image."""
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
     def validate(self, attrs):
         # Ensure harvest date is not in the future

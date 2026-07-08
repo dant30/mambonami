@@ -22,6 +22,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<FetchFarmerSubOrdersEvent>(_onFetchFarmerSubOrders);
     on<ConfirmSubOrderEvent>(_onConfirmSubOrder);
     on<MarkSubOrderReadyEvent>(_onMarkSubOrderReady);
+    on<DeclineSubOrderEvent>(_onDeclineSubOrder);
     // Transport provider
     on<FetchAvailableOrdersEvent>(_onFetchAvailableOrders);
     on<AssignToOrderEvent>(_onAssignToOrder);
@@ -114,6 +115,16 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     try {
       await orderRepository.markSubOrderReady(event.subOrderId);
       emit(SubOrderReady(event.subOrderId));
+    } catch (e) {
+      emit(OrderError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeclineSubOrder(DeclineSubOrderEvent event, Emitter<OrderState> emit) async {
+    emit(OrderLoading());
+    try {
+      await orderRepository.rejectSubOrder(event.subOrderId);
+      emit(SubOrderDeclined(event.subOrderId));
     } catch (e) {
       emit(OrderError(e.toString()));
     }

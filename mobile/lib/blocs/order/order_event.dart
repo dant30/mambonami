@@ -44,6 +44,12 @@ class MarkSubOrderReadyEvent extends OrderEvent {
   @override List<Object> get props => [subOrderId];
 }
 
+class DeclineSubOrderEvent extends OrderEvent {
+  final int subOrderId;
+  const DeclineSubOrderEvent(this.subOrderId);
+  @override List<Object> get props => [subOrderId];
+}
+
 // Transport provider events
 class FetchAvailableOrdersEvent extends OrderEvent {}
 class AssignToOrderEvent extends OrderEvent {

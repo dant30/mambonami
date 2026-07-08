@@ -1,28 +1,21 @@
-﻿// mobile/lib/features/common/support_page.dart
+﻿// lib/features/common/support_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../../blocs/locale/locale_cubit.dart';
 import '../../blocs/theme/theme_bloc.dart';
-import '../../core/constants.dart';
 import '../../config/route_paths.dart';
-import '../../data/local/cache_manager.dart';
-import '../../data/local/database_helper.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';
-import '../../shared/layouts/app_screen.dart';
 import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/themes/app_colors.dart';
-import '../../shared/themes/app_radius.dart';
+import '../../shared/themes/app_gradients.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_card.dart';
-import '../../shared/widgets/custom_dialog.dart';
 import '../../shared/widgets/custom_snackbar.dart';
 import '../../shared/widgets/section_header.dart';
-import '../../shared/widgets/info_tile.dart';
 
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key});
@@ -32,153 +25,99 @@ class SupportPage extends StatefulWidget {
 }
 
 class _SupportPageState extends State<SupportPage> {
-  bool _notificationsEnabled = true;
-  bool _orderUpdatesEnabled = true;
-  bool _darkMode = false;
-  bool _locationEnabled = true; // placeholder
-  String _notificationPermission = 'Unknown';
-  bool _loading = true;
+  String _issueType = 'Payment / Escrow';
+  final TextEditingController _messageController = TextEditingController();
+  bool _submitted = false;
+  bool _isSubmitting = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadPrefs();
+  final List<String> _issueTypes = [
+    'Payment / Escrow',
+    'Order dispute',
+    'App bug',
+    'Account issue',
+    'Other',
+  ];
+
+  final List<Map<String, String>> _faq = const [
+    {'q': 'How does M-Pesa escrow work?'},
+    {'q': 'How do I confirm a delivery with OTP?'},
+    {'q': 'What happens if a farmer cancels my order?'},
+    {'q': 'How long do payouts take?'},
+    {'q': 'How do I become a verified farmer?'},
+    {'q': 'What vehicles are accepted for transport?'},
+  ];
+
+  final List<Map<String, dynamic>> _contactChannels = const [
+    {'emoji': '💬', 'label': 'Live Chat', 'sub': 'Avg. 2 min reply', 'action': 'chat'},
+    {'emoji': '📞', 'label': 'Call Us', 'sub': '+254 700 MAMBA', 'action': 'call'},
+    {'emoji': '📧', 'label': 'Email', 'sub': 'support@mambonami.com', 'action': 'email'},
+    {'emoji': '🤖', 'label': 'WhatsApp', 'sub': '+254 700 262262', 'action': 'whatsapp'},
+  ];
+
+  Future<void> _handleContactAction(String action) async {
+    switch (action) {
+      case 'call':
+        final Uri phoneUri = Uri(scheme: 'tel', path: '+254700MAMBA');
+        if (await canLaunchUrl(phoneUri)) {
+          await launchUrl(phoneUri);
+        } else {
+          CustomSnackbar.showError(context, 'Unable to make call');
+        }
+        break;
+      case 'email':
+        final Uri emailUri = Uri(
+          scheme: 'mailto',
+          path: 'support@mambonami.com',
+        );
+        if (await canLaunchUrl(emailUri)) {
+          await launchUrl(emailUri);
+        } else {
+          CustomSnackbar.showError(context, 'Unable to open email');
+        }
+        break;
+      case 'whatsapp':
+        final Uri whatsappUri = Uri.parse(
+          'https://wa.me/254700262262?text=Hi%20MAMBONAMI%20support',
+        );
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        } else {
+          CustomSnackbar.showError(context, 'Unable to open WhatsApp');
+        }
+        break;
+      case 'chat':
+        CustomSnackbar.showInfo(context, 'Live chat coming soon!');
+        break;
+      default:
+        break;
+    }
   }
 
-  Future<void> _loadPrefs() async {
-    final notificationsEnabled = await CacheManager.instance.getBool(kNotificationsEnabledKey);
-    final orderUpdatesEnabled = await CacheManager.instance.getBool(kOrderUpdatesEnabledKey);
-    final darkMode = await CacheManager.instance.getBool('dark_mode') ?? false;
-    final locationEnabled = await CacheManager.instance.getBool('location_enabled') ?? true;
-
-    // load firebase notification permission status
-    try {
-      final settings = await FirebaseMessaging.instance.getNotificationSettings();
-      _notificationPermission = settings.authorizationStatus.name;
-    } catch (_) {
-      _notificationPermission = 'unknown';
+  Future<void> _submitTicket() async {
+    if (_messageController.text.trim().isEmpty) {
+      CustomSnackbar.showError(context, 'Please describe your issue');
+      return;
     }
+
+    setState(() => _isSubmitting = true);
+
+    // Simulate API call
+    await Future.delayed(const Duration(seconds: 1));
+
     if (!mounted) return;
     setState(() {
-      _notificationsEnabled = notificationsEnabled ?? true;
-      _orderUpdatesEnabled = orderUpdatesEnabled ?? true;
-      _darkMode = darkMode;
-      _locationEnabled = locationEnabled;
-      _loading = false;
+      _isSubmitting = false;
+      _submitted = true;
+      _messageController.clear();
     });
+
+    CustomSnackbar.showSuccess(context, 'Ticket submitted successfully!');
   }
 
-  Future<void> _saveNotifications(bool enabled) async {
-    await CacheManager.instance.saveBool(kNotificationsEnabledKey, enabled);
-    if (!mounted) return;
-    setState(() => _notificationsEnabled = enabled);
-    CustomSnackbar.showSuccess(
-      context,
-      enabled ? 'Notifications enabled' : 'Notifications disabled',
-    );
-  }
-
-  Future<void> _saveOrderUpdates(bool enabled) async {
-    await CacheManager.instance.saveBool(kOrderUpdatesEnabledKey, enabled);
-    if (!mounted) return;
-    setState(() => _orderUpdatesEnabled = enabled);
-    CustomSnackbar.showSuccess(
-      context,
-      enabled ? 'Order updates enabled' : 'Order updates disabled',
-    );
-  }
-
-  Future<void> _toggleDarkMode(bool value) async {
-    setState(() => _darkMode = value);
-    await CacheManager.instance.saveBool('dark_mode', value);
-    context.read<ThemeCubit>().setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
-  }
-
-  Future<void> _toggleLocation(bool value) async {
-    setState(() => _locationEnabled = value);
-    await CacheManager.instance.saveBool('location_enabled', value);
-    if (value) {
-      await Permission.location.request();
-    } else {
-      // Show rationale or open settings
-      CustomSnackbar.showInfo(context, 'You can disable location in system settings.');
-    }
-  }
-
-  Future<void> _requestNotificationPermission() async {
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: true,
-      sound: true,
-    );
-    if (!mounted) return;
-    setState(() => _notificationPermission = settings.authorizationStatus.name);
-    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-        settings.authorizationStatus == AuthorizationStatus.provisional) {
-      CustomSnackbar.showSuccess(context, 'Notification permission granted');
-    } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      CustomSnackbar.showError(context, 'Notification permission denied');
-    }
-  }
-
-  void _showLanguageDialog() {
-    final locale = context.read<LocaleCubit>().state.locale;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Language'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<Locale>(
-              value: const Locale('en'),
-              groupValue: locale,
-              title: const Text('English'),
-              onChanged: (newLocale) {
-                if (newLocale != null) {
-                  context.read<LocaleCubit>().setLocale(newLocale);
-                  Navigator.pop(ctx);
-                }
-              },
-            ),
-            RadioListTile<Locale>(
-              value: const Locale('sw'),
-              groupValue: locale,
-              title: const Text('Kiswahili'),
-              onChanged: (newLocale) {
-                if (newLocale != null) {
-                  context.read<LocaleCubit>().setLocale(newLocale);
-                  Navigator.pop(ctx);
-                }
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDeleteAccount() {
-    CustomDialog.showConfirmWithAction(
-      context,
-      'Delete Account',
-      'This action cannot be undone. Are you sure you want to delete your account?',
-      confirmText: 'Delete',
-      onConfirm: () async {
-        // TODO: Implement account deletion
-        CustomSnackbar.showInfo(context, 'Account deletion not implemented yet.');
-      },
-    );
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -188,7 +127,7 @@ class _SupportPageState extends State<SupportPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Settings',
+        title: 'Help & Support',
         showNotificationAction: false,
         showBackButton: true,
         fallbackRoute: RoutePaths.profile,
@@ -196,291 +135,271 @@ class _SupportPageState extends State<SupportPage> {
       ),
       drawer: const AppDrawer(),
       bottomNavigationBar: const AppBottomNavigationBar(),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : AppScreen(
-              scrollable: false,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: ListView(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ─── Gradient Header ────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(4, 0, 20, 16),
+              decoration: const BoxDecoration(gradient: AppGradients.hero),
+              child: Row(
                 children: [
-                  // ─── Account Section ──────────────────────────────────────
-                  const SectionHeader(
-                    title: 'Account',
-                    subtitle: 'Manage your profile and security',
-                  ),
-                  const SizedBox(height: 12),
-                  InfoTile(
-                    title: 'Edit Profile',
-                    subtitle: 'Name, phone, photo',
-                    icon: Icons.person_outline,
-                    onTap: () => context.go(RoutePaths.profile),
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'Change Password',
-                    subtitle: 'Update security credentials',
-                    icon: Icons.lock_reset_outlined,
-                    onTap: () {
-                      // TODO: Navigate to change password page
-                      CustomSnackbar.showInfo(context, 'Change password screen coming soon');
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'Linked Accounts',
-                    subtitle: 'Google, M-Pesa',
-                    icon: Icons.link_outlined,
-                    onTap: () {
-                      // TODO: Show linked accounts
-                      CustomSnackbar.showInfo(context, 'Linked accounts coming soon');
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'Language',
-                    subtitle: 'English / Kiswahili',
-                    icon: Icons.language_outlined,
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
-                    onTap: _showLanguageDialog,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ─── Preferences Section ──────────────────────────────────
-                  const SectionHeader(
-                    title: 'Preferences',
-                    subtitle: 'Customize your experience',
-                  ),
-                  const SizedBox(height: 12),
-                  CustomCard(
-                    margin: EdgeInsets.zero,
-                    padding: EdgeInsets.zero,
+                  // Back button is already in CustomAppBar
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSwitchTile(
-                          context,
-                          title: 'Push Notifications',
-                          subtitle: 'Orders, payments, updates',
-                          value: _notificationsEnabled,
-                          onChanged: _saveNotifications,
-                          icon: Icons.notifications_active_outlined,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Help & Support',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Order Updates',
-                          subtitle: 'Track order progress and status changes',
-                          value: _orderUpdatesEnabled,
-                          onChanged: _saveOrderUpdates,
-                          icon: Icons.track_changes_outlined,
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Dark Mode',
-                          subtitle: 'Switch app appearance',
-                          value: _darkMode,
-                          onChanged: _toggleDarkMode,
-                          icon: isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Location Access',
-                          subtitle: 'For GPS and delivery',
-                          value: _locationEnabled,
-                          onChanged: _toggleLocation,
-                          icon: Icons.location_on_outlined,
+                        Text(
+                          'We\'re here to help you',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white70,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // ─── Privacy & Legal Section ──────────────────────────────
-                  const SectionHeader(
-                    title: 'Privacy & Legal',
-                    subtitle: 'Manage your data and legal agreements',
-                  ),
-                  const SizedBox(height: 12),
-                  InfoTile(
-                    title: 'Privacy Policy',
-                    subtitle: 'Read our privacy policy',
-                    icon: Icons.privacy_tip_outlined,
-                    onTap: () {
-                      // TODO: Open privacy policy
-                      CustomSnackbar.showInfo(context, 'Privacy policy coming soon');
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'Terms of Service',
-                    subtitle: 'View terms and conditions',
-                    icon: Icons.description_outlined,
-                    onTap: () {
-                      // TODO: Open terms of service
-                      CustomSnackbar.showInfo(context, 'Terms of service coming soon');
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'Delete Account',
-                    subtitle: 'Permanently remove your account',
-                    icon: Icons.delete_outline,
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: theme.colorScheme.error,
-                    ),
-                    onTap: _confirmDeleteAccount,
-                  ),
-                  const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'App notification permission',
-                    subtitle: _notificationPermission,
-                    icon: Icons.notifications_none_outlined,
-                    trailing: TextButton(
-                      onPressed: _requestNotificationPermission,
-                      child: const Text('Request'),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // ─── Clear Data ──────────────────────────────────────────
-                  CustomCard(
-                    margin: EdgeInsets.zero,
-                    child: CustomButton(
-                      onPressed: () async {
-                        final confirmed = await CustomDialog.showConfirm(
-                          context,
-                          'Clear Local Data',
-                          'This will clear all cached settings and offline data. Are you sure?',
-                        );
-                        if (confirmed == true) {
-                          await CacheManager.instance.clear();
-                          await DatabaseHelper.instance.clearAll();
-                          if (!mounted) return;
-                          CustomSnackbar.showSuccess(
-                            context,
-                            'Local settings cleared',
-                          );
-                        }
-                      },
-                      label: 'Clear Local Data',
-                      outlined: true,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
-    );
-  }
 
-  Widget _buildSwitchTile(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required IconData icon,
-  }) {
-    final theme = Theme.of(context);
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.12),
-          borderRadius: AppRadius.small,
+            // ─── Scrollable Body ────────────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Contact Channels ─────────────────────────────────
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.5,
+                      children: _contactChannels.map((channel) {
+                        return _ContactCard(
+                          emoji: channel['emoji'] as String,
+                          label: channel['label'] as String,
+                          sub: channel['sub'] as String,
+                          onTap: () => _handleContactAction(channel['action'] as String),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ─── FAQ Section ────────────────────────────────────────
+                    const SectionHeader(title: 'Frequently Asked Questions'),
+                    const SizedBox(height: 8),
+                    ..._faq.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: CustomCard(
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            title: Text(
+                              item['q']!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.dark,
+                              ),
+                            ),
+                            trailing: Icon(
+                              Icons.chevron_right_rounded,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 20,
+                            ),
+                            onTap: () {
+                              CustomSnackbar.showInfo(
+                                context,
+                                'FAQ answer coming soon!',
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ─── Submit Ticket ──────────────────────────────────────
+                    CustomCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Submit a Ticket',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.dark,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Our team will respond within 24 hours',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Issue type dropdown
+                          DropdownButtonFormField<String>(
+                            value: _issueType,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: isDark
+                                  ? AppColors.inputDark
+                                  : AppColors.inputLight,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                            ),
+                            items: _issueTypes.map((t) {
+                              return DropdownMenuItem(
+                                value: t,
+                                child: Text(
+                                  t,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (v) =>
+                                setState(() => _issueType = v ?? _issueType),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Message text field
+                          TextField(
+                            controller: _messageController,
+                            maxLines: 4,
+                            decoration: InputDecoration(
+                              hintText: 'Describe your issue in detail...',
+                              hintStyle: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.muted,
+                              ),
+                              filled: true,
+                              fillColor: isDark
+                                  ? AppColors.inputDark
+                                  : AppColors.inputLight,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Submit button
+                          if (_submitted)
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    color: AppColors.success,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '✓ Ticket submitted!',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: AppColors.success,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            CustomButton(
+                              label: _isSubmitting ? 'Submitting...' : 'Submit Ticket',
+                              isLoading: _isSubmitting,
+                              onPressed: _submitTicket,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        child: Icon(icon, color: theme.colorScheme.primary, size: 22),
       ),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface.withOpacity(0.7),
-        ),
-      ),
-      trailing: Transform.scale(
-        scale: 0.85,
-        child: Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: theme.colorScheme.primary,
-        ),
-      ),
-      onTap: () => onChanged(!value),
     );
   }
 }
 
-// If you don't have InfoTile yet, uncomment this fallback:
-/*
-class InfoTile extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final IconData icon;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final Color? textColor;
+// ─── Contact Card Widget ─────────────────────────────────────────────────────
 
-  const InfoTile({
-    super.key,
-    required this.title,
-    this.subtitle,
-    required this.icon,
-    this.trailing,
-    this.onTap,
-    this.textColor,
+class _ContactCard extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String sub;
+  final VoidCallback onTap;
+
+  const _ContactCard({
+    required this.emoji,
+    required this.label,
+    required this.sub,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return CustomCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+    return GestureDetector(
       onTap: onTap,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: theme.colorScheme.primary, size: 22),
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: textColor ?? theme.colorScheme.onSurface,
-          ),
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
-              )
-            : null,
-        trailing: trailing ??
-            Icon(
-              Icons.chevron_right_rounded,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+      child: CustomCard(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.dark,
+              ),
+              textAlign: TextAlign.center,
             ),
+            Text(
+              sub,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.muted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-*/

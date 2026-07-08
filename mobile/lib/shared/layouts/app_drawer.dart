@@ -1,30 +1,31 @@
 // mobile/lib/shared/layouts/app_drawer.dart
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/notification/notification_bloc.dart';
 import '../../blocs/order/order_bloc.dart';
 import '../../config/role_routes.dart';
 import '../../config/route_paths.dart';
+import '../themes/app_colors.dart';
 import '../themes/app_gradients.dart';
-import '../themes/app_shadows.dart';
-import '../widgets/app_logo.dart';
-import '../widgets/avatar.dart';
-import '../widgets/pill_badge.dart';
 import '../utils/form_validators.dart';
 
+// ── Internal menu item definition ─────────────────────────────
 class _DrawerItem {
   final IconData icon;
   final String title;
   final String route;
   final List<String> allowedRoles; // empty = everyone
 
-  const _DrawerItem(
-      {required this.icon,
-      required this.title,
-      required this.route,
-      this.allowedRoles = const []});
+  const _DrawerItem({
+    required this.icon,
+    required this.title,
+    required this.route,
+    this.allowedRoles = const [],
+  });
 }
 
 class AppDrawer extends StatelessWidget {
@@ -33,9 +34,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final routeInfo = GoRouter.of(context).routeInformationProvider.value;
-    final currentLocation = routeInfo.uri.toString();
 
+    // ── Extract user info ──────────────────────────────────────
     String phone = '';
     String role = '';
     String username = '';
@@ -46,23 +46,27 @@ class AppDrawer extends StatelessWidget {
     }
 
     final formattedPhone = phone.isNotEmpty ? FormValidators.formatPhone(phone) : '';
-    final displayName =
-        username.isNotEmpty ? username : (formattedPhone.isNotEmpty ? formattedPhone : 'Guest');
+    final displayName = username.isNotEmpty
+        ? username
+        : (formattedPhone.isNotEmpty ? formattedPhone : 'Guest');
     final displayPhone = formattedPhone.isNotEmpty ? formattedPhone : 'Not signed in';
     final roleLabel = AppRole.displayLabel(role);
     final homeRoute = AppRole.homePathFor(role);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // ── Current location for active highlighting ──────────────
+    final routeInfo = GoRouter.of(context).routeInformationProvider.value;
+    final currentLocation = routeInfo.uri.toString();
+
     bool isRouteSelected(String route) {
       final normalizedLocation = currentLocation.split('?').first;
       return normalizedLocation == route || normalizedLocation.startsWith('$route/');
     }
 
-    // Badge counts (computed at build time)
+    // ── Badge counts ──────────────────────────────────────────
     final notifState = context.watch<NotificationBloc>().state;
     int unreadNotifications = 0;
     if (notifState is NotificationLoaded) {
-      unreadNotifications =
-          notifState.notifications.where((n) => n.isUnread).length;
+      unreadNotifications = notifState.notifications.where((n) => n.isUnread).length;
     }
 
     final orderState = context.watch<OrderBloc>().state;
@@ -71,86 +75,113 @@ class AppDrawer extends StatelessWidget {
       ordersCount = orderState.orders.length;
     }
 
-    // Data-driven menu
-    final primary = <_DrawerItem>[
+    // ── Menu definitions ──────────────────────────────────────
+    final primaryItems = <_DrawerItem>[
       _DrawerItem(
-          icon: Icons.home, title: 'Home', route: homeRoute, allowedRoles: []),
+        icon: Icons.home_rounded,
+        title: 'Home',
+        route: homeRoute,
+        allowedRoles: [],
+      ),
       _DrawerItem(
-          icon: Icons.shopping_bag,
-          title: 'Products',
-          route: RoutePaths.products,
-          allowedRoles: AppRole.buyerRoles),
+        icon: Icons.shopping_bag_rounded,
+        title: 'Products',
+        route: RoutePaths.products,
+        allowedRoles: AppRole.buyerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.shopping_cart,
-          title: 'Cart',
-          route: RoutePaths.cart,
-          allowedRoles: AppRole.buyerRoles),
+        icon: Icons.shopping_cart_rounded,
+        title: 'Cart',
+        route: RoutePaths.cart,
+        allowedRoles: AppRole.buyerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.receipt_long,
-          title: 'My Orders',
-          route: RoutePaths.orders,
-          allowedRoles: AppRole.buyerRoles),
+        icon: Icons.receipt_long_rounded,
+        title: 'My Orders',
+        route: RoutePaths.orders,
+        allowedRoles: AppRole.buyerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.inventory,
-          title: 'My Products',
-          route: RoutePaths.farmerProducts,
-          allowedRoles: AppRole.farmerRoles),
+        icon: Icons.inventory_2_rounded,
+        title: 'My Products',
+        route: RoutePaths.farmerProducts,
+        allowedRoles: AppRole.farmerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.list_alt,
-          title: 'Order Requests',
-          route: RoutePaths.farmerOrderRequests,
-          allowedRoles: AppRole.farmerRoles),
+        icon: Icons.list_alt_rounded,
+        title: 'Order Requests',
+        route: RoutePaths.farmerOrderRequests,
+        allowedRoles: AppRole.farmerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.show_chart,
-          title: 'Earnings',
-          route: RoutePaths.farmerEarnings,
-          allowedRoles: AppRole.farmerRoles),
+        icon: Icons.show_chart_rounded,
+        title: 'Earnings',
+        route: RoutePaths.farmerEarnings,
+        allowedRoles: AppRole.farmerRoles,
+      ),
       _DrawerItem(
-          icon: Icons.local_shipping,
-          title: 'Available Orders',
-          route: RoutePaths.availableOrders,
-          allowedRoles: AppRole.transportProviderRoles),
+        icon: Icons.local_shipping_rounded,
+        title: 'Available Orders',
+        route: RoutePaths.availableOrders,
+        allowedRoles: AppRole.transportProviderRoles,
+      ),
       _DrawerItem(
-          icon: Icons.route,
-          title: 'My Trips',
-          route: RoutePaths.myTrips,
-          allowedRoles: AppRole.transportProviderRoles),
+        icon: Icons.route_rounded,
+        title: 'My Trips',
+        route: RoutePaths.myTrips,
+        allowedRoles: AppRole.transportProviderRoles,
+      ),
       _DrawerItem(
-          icon: Icons.payments,
-          title: 'Earnings',
-          route: RoutePaths.transportEarnings,
-          allowedRoles: AppRole.transportProviderRoles),
+        icon: Icons.payments_rounded,
+        title: 'Earnings',
+        route: RoutePaths.transportEarnings,
+        allowedRoles: AppRole.transportProviderRoles,
+      ),
       _DrawerItem(
-          icon: Icons.notifications,
-          title: 'Notifications',
-          route: RoutePaths.notifications,
-          allowedRoles: []),
+        icon: Icons.notifications_none_rounded,
+        title: 'Notifications',
+        route: RoutePaths.notifications,
+        allowedRoles: [],
+      ),
     ];
 
-    final secondary = <_DrawerItem>[
+    final secondaryItems = <_DrawerItem>[
       _DrawerItem(
-          icon: Icons.person, title: 'Profile', route: RoutePaths.profile),
+        icon: Icons.person_outline_rounded,
+        title: 'Profile',
+        route: RoutePaths.profile,
+        allowedRoles: [],
+      ),
       _DrawerItem(
-          icon: Icons.settings, title: 'Settings', route: RoutePaths.settings),
+        icon: Icons.settings_outlined,
+        title: 'Settings',
+        route: RoutePaths.settings,
+        allowedRoles: [],
+      ),
       _DrawerItem(
-          icon: Icons.support_agent,
-          title: 'Support',
-          route: RoutePaths.support),
+        icon: Icons.help_outline_rounded,
+        title: 'Support',
+        route: RoutePaths.support,
+        allowedRoles: [],
+      ),
     ];
 
-    Widget buildTrailingBadge(int count) {
+    // ── Helper to build a badge ──────────────────────────────
+    Widget _buildTrailingBadge(int count) {
       if (count <= 0) return const SizedBox.shrink();
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(8)),
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Text(
           count > 99 ? '99+' : count.toString(),
           style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600),
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       );
     }
@@ -167,142 +198,73 @@ class AppDrawer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: AppGradients.hero,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: AppShadows.glow,
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Stack(
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.16),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.44),
-                                  width: 1.4,
-                                ),
-                              ),
-                              child: Avatar(
-                                username: username.isNotEmpty ? username : phone,
-                                size: 56,
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.18),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 2,
-                              right: 2,
-                              child: Container(
-                                width: 14,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent.shade400,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                displayName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                displayPhone,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.78),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 10),
-                              PillBadge(
-                                label: roleLabel,
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.18),
-                                foregroundColor: Colors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.16)),
-                      ),
-                      child: Row(
-                        children: [
-                          const AppLogo(size: 28),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'MAMBONAMI',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                            ),
-                          ),
-                        ],
+            // ── Header ───────────────────────────────────────────────────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+              decoration: const BoxDecoration(gradient: AppGradients.hero),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white24,
+                    child: Text(
+                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    displayPhone,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      roleLabel.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+
             const SizedBox(height: 4),
+
+            // ── Menu list ──────────────────────────────────────────────
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
-                  // Primary
-                  ...primary
+                  // Primary items
+                  ...primaryItems
                       .where((item) =>
                           item.allowedRoles.isEmpty ||
                           item.allowedRoles.contains(role))
@@ -318,19 +280,14 @@ class AppDrawer extends StatelessWidget {
                     return ListTile(
                       leading: Icon(item.icon),
                       title: Text(item.title),
-                      trailing: badge > 0 ? buildTrailingBadge(badge) : null,
+                      trailing: badge > 0 ? _buildTrailingBadge(badge) : null,
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.primary,
-                      selectedTileColor: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.08),
+                      selectedTileColor:
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                       iconColor: selected
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: isDark ? 0.82 : 0.72),
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       textColor: selected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurface,
@@ -350,15 +307,11 @@ class AppDrawer extends StatelessWidget {
                       },
                     );
                   }),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                      thickness: 1,
-                    ),
-                  ),
-                  // Secondary
-                  ...secondary
+
+                  const Divider(height: 24, indent: 8, endIndent: 8),
+
+                  // Secondary items
+                  ...secondaryItems
                       .where((item) =>
                           item.allowedRoles.isEmpty ||
                           item.allowedRoles.contains(role))
@@ -369,16 +322,11 @@ class AppDrawer extends StatelessWidget {
                       title: Text(item.title),
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.primary,
-                      selectedTileColor: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.08),
+                      selectedTileColor:
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                       iconColor: selected
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: isDark ? 0.82 : 0.72),
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       textColor: selected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurface,
@@ -398,16 +346,19 @@ class AppDrawer extends StatelessWidget {
                       },
                     );
                   }),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                      thickness: 1,
-                    ),
-                  ),
+
+                  const Divider(height: 16, indent: 8, endIndent: 8),
+
+                  // Logout item
                   ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Log out'),
+                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+                    title: const Text(
+                      'Log Out',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     dense: true,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -415,9 +366,21 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).pop();
                       context.read<AuthBloc>().add(LogoutEvent());
+                      context.go(RoutePaths.login);
                     },
                   ),
                 ],
+              ),
+            ),
+
+            // ── Footer ──────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'MAMBONAMI v1.0.0',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.muted,
+                    ),
               ),
             ),
           ],

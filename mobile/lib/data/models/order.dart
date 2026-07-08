@@ -151,6 +151,7 @@ class SubOrder extends Equatable {
   final String status;
   final double subtotal;
   final List<OrderItem> items;
+  final DateTime? createdAt;
   final DateTime? confirmedAt;
   final DateTime? readyAt;
 
@@ -161,6 +162,7 @@ class SubOrder extends Equatable {
     required this.status,
     required this.subtotal,
     required this.items,
+    this.createdAt,
     this.confirmedAt,
     this.readyAt,
   });
@@ -173,6 +175,7 @@ class SubOrder extends Equatable {
       status: parseString(json['status']),
       subtotal: parseDouble(json['subtotal']),
       items: parseOrderItems(json['items']),
+      createdAt: json['created_at'] != null ? parseDate(json['created_at']) : null,
       confirmedAt: json['confirmed_at'] != null ? parseDate(json['confirmed_at']) : null,
       readyAt: json['ready_at'] != null ? parseDate(json['ready_at']) : null,
     );
@@ -183,7 +186,7 @@ class SubOrder extends Equatable {
   bool get isPending => status == 'pending';
 
   @override
-  List<Object?> get props => [id, status];
+  List<Object?> get props => [id, status, createdAt];
 }
 
 class OrderItem extends Equatable {

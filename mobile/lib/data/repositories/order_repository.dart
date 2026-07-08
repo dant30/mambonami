@@ -55,6 +55,14 @@ class OrderRepository {
     }
   }
 
+  Future<void> rejectSubOrder(int subOrderId) async {
+    try {
+      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/confirm/', data: {'action': 'reject'});
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<void> markSubOrderReady(int subOrderId) async {
     try {
       await _apiClient.dio.post('/api/orders/suborder/$subOrderId/ready/');

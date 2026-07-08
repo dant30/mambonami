@@ -19,11 +19,19 @@ class Notification(BaseModel):
         ('failed', 'Failed'),
         ('read', 'Read'),
     ]
+    TYPE_CHOICES = [
+        ('payment', 'Payment'),
+        ('order', 'Order'),
+        ('delivery', 'Delivery'),
+        ('review', 'Review'),
+        ('alert', 'Alert'),
+    ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
     title = models.CharField(max_length=200)
     body = models.TextField()
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='alert', help_text="Notification type for UI icon selection")
     metadata = models.JSONField(default=dict, help_text="Extra data (order_id, dispute_id, etc.)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     external_id = models.CharField(max_length=100, blank=True, help_text="Provider's message ID (Twilio, SendGrid, FCM)")

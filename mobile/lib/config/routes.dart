@@ -203,9 +203,9 @@ class AppRouter {
       ),
       GoRoute(
         path: RoutePaths.farmerEarnings,
-        builder: (_, __) => const AuthGuard(
+        builder: (_, __) => AuthGuard(
           allowedRoles: AppRole.farmerRoles,
-          child: EarningsPage(),
+          child: FarmerEarningsPage(),
         ),
       ),
       GoRoute(

@@ -4,13 +4,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
+import '../../../blocs/notification/notification_bloc.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
-import '../../../blocs/notification/notification_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../data/models/order.dart';
+import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
@@ -18,7 +19,6 @@ import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../widgets/category_chip_bar.dart';
 import '../widgets/product_grid_tile.dart';
-import '../widgets/delivery_tracking_card.dart';
 
 class BuyerDashboard extends StatefulWidget {
   const BuyerDashboard({super.key});
@@ -28,37 +28,56 @@ class BuyerDashboard extends StatefulWidget {
 }
 
 class _BuyerDashboardState extends State<BuyerDashboard> {
-  int _selectedCategory = 0;
-  final _categories = ['All', 'Vegetables', 'Fruits', 'Grains', 'Dairy', 'Roots'];
+  int _selectedCategoryIndex = 0;
+  final List<String> _categories = [
+    'All',
+    'Vegetables',
+    'Fruits',
+    'Grains',
+    'Dairy',
+    'Roots',
+  ];
 
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(FetchProductsEvent());
+    context.read<ProductBloc>().add(const FetchProductsEvent());
     context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final String location = 'Westlands, Nairobi';
+    final userLocation = 'Westlands, Nairobi'; // TODO: from address repository
+
+    // Compute unread count from NotificationBloc state
+    final notifState = context.watch<NotificationBloc>().state;
+    final unreadCount = notifState is NotificationLoaded
+        ? notifState.notifications.where((n) => n.isUnread).length
+        : 0;
+
+    // Active order from OrderBloc
+    final orderState = context.watch<OrderBloc>().state;
+    final activeOrder = orderState is BuyerOrdersLoaded ? orderState.activeOrder : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header ─────────────────────────────────────────────
-            _buildHeader(context, authState, location),
+            // ── Header ──────────────────────────────────────────────
+            _buildHeader(
+              context,
+              authState: authState,
+              location: userLocation,
+              unreadCount: unreadCount,
+            ),
 
-            // ── Scrollable body ────────────────────────────────────
+            // ── Scrollable content ──────────────────────────────────
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
-                onRefresh: () async {
-                  context.read<ProductBloc>().add(FetchProductsEvent());
-                  context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
-                },
+                onRefresh: _refreshData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.only(bottom: 24),
@@ -74,8 +93,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: CategoryChipBar(
                           categories: _categories,
-                          selected: _selectedCategory,
-                          onSelected: (i) => setState(() => _selectedCategory = i),
+                          selected: _selectedCategoryIndex,
+                          onSelected: (i) {
+                            setState(() => _selectedCategoryIndex = i);
+                            // For simplicity, navigate to catalog when a category is selected
+                            // In a real app, you could filter products.
+                            context.go(RoutePaths.productCatalog);
+                          },
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -84,34 +108,32 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       _buildNearbyFarmers(context),
                       const SizedBox(height: 20),
 
-                      // Recommended products
+                      // Recommended products grid
                       BlocBuilder<ProductBloc, ProductState>(
                         builder: (context, state) {
-                          if (state is ProductLoaded) {
-                            return _buildProductGrid(context, state);
-                          }
                           if (state is ProductLoading) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32),
-                                child: CircularProgressIndicator(color: AppColors.primary),
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
                               ),
                             );
                           }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Active order tracking strip
-                      BlocBuilder<OrderBloc, OrderState>(
-                        builder: (context, state) {
-                          if (state is BuyerOrdersLoaded && state.activeOrder != null) {
-                            return _buildActiveOrderStrip(context, state.activeOrder!);
+                          if (state is ProductLoaded) {
+                            final products = state.products;
+                            final displayProducts = products.take(6).toList();
+                            return _buildProductGrid(context, products: displayProducts);
                           }
                           return const SizedBox.shrink();
                         },
                       ),
+                      const SizedBox(height: 16),
+
+                      // Active order tracking strip
+                      if (activeOrder != null)
+                        _buildActiveOrderStrip(context, activeOrder),
                     ],
                   ),
                 ),
@@ -124,10 +146,17 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
-  // ── Header with location + search ──────────────────────────────
-  Widget _buildHeader(BuildContext context, AuthState authState, String location) {
-    final notifState = context.watch<NotificationBloc>().state;
-    final unread = notifState is NotificationLoaded ? notifState.unreadCount : 0;
+  // ── Header with location, search, avatar ──────────────────────
+  Widget _buildHeader(
+    BuildContext context, {
+    required AuthState authState,
+    required String location,
+    required int unreadCount,
+  }) {
+    final theme = Theme.of(context);
+    final userName = authState is AuthAuthenticated
+        ? authState.username ?? authState.phone
+        : 'Guest';
 
     return Container(
       color: Colors.white,
@@ -139,15 +168,15 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               // Location selector
               Expanded(
                 child: GestureDetector(
-                  onTap: () {}, // TODO: open address picker
+                  onTap: () => context.go(RoutePaths.addressPicker),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Delivery to',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.muted,
-                            ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.muted,
+                        ),
                       ),
                       Row(
                         children: [
@@ -156,10 +185,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                           const SizedBox(width: 2),
                           Text(
                             location,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: AppColors.dark,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const Icon(Icons.keyboard_arrow_down_rounded,
                               size: 16, color: AppColors.muted),
@@ -185,7 +214,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                           color: AppColors.primary, size: 18),
                     ),
                   ),
-                  if (unread > 0)
+                  if (unreadCount > 0)
                     Positioned(
                       top: 8,
                       right: 8,
@@ -211,13 +240,23 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     width: 36,
                     height: 36,
                     fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.person_outline,
+                          color: AppColors.primary, size: 18),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          // Search bar — taps to catalog
+          // Search bar
           GestureDetector(
             onTap: () => context.go(RoutePaths.productCatalog),
             child: Container(
@@ -236,9 +275,9 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                   const SizedBox(width: 8),
                   Text(
                     'Search products, farmers...',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.muted,
-                        ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.muted,
+                    ),
                   ),
                 ],
               ),
@@ -249,8 +288,9 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
-  // ── Hero promo banner ─────────────────────────────────────────
+  // ── Hero banner ─────────────────────────────────────────────────
   Widget _buildHeroBanner(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: ClipRRect(
@@ -263,6 +303,14 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               height: 148,
               width: double.infinity,
               fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => Container(
+                height: 148,
+                color: AppColors.light,
+                child: const Center(
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: AppColors.muted),
+                ),
+              ),
             ),
             // Green gradient overlay
             Positioned.fill(
@@ -288,23 +336,23 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Flash Deal 🔥',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
-                          )),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      )),
                   const SizedBox(height: 4),
                   Text(
                     'Fresh from\nthe Farm',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                        ),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text('Up to 30% off today',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
-                          )),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      )),
                 ],
               ),
             ),
@@ -337,8 +385,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
-  // ── Nearby farmers horizontal row ────────────────────────────
+  // ── Nearby farmers horizontal row ─────────────────────────────
   Widget _buildNearbyFarmers(BuildContext context) {
+    final theme = Theme.of(context);
+    // Mock data – in real app, fetch from a farmers list or extract from products
     final farmers = [
       {'name': 'Kamau Farm', 'dist': '2.1 km', 'img': 'https://images.unsplash.com/photo-1607305387299-a3d9611cd469?w=60&h=60&fit=crop'},
       {'name': 'Wanjiku Farm', 'dist': '3.4 km', 'img': 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=60&h=60&fit=crop'},
@@ -380,23 +430,32 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.light,
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(Icons.agriculture, color: AppColors.primary),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       f['name']!,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.dark,
-                          ),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.dark,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     Text(
                       f['dist']!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: AppColors.muted, fontSize: 9),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.muted,
+                        fontSize: 9,
+                      ),
                     ),
                   ],
                 ),
@@ -408,8 +467,20 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
-  // ── Recommended products 2-col grid ──────────────────────────
-  Widget _buildProductGrid(BuildContext context, ProductLoaded state) {
+  // ── Recommended products grid ──────────────────────────────────
+  Widget _buildProductGrid(BuildContext context, {required List<Product> products}) {
+    if (products.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Center(
+          child: Text(
+            'No products available at the moment.',
+            style: TextStyle(color: AppColors.muted),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -434,16 +505,16 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
             mainAxisSpacing: 12,
             childAspectRatio: 0.72,
           ),
-          itemCount: state.products.length.clamp(0, 6),
-          itemBuilder: (context, i) =>
-              ProductGridTile(product: state.products[i]),
+          itemCount: products.length.clamp(0, 6),
+          itemBuilder: (context, i) => ProductGridTile(product: products[i]),
         ),
       ],
     );
   }
 
   // ── Active order tracking strip ───────────────────────────────
-  Widget _buildActiveOrderStrip(BuildContext context, dynamic order) {
+  Widget _buildActiveOrderStrip(BuildContext context, Order order) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Column(
@@ -460,8 +531,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                   children: [
                     Text(
                       'Order #${order.uuid.substring(0, 8).toUpperCase()}',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700, color: AppColors.dark),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.dark,
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -472,16 +545,16 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       ),
                       child: Text(
                         'On the way',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.secondary,
-                            ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.secondary,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                // 5-step progress row
+                // Progress steps
                 _buildStepProgress(),
                 const SizedBox(height: 10),
                 Row(
@@ -491,7 +564,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     const SizedBox(width: 4),
                     Text.rich(
                       TextSpan(
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall,
                         children: [
                           const TextSpan(text: 'Driver is '),
                           TextSpan(
@@ -538,9 +611,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
+  // ── 5‑step progress indicator ──────────────────────────────────
   Widget _buildStepProgress() {
     const steps = ['Placed', 'Confirmed', 'Pickup', 'On way', 'Done'];
-    const completed = 4;
+    const completed = 4; // example: "On way" is active
     return Row(
       children: List.generate(steps.length, (i) {
         final done = i < completed;
@@ -573,5 +647,12 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
         );
       }),
     );
+  }
+
+  // ── Refresh data ──────────────────────────────────────────────────
+  Future<void> _refreshData() async {
+    context.read<ProductBloc>().add(const FetchProductsEvent());
+    context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
+    return Future.value();
   }
 }

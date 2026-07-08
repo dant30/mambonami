@@ -1,4 +1,5 @@
-// mobile/lib/features/common/settings_page.dart
+// lib/features/common/settings_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,7 +17,6 @@ import '../../shared/layouts/app_navigation.dart';
 import '../../shared/layouts/app_screen.dart';
 import '../../shared/layouts/custom_app_bar.dart';
 import '../../shared/themes/app_colors.dart';
-import '../../shared/themes/app_radius.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/custom_dialog.dart';
@@ -36,7 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _orderUpdatesEnabled = true;
   String _notificationPermission = 'Unknown';
   bool _loading = true;
-  bool _darkMode = false;
+  bool _locationEnabled = true;
 
   @override
   void initState() {
@@ -45,21 +45,26 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadPrefs() async {
-    final notificationsEnabled = await CacheManager.instance.getBool(kNotificationsEnabledKey);
-    final orderUpdatesEnabled = await CacheManager.instance.getBool(kOrderUpdatesEnabledKey);
-    final darkMode = await CacheManager.instance.getBool('dark_mode') ?? false;
-    // load firebase notification permission status
+    final notificationsEnabled =
+        await CacheManager.instance.getBool(kNotificationsEnabledKey);
+    final orderUpdatesEnabled =
+        await CacheManager.instance.getBool(kOrderUpdatesEnabledKey);
+    final locationEnabled =
+        await CacheManager.instance.getBool('location_enabled') ?? true;
+
+    // Load Firebase notification permission status
     try {
       final settings = await FirebaseMessaging.instance.getNotificationSettings();
       _notificationPermission = settings.authorizationStatus.name;
     } catch (_) {
       _notificationPermission = 'unknown';
     }
+
     if (!mounted) return;
     setState(() {
       _notificationsEnabled = notificationsEnabled ?? true;
       _orderUpdatesEnabled = orderUpdatesEnabled ?? true;
-      _darkMode = darkMode;
+      _locationEnabled = locationEnabled;
       _loading = false;
     });
   }
@@ -94,10 +99,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _openSystemNotificationSettings() async {
-    await openAppSettings();
-  }
-
   Future<void> _saveOrderUpdates(bool enabled) async {
     await CacheManager.instance.saveBool(kOrderUpdatesEnabledKey, enabled);
     if (!mounted) return;
@@ -106,12 +107,6 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       enabled ? 'Order updates enabled' : 'Order updates disabled',
     );
-  }
-
-  void _toggleDarkMode(bool value) {
-    setState(() => _darkMode = value);
-    CacheManager.instance.saveBool('dark_mode', value);
-    context.read<ThemeCubit>().setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
   }
 
   void _showLanguageDialog() {
@@ -173,7 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = context.watch<ThemeCubit>().state.themeMode == ThemeMode.dark;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -193,156 +188,153 @@ class _SettingsPageState extends State<SettingsPage> {
               child: ListView(
                 children: [
                   // ─── Account Section ──────────────────────────────────────
-                  const SectionHeader(
-                    title: 'Account',
-                    subtitle: 'Manage your profile and security',
-                  ),
-                  const SizedBox(height: 12),
-                  InfoTile(
+                  const _SectionLabel('Account'),
+                  const SizedBox(height: 8),
+                  _buildAccountTile(
+                    icon: Icons.person_outline,
                     title: 'Edit Profile',
                     subtitle: 'Name, phone, photo',
-                    icon: Icons.person_outline,
                     onTap: () => context.go(RoutePaths.profile),
                   ),
-                  const SizedBox(height: 8),
-                  InfoTile(
+                  _buildAccountTile(
+                    icon: Icons.lock_reset_outlined,
                     title: 'Change Password',
                     subtitle: 'Update security credentials',
-                    icon: Icons.lock_reset_outlined,
                     onTap: () {
-                      // TODO: Navigate to change password page
-                      CustomSnackbar.showInfo(context, 'Change password screen coming soon');
+                      CustomSnackbar.showInfo(
+                        context,
+                        'Change password screen coming soon',
+                      );
                     },
                   ),
-                  const SizedBox(height: 8),
-                  InfoTile(
+                  _buildAccountTile(
+                    icon: Icons.link_outlined,
                     title: 'Linked Accounts',
                     subtitle: 'Google, M-Pesa',
-                    icon: Icons.link_outlined,
                     onTap: () {
-                      // TODO: Show linked accounts
-                      CustomSnackbar.showInfo(context, 'Linked accounts coming soon');
+                      CustomSnackbar.showInfo(
+                        context,
+                        'Linked accounts coming soon',
+                      );
                     },
                   ),
-                  const SizedBox(height: 8),
-                  InfoTile(
+                  _buildAccountTile(
+                    icon: Icons.language_outlined,
                     title: 'Language',
                     subtitle: 'English / Kiswahili',
-                    icon: Icons.language_outlined,
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
                     onTap: _showLanguageDialog,
                   ),
                   const SizedBox(height: 24),
 
                   // ─── Preferences Section ──────────────────────────────────
-                  const SectionHeader(
-                    title: 'Preferences',
-                    subtitle: 'Customize your experience',
+                  const _SectionLabel('Preferences'),
+                  const SizedBox(height: 8),
+                  _buildPreferenceSwitch(
+                    icon: Icons.notifications_active_outlined,
+                    title: 'Push Notifications',
+                    subtitle: 'Orders, payments, updates',
+                    value: _notificationsEnabled,
+                    onChanged: _saveNotifications,
                   ),
-                  const SizedBox(height: 12),
-                  CustomCard(
-                    margin: EdgeInsets.zero,
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _buildSwitchTile(
-                          context,
-                          title: 'Push Notifications',
-                          subtitle: 'Orders, payments, updates',
-                          value: _notificationsEnabled,
-                          onChanged: _saveNotifications,
-                          icon: Icons.notifications_active_outlined,
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Order Updates',
-                          subtitle: 'Track order progress and status changes',
-                          value: _orderUpdatesEnabled,
-                          onChanged: _saveOrderUpdates,
-                          icon: Icons.track_changes_outlined,
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Dark Mode',
-                          subtitle: 'Switch app appearance',
-                          value: _darkMode,
-                          onChanged: _toggleDarkMode,
-                          icon: isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _buildSwitchTile(
-                          context,
-                          title: 'Location Access',
-                          subtitle: 'For GPS and delivery',
-                          value: true, // Placeholder; we could read location permission status
-                          onChanged: (value) async {
-                            if (value) {
-                              await Permission.location.request();
-                            } else {
-                              await Permission.location.shouldShowRequestRationale;
-                            }
-                          },
-                          icon: Icons.location_on_outlined,
-                        ),
-                      ],
-                    ),
+                  _buildPreferenceSwitch(
+                    icon: Icons.track_changes_outlined,
+                    title: 'Order Updates',
+                    subtitle: 'Track order progress and status changes',
+                    value: _orderUpdatesEnabled,
+                    onChanged: _saveOrderUpdates,
+                  ),
+                  _buildPreferenceSwitch(
+                    icon: isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                    title: 'Dark Mode',
+                    subtitle: 'Switch app appearance',
+                    value: isDark,
+                    onChanged: (value) {
+                      context.read<ThemeCubit>().setThemeMode(
+                        value ? ThemeMode.dark : ThemeMode.light,
+                      );
+                    },
+                  ),
+                  _buildPreferenceSwitch(
+                    icon: Icons.location_on_outlined,
+                    title: 'Location Access',
+                    subtitle: 'For GPS and delivery',
+                    value: _locationEnabled,
+                    onChanged: (value) async {
+                      if (value) {
+                        final status = await Permission.location.request();
+                        if (status.isGranted) {
+                          setState(() => _locationEnabled = true);
+                        }
+                      } else {
+                        await Permission.location.shouldShowRequestRationale;
+                        // In practice, you would open app settings
+                      }
+                    },
                   ),
                   const SizedBox(height: 24),
 
                   // ─── Privacy & Legal Section ──────────────────────────────
-                  const SectionHeader(
-                    title: 'Privacy & Legal',
-                    subtitle: 'Manage your data and legal agreements',
-                  ),
-                  const SizedBox(height: 12),
-                  InfoTile(
+                  const _SectionLabel('Privacy & Legal'),
+                  const SizedBox(height: 8),
+                  _buildLegalTile(
+                    icon: Icons.privacy_tip_outlined,
                     title: 'Privacy Policy',
                     subtitle: 'Read our privacy policy',
-                    icon: Icons.privacy_tip_outlined,
                     onTap: () {
-                      // TODO: Open privacy policy
                       CustomSnackbar.showInfo(context, 'Privacy policy coming soon');
                     },
                   ),
-                  const SizedBox(height: 8),
-                  InfoTile(
+                  _buildLegalTile(
+                    icon: Icons.description_outlined,
                     title: 'Terms of Service',
                     subtitle: 'View terms and conditions',
-                    icon: Icons.description_outlined,
                     onTap: () {
-                      // TODO: Open terms of service
                       CustomSnackbar.showInfo(context, 'Terms of service coming soon');
                     },
                   ),
-                  const SizedBox(height: 8),
-                  InfoTile(
+                  _buildLegalTile(
+                    icon: Icons.delete_outline,
                     title: 'Delete Account',
                     subtitle: 'Permanently remove your account',
-                    icon: Icons.delete_outline,
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: theme.colorScheme.error,
-                    ),
+                    destructive: true,
                     onTap: _confirmDeleteAccount,
                   ),
                   const SizedBox(height: 8),
-                  InfoTile(
-                    title: 'App notification permission',
-                    subtitle: _notificationPermission,
-                    icon: Icons.notifications_none_outlined,
-                    trailing: TextButton(
-                      onPressed: _requestNotificationPermission,
-                      child: const Text('Request'),
+                  // ── Notification permission helper ──────────────────────────
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_none_outlined,
+                          size: 20,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'App notification permission',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _requestNotificationPermission,
+                          child: Text(
+                            _notificationPermission,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 18),
 
-                  // ─── Clear Data ──────────────────────────────────────────
+                  // ─── Clear Local Data ──────────────────────────────────────
                   CustomCard(
                     margin: EdgeInsets.zero,
                     child: CustomButton(
@@ -373,45 +365,164 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSwitchTile(
-    BuildContext context, {
+  Widget _buildAccountTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: CustomCard(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+          ),
+          title: Text(
+            title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 18,
+          ),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferenceSwitch({
+    required IconData icon,
     required String title,
     required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
-    required IconData icon,
   }) {
     final theme = Theme.of(context);
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.12),
-          borderRadius: AppRadius.small,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: CustomCard(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+          ),
+          title: Text(
+            title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          trailing: Transform.scale(
+            scale: 0.85,
+            child: Switch(
+              value: value,
+              onChanged: onChanged,
+              activeColor: theme.colorScheme.primary,
+            ),
+          ),
+          onTap: () => onChanged(!value),
         ),
-        child: Icon(icon, color: theme.colorScheme.primary, size: 22),
       ),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface.withOpacity(0.7),
+    );
+  }
+
+  Widget _buildLegalTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    bool destructive = false,
+    VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    final color = destructive ? theme.colorScheme.error : theme.colorScheme.onSurface;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: CustomCard(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: destructive
+                  ? theme.colorScheme.error.withOpacity(0.12)
+                  : theme.colorScheme.primary.withOpacity(0.12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          title: Text(
+            title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right_rounded,
+            color: color.withOpacity(0.5),
+            size: 18,
+          ),
+          onTap: onTap,
         ),
       ),
-      trailing: Transform.scale(
-        scale: 0.85,
-        child: Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: theme.colorScheme.primary,
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4, top: 12),
+      child: Text(
+        label.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.8,
         ),
       ),
-      onTap: () => onChanged(!value),
     );
   }
 }

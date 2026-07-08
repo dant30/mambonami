@@ -2,6 +2,7 @@
 # backend/django_admin/apps/orders/serializers/order_serializer.py
 from rest_framework import serializers
 from decimal import Decimal
+from django.utils.timesince import timesince
 from apps.products.models import Product
 from apps.products.serializers import ProductSerializer
 from ..models import Order, SubOrder, OrderItem
@@ -24,23 +25,53 @@ class SubOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubOrder
-        fields = ('id', 'farmer', 'farmer_phone', 'status', 'subtotal', 'farmer_payout', 'items', 'confirmed_at', 'ready_at')
+        fields = ('id', 'farmer', 'farmer_phone', 'status', 'subtotal', 'farmer_payout', 'items', 'confirmed_at', 'ready_at', 'created_at')
 
 class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)
     buyer_phone = serializers.CharField(source='buyer.phone', read_only=True)
+    buyerName = serializers.SerializerMethodField()
+    timeAgo = serializers.SerializerMethodField()
+    itemSummary = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = (
-            'id', 'uuid', 'buyer', 'buyer_phone', 'total_amount', 'delivery_fee',
+            'id', 'uuid', 'buyer', 'buyer_phone', 'buyerName', 'total_amount', 'delivery_fee',
             'platform_commission', 'status', 'account_number', 'delivery_address',
             'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
             'delivery_lat', 'delivery_lng', 'total_weight_kg',
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
-            'sub_orders', 'created_at', 'paid_at', 'delivered_at'
+            'sub_orders', 'timeAgo', 'itemSummary', 'created_at', 'paid_at', 'delivered_at'
         )
         read_only_fields = ('id', 'uuid', 'account_number', 'status', 'created_at', 'paid_at', 'delivered_at')
+    
+    def get_buyerName(self, obj):
+        """Return buyer's name or phone if name not available."""
+        if obj.buyer.first_name:
+            return obj.buyer.first_name
+        return obj.buyer.phone
+    
+    def get_timeAgo(self, obj):
+        """Return relative time string from creation."""
+        return timesince(obj.created_at) + ' ago'
+    
+    def get_itemSummary(self, obj):
+        """Generate summary like 'Avocado 2kg + Tomatoes 3kg'."""
+        items = []
+        for sub_order in obj.sub_orders.all():
+            for item in sub_order.items.all():
+                summary_item = f"{item.product.name} {item.quantity}{item.product.unit}"
+                items.append(summary_item)
+        
+        if not items:
+            return ""
+        
+        # Limit summary to 2 items and add "+" if more
+        if len(items) <= 2:
+            return " + ".join(items)
+        else:
+            return " + ".join(items[:2]) + f" +{len(items) - 2} more"
 
 class OrderCreateSerializer(serializers.Serializer):
     """Create order from cart items with delivery location."""
