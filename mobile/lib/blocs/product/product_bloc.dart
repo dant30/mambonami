@@ -32,6 +32,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<UpdateProductEvent>(_onUpdateProduct);
     on<DeleteProductEvent>(_onDeleteProduct);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
+    on<SearchProductsEvent>(_onSearchProducts);
+    on<FilterProductsByCategoryEvent>(_onFilterProductsByCategory);
+    on<SortProductsEvent>(_onSortProducts);
   }
 
   Product _syncFavorite(Product product) =>
@@ -125,5 +128,54 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(ProductDetailLoaded(updatedProduct));
       }
     }
+  }
+
+  Future<void> _onSearchProducts(SearchProductsEvent event, Emitter<ProductState> emit) async {
+    final currentProducts = state is ProductLoaded
+        ? (state as ProductLoaded).products
+        : <Product>[];
+    final query = event.query.trim().toLowerCase();
+    final filtered = query.isEmpty
+        ? currentProducts
+        : currentProducts.where((product) {
+            final haystack = '${product.name} ${product.description ?? ''} ${product.farmerName}'.toLowerCase();
+            return haystack.contains(query);
+          }).toList();
+    emit(ProductLoaded(_syncFavorites(filtered)));
+  }
+
+  Future<void> _onFilterProductsByCategory(FilterProductsByCategoryEvent event, Emitter<ProductState> emit) async {
+    final currentProducts = state is ProductLoaded
+        ? (state as ProductLoaded).products
+        : <Product>[];
+    final category = event.category.trim().toLowerCase();
+    final filtered = category.isEmpty || category == 'all'
+        ? currentProducts
+        : currentProducts.where((product) => product.category.code.toLowerCase() == category).toList();
+    emit(ProductLoaded(_syncFavorites(filtered)));
+  }
+
+  Future<void> _onSortProducts(SortProductsEvent event, Emitter<ProductState> emit) async {
+    final currentProducts = state is ProductLoaded
+        ? (state as ProductLoaded).products
+        : <Product>[];
+    final sorted = List<Product>.from(currentProducts);
+    switch (event.sortBy.toLowerCase()) {
+      case 'price_low':
+        sorted.sort((a, b) => a.pricePerUnit.compareTo(b.pricePerUnit));
+        break;
+      case 'price_high':
+        sorted.sort((a, b) => b.pricePerUnit.compareTo(a.pricePerUnit));
+        break;
+      case 'rating':
+        sorted.sort((a, b) => b.averageRating.compareTo(a.averageRating));
+        break;
+      case 'name':
+        sorted.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      default:
+        break;
+    }
+    emit(ProductLoaded(_syncFavorites(sorted)));
   }
 }

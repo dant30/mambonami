@@ -233,7 +233,7 @@ class WelcomePage extends StatelessWidget {
                   // ─── Get Started (→ login) ──────────────────────────────
                   CustomButton(
                     label: 'Get Started',
-                    onPressed: () => context.go(RoutePaths.login),
+                    onPressed: () => context.go(RoutePaths.roleSelect),
                   ),
                   const SizedBox(height: 12),
                   CustomButton(

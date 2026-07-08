@@ -58,3 +58,10 @@ class VerifyOtpEvent extends TripEvent {
   const VerifyOtpEvent(this.tripUuid, this.otp);
   @override List<Object> get props => [tripUuid, otp];
 }
+
+class VerifyDeliveryOtpEvent extends TripEvent {
+  final String orderId;
+  final String otp;
+  const VerifyDeliveryOtpEvent({required this.orderId, required this.otp});
+  @override List<Object> get props => [orderId, otp];
+}

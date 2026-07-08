@@ -1,63 +1,57 @@
-﻿// mobile/lib/features/buyer/widgets/order_status_timeline.dart
+﻿// lib/features/buyer/widgets/order_status_timeline.dart
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../shared/themes/app_colors.dart';
+
+class OrderStatusEvent {
+  final String title;
+  final String? description;
+  final String? timestamp;
+  final bool isCompleted;
+  final bool isActive;
+
+  const OrderStatusEvent({
+    required this.title,
+    this.description,
+    this.timestamp,
+    required this.isCompleted,
+    this.isActive = false,
+  });
+}
 
 class OrderStatusTimeline extends StatelessWidget {
   final List<OrderStatusEvent> events;
-
   const OrderStatusTimeline({super.key, required this.events});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
-      children: events.asMap().entries.map((entry) {
-        final index = entry.key;
-        final event = entry.value;
-        final isLast = index == events.length - 1;
-        final isCompleted = event.completed;
-
+      children: List.generate(events.length, (i) {
+        final e = events[i];
+        final isLast = i == events.length - 1;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Timeline icon & line
+            // Left column: dot + line
             Column(
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCompleted
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outline.withOpacity(0.3),
-                    border: Border.all(
-                      color: isCompleted
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.outline.withOpacity(0.2),
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: isCompleted
-                        ? const Icon(Icons.check, color: Colors.white, size: 16)
-                        : null,
-                  ),
+                _Dot(
+                  isCompleted: e.isCompleted,
+                  isActive: e.isActive,
                 ),
                 if (!isLast)
                   Container(
                     width: 2,
-                    height: 40,
-                    color: isCompleted
-                        ? AppColors.primary
-                        : theme.colorScheme.outline.withOpacity(0.3),
+                    height: 44,
+                    color: e.isCompleted
+                        ? AppColors.primary.withValues(alpha: 0.4)
+                        : AppColors.light,
                   ),
               ],
             ),
-            const SizedBox(width: 16),
-            // Text content
+            const SizedBox(width: 14),
+
+            // Right column: title + desc + time
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
@@ -67,49 +61,57 @@ class OrderStatusTimeline extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          event.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: isCompleted ? FontWeight.w700 : FontWeight.w400,
-                            color: isCompleted
-                                ? AppColors.dark
-                                : AppColors.muted,
-                          ),
+                          e.title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: e.isCompleted
+                                    ? AppColors.dark
+                                    : AppColors.muted,
+                              ),
                         ),
-                        if (event.isActive) ...[
-                          const SizedBox(width: 8),
+                        if (e.isActive) ...[
+                          const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
+                              color:
+                                  AppColors.gold.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(99),
                             ),
-                            child: Text(
+                            child: const Text(
                               'LIVE',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: AppColors.gold,
+                              style: TextStyle(
+                                fontSize: 9,
                                 fontWeight: FontWeight.w800,
+                                color: AppColors.gold,
                               ),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    if (event.timestamp != null) ...[
-                      const SizedBox(height: 4),
+                    if (e.description != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        DateFormat('MMM d, yyyy • hh:mm a').format(event.timestamp!),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.muted.withOpacity(0.6),
-                        ),
+                        e.description!,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: AppColors.muted),
                       ),
                     ],
-                    if (event.description != null) ...[
-                      const SizedBox(height: 4),
+                    if (e.timestamp != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        event.description!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.muted.withOpacity(0.7),
-                        ),
+                        e.timestamp!,
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(color: AppColors.muted),
                       ),
                     ],
                   ],
@@ -118,23 +120,39 @@ class OrderStatusTimeline extends StatelessWidget {
             ),
           ],
         );
-      }).toList(),
+      }),
     );
   }
 }
 
-class OrderStatusEvent {
-  final String title;
-  final String? description;
-  final DateTime? timestamp;
-  final bool completed;
+class _Dot extends StatelessWidget {
+  final bool isCompleted;
   final bool isActive;
+  const _Dot({required this.isCompleted, required this.isActive});
 
-  OrderStatusEvent({
-    required this.title,
-    this.description,
-    this.timestamp,
-    this.completed = false,
-    this.isActive = false,
-  });
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: 26,
+        height: 26,
+        decoration: BoxDecoration(
+          color: isCompleted
+              ? (isActive ? AppColors.gold : AppColors.primary)
+              : AppColors.light,
+          shape: BoxShape.circle,
+        ),
+        child: isCompleted
+            ? const Icon(Icons.check_rounded,
+                size: 14, color: Colors.white)
+            : Center(
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.muted,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+      );
 }

@@ -19,6 +19,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginRequested>(_onLoginRequested);
     on<OtpVerifyRequested>(_onOtpVerifyRequested);
     on<RegisterRequested>(_onRegisterRequested);
+    on<ForgotPasswordInitEvent>(_onForgotPasswordInit);
+    on<ForgotPasswordVerifyEvent>(_onForgotPasswordVerify);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
@@ -85,8 +87,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await authRepository.loginSendOtp(event.phone, event.password);
-      emit(OtpSent(phone: event.phone, password: event.password));
+      final user = await authRepository.login(event.phone, event.password);
+      final role = _stringValue(user, 'role');
+      final phone = _stringValue(user, 'phone') ?? event.phone;
+      final username = _stringValue(user, 'username');
+
+      if (role == null) {
+        throw Exception('Invalid user data: missing role');
+      }
+
+      emit(AuthAuthenticated(role, phone, username));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -129,7 +139,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final role = event.dto['role']?.toString() ?? 'buyer';
-      emit(RegisterSuccess(role));
+      final phone = event.dto['phone']?.toString() ?? '';
+      if (phone.isEmpty) {
+        emit(AuthError('Phone number is required for registration'));
+        return;
+      }
+
+      await authRepository.registerInit(phone, role);
+      emit(RegisterOtpPending(phone: phone, dto: event.dto));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -155,6 +172,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ForgotPasswordVerifyEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
+      if (event.newPassword.isEmpty) {
+        emit(ForgotPasswordSuccess());
+        return;
+      }
       await authRepository.forgotPasswordVerify(
           event.phone, event.otp, event.newPassword);
       emit(ForgotPasswordSuccess());

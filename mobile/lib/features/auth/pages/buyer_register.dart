@@ -39,7 +39,13 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (ctx, state) {
-        if (state is RegisterSuccess) {
+        if (state is RegisterOtpPending) {
+          ctx.go(RoutePaths.otp, extra: {
+            'phone': state.phone,
+            'mode': 'register',
+            'dto': state.dto,
+          });
+        } else if (state is RegisterSuccess) {
           ctx.go(RoutePaths.success, extra: 'buyer');
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx).showSnackBar(

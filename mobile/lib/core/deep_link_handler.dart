@@ -68,11 +68,11 @@ class DeepLinkInfo {
       case DeepLinkType.productDetail:
         return uuid != null ? RoutePaths.productDetailPath(uuid!) : null;
       case DeepLinkType.productCatalog:
-        return RoutePaths.products;
+        return RoutePaths.productCatalog;
       case DeepLinkType.notifications:
         return RoutePaths.notifications;
       case DeepLinkType.orderHistory:
-        return RoutePaths.orders;
+        return RoutePaths.orderHistory;
       case DeepLinkType.login:
         return RoutePaths.login;
       case DeepLinkType.cart:
@@ -244,8 +244,9 @@ class DeepLinkHandler {
       );
     }
 
-    // Route order history: /orders
-    if (pathSegments.length == 1 && pathSegments[0] == 'orders') {
+    // Route buyer order history: /buyer/orders or /orders
+    if ((pathSegments.length == 2 && pathSegments[0] == 'buyer' && pathSegments[1] == 'orders') ||
+        (pathSegments.length == 1 && pathSegments[0] == 'orders')) {
       debugPrint('[DeepLinkHandler] Detected order history');
       return DeepLinkInfo(
         type: DeepLinkType.orderHistory,
@@ -265,9 +266,10 @@ class DeepLinkHandler {
       );
     }
 
-    // Route product catalog: /products or /product
-    if (pathSegments.length == 1 &&
-        (pathSegments[0] == 'products' || pathSegments[0] == 'product')) {
+    // Route product catalog: /buyer/catalog, /products or /product
+    if ((pathSegments.length == 2 && pathSegments[0] == 'buyer' && pathSegments[1] == 'catalog') ||
+        (pathSegments.length == 1 &&
+            (pathSegments[0] == 'products' || pathSegments[0] == 'product'))) {
       debugPrint('[DeepLinkHandler] Detected product catalog');
       return DeepLinkInfo(
           type: DeepLinkType.productCatalog, params: uri.queryParameters);

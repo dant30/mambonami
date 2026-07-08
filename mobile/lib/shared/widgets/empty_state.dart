@@ -5,11 +5,14 @@ class EmptyState extends StatelessWidget {
   final String? title;
   final String? description;
   final String? message;
+  final String? subtitle;
+  final String? emoji;
 
   final String? assetPath;
   final IconData? icon;
 
   final String? buttonText;
+  final String? actionLabel;
   final VoidCallback? onButtonPressed;
 
   const EmptyState({
@@ -17,9 +20,12 @@ class EmptyState extends StatelessWidget {
     this.title,
     this.description,
     this.message,
+    this.subtitle,
+    this.emoji,
     this.assetPath,
     this.icon,
     this.buttonText,
+    this.actionLabel,
     this.onButtonPressed,
   }) : assert(
           title != null || message != null,
@@ -32,7 +38,8 @@ class EmptyState extends StatelessWidget {
 
     final effectiveTitle = title ?? 'Nothing here yet';
     final effectiveDescription =
-        description ?? message ?? 'There is no content to display right now.';
+        description ?? message ?? subtitle ?? 'There is no content to display right now.';
+    final effectiveButtonText = buttonText ?? actionLabel;
 
     return Center(
       child: Padding(
@@ -75,7 +82,7 @@ class EmptyState extends StatelessWidget {
               AnimatedSize(
                 duration: const Duration(milliseconds: 280),
                 curve: Curves.easeInOut,
-                child: onButtonPressed != null && buttonText != null
+                child: onButtonPressed != null && effectiveButtonText != null
                     ? Padding(
                         padding: const EdgeInsets.only(top: 24),
                         child: ElevatedButton(
@@ -90,7 +97,7 @@ class EmptyState extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Text(buttonText!),
+                          child: Text(effectiveButtonText!),
                         ),
                       )
                     : const SizedBox.shrink(),
@@ -113,6 +120,10 @@ class EmptyState extends StatelessWidget {
           fit: BoxFit.contain,
         ),
       );
+    }
+
+    if (emoji != null) {
+      return Text(emoji!, style: const TextStyle(fontSize: 44));
     }
 
     return AnimatedContainer(

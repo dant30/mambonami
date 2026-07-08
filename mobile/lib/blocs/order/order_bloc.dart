@@ -15,6 +15,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<CreateOrderEvent>(_onCreateOrder);
     on<FetchMyOrdersEvent>(_onFetchMyOrders);
     on<FetchOrderDetailEvent>(_onFetchOrderDetail);
+    on<FetchBuyerOrdersEvent>(_onFetchBuyerOrders);
+    on<FetchOrderDetailsEvent>(_onFetchOrderDetails);
+    on<ConfirmPaymentEvent>(_onConfirmPayment);
     // Farmer
     on<FetchFarmerSubOrdersEvent>(_onFetchFarmerSubOrders);
     on<ConfirmSubOrderEvent>(_onConfirmSubOrder);
@@ -31,6 +34,36 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     try {
       final result = await orderRepository.createOrder(event.request);
       emit(OrderCreated(result));
+    } catch (e) {
+      emit(OrderError(e.toString()));
+    }
+  }
+
+  Future<void> _onFetchBuyerOrders(FetchBuyerOrdersEvent event, Emitter<OrderState> emit) async {
+    emit(OrderLoading());
+    try {
+      final orders = await orderRepository.fetchMyOrders();
+      emit(BuyerOrdersLoaded(orders));
+    } catch (e) {
+      emit(OrderError(e.toString()));
+    }
+  }
+
+  Future<void> _onFetchOrderDetails(FetchOrderDetailsEvent event, Emitter<OrderState> emit) async {
+    emit(OrderLoading());
+    try {
+      final order = await orderRepository.fetchOrderDetail(event.orderId);
+      emit(OrderDetailLoaded(order));
+    } catch (e) {
+      emit(OrderError(e.toString()));
+    }
+  }
+
+  Future<void> _onConfirmPayment(ConfirmPaymentEvent event, Emitter<OrderState> emit) async {
+    emit(OrderLoading());
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      emit(OrderCreated({'order_id': event.orderId}));
     } catch (e) {
       emit(OrderError(e.toString()));
     }

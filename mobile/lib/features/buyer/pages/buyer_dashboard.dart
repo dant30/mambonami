@@ -1,821 +1,577 @@
-﻿// mobile/lib/features/buyer/pages/buyer_dashboard.dart
+﻿// lib/features/buyer/pages/buyer_dashboard.dart
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
+import '../../../blocs/notification/notification_bloc.dart';
 import '../../../config/route_paths.dart';
-import '../../../data/models/order.dart';
-import '../../../data/models/product.dart';
-import '../../../data/repositories/cart_repository.dart';
-import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
-import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
-import '../../../shared/widgets/cart_action_button.dart';
-import '../../../shared/widgets/greeting_header.dart';
-import '../../../shared/widgets/role_dashboard_widgets.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
-import '../../../shared/widgets/shimmer_grid.dart';
+import '../widgets/category_chip_bar.dart';
+import '../widgets/product_grid_tile.dart';
+import '../widgets/delivery_tracking_card.dart';
 
-class BuyerDashboard extends StatelessWidget {
+class BuyerDashboard extends StatefulWidget {
   const BuyerDashboard({super.key});
+
+  @override
+  State<BuyerDashboard> createState() => _BuyerDashboardState();
+}
+
+class _BuyerDashboardState extends State<BuyerDashboard> {
+  int _selectedCategory = 0;
+  final _categories = ['All', 'Vegetables', 'Fruits', 'Grains', 'Dairy', 'Roots'];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductBloc>().add(FetchProductsEvent());
+    context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final orderState = context.watch<OrderBloc>().state;
-    final productState = context.watch<ProductBloc>().state;
-
-    String username = '';
-    if (authState is AuthAuthenticated) {
-      username = authState.username ?? authState.phone;
-    }
-
-    final orders = orderState is MyOrdersLoaded ? orderState.orders : const <dynamic>[];
-    final parsedOrders = orders.whereType<Order>().toList();
-    final orderCount = parsedOrders.length;
-
-    Order? activeOrder;
-    for (final order in parsedOrders) {
-      if (order.status != 'delivered' && order.status != 'cancelled') {
-        activeOrder = order;
-        break;
-      }
-    }
-    final activeOrderCount = parsedOrders.where((order) {
-      return order.status != 'delivered' && order.status != 'cancelled';
-    }).length;
-
-    final wishCount = productState is ProductLoaded
-        ? productState.products.where((product) => product.isFavorite).length
-        : 0;
-
-    final products = productState is ProductLoaded ? productState.products : <Product>[];
-    final featuredProducts = products.take(4).toList();
-
-    // Extract unique farmer names for "Nearby farmers"
-    final nearbyFarmers = products
-        .map((p) => p.farmerName)
-        .where((name) => name.isNotEmpty)
-        .toSet()
-        .take(3)
-        .toList();
-
-    final categories = ['All', ...products.map((product) => product.category.code).where((code) => code.isNotEmpty).toSet().toList()]
-      ..sort((a, b) => a == 'All' ? -1 : b == 'All' ? 1 : a.compareTo(b));
+    final String location = 'Westlands, Nairobi';
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Fresh Market',
-        showNotificationAction: true,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-        actions: const [CartActionButton()],
-      ),
-      drawer: const AppDrawer(),
-      body: AppScreen(
-        scrollable: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            context.read<OrderBloc>().add(FetchMyOrdersEvent());
-            context.read<ProductBloc>().add(const FetchProductsEvent());
-          },
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 24),
-            children: [
-              // ─── Greeting ──────────────────────────────────────────────
-              GreetingHeader(
-                name: username.isNotEmpty ? username : 'there',
-                subtitle: 'Fresh produce delivered to your door',
-              ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Header ─────────────────────────────────────────────
+            _buildHeader(context, authState, location),
 
-              // ─── Stats Strip ──────────────────────────────────────────
-              DashboardStatStrip(
-                stats: [
-                  DashboardStat(
-                    label: 'Orders',
-                    value: orderCount.toString(),
-                    icon: Icons.receipt_long_outlined,
-                  ),
-                  DashboardStat(
-                    label: 'Active',
-                    value: activeOrderCount.toString(),
-                    icon: Icons.shopping_bag_outlined,
-                  ),
-                  DashboardStat(
-                    label: 'Saved',
-                    value: wishCount.toString(),
-                    icon: Icons.favorite_border,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+            // ── Scrollable body ────────────────────────────────────
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  context.read<ProductBloc>().add(FetchProductsEvent());
+                  context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hero banner
+                      _buildHeroBanner(context),
+                      const SizedBox(height: 16),
 
-              // ─── Hero Card ────────────────────────────────────────────
-              _HeroCard(
-                title: 'Delivering freshness near you',
-                subtitle: 'Tap to browse the freshest harvest today',
-                icon: Icons.eco_rounded,
-                actionLabel: 'Shop now',
-                onTap: () => context.push(RoutePaths.products),
-              ),
-              const SizedBox(height: 16),
-
-              // ─── Search Bar ────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  readOnly: true,
-                  onTap: () => context.push(RoutePaths.products),
-                  decoration: InputDecoration(
-                    hintText: 'Search produce, farmers or categories',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ─── Category Chips ────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: categories.map((category) {
-                    final isSelected = category == 'All';
-                    return ChoiceChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (_) => context.push(RoutePaths.products),
-                      selectedColor: AppColors.buyerAccent.withValues(alpha: 0.16),
-                      labelStyle: TextStyle(
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      // Category chips
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: CategoryChipBar(
+                          categories: _categories,
+                          selected: _selectedCategory,
+                          onSelected: (i) => setState(() => _selectedCategory = i),
+                        ),
                       ),
-                    );
-                  }).toList(),
+                      const SizedBox(height: 20),
+
+                      // Nearby farmers
+                      _buildNearbyFarmers(context),
+                      const SizedBox(height: 20),
+
+                      // Recommended products
+                      BlocBuilder<ProductBloc, ProductState>(
+                        builder: (context, state) {
+                          if (state is ProductLoaded) {
+                            return _buildProductGrid(context, state);
+                          }
+                          if (state is ProductLoading) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32),
+                                child: CircularProgressIndicator(color: AppColors.primary),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Active order tracking strip
+                      BlocBuilder<OrderBloc, OrderState>(
+                        builder: (context, state) {
+                          if (state is BuyerOrdersLoaded && state.activeOrder != null) {
+                            return _buildActiveOrderStrip(context, state.activeOrder!);
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 18),
-
-              // ─── Nearby Farmers ──────────────────────────────────────
-              SectionHeader(
-                title: 'Nearby farmers',
-                subtitle: 'Fresh picks close to your area',
-                trailing: TextButton(
-                  onPressed: () => context.push(RoutePaths.products),
-                  child: const Text('See all'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              productState is ProductLoading
-                  ? const ShimmerGrid(crossAxisCount: 1, itemHeight: 120)
-                  : productState is ProductLoaded && featuredProducts.isEmpty
-                      ? _buildSpotlightPlaceholders()
-                      : SizedBox(
-                          height: 164,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: featuredProducts.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final product = featuredProducts[index];
-                              return _SpotlightCard(
-                                title: product.farmerName.isNotEmpty
-                                    ? product.farmerName
-                                    : 'Farm Fresh',
-                                subtitle: product.displayName,
-                                icon: Icons.agriculture_rounded,
-                                accent: AppColors.providerAccent,
-                              );
-                            },
-                          ),
-                        ),
-              const SizedBox(height: 18),
-
-              // ─── Recommended Products ────────────────────────────────
-              SectionHeader(
-                title: 'Recommended products',
-                subtitle: 'Handpicked for your next order',
-                trailing: TextButton(
-                  onPressed: () => context.push(RoutePaths.products),
-                  child: const Text('Explore'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              productState is ProductLoading
-                  ? const ShimmerGrid(crossAxisCount: 2, itemHeight: 200)
-                  : productState is ProductLoaded && featuredProducts.isEmpty
-                      ? _buildFeaturePlaceholders()
-                      : SizedBox(
-                          height: 220,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: featuredProducts.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final product = featuredProducts[index];
-                              return _ProductFeatureCard(
-                                product: product,
-                                onTap: () =>
-                                    context.push(RoutePaths.productDetailPath(product.uuid)),
-                              );
-                            },
-                          ),
-                        ),
-              const SizedBox(height: 18),
-
-              // ─── Active Order Tracking ──────────────────────────────
-              if (activeOrder != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _DeliveryProgressCard(order: activeOrder!),
-                ),
-              const SizedBox(height: 16),
-
-              // ─── Summary Card ─────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _SummaryCard(
-                  title: 'This week',
-                  subtitle: 'Your market activity is looking healthy',
-                  value: 'KES ${orderCount * 1800}',
-                  detail: '${activeOrderCount} delivery windows booked',
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: const AppBottomNavigationBar(),
     );
   }
 
-  Widget _buildSpotlightPlaceholders() {
-    return SizedBox(
-      height: 164,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: 2,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, index) {
-          return _SpotlightCard(
-            title: index == 0 ? 'Organic box' : 'Wet market',
-            subtitle: index == 0 ? 'Vegetables and greens' : 'Fresh staples today',
-            icon: index == 0 ? Icons.grass : Icons.storefront_rounded,
-            accent: index == 0 ? AppColors.buyerAccent : AppColors.farmerAccent,
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildFeaturePlaceholders() {
-    return SizedBox(
-      height: 220,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: 2,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, index) {
-          return _FeatureCard(
-            icon: index == 0 ? Icons.eco : Icons.local_shipping,
-            title: index == 0 ? 'Organic Week' : 'Free Delivery',
-            subtitle: index == 0 ? 'Kales, tomatoes and herbs' : 'Orders over KES 2,000',
-            color: index == 0 ? AppColors.buyerAccent : AppColors.providerAccent,
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ─── Hero Card ──────────────────────────────────────────────────────────────
-
-class _HeroCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final String actionLabel;
-  final VoidCallback onTap;
-
-  const _HeroCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.actionLabel,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.buyerAccent, AppColors.providerAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                actionLabel,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Spotlight Card ─────────────────────────────────────────────────────────
-
-class _SpotlightCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color accent;
-
-  const _SpotlightCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 180,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: accent, size: 22),
-          ),
-          const Spacer(),
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Delivery Progress Card ─────────────────────────────────────────────────
-
-class _DeliveryProgressCard extends StatelessWidget {
-  final Order order;
-
-  const _DeliveryProgressCard({required this.order});
-
-  double _computeProgress(String status) {
-    const steps = [
-      'placed',
-      'paidEscrow',
-      'farmerConfirmed',
-      'farmerReady',
-      'transportAssigned',
-      'pickedUp',
-      'delivered'
-    ];
-    final index = steps.indexOf(status);
-    if (index < 0) return 0;
-    return (index + 1) / steps.length;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final progress = _computeProgress(order.status);
-    final statusLabel = order.status == 'delivered'
-        ? 'Delivered'
-        : order.status == 'cancelled'
-            ? 'Cancelled'
-            : 'In progress';
-    final color = order.status == 'delivered'
-        ? AppColors.success
-        : order.status == 'cancelled'
-            ? AppColors.error
-            : AppColors.providerAccent;
+  // ── Header with location + search ──────────────────────────────
+  Widget _buildHeader(BuildContext context, AuthState authState, String location) {
+    final notifState = context.watch<NotificationBloc>().state;
+    final unread = notifState is NotificationLoaded ? notifState.unreadCount : 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      ),
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping_outlined, color: color),
-              const SizedBox(width: 8),
-              Text(
-                statusLabel,
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () =>
-                    context.push(RoutePaths.orderTrackingPath(order.uuid)),
-                child: const Text('Track'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            order.deliveryAddress.isNotEmpty
-                ? order.deliveryAddress
-                : 'Your order is on the way',
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            order.status == 'delivered'
-                ? 'Delivered successfully'
-                : order.status == 'cancelled'
-                    ? 'Order cancelled'
-                    : 'Packed • On route • Near you',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Summary Card ────────────────────────────────────────────────────────────
-
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String value;
-  final String detail;
-
-  const _SummaryCard({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.detail,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.buyerAccent,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                detail,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Feature Card ────────────────────────────────────────────────────────────
-
-class _FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Product Feature Card ────────────────────────────────────────────────────
-
-class _ProductFeatureCard extends StatelessWidget {
-  final Product product;
-  final VoidCallback onTap;
-
-  const _ProductFeatureCard({
-    required this.product,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 220,
-        margin: const EdgeInsets.only(top: 4, bottom: 4),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.72)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.buyerAccent.withValues(alpha: 0.12),
-                          child: const Center(
-                            child: Icon(Icons.eco, size: 40, color: AppColors.buyerAccent),
-                          ),
-                        ),
-                      )
-                    : Container(
-                        color: AppColors.buyerAccent.withValues(alpha: 0.12),
-                        child: const Center(
-                          child: Icon(Icons.eco, size: 40, color: AppColors.buyerAccent),
-                        ),
-                      ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              // Location selector
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {}, // TODO: open address picker
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (product.isOrganic)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Organic',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w800,
+                      Text(
+                        'Delivery to',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.muted,
                             ),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_rounded,
+                              size: 14, color: AppColors.primary),
+                          const SizedBox(width: 2),
+                          Text(
+                            location,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: AppColors.dark,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
-                        ),
-                      const Spacer(),
-                      Icon(
-                        product.isFavorite ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                        color: product.isFavorite
-                            ? theme.colorScheme.error
-                            : theme.colorScheme.onSurfaceVariant,
+                          const Icon(Icons.keyboard_arrow_down_rounded,
+                              size: 16, color: AppColors.muted),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    product.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (product.promoLabel != null && product.promoLabel!.isNotEmpty)
-                    Text(
-                      product.promoLabel!,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                        fontWeight: FontWeight.w700,
+                ),
+              ),
+              // Notification bell
+              Stack(
+                children: [
+                  IconButton(
+                    onPressed: () => context.go(RoutePaths.notifications),
+                    icon: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      child: const Icon(Icons.notifications_none_rounded,
+                          color: AppColors.primary, size: 18),
                     ),
                   ),
-                  if (product.distanceKm != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '≈ ${product.distanceKm!.toStringAsFixed(1)} km away',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w700,
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
                         ),
                       ),
                     ),
                 ],
               ),
+              // Avatar
+              GestureDetector(
+                onTap: () => context.go(RoutePaths.profile),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl:
+                        'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=40&h=40&fit=crop',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Search bar — taps to catalog
+          GestureDetector(
+            onTap: () => context.go(RoutePaths.productCatalog),
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.15)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  const Icon(Icons.search_rounded,
+                      color: AppColors.muted, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Search products, farmers...',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.muted,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Hero promo banner ─────────────────────────────────────────
+  Widget _buildHeroBanner(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            CachedNetworkImage(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=160&fit=crop&auto=format',
+              height: 148,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            // Green gradient overlay
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.88),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.6],
+                  ),
+                ),
+              ),
+            ),
+            // Text content
+            Positioned(
+              left: 20,
+              top: 0,
+              bottom: 0,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Flash Deal 🔥',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white70,
+                          )),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Fresh from\nthe Farm',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Up to 30% off today',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white70,
+                          )),
+                ],
+              ),
+            ),
+            // Shop Now button
+            Positioned(
+              right: 16,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () => context.go(RoutePaths.productCatalog),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                  ),
+                  child: const Text('Shop Now',
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700)),
+                ),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // ── Nearby farmers horizontal row ────────────────────────────
+  Widget _buildNearbyFarmers(BuildContext context) {
+    final farmers = [
+      {'name': 'Kamau Farm', 'dist': '2.1 km', 'img': 'https://images.unsplash.com/photo-1607305387299-a3d9611cd469?w=60&h=60&fit=crop'},
+      {'name': 'Wanjiku Farm', 'dist': '3.4 km', 'img': 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=60&h=60&fit=crop'},
+      {'name': 'Coastal Farms', 'dist': '5.2 km', 'img': 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=60&h=60&fit=crop'},
+      {'name': 'Thika Growers', 'dist': '7.1 km', 'img': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=60&h=60&fit=crop'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: SectionHeader(
+            title: 'Nearby Farmers',
+            trailing: TextButton(
+              onPressed: () => context.go(RoutePaths.productCatalog),
+              child: const Text('View all'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: farmers.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, i) {
+              final f = farmers[i];
+              return GestureDetector(
+                onTap: () => context.go(RoutePaths.productCatalog),
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: CachedNetworkImage(
+                        imageUrl: f['img']!,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      f['name']!,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.dark,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      f['dist']!,
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall
+                          ?.copyWith(color: AppColors.muted, fontSize: 9),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Recommended products 2-col grid ──────────────────────────
+  Widget _buildProductGrid(BuildContext context, ProductLoaded state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: SectionHeader(
+            title: 'Recommended for You',
+            trailing: TextButton(
+              onPressed: () => context.go(RoutePaths.productCatalog),
+              child: const Text('See all'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.72,
+          ),
+          itemCount: state.products.length.clamp(0, 6),
+          itemBuilder: (context, i) =>
+              ProductGridTile(product: state.products[i]),
+        ),
+      ],
+    );
+  }
+
+  // ── Active order tracking strip ───────────────────────────────
+  Widget _buildActiveOrderStrip(BuildContext context, dynamic order) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(title: 'Your Active Order'),
+          const SizedBox(height: 8),
+          CustomCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Order #${order.uuid.substring(0, 8).toUpperCase()}',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700, color: AppColors.dark),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        'On the way',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.secondary,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // 5-step progress row
+                _buildStepProgress(),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.navigation_rounded,
+                        size: 14, color: AppColors.secondary),
+                    const SizedBox(width: 4),
+                    Text.rich(
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodySmall,
+                        children: [
+                          const TextSpan(text: 'Driver is '),
+                          TextSpan(
+                            text: '1.2 km',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.dark),
+                          ),
+                          const TextSpan(text: ' away · ETA '),
+                          TextSpan(
+                            text: '8 min',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.dark),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () =>
+                        context.go(RoutePaths.orderTrackingPath(order.uuid)),
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.light,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text('View Full Tracking →',
+                        style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepProgress() {
+    const steps = ['Placed', 'Confirmed', 'Pickup', 'On way', 'Done'];
+    const completed = 4;
+    return Row(
+      children: List.generate(steps.length, (i) {
+        final done = i < completed;
+        return Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: done ? AppColors.primary : AppColors.light,
+                  shape: BoxShape.circle,
+                ),
+                child: done
+                    ? const Icon(Icons.check_rounded,
+                        size: 11, color: Colors.white)
+                    : null,
+              ),
+              if (i < steps.length - 1)
+                Expanded(
+                  child: Container(
+                    height: 2,
+                    color: i < completed - 1
+                        ? AppColors.primary
+                        : AppColors.light,
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

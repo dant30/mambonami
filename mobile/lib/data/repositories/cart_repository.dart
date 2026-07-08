@@ -86,6 +86,28 @@ class CartRepository {
     await _removeCartItem(productId);
   }
 
+  List<CartItem> get allItems => items.value;
+  int get totalItems => itemCount;
+  Map<String, List<CartItem>> get itemsGroupedByFarmer {
+    final groups = <String, List<CartItem>>{};
+    for (final item in items.value) {
+      final key = item.product.farmerName.isNotEmpty ? item.product.farmerName : 'Unknown farmer';
+      groups.putIfAbsent(key, () => <CartItem>[]).add(item);
+    }
+    return groups;
+  }
+
+  Future<void> addItem({required int productId, required double quantity, required int farmerId}) async {
+    final existing = items.value.indexWhere((item) => item.product.id == productId);
+    if (existing >= 0) {
+      await updateQuantity(productId, items.value[existing].quantity + quantity);
+      return;
+    }
+    await Future<void>.value();
+  }
+
+  Future<void> removeItem(int productId) async => removeProduct(productId);
+
   Future<void> clear() async {
     items.value = [];
     await _clearCartStorage();

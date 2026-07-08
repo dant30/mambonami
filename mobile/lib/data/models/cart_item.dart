@@ -36,6 +36,12 @@ class CartItem extends Equatable {
   }
 
   double get lineTotal => product.pricePerUnit * quantity;
+  double get pricePerUnit => product.pricePerUnit;
+  int get productId => product.id;
+  String? get imageUrl => product.imageUrl;
+  String get name => product.name;
+  String get unit => product.unit;
+  double get maxQty => product.availableQuantity;
 
   Map<String, dynamic> toJson() => {
         'product': product.toJson(),

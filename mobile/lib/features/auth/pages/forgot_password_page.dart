@@ -216,7 +216,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 label: 'Enter Code',
                                 onPressed: () => context.go(
                                   RoutePaths.otp,
-                                  extra: _phoneController.text.trim(),
+                                  extra: {
+                                    'phone': _phoneController.text.trim(),
+                                    'mode': 'forgot_password',
+                                  },
                                 ),
                               ),
                               const SizedBox(height: 12),

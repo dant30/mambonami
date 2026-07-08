@@ -21,6 +21,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     on<ArriveAtFarmEvent>(_onArriveAtFarm);
     on<GenerateOtpEvent>(_onGenerateOtp);
     on<VerifyOtpEvent>(_onVerifyOtp);
+    on<VerifyDeliveryOtpEvent>(_onVerifyDeliveryOtp);
   }
 
   Future<void> _onFetchAvailableOrders(
@@ -126,6 +127,17 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     emit(TripLoading());
     try {
       await tripRepository.verifyOtp(event.tripUuid, event.otp);
+      emit(DeliveryConfirmed());
+    } catch (e) {
+      emit(TripError(e.toString()));
+    }
+  }
+
+  Future<void> _onVerifyDeliveryOtp(
+      VerifyDeliveryOtpEvent event, Emitter<TripState> emit) async {
+    emit(TripLoading());
+    try {
+      await tripRepository.verifyOtp(event.orderId, event.otp);
       emit(DeliveryConfirmed());
     } catch (e) {
       emit(TripError(e.toString()));

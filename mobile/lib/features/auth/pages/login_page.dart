@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../config/role_routes.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
@@ -52,9 +53,8 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is OtpSent) {
-            // Navigate to OTP verification screen (as in React prototype)
-            context.go(RoutePaths.otp, extra: state.phone);
+          if (state is AuthAuthenticated) {
+            context.go(AppRole.homePathFor(state.role));
           } else if (state is AuthError) {
             CustomSnackbar.showError(context, state.message);
           }

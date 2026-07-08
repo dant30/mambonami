@@ -42,3 +42,21 @@ class ToggleFavoriteEvent extends ProductEvent {
   const ToggleFavoriteEvent(this.product);
   @override List<Object> get props => [product.uuid];
 }
+
+class SearchProductsEvent extends ProductEvent {
+  final String query;
+  const SearchProductsEvent({required this.query});
+  @override List<Object> get props => [query];
+}
+
+class FilterProductsByCategoryEvent extends ProductEvent {
+  final String category;
+  const FilterProductsByCategoryEvent({required this.category});
+  @override List<Object> get props => [category];
+}
+
+class SortProductsEvent extends ProductEvent {
+  final String sortBy;
+  const SortProductsEvent({required this.sortBy});
+  @override List<Object> get props => [sortBy];
+}

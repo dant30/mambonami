@@ -182,6 +182,13 @@ class Product {
 
   String get displayName => variety != null && variety!.isNotEmpty ? '$name ($variety)' : name;
 
+  double get rating => averageRating;
+  String? get farmLocation => location;
+  bool get farmerVerified => true;
+  String? get farmerImageUrl => null;
+  double? get availableQty => availableQuantity;
+  String? get harvestDateLabel => '$remainingShelfLife days left';
+
   Product copyWith({
     int? id,
     String? uuid,

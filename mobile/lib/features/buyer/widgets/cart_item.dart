@@ -1,171 +1,160 @@
-﻿// mobile/lib/features/buyer/widgets/cart_item.dart
+﻿// lib/features/buyer/widgets/cart_item.dart
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 import '../../../data/models/cart_item.dart';
 import '../../../shared/themes/app_colors.dart';
-import '../../../shared/themes/app_radius.dart';
 
 class CartItemWidget extends StatelessWidget {
   final CartItem item;
+  final ValueChanged<double> onQtyChanged;
   final VoidCallback onRemove;
-  final ValueChanged<double> onQuantityChanged;
 
   const CartItemWidget({
     super.key,
     required this.item,
+    required this.onQtyChanged,
     required this.onRemove,
-    required this.onQuantityChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final product = item.product;
+    final lineTotal =
+        (item.pricePerUnit * item.quantity).toStringAsFixed(0);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.2),
-            width: 1,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Product image
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: CachedNetworkImage(
+            imageUrl: item.imageUrl ?? '',
+            width: 64,
+            height: 64,
+            fit: BoxFit.cover,
+            placeholder: (_, __) =>
+                Container(color: AppColors.light),
+            errorWidget: (_, __, ___) => Container(
+              color: AppColors.light,
+              child: const Icon(Icons.image_not_supported_outlined,
+                  color: AppColors.muted),
+            ),
           ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.medium,
-              color: AppColors.lightGreen.withOpacity(0.3),
-            ),
-            child: ClipRRect(
-              borderRadius: AppRadius.medium,
-              child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      product.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.image_not_supported,
-                        size: 32,
-                        color: AppColors.muted,
-                      ),
-                    )
-                  : const Icon(
-                      Icons.shopping_basket,
-                      size: 32,
-                      color: AppColors.muted,
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
+        const SizedBox(width: 12),
 
-          // Product info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.displayName,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.dark,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.muted,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Quantity controls
-                Row(
-                  children: [
-                    _QuantityButton(
-                      icon: Icons.remove,
-                      onTap: () => onQuantityChanged(
-                        (item.quantity - 1).clamp(1, product.availableQuantity),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      item.quantity.toStringAsFixed(0),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.dark,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _QuantityButton(
-                      icon: Icons.add,
-                      onTap: () => onQuantityChanged(
-                        (item.quantity + 1).clamp(1, product.availableQuantity),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Line total & remove button
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        // Name + price
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                onPressed: onRemove,
-                icon: const Icon(Icons.delete_outline, size: 20),
-                color: AppColors.muted,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                visualDensity: VisualDensity.compact,
-                tooltip: 'Remove item',
-              ),
-              const SizedBox(height: 8),
               Text(
-                'Ksh ${item.lineTotal.toStringAsFixed(2)}',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
+                item.name,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.dark,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'KES ${item.pricePerUnit.toStringAsFixed(0)} / ${item.unit}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: AppColors.muted),
+              ),
+              const SizedBox(height: 6),
+              // Quantity stepper
+              Row(
+                children: [
+                  _QtyButton(
+                    icon: Icons.remove_rounded,
+                    onTap: () {
+                      if (item.quantity > 1) {
+                        onQtyChanged(item.quantity - 1);
+                      } else {
+                        onRemove();
+                      }
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      '${item.quantity}',
+                      style:
+                          Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.dark,
+                              ),
+                    ),
+                  ),
+                  _QtyButton(
+                    icon: Icons.add_rounded,
+                    filled: true,
+                    onTap: () {
+                      if (item.quantity < item.maxQty) {
+                        onQtyChanged(item.quantity + 1);
+                      }
+                    },
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+
+        // Line total + delete
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              'KES $lineTotal',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: onRemove,
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: AppColors.error, size: 18),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
 
-class _QuantityButton extends StatelessWidget {
+class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-
-  const _QuantityButton({required this.icon, required this.onTap});
+  final bool filled;
+  const _QtyButton(
+      {required this.icon, required this.onTap, this.filled = false});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 32,
-      height: 32,
-      child: OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape: const CircleBorder(),
-          side: BorderSide(color: AppColors.primary.withOpacity(0.3)),
-          backgroundColor: Colors.transparent,
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: filled ? AppColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(9),
+            border: filled
+                ? null
+                : Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3)),
+          ),
+          child: Icon(icon,
+              size: 14,
+              color: filled ? Colors.white : AppColors.primary),
         ),
-        child: Icon(icon, size: 18, color: AppColors.primary),
-      ),
-    );
-  }
+      );
 }

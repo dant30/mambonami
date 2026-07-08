@@ -44,7 +44,13 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (ctx, state) {
-        if (state is RegisterSuccess) {
+        if (state is RegisterOtpPending) {
+          ctx.go(RoutePaths.otp, extra: {
+            'phone': state.phone,
+            'mode': 'register',
+            'dto': state.dto,
+          });
+        } else if (state is RegisterSuccess) {
           ctx.go(RoutePaths.success, extra: 'transport');
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.message)));

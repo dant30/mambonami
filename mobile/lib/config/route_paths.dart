@@ -1,4 +1,5 @@
 // mobile/lib/config/route_paths.dart
+
 class RoutePaths {
   static const splash = '/splash';
   static const login = '/login';
@@ -14,6 +15,8 @@ class RoutePaths {
   static const forgotPassword = '/forgot-password';
 
   static const buyerDashboard = '/buyer';
+  static const productCatalog = '/buyer/catalog';
+  static const orderHistory = '/buyer/orders';
   static const farmerDashboard = '/farmer';
   static const transportProviderDashboard = '/transport_provider';
   static const availableOrders = '/transport_provider/available-orders';

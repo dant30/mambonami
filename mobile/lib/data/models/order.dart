@@ -119,6 +119,27 @@ class Order extends Equatable {
   bool get isDelivered => status == 'delivered';
   bool get isCancelled => status == 'cancelled';
 
+  String get statusLabel {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'paid_escrow':
+        return 'Paid';
+      case 'transport_assigned':
+        return 'Assigned';
+      case 'picked_up':
+        return 'Picked Up';
+      default:
+        return 'Processing';
+    }
+  }
+
+  String get createdAtLabel => createdAt.toLocal().toString().split(' ').first;
+  String get itemsSummary => subOrders.expand((subOrder) => subOrder.items).map((item) => item.productName).join(', ');
+  double get total => totalAmount;
+
   @override
   List<Object?> get props => [id, uuid, status];
 }

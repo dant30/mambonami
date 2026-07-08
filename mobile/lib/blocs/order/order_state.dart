@@ -19,6 +19,11 @@ class MyOrdersLoaded extends OrderState {
   final List<Order> orders;
   const MyOrdersLoaded(this.orders);
 }
+class BuyerOrdersLoaded extends OrderState {
+  final List<Order> orders;
+  final Order? activeOrder;
+  const BuyerOrdersLoaded(this.orders, {this.activeOrder});
+}
 class OrderDetailLoaded extends OrderState {
   final Order order;
   const OrderDetailLoaded(this.order);

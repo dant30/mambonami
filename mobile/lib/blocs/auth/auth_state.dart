@@ -32,6 +32,15 @@ class RegisterSuccess extends AuthState {
 
 class RegisterInitSuccess extends AuthState {}
 
+class RegisterOtpPending extends AuthState {
+  final String phone;
+  final Map<String, dynamic> dto;
+  const RegisterOtpPending({required this.phone, required this.dto});
+
+  @override
+  List<Object?> get props => [phone, dto];
+}
+
 class ForgotPasswordInitSuccess extends AuthState {}
 
 class ForgotPasswordSuccess extends AuthState {}

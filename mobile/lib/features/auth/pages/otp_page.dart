@@ -8,14 +8,17 @@ import 'package:pinput/pinput.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../config/role_routes.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class OtpPage extends StatefulWidget {
   final String? phone;
+  final String? mode;
+  final Map<String, dynamic>? data;
 
-  const OtpPage({super.key, this.phone});
+  const OtpPage({super.key, this.phone, this.mode, this.data});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -62,6 +65,54 @@ class _OtpPageState extends State<OtpPage> {
     }
   }
 
+  void _submitOtp(String otp) {
+    final phone = widget.phone ?? '';
+    final mode = widget.mode ?? 'login';
+
+    if (mode == 'register') {
+      final dto = widget.data ?? {};
+      final username = dto['username']?.toString() ??
+          dto['full_name']?.toString() ??
+          dto['owner_full_name']?.toString() ??
+          dto['business_name']?.toString() ??
+          'user';
+      final password = dto['password']?.toString() ?? 'Mambonami@123';
+      context.read<AuthBloc>().add(
+        RegisterVerifyEvent(
+          phone: phone,
+          otp: otp,
+          username: username,
+          password: password,
+          role: dto['role']?.toString() ?? 'buyer',
+          email: dto['email']?.toString(),
+          farmGps: dto['farm_gps']?.toString(),
+          mpesaNumber: dto['mpesa_number']?.toString(),
+          vehicleType: dto['vehicle_type']?.toString(),
+          licensePlate: dto['license_plate']?.toString(),
+        ),
+      );
+      return;
+    }
+
+    if (mode == 'forgot_password') {
+      context.read<AuthBloc>().add(
+        ForgotPasswordVerifyEvent(
+          phone: phone,
+          otp: otp,
+          newPassword: widget.data?['new_password']?.toString() ?? '',
+        ),
+      );
+      return;
+    }
+
+    context.read<AuthBloc>().add(
+      OtpVerifyRequested(
+        phone: phone,
+        otp: otp,
+      ),
+    );
+  }
+
   String get _maskedPhone {
     final phone = (widget.phone ?? '').trim();
     if (phone.isEmpty) return 'your phone';
@@ -75,8 +126,10 @@ class _OtpPageState extends State<OtpPage> {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is OtpVerified) {
-          context.go(RoutePaths.roleSelect);
+        if (state is AuthAuthenticated) {
+          context.go(AppRole.homePathFor(state.role));
+        } else if (state is ForgotPasswordSuccess) {
+          context.go(RoutePaths.login);
         } else if (state is AuthError) {
           setState(() => _error = state.message);
         }
@@ -151,12 +204,7 @@ class _OtpPageState extends State<OtpPage> {
                   length: 4,
                   controller: _otpController,
                   onCompleted: (otp) {
-                    context.read<AuthBloc>().add(
-                      OtpVerifyRequested(
-                        phone: widget.phone ?? '',
-                        otp: otp,
-                      ),
-                    );
+                    _submitOtp(otp);
                   },
                   defaultPinTheme: PinTheme(
                     width: 64,
@@ -222,12 +270,7 @@ class _OtpPageState extends State<OtpPage> {
                   onPressed: () {
                     final otp = _otpController.text.trim();
                     if (otp.length == 4) {
-                      context.read<AuthBloc>().add(
-                        OtpVerifyRequested(
-                          phone: widget.phone ?? '',
-                          otp: otp,
-                        ),
-                      );
+                      _submitOtp(otp);
                     } else {
                       setState(() => _error = 'Enter 4-digit OTP');
                     }

@@ -101,8 +101,19 @@ class AppRouter {
         path: RoutePaths.otp,
         builder: (context, state) {
           final extra = state.extra;
-          final phone = extra is Map<String, dynamic> ? extra['phone'] as String? : null;
-          return OtpPage(phone: phone ?? 'your phone');
+          String? phone;
+          String? mode;
+          Map<String, dynamic>? data;
+
+          if (extra is Map<String, dynamic>) {
+            phone = extra['phone']?.toString();
+            mode = extra['mode']?.toString();
+            data = extra;
+          } else if (extra is String) {
+            phone = extra;
+          }
+
+          return OtpPage(phone: phone ?? 'your phone', mode: mode, data: data);
         },
       ),
       GoRoute(path: RoutePaths.roleSelect, builder: (_, __) => const RoleSelectPage()),
@@ -235,10 +246,24 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.orderHistory,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: AppRole.buyerRoles,
+          child: OrderHistoryPage(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.orders,
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.buyerRoles,
           child: OrderHistoryPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.productCatalog,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: AppRole.buyerRoles,
+          child: ProductCatalogPage(),
         ),
       ),
       GoRoute(
@@ -485,7 +510,9 @@ class AppRouter {
         RoutePaths.farmerOrderRequests,
         RoutePaths.farmerEarnings,
         RoutePaths.notifications,
+        RoutePaths.orderHistory,
         RoutePaths.orders,
+        RoutePaths.productCatalog,
         RoutePaths.products,
         RoutePaths.cart,
         RoutePaths.checkout,
