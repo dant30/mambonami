@@ -4640,6 +4640,3295 @@ class _CountdownTimerWidgetState extends State<CountdownTimerWidget> {
 
 ---
 
+---
+
+# MAMBONAMI — Shared Layouts: AppBottomNavigationBar, AppDrawer, CustomAppBar
+
+> **Source of truth: `mobile/lib/shared/layouts/`**
+> These wrappers are used by EVERY role's dashboard — do not duplicate nav logic inside feature pages.
+
+---
+
+## `shared/layouts/app_navigation.dart`
+
+Already exists in your repo. Key facts:
+- `AppBottomNavigationBar` reads `AuthBloc` to determine role, `NotificationBloc` for unread dot.
+- Delegates rendering to `MambonamisBottomNav` (in `bottom_nav_bar.dart`).
+- Tab index mapping: **0 = Home (role dashboard)**, **1 = Notifications**, **2 = Support**, **3 = Profile**.
+- For buyer/farmer/transport: tabs 1–4 are role-specific (Market, Orders, Wishlist, etc.) mapped inside `bottom_nav_bar.dart`.
+
+```dart
+// Already in repo — do NOT recreate. Import as:
+import '../../../shared/layouts/app_navigation.dart';
+// Usage in any dashboard Scaffold:
+bottomNavigationBar: const AppBottomNavigationBar(),
+```
+
+---
+
+## `shared/layouts/bottom_nav_bar.dart` — Role Tab Items
+
+```dart
+// lib/shared/layouts/bottom_nav_bar.dart — already in repo, for reference
+
+// Buyer tabs:
+//   Home | Market | Orders | Wishlist | Profile
+// Farmer tabs:
+//   Home | Products | Orders | Analytics | Profile
+// Transport tabs:
+//   Home | Orders | Map | Wallet | Profile
+// Retailer tabs:
+//   Home | Orders | Suppliers | Reports | Profile
+```
+
+---
+
+## `shared/layouts/app_drawer.dart`
+
+```dart
+// lib/shared/layouts/app_drawer.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../blocs/auth/auth_bloc.dart';
+import '../../config/route_paths.dart';
+import '../themes/app_colors.dart';
+import '../themes/app_gradients.dart';
+
+class AppDrawer extends StatelessWidget {
+  const AppDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    String name = 'User';
+    String phone = '';
+    String role = '';
+    if (authState is AuthAuthenticated) {
+      name = authState.username ?? authState.phone;
+      phone = authState.phone;
+      role = authState.role;
+    }
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          // ── Header ─────────────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Colors.white24,
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(name,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
+                Text(phone,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12)),
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    role.toUpperCase(),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Nav items ──────────────────────────────────────────────
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                _DrawerItem(
+                  icon: Icons.home_rounded,
+                  label: 'Dashboard',
+                  onTap: () {
+                    Navigator.pop(context);
+                    if (authState is AuthAuthenticated) {
+                      context.go(AppRole.homePathFor(authState.role));
+                    }
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.notifications_none_rounded,
+                  label: 'Notifications',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RoutePaths.notifications);
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.person_outline_rounded,
+                  label: 'My Profile',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RoutePaths.profile);
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RoutePaths.settings);
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.help_outline_rounded,
+                  label: 'Help & Support',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RoutePaths.support);
+                  },
+                ),
+                const Divider(height: 32, indent: 20, endIndent: 20),
+                _DrawerItem(
+                  icon: Icons.logout_rounded,
+                  label: 'Log Out',
+                  color: AppColors.error,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.read<AuthBloc>().add(LogoutEvent());
+                    context.go(RoutePaths.login);
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // ── Footer ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('MAMBONAMI v1.0.0',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: AppColors.muted)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color = AppColors.dark,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        leading: Icon(icon, color: color, size: 22),
+        title: Text(label,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: color)),
+        onTap: onTap,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+      );
+}
+```
+
+---
+
+---
+
+# MAMBONAMI — Farmer Feature Screens
+
+> File map: `lib/features/farmer/pages/` and `lib/features/farmer/widgets/`
+
+---
+
+## PAGES
+
+---
+
+### `farmer_dashboard.dart`
+
+Already exists in repo. Key patterns used:
+- `AppGradients.hero` for green gradient header
+- Weather chips row (Thermometer, Water, Air icons)
+- `CustomCard` stats grid: revenue, pending orders, product count
+- Quick-action buttons: Add Product, Orders, Earnings
+- `fl_chart LineChart` for weekly revenue in a `CustomCard`
+- `AppBottomNavigationBar()` + `AppDrawer()` in `drawer:`
+- BLoC: `AuthBloc`, `OrderBloc` (`FarmerSubOrdersLoaded`), `ProductBloc` (`ProductLoaded`)
+
+---
+
+### `product_list_page.dart`
+
+```dart
+// lib/features/farmer/pages/product_list_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/product/product_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../widgets/product_card.dart';
+
+class ProductListPage extends StatefulWidget {
+  const ProductListPage({super.key});
+
+  @override
+  State<ProductListPage> createState() => _ProductListPageState();
+}
+
+class _ProductListPageState extends State<ProductListPage> {
+  String _selectedCategory = 'All';
+  final _categories = ['All', 'Vegetables', 'Fruits', 'Grains', 'Dairy', 'Roots'];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductBloc>().add(FetchFarmerProductsEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // Gradient header with search
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => context.go(RoutePaths.farmerDashboard),
+                    ),
+                    const Expanded(
+                      child: Text('My Products',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                    IconButton(
+                      icon: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.add_rounded,
+                            color: Colors.white, size: 20),
+                      ),
+                      onPressed: () =>
+                          context.go(RoutePaths.farmerProductCreate),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.search_rounded,
+                          color: Colors.white70, size: 18),
+                      SizedBox(width: 8),
+                      Text('Search products...',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Category filter
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              itemCount: _categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final active = _categories[i] == _selectedCategory;
+                return GestureDetector(
+                  onTap: () =>
+                      setState(() => _selectedCategory = _categories[i]),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: active ? AppColors.primary : AppColors.light,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(_categories[i],
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: active ? Colors.white : AppColors.primary)),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Product list
+          Expanded(
+            child: BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                if (state is ProductLoading) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary));
+                }
+                if (state is ProductLoaded) {
+                  final products = state.products;
+                  if (products.isEmpty) {
+                    return const Center(
+                        child: Text('No products listed yet.',
+                            style: TextStyle(color: AppColors.muted)));
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: products.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) => ProductCard(
+                      product: products[i],
+                      onEdit: () => context.go(
+                          '${RoutePaths.farmerProductEdit}/${products[i].id}'),
+                      onDelete: () => context.read<ProductBloc>().add(
+                          DeleteProductEvent(productId: products[i].id)),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Add Product',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700)),
+        onPressed: () => context.go(RoutePaths.farmerProductCreate),
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+```
+
+---
+
+### `product_create_page.dart`
+
+```dart
+// lib/features/farmer/pages/product_create_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+import '../../../blocs/product/product_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_text_field.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+
+class ProductCreatePage extends StatefulWidget {
+  const ProductCreatePage({super.key});
+
+  @override
+  State<ProductCreatePage> createState() => _ProductCreatePageState();
+}
+
+class _ProductCreatePageState extends State<ProductCreatePage> {
+  final _nameCtrl = TextEditingController();
+  final _priceCtrl = TextEditingController();
+  final _qtyCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  String _selectedCategory = 'Vegetables';
+  String _selectedUnit = 'kg';
+  File? _image;
+  final _picker = ImagePicker();
+
+  final _categories = ['Vegetables', 'Fruits', 'Grains', 'Dairy', 'Roots', 'Livestock'];
+  final _units = ['kg', 'bunch', 'piece', 'litre', 'tray', 'bag'];
+
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _image = File(picked.path));
+  }
+
+  void _submit() {
+    if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty || _qtyCtrl.text.isEmpty) {
+      CustomSnackbar.showError(context, 'Fill in all required fields');
+      return;
+    }
+    context.read<ProductBloc>().add(CreateProductEvent(
+      name: _nameCtrl.text.trim(),
+      category: _selectedCategory,
+      pricePerUnit: double.tryParse(_priceCtrl.text) ?? 0,
+      unit: _selectedUnit,
+      quantityAvailable: double.tryParse(_qtyCtrl.text) ?? 0,
+      description: _descCtrl.text.trim(),
+      imageFile: _image,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ProductBloc, ProductState>(
+      listener: (context, state) {
+        if (state is ProductCreated) {
+          CustomSnackbar.showSuccess(context, 'Product listed successfully!');
+          context.go(RoutePaths.farmerProducts);
+        } else if (state is ProductError) {
+          CustomSnackbar.showError(context, state.message);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          title: const Text('Add New Product',
+              style: TextStyle(fontWeight: FontWeight.w800)),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded),
+            onPressed: () => context.go(RoutePaths.farmerProducts),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image picker
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: double.infinity,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: AppColors.light,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        width: 1.5,
+                        style: BorderStyle.solid),
+                    image: _image != null
+                        ? DecorationImage(
+                            image: FileImage(_image!), fit: BoxFit.cover)
+                        : null,
+                  ),
+                  child: _image == null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(Icons.camera_alt_rounded,
+                                  color: Colors.white, size: 24),
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('Upload Product Photo',
+                                style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13)),
+                            const Text('Tap to select from gallery',
+                                style: TextStyle(
+                                    color: AppColors.muted, fontSize: 11)),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              CustomTextField(controller: _nameCtrl, label: 'Product Name', hint: 'e.g. Ripe Avocado'),
+              const SizedBox(height: 14),
+
+              // Category dropdown
+              _LabelDropdown(
+                label: 'Category',
+                value: _selectedCategory,
+                items: _categories,
+                onChanged: (v) => setState(() => _selectedCategory = v ?? _selectedCategory),
+              ),
+              const SizedBox(height: 14),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                        controller: _priceCtrl,
+                        label: 'Price (KES)',
+                        hint: '250',
+                        keyboardType: TextInputType.number),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _LabelDropdown(
+                      label: 'Unit',
+                      value: _selectedUnit,
+                      items: _units,
+                      onChanged: (v) => setState(() => _selectedUnit = v ?? _selectedUnit),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              CustomTextField(
+                  controller: _qtyCtrl,
+                  label: 'Available Quantity',
+                  hint: 'e.g. 100',
+                  keyboardType: TextInputType.number),
+              const SizedBox(height: 14),
+
+              CustomTextField(
+                  controller: _descCtrl,
+                  label: 'Description (optional)',
+                  hint: 'Describe freshness, quality, etc.',
+                  maxLines: 3),
+              const SizedBox(height: 28),
+
+              BlocBuilder<ProductBloc, ProductState>(
+                builder: (context, state) => CustomButton(
+                  label: state is ProductLoading ? 'Listing...' : 'List Product',
+                  isLoading: state is ProductLoading,
+                  onPressed: _submit,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LabelDropdown extends StatelessWidget {
+  final String label;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  const _LabelDropdown({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary)),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            value: value,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.2)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.2)),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+            items: items
+                .map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 13))))
+                .toList(),
+            onChanged: onChanged,
+          ),
+        ],
+      );
+}
+```
+
+---
+
+### `order_requests_page.dart`
+
+```dart
+// lib/features/farmer/pages/order_requests_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/order/order_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+
+class OrderRequestsPage extends StatefulWidget {
+  const OrderRequestsPage({super.key});
+
+  @override
+  State<OrderRequestsPage> createState() => _OrderRequestsPageState();
+}
+
+class _OrderRequestsPageState extends State<OrderRequestsPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
+  final _tabLabels = ['New', 'Confirmed', 'Ready', 'All'];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(length: _tabLabels.length, vsync: this);
+    context.read<OrderBloc>().add(FetchFarmerOrdersEvent());
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // Gradient header + tabs
+          Container(
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 20, 12),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_rounded,
+                              color: Colors.white),
+                          onPressed: () =>
+                              context.go(RoutePaths.farmerDashboard),
+                        ),
+                        const Text('Order Requests',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800)),
+                      ],
+                    ),
+                  ),
+                  TabBar(
+                    controller: _tabs,
+                    isScrollable: true,
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white54,
+                    labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 13),
+                    tabs: _tabLabels
+                        .map((t) => Tab(text: t))
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Orders
+          Expanded(
+            child: BlocConsumer<OrderBloc, OrderState>(
+              listener: (context, state) {
+                if (state is OrderError) {
+                  CustomSnackbar.showError(context, state.message);
+                }
+                if (state is OrderConfirmed) {
+                  CustomSnackbar.showSuccess(
+                      context, 'Order confirmed successfully!');
+                }
+              },
+              builder: (context, state) {
+                if (state is OrderLoading) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary));
+                }
+                if (state is FarmerSubOrdersLoaded) {
+                  final orders = state.subOrders;
+                  return TabBarView(
+                    controller: _tabs,
+                    children: [
+                      _OrderList(
+                          orders: orders
+                              .where((o) => o.status == 'pending')
+                              .toList()),
+                      _OrderList(
+                          orders: orders
+                              .where((o) => o.status == 'confirmed')
+                              .toList()),
+                      _OrderList(
+                          orders: orders
+                              .where((o) => o.status == 'ready')
+                              .toList()),
+                      _OrderList(orders: orders),
+                    ],
+                  );
+                }
+                return const Center(
+                    child: Text('No orders yet',
+                        style: TextStyle(color: AppColors.muted)));
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+
+class _OrderList extends StatelessWidget {
+  final List orders;
+  const _OrderList({required this.orders});
+
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) {
+      return const Center(
+          child: Text('No orders in this category',
+              style: TextStyle(color: AppColors.muted)));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, i) {
+        final o = orders[i];
+        final statusColor = o.status == 'pending'
+            ? AppColors.warning
+            : o.status == 'confirmed'
+                ? AppColors.secondary
+                : AppColors.success;
+
+        return CustomCard(
+          onTap: () => context.go('${RoutePaths.farmerOrderDetail}/${o.id}'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('#${o.id}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: AppColors.dark)),
+                        Text('${o.buyerName} · ${o.timeAgo}',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.muted)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(o.status.toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: statusColor)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.inventory_2_outlined,
+                      size: 14, color: AppColors.muted),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(o.itemSummary,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.muted)),
+                  ),
+                  Text('KES ${o.amount.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary)),
+                ],
+              ),
+              if (o.status == 'pending') ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onPressed: () => context
+                            .read<OrderBloc>()
+                            .add(ConfirmFarmerOrderEvent(orderId: o.id)),
+                        child: const Text('Confirm',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 13)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: const BorderSide(color: AppColors.error),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 16),
+                      ),
+                      onPressed: () => context
+                          .read<OrderBloc>()
+                          .add(DeclineFarmerOrderEvent(orderId: o.id)),
+                      child: const Text('Decline',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+---
+
+### `earnings_page.dart` (Farmer)
+
+```dart
+// lib/features/farmer/pages/earnings_page.dart
+
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/section_header.dart';
+
+class FarmerEarningsPage extends StatelessWidget {
+  const FarmerEarningsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Static demo data — replace with EarningsBloc when available
+    final weekData = [1200.0, 2800.0, 1900.0, 3400.0, 4200.0, 3800.0, 2100.0];
+    final dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // Balance header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded,
+                          color: Colors.white),
+                      onPressed: () =>
+                          context.go(RoutePaths.farmerDashboard),
+                    ),
+                    const Text('Earnings & Wallet',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Available Balance',
+                          style: TextStyle(
+                              color: Colors.white70, fontSize: 12)),
+                      const Text('KES 45,750',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white24,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () {},
+                              child: const Text('Withdraw',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () {},
+                              child: const Text('History',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Body
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Weekly chart
+                  CustomCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Weekly Earnings',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.dark)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.success.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text('▲ 18.3%',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.success)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 120,
+                          child: LineChart(LineChartData(
+                            gridData: const FlGridData(show: false),
+                            borderData: FlBorderData(show: false),
+                            titlesData: FlTitlesData(
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (v, _) => Text(
+                                    dayLabels[v.toInt() % dayLabels.length],
+                                    style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.muted),
+                                  ),
+                                ),
+                              ),
+                              leftTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                              topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                            ),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: weekData
+                                    .asMap()
+                                    .entries
+                                    .map((e) =>
+                                        FlSpot(e.key.toDouble(), e.value))
+                                    .toList(),
+                                isCurved: true,
+                                color: AppColors.primary,
+                                barWidth: 2.5,
+                                dotData: const FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: AppColors.primary.withValues(alpha: 0.08),
+                                ),
+                              ),
+                            ],
+                          )),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Stat row
+                  Row(
+                    children: [
+                      Expanded(
+                          child: _StatCard(
+                              label: 'This Month',
+                              value: 'KES 45,750',
+                              color: AppColors.primary)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: _StatCard(
+                              label: 'Last Month',
+                              value: 'KES 38,200',
+                              color: AppColors.secondary)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Recent payouts
+                  const SectionHeader(title: 'Recent Payouts'),
+                  ...([
+                    {'amount': 'KES 8,450', 'date': 'Today 09:14', 'ref': 'MP24-8829'},
+                    {'amount': 'KES 12,300', 'date': 'Yesterday', 'ref': 'MP24-8701'},
+                    {'amount': 'KES 6,200', 'date': 'Mon, 30 Jun', 'ref': 'MP24-8612'},
+                  ].map((p) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CustomCard(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.light,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.payments_rounded,
+                                    color: AppColors.primary, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(p['amount']!,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                            color: AppColors.dark)),
+                                    Text(p['date']!,
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.muted)),
+                                  ],
+                                ),
+                              ),
+                              Text('Ref: ${p['ref']}',
+                                  style: const TextStyle(
+                                      fontSize: 10, color: AppColors.muted)),
+                            ],
+                          ),
+                        ),
+                      ))),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _StatCard({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) => CustomCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.muted)),
+            const SizedBox(height: 4),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: color)),
+          ],
+        ),
+      );
+}
+```
+
+---
+
+## FARMER WIDGETS
+
+---
+
+### `product_card.dart`
+
+```dart
+// lib/features/farmer/widgets/product_card.dart
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import '../../../data/models/product.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_card.dart';
+
+class ProductCard extends StatelessWidget {
+  final Product product;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLow = product.quantityAvailable < 20;
+    return CustomCard(
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: CachedNetworkImage(
+              imageUrl: product.imageUrl ?? '',
+              width: 64,
+              height: 64,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => Container(
+                width: 64,
+                height: 64,
+                color: AppColors.light,
+                child: const Icon(Icons.image_not_supported_rounded,
+                    color: AppColors.muted),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(product.name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: AppColors.dark)),
+                Text('${product.category} · ${product.quantityAvailable} ${product.unit}',
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.muted)),
+                const SizedBox(height: 4),
+                Text('KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary)),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (isLow ? AppColors.warning : AppColors.success)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isLow ? 'Low Stock' : 'Active',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: isLow ? AppColors.warning : AppColors.success),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.edit_outlined,
+                          size: 14, color: AppColors.primary),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: onDelete,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.delete_outline_rounded,
+                          size: 14, color: AppColors.error),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+---
+
+# MAMBONAMI — Transport Feature Screens
+
+> File map: `lib/features/transport/pages/` and `lib/features/transport/widgets/`
+
+---
+
+## PAGES
+
+---
+
+### `available_orders_page.dart`
+
+```dart
+// lib/features/transport/pages/available_orders_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/trip/trip_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+
+class AvailableOrdersPage extends StatefulWidget {
+  const AvailableOrdersPage({super.key});
+
+  @override
+  State<AvailableOrdersPage> createState() => _AvailableOrdersPageState();
+}
+
+class _AvailableOrdersPageState extends State<AvailableOrdersPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<TripBloc>().add(FetchAvailableTripsEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 52, 20, 20),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white),
+                  onPressed: () =>
+                      context.go(RoutePaths.transportProviderDashboard),
+                ),
+                const Expanded(
+                  child: Text('Available Deliveries',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.tune_rounded, color: Colors.white70),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: BlocConsumer<TripBloc, TripState>(
+              listener: (context, state) {
+                if (state is TripError) {
+                  CustomSnackbar.showError(context, state.message);
+                }
+                if (state is TripAccepted) {
+                  CustomSnackbar.showSuccess(
+                      context, 'Order accepted! Head to pickup.');
+                  context.go(
+                      '${RoutePaths.transportTripDetail}/${state.tripId}');
+                }
+              },
+              builder: (context, state) {
+                if (state is TripLoading) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary));
+                }
+                if (state is AvailableTripsLoaded) {
+                  return RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: () async => context
+                        .read<TripBloc>()
+                        .add(FetchAvailableTripsEvent()),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.trips.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        final trip = state.trips[i];
+                        return CustomCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text('#${trip.orderId}',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 13,
+                                            color: AppColors.dark)),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.gold
+                                          .withValues(alpha: 0.15),
+                                      borderRadius:
+                                          BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'KES ${trip.fee.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.gold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              // Route
+                              Row(
+                                children: [
+                                  Column(
+                                    children: [
+                                      const Icon(Icons.circle,
+                                          size: 8,
+                                          color: AppColors.success),
+                                      Container(
+                                          width: 1,
+                                          height: 20,
+                                          color: AppColors.light),
+                                      const Icon(Icons.location_on_rounded,
+                                          size: 12,
+                                          color: AppColors.error),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(trip.pickupLocation,
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.dark)),
+                                        const SizedBox(height: 8),
+                                        Text(trip.deliveryLocation,
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.dark)),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                    children: [
+                                      Text('${trip.distanceKm} km',
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.muted)),
+                                      const SizedBox(height: 8),
+                                      Text('~${trip.etaMinutes} min',
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.muted)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: () => context
+                                      .read<TripBloc>()
+                                      .add(AcceptTripEvent(
+                                          tripId: trip.id)),
+                                  child: const Text('Accept Delivery',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w700)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+                return const Center(
+                    child: Text('No deliveries available near you',
+                        style: TextStyle(color: AppColors.muted)));
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+```
+
+---
+
+### `delivery_page.dart` (Transport — Generate OTP + photo + escrow release)
+
+```dart
+// lib/features/transport/pages/delivery_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pinput/pinput.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+import '../../../blocs/trip/trip_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+
+/// Transport provider enters the buyer's OTP to confirm delivery.
+/// On success: escrow released, trip marked complete.
+class DeliveryPage extends StatefulWidget {
+  final String tripId;
+  const DeliveryPage({super.key, required this.tripId});
+
+  @override
+  State<DeliveryPage> createState() => _DeliveryPageState();
+}
+
+class _DeliveryPageState extends State<DeliveryPage> {
+  String _otp = '';
+  File? _photo;
+  final _picker = ImagePicker();
+
+  Future<void> _pickPhoto() async {
+    final picked =
+        await _picker.pickImage(source: ImageSource.camera);
+    if (picked != null) setState(() => _photo = File(picked.path));
+  }
+
+  void _confirm() {
+    if (_otp.length < 4) {
+      CustomSnackbar.showError(context, 'Enter the 4-digit OTP from buyer');
+      return;
+    }
+    if (_photo == null) {
+      CustomSnackbar.showError(context, 'Take a delivery photo first');
+      return;
+    }
+    context.read<TripBloc>().add(ConfirmDeliveryOtpEvent(
+      tripId: widget.tripId,
+      otp: _otp,
+      photoFile: _photo,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TripBloc, TripState>(
+      listener: (context, state) {
+        if (state is TripDeliveryConfirmed) {
+          CustomSnackbar.showSuccess(
+              context, 'Delivery confirmed! Escrow released.');
+          context.go(RoutePaths.transportProviderDashboard);
+        }
+        if (state is TripError) {
+          CustomSnackbar.showError(context, state.message);
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            title: const Text('Confirm Delivery',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Shield icon
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.light,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Icon(Icons.shield_rounded,
+                        color: AppColors.primary, size: 36),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Center(
+                  child: Text('Enter Delivery OTP',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.dark)),
+                ),
+                const SizedBox(height: 6),
+                const Center(
+                  child: Text(
+                      'Ask the buyer for their 4-digit OTP to confirm receipt',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.muted)),
+                ),
+                const SizedBox(height: 32),
+
+                // OTP input
+                Center(
+                  child: Pinput(
+                    length: 4,
+                    onChanged: (v) => setState(() => _otp = v),
+                    defaultPinTheme: PinTheme(
+                      width: 64,
+                      height: 64,
+                      textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary),
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.2)),
+                      ),
+                    ),
+                    focusedPinTheme: PinTheme(
+                      width: 64,
+                      height: 64,
+                      textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary),
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: AppColors.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Photo
+                const Text('Delivery Photo',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.dark)),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pickPhoto,
+                  child: Container(
+                    width: double.infinity,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.light,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        style: BorderStyle.solid,
+                      ),
+                      image: _photo != null
+                          ? DecorationImage(
+                              image: FileImage(_photo!),
+                              fit: BoxFit.cover)
+                          : null,
+                    ),
+                    child: _photo == null
+                        ? const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt_rounded,
+                                  color: AppColors.primary, size: 28),
+                              SizedBox(height: 6),
+                              Text('Take delivery photo',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.muted)),
+                            ],
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Warning
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          color: AppColors.gold, size: 16),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'OTP expires in 5 minutes. Max 3 attempts. '
+                          'Escrow is released to farmer and you after confirmation.',
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.muted),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                CustomButton(
+                  label: state is TripLoading
+                      ? 'Confirming...'
+                      : 'Confirm Delivery ✓',
+                  isLoading: state is TripLoading,
+                  onPressed: _confirm,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+---
+
+### `my_trips_page.dart`
+
+```dart
+// lib/features/transport/pages/my_trips_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/trip/trip_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+
+class MyTripsPage extends StatefulWidget {
+  const MyTripsPage({super.key});
+
+  @override
+  State<MyTripsPage> createState() => _MyTripsPageState();
+}
+
+class _MyTripsPageState extends State<MyTripsPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<TripBloc>().add(FetchMyTripsEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 52, 20, 20),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white),
+                  onPressed: () =>
+                      context.go(RoutePaths.transportProviderDashboard),
+                ),
+                const Text('My Trips',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<TripBloc, TripState>(
+              builder: (context, state) {
+                if (state is TripLoading) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary));
+                }
+                if (state is MyTripsLoaded) {
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.trips.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final t = state.trips[i];
+                      final isCompleted = t.status == 'completed';
+                      return CustomCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text('#${t.orderId}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 13,
+                                          color: AppColors.dark)),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (isCompleted
+                                            ? AppColors.success
+                                            : AppColors.error)
+                                        .withValues(alpha: 0.12),
+                                    borderRadius:
+                                        BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    t.status.toUpperCase(),
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: isCompleted
+                                            ? AppColors.success
+                                            : AppColors.error),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Column(
+                                  children: [
+                                    const Icon(Icons.circle,
+                                        size: 8,
+                                        color: AppColors.success),
+                                    Container(
+                                        width: 1,
+                                        height: 16,
+                                        color: AppColors.light),
+                                    const Icon(
+                                        Icons.location_on_rounded,
+                                        size: 12,
+                                        color: AppColors.error),
+                                  ],
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(t.pickupLocation,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.dark)),
+                                      const SizedBox(height: 6),
+                                      Text(t.deliveryLocation,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.dark)),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'KES ${t.fee.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.primary),
+                                    ),
+                                    Text(t.date,
+                                        style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.muted)),
+                                    Text('${t.distanceKm} km',
+                                        style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.muted)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const Center(
+                    child: Text('No trips yet',
+                        style: TextStyle(color: AppColors.muted)));
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+```
+
+---
+
+---
+
+# MAMBONAMI — Retailer Feature
+
+> Retailer uses the **same buyer pages** (`buyer_dashboard`, `product_catalog_page`, `cart_page`, `checkout_page`, etc.) with bulk ordering enabled.
+> The `UserRole.retailer` flag unlocks bulk quantity selectors and supplier analytics.
+
+---
+
+### `retailer_dashboard.dart`
+
+```dart
+// lib/features/retailer/pages/retailer_dashboard.dart
+// NOTE: Retailer is structurally a buyer with bulk purchasing + analytics.
+// Extend BuyerDashboard or create a separate route that mounts identical
+// buyer pages but passes `isRetailer: true` to unlock bulk qty.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/auth/auth_bloc.dart';
+import '../../../blocs/order/order_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/section_header.dart';
+
+class RetailerDashboard extends StatefulWidget {
+  const RetailerDashboard({super.key});
+
+  @override
+  State<RetailerDashboard> createState() => _RetailerDashboardState();
+}
+
+class _RetailerDashboardState extends State<RetailerDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    String name = 'Retailer';
+    if (authState is AuthAuthenticated) name = authState.username ?? authState.phone;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      drawer: const AppDrawer(),
+      body: Column(
+        children: [
+          // Purple gradient header (retailer brand color)
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF4C1D95), Color(0xFF6D28D9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Builder(
+                      builder: (ctx) => IconButton(
+                        icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                        onPressed: () => Scaffold.of(ctx).openDrawer(),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Retailer Dashboard',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 11)),
+                          Text(name,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none_rounded,
+                          color: Colors.white),
+                      onPressed: () => context.go(RoutePaths.notifications),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.go(RoutePaths.profile),
+                      child: const CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.white24,
+                        child: Icon(Icons.person_rounded,
+                            color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Monthly spend KPI
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('Monthly Purchases',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 11)),
+                            Text('KES 270,400',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text('▲ 8.1%',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stats
+                  Row(
+                    children: [
+                      _StatCard(label: 'Active Orders', value: '8', icon: Icons.shopping_cart_rounded),
+                      const SizedBox(width: 12),
+                      _StatCard(label: 'Suppliers', value: '24', icon: Icons.store_rounded),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Quick reorder
+                  const SectionHeader(title: 'Quick Reorder', action: 'All items'),
+                  ...[
+                    {'name': 'Avocado', 'supplier': 'Kamau Farm', 'qty': '50 kg', 'price': 'KES 12,500', 'img': 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=60&h=60&fit=crop'},
+                    {'name': 'Tomatoes', 'supplier': 'Wanjiku Farm', 'qty': '100 kg', 'price': 'KES 9,000', 'img': 'https://images.unsplash.com/photo-1546470427-e26264be0b07?w=60&h=60&fit=crop'},
+                    {'name': 'Sukuma Wiki', 'supplier': 'Thika Farms', 'qty': '200 bunches', 'price': 'KES 4,000', 'img': 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=60&h=60&fit=crop'},
+                  ].map((p) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CustomCard(
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(p['img']!,
+                                    width: 52,
+                                    height: 52,
+                                    fit: BoxFit.cover),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(p['name']!,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13,
+                                            color: AppColors.dark)),
+                                    Text(
+                                        '${p['supplier']} · ${p['qty']}',
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.muted)),
+                                    Text(p['price']!,
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.primary)),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  textStyle: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                onPressed: () =>
+                                    context.go(RoutePaths.productCatalog),
+                                child: const Text('Reorder'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _StatCard({required this.label, required this.value, required this.icon});
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: CustomCard(
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6D28D9).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: const Color(0xFF6D28D9), size: 20),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value,
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary)),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 10, color: AppColors.muted)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+}
+```
+
+---
+
+---
+
+# MAMBONAMI — Common/Shared Pages
+
+> File map: `lib/features/common/` and `lib/features/notifications/`
+
+---
+
+### `notifications_page.dart`
+
+```dart
+// lib/features/notifications/pages/notifications_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/notification/notification_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_card.dart';
+
+class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({super.key});
+
+  @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationBloc>().add(FetchNotificationsEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.dark,
+        elevation: 0,
+        shadowColor: Colors.black.withValues(alpha: 0.05),
+        title: const Text('Notifications',
+            style:
+                TextStyle(fontWeight: FontWeight.w800, color: AppColors.dark)),
+        actions: [
+          TextButton(
+            onPressed: () => context
+                .read<NotificationBloc>()
+                .add(MarkAllReadEvent()),
+            child: const Text('Mark all read',
+                style: TextStyle(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12)),
+          ),
+        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded,
+              color: AppColors.dark),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: BlocBuilder<NotificationBloc, NotificationState>(
+        builder: (context, state) {
+          if (state is NotificationLoading) {
+            return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary));
+          }
+          if (state is NotificationLoaded) {
+            if (state.notifications.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.notifications_off_rounded,
+                        size: 48, color: AppColors.muted),
+                    SizedBox(height: 12),
+                    Text('No notifications yet',
+                        style: TextStyle(color: AppColors.muted, fontSize: 14)),
+                  ],
+                ),
+              );
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: state.notifications.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, i) {
+                final n = state.notifications[i];
+                final isUnread = n.isUnread;
+
+                // Map notification type to icon + color
+                final (icon, color) = switch (n.type) {
+                  'payment' => (Icons.payments_rounded, AppColors.success),
+                  'order' => (Icons.shopping_bag_rounded, AppColors.primary),
+                  'delivery' => (Icons.local_shipping_rounded, AppColors.secondary),
+                  'review' => (Icons.star_rounded, AppColors.gold),
+                  'alert' => (Icons.warning_amber_rounded, AppColors.warning),
+                  _ => (Icons.notifications_rounded, AppColors.primary),
+                };
+
+                return CustomCard(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(icon, color: color, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(n.title,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13,
+                                          color: AppColors.dark)),
+                                ),
+                                if (isUnread)
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(n.body,
+                                style: const TextStyle(
+                                    fontSize: 12, color: AppColors.muted)),
+                            const SizedBox(height: 4),
+                            Text(n.timeAgo,
+                                style: const TextStyle(
+                                    fontSize: 10, color: AppColors.muted)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+```
+
+---
+
+### `profile_page.dart`
+
+```dart
+// lib/features/common/profile_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+import '../../../blocs/auth/auth_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/layouts/app_navigation.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_snackbar.dart';
+
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  File? _avatarFile;
+  final _picker = ImagePicker();
+
+  Future<void> _pickAvatar() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _avatarFile = File(picked.path));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    String name = 'User';
+    String phone = '';
+    String role = '';
+    if (authState is AuthAuthenticated) {
+      name = authState.username ?? authState.phone;
+      phone = authState.phone;
+      role = authState.role;
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // Gradient header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 56, 20, 28),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded,
+                          color: Colors.white),
+                      onPressed: () => context.pop(),
+                    ),
+                    const Expanded(
+                      child: Text('My Profile',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                    IconButton(
+                      icon: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.edit_rounded,
+                            color: Colors.white, size: 18),
+                      ),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Avatar
+                GestureDetector(
+                  onTap: _pickAvatar,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 42,
+                        backgroundImage: _avatarFile != null
+                            ? FileImage(_avatarFile!) as ImageProvider
+                            : const NetworkImage(
+                                'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=84&h=84&fit=crop'),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: AppColors.gold,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(name,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800)),
+                Text(phone,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    '✓ Verified ${role[0].toUpperCase()}${role.substring(1)}',
+                    style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Body
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stats row
+                  Row(
+                    children: [
+                      _StatTile(value: '4.8 ★', label: 'Rating'),
+                      _StatTile(value: '48', label: 'Orders'),
+                      _StatTile(value: 'KES 45K', label: 'Volume'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Verification
+                  CustomCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Verification',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.dark)),
+                        const SizedBox(height: 12),
+                        ...[
+                          ['Phone Number', true],
+                          ['National ID', true],
+                          ['Farm Location', true],
+                          ['Bank Account', false],
+                        ].map((v) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(v[0] as String,
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.dark)),
+                                  ),
+                                  (v[1] as bool)
+                                      ? Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.success
+                                                .withValues(alpha: 0.12),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: const Text('✓ Verified',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.success)),
+                                        )
+                                      : TextButton(
+                                          onPressed: () {},
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColors.warning,
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: Size.zero,
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: const Text('+ Add',
+                                              style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700)),
+                                        ),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Menu
+                  ...[
+                    (Icons.account_balance_wallet_rounded, 'Wallet & Payouts', 'M-Pesa · Bank', null),
+                    (Icons.notifications_outlined, 'Notifications', 'Order, payment alerts', null),
+                    (Icons.settings_outlined, 'Settings', null, RoutePaths.settings),
+                    (Icons.help_outline_rounded, 'Help & Support', null, RoutePaths.support),
+                  ].map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CustomCard(
+                          onTap: item.$4 != null
+                              ? () => context.go(item.$4!)
+                              : null,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.light,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(item.$1,
+                                    color: AppColors.primary, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item.$2,
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.dark)),
+                                    if (item.$3 != null)
+                                      Text(item.$3!,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.muted)),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded,
+                                  color: AppColors.muted, size: 18),
+                            ],
+                          ),
+                        ),
+                      )),
+
+                  // Logout
+                  GestureDetector(
+                    onTap: () {
+                      context.read<AuthBloc>().add(LogoutEvent());
+                      context.go(RoutePaths.login);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.logout_rounded,
+                              color: AppColors.error, size: 20),
+                          SizedBox(width: 12),
+                          Text('Log Out',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.error)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavigationBar(),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final String value;
+  final String label;
+  const _StatTile({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: CustomCard(
+          child: Column(
+            children: [
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary)),
+              const SizedBox(height: 2),
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.muted)),
+            ],
+          ),
+        ),
+      );
+}
+```
+
+---
+
+### `settings_page.dart`
+
+```dart
+// lib/features/common/settings_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../blocs/common/theme_bloc.dart';
+import '../../../config/route_paths.dart';
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/widgets/custom_card.dart';
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeBloc>().state is ThemeDark;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.dark,
+        elevation: 0,
+        title: const Text('Settings',
+            style:
+                TextStyle(fontWeight: FontWeight.w800, color: AppColors.dark)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => context.go(RoutePaths.profile),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _SectionLabel('Account'),
+          ...[
+            ('Edit Profile', 'Name, phone, photo'),
+            ('Change Password', 'Update security credentials'),
+            ('Linked Accounts', 'Google, M-Pesa'),
+            ('Language', 'English / Kiswahili'),
+          ].map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: CustomCard(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.$1,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.dark)),
+                            Text(s.$2,
+                                style: const TextStyle(
+                                    fontSize: 11, color: AppColors.muted)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded,
+                          color: AppColors.muted, size: 18),
+                    ],
+                  ),
+                ),
+              )),
+
+          _SectionLabel('Preferences'),
+          CustomCard(
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Dark Mode',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.dark)),
+                      Text('Switch app appearance',
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.muted)),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: isDark,
+                  activeColor: AppColors.primary,
+                  onChanged: (_) => context
+                      .read<ThemeBloc>()
+                      .add(ToggleThemeEvent()),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...[
+            ('Push Notifications', 'Orders, payments, updates'),
+            ('Location Access', 'For GPS and delivery'),
+          ].map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: CustomCard(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.$1,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.dark)),
+                            Text(s.$2,
+                                style: const TextStyle(
+                                    fontSize: 11, color: AppColors.muted)),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: true,
+                        activeColor: AppColors.primary,
+                        onChanged: (_) {},
+                      ),
+                    ],
+                  ),
+                ),
+              )),
+
+          _SectionLabel('Privacy & Legal'),
+          ...[
+            ('Privacy Policy', false),
+            ('Terms of Service', false),
+            ('Delete Account', true),
+          ].map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: CustomCard(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(s.$1,
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: s.$2
+                                    ? AppColors.error
+                                    : AppColors.dark)),
+                      ),
+                      const Icon(Icons.chevron_right_rounded,
+                          color: AppColors.muted, size: 18),
+                    ],
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8, top: 16),
+        child: Text(label.toUpperCase(),
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.muted,
+                letterSpacing: 0.8)),
+      );
+}
+```
+
+---
+
+### `support_page.dart`
+
+```dart
+// lib/features/common/support_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/section_header.dart';
+
+class SupportPage extends StatefulWidget {
+  const SupportPage({super.key});
+
+  @override
+  State<SupportPage> createState() => _SupportPageState();
+}
+
+class _SupportPageState extends State<SupportPage> {
+  String _issueType = 'Payment / Escrow';
+  final _messageCtrl = TextEditingController();
+  bool _submitted = false;
+
+  final _issueTypes = [
+    'Payment / Escrow',
+    'Order dispute',
+    'App bug',
+    'Account issue',
+    'Other',
+  ];
+
+  final _faq = [
+    'How does M-Pesa escrow work?',
+    'How do I confirm a delivery with OTP?',
+    'What happens if a farmer cancels my order?',
+    'How long do payouts take?',
+    'How do I become a verified farmer?',
+    'What vehicles are accepted for transport?',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 52, 20, 24),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white),
+                  onPressed: () => context.pop(),
+                ),
+                const Text('Help & Support',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Contact channels
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.5,
+                    children: [
+                      _ContactCard(emoji: '💬', label: 'Live Chat', sub: 'Avg. 2 min reply'),
+                      _ContactCard(emoji: '📞', label: 'Call Us', sub: '+254 700 MAMBA'),
+                      _ContactCard(emoji: '📧', label: 'Email', sub: 'support@mambonami.com'),
+                      _ContactCard(emoji: '🤖', label: 'WhatsApp', sub: '+254 700 262262'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // FAQ
+                  const SectionHeader(title: 'Frequently Asked Questions'),
+                  ..._faq.map((q) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: CustomCard(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(q,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.dark)),
+                              ),
+                              const Icon(Icons.chevron_right_rounded,
+                                  color: AppColors.muted, size: 16),
+                            ],
+                          ),
+                        ),
+                      )),
+                  const SizedBox(height: 20),
+
+                  // Submit ticket
+                  CustomCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Submit a Ticket',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.dark)),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: _issueType,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: AppColors.background,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
+                          ),
+                          items: _issueTypes
+                              .map((t) => DropdownMenuItem(
+                                  value: t,
+                                  child: Text(t,
+                                      style: const TextStyle(fontSize: 13))))
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _issueType = v ?? _issueType),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _messageCtrl,
+                          maxLines: 4,
+                          decoration: InputDecoration(
+                            hintText: 'Describe your issue in detail...',
+                            hintStyle: const TextStyle(
+                                fontSize: 12, color: AppColors.muted),
+                            filled: true,
+                            fillColor: AppColors.background,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _submitted
+                            ? const Center(
+                                child: Text('✓ Ticket submitted!',
+                                    style: TextStyle(
+                                        color: AppColors.success,
+                                        fontWeight: FontWeight.w700)))
+                            : CustomButton(
+                                label: 'Submit Ticket',
+                                onPressed: () =>
+                                    setState(() => _submitted = true),
+                              ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String sub;
+  const _ContactCard({required this.emoji, required this.label, required this.sub});
+
+  @override
+  Widget build(BuildContext context) => CustomCard(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(height: 4),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.dark)),
+            Text(sub,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 10, color: AppColors.muted)),
+          ],
+        ),
+      );
+}
+```
+
+---
+
+---
+
+# Backend Model Additions
+
+> The following fields are referenced in the Flutter UI but may be missing from your backend models. Add these to your API response DTOs and database schemas.
+
+| Model | Missing Field | Type | Purpose |
+|---|---|---|---|
+| `Order` | `buyerName` | `String` | Show buyer name on farmer order card |
+| `Order` | `timeAgo` | `String` (computed) | Relative timestamp on order card |
+| `Order` | `itemSummary` | `String` | "Avocado 2kg + Tomatoes 3kg" summary line |
+| `Order` | `activeOrder` | `Order?` | Buyer dashboard "active order" strip |
+| `Trip` | `pickupLocation` | `String` | Display on available orders card |
+| `Trip` | `deliveryLocation` | `String` | Display on available orders card |
+| `Trip` | `distanceKm` | `double` | Show distance on trip cards |
+| `Trip` | `etaMinutes` | `int` | ETA estimate on available orders |
+| `Trip` | `fee` | `double` | Transport fee shown in gold |
+| `Trip` | `date` | `String` | Formatted date on my-trips list |
+| `Notification` | `type` | `String` | `payment`, `order`, `delivery`, `review`, `alert` — used to pick icon |
+| `Notification` | `isUnread` | `bool` | Unread dot on notification item |
+| `Notification` | `timeAgo` | `String` | Relative time string |
+| `Product` | `quantityAvailable` | `double` | Inventory level for low-stock badge |
+| `Product` | `unit` | `String` | kg / bunch / piece etc. |
+| `Product` | `imageUrl` | `String?` | Product image URL |
+
+> If your backend already has these fields under different names, update the model mappers (`fromJson`) instead of adding new columns.
+
+---
+
 ## Route Paths to add in `lib/config/route_paths.dart`
 
 ```dart

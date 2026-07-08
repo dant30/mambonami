@@ -32,7 +32,7 @@ type Screen =
   | "farmer-orders" | "farmer-order-detail" | "farmer-earnings"
   // Buyer
   | "dash-buyer" | "buyer-catalog" | "buyer-product-detail"
-  | "buyer-cart" | "buyer-checkout" | "buyer-order-tracking" | "buyer-order-history"
+  | "buyer-cart" | "buyer-checkout" | "buyer-order-tracking" | "buyer-order-history" | "buyer-dispute"
   // Transport
   | "dash-transport" | "transport-available" | "transport-delivery-otp" | "transport-trips"
   // Retailer
@@ -56,7 +56,8 @@ const G = {
   purple: "#6D28D9",
 };
 
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
+const headFont = "'Fraunces', serif";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -219,7 +220,7 @@ function SplashScreen({ go }: { go: (s: Screen) => void }) {
           <img src={logoImg} alt="Mambonami logo" className="w-full h-full object-contain p-2" />
         </div>
         <div className="text-center">
-          <h1 className="text-4xl font-black text-white tracking-tight">MAMBONAMI</h1>
+          <h1 className="text-4xl font-black text-white tracking-tight" style={{ fontFamily: headFont }}>MAMBONAMI</h1>
           <p className="text-white/75 text-[13px] mt-1 font-medium">Fresh from farm to your door</p>
         </div>
         <div className="flex gap-1.5 mt-8">
@@ -242,7 +243,7 @@ function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
           <div className="w-20 h-20 rounded-3xl bg-white overflow-hidden mb-3 flex items-center justify-center" style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
             <img src={logoImg} alt="MAMBONAMI" className="w-full h-full object-contain p-1.5" />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">MAMBONAMI</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: headFont }}>MAMBONAMI</h1>
           <p className="text-white/75 text-[12px] mt-1">Fresh from farm to your door</p>
           <div className="mt-7 relative w-full">
             <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=340&h=180&fit=crop&auto=format"
@@ -260,7 +261,7 @@ function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
 
       <div className="flex-1 px-6 pt-9 pb-6 flex flex-col gap-4">
         <div className="text-center mb-1">
-          <h2 className="text-[22px] font-extrabold leading-tight" style={{ color: G.dark }}>Kenya&apos;s #1 Farm<br />Marketplace</h2>
+          <h2 className="text-[22px] font-extrabold leading-tight" style={{ color: G.dark, fontFamily: headFont }}>Kenya&apos;s #1 Farm<br />Marketplace</h2>
           <p className="text-[13px] mt-2" style={{ color: G.muted }}>Direct from farmers. Fair prices. Fresh produce.</p>
         </div>
 
@@ -1980,6 +1981,114 @@ function TransportTripsScreen({ go }: { go: (s: Screen) => void }) {
   );
 }
 
+// ─── BUYER DISPUTE ────────────────────────────────────────────────────────────
+
+function BuyerDisputeScreen({ go }: { go: (s: Screen) => void }) {
+  const [tab, setTab] = useState(0);
+  const [issueType, setIssueType] = useState("Wrong item received");
+  const [submitted, setSubmitted] = useState(false);
+
+  return (
+    <div className="flex flex-col min-h-full">
+      <GradientHeader colors={[G.dark, G.primary]}>
+        <div className="flex items-center gap-3">
+          <BackBtn onClick={() => go("buyer-order-history")} light />
+          <div>
+            <h1 className="text-white font-bold text-[17px]">Raise a Dispute</h1>
+            <p className="text-white/70 text-[11px]">Order #ORD-2847</p>
+          </div>
+        </div>
+      </GradientHeader>
+
+      {/* Tabs */}
+      <div className="flex bg-white" style={{ borderBottom: `1px solid ${G.light}` }}>
+        {["New Dispute", "My Disputes"].map((t, i) => (
+          <button key={t} onClick={() => setTab(i)} className="flex-1 py-3 text-[13px] font-semibold transition-all"
+            style={{ color: tab === i ? G.primary : G.muted, borderBottom: tab === i ? `2px solid ${G.primary}` : "2px solid transparent" }}>{t}</button>
+        ))}
+      </div>
+
+      <div className="flex-1 px-5 pt-4 pb-6 overflow-y-auto" style={{ background: G.bg }}>
+        {tab === 0 ? (
+          submitted ? (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: G.success + "20" }}>
+                <CheckCircle2 size={40} color={G.success} />
+              </div>
+              <h2 className="text-[18px] font-extrabold text-center" style={{ color: G.dark, fontFamily: headFont }}>Dispute Submitted</h2>
+              <p className="text-[12px] text-center" style={{ color: G.muted }}>Our team will review and respond within 24 hours. Escrow funds are frozen pending resolution.</p>
+              <PrimaryBtn label="Back to Orders" onClick={() => go("buyer-order-history")} />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <CardWrap className="p-4">
+                <h3 className="text-[13px] font-bold mb-3" style={{ color: G.dark }}>Issue Type</h3>
+                <div className="flex flex-col gap-2">
+                  {["Wrong item received", "Item damaged / spoiled", "Quantity short", "Delivery not received", "Other"].map((opt) => (
+                    <button key={opt} onClick={() => setIssueType(opt)}
+                      className="flex items-center gap-3 p-3 rounded-xl text-left transition-all"
+                      style={{ background: issueType === opt ? G.light : "white", border: `1.5px solid ${issueType === opt ? G.primary : "rgba(27,127,59,0.12)"}` }}>
+                      <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                        style={{ borderColor: issueType === opt ? G.primary : G.muted }}>
+                        {issueType === opt && <div className="w-2 h-2 rounded-full" style={{ background: G.primary }} />}
+                      </div>
+                      <span className="text-[12px] font-semibold" style={{ color: G.dark }}>{opt}</span>
+                    </button>
+                  ))}
+                </div>
+              </CardWrap>
+
+              <CardWrap className="p-4">
+                <h3 className="text-[13px] font-bold mb-2" style={{ color: G.dark }}>Evidence Photos</h3>
+                <p className="text-[11px] mb-3" style={{ color: G.muted }}>Attach photos showing the issue (max 3)</p>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="w-20 h-20 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer"
+                      style={{ borderColor: G.primary + "40", background: G.light }}>
+                      {i === 1 ? <Camera size={20} color={G.primary} /> : <Plus size={16} color={G.muted} />}
+                    </div>
+                  ))}
+                </div>
+              </CardWrap>
+
+              <CardWrap className="p-4">
+                <h3 className="text-[13px] font-bold mb-2" style={{ color: G.dark }}>Describe the Issue</h3>
+                <textarea placeholder="What went wrong with your order? Be as specific as possible..." rows={4}
+                  style={{ width: "100%", borderRadius: 14, border: `1.5px solid rgba(27,127,59,0.2)`, padding: "12px 14px", background: "white", fontFamily: font, fontSize: 12, outline: "none", color: G.dark, resize: "none" }} />
+              </CardWrap>
+
+              <div className="rounded-2xl p-3.5 flex gap-2" style={{ background: "#FFFBEB", border: `1px solid ${G.gold}30` }}>
+                <AlertTriangle size={14} color={G.gold} className="flex-shrink-0 mt-0.5" />
+                <p className="text-[11px]" style={{ color: G.muted }}>Escrow funds (KES 1,305) will remain frozen until your dispute is resolved. False claims may lead to account suspension.</p>
+              </div>
+
+              <PrimaryBtn label="Submit Dispute" onClick={() => setSubmitted(true)} />
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col gap-3">
+            {[
+              { id: "DSP-102", order: "ORD-2701", issue: "Wrong item received", status: "Under Review", color: G.warning, date: "2 days ago" },
+              { id: "DSP-098", order: "ORD-2655", issue: "Quantity short", status: "Resolved", color: G.success, date: "1 week ago" },
+            ].map((d) => (
+              <CardWrap key={d.id} className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[13px] font-bold" style={{ color: G.dark }}>{d.id}</div>
+                    <div className="text-[11px]" style={{ color: G.muted }}>Order {d.order} · {d.date}</div>
+                  </div>
+                  <StatusBadge label={d.status} color={d.color} />
+                </div>
+                <div className="text-[12px]" style={{ color: G.dark }}>{d.issue}</div>
+              </CardWrap>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── RETAILER DASHBOARD ───────────────────────────────────────────────────────
 
 function RetailerDash({ go }: { go: (s: Screen) => void }) {
@@ -2361,7 +2470,8 @@ const ALL_SCREENS: [Screen, string][] = [
   ["buyer-cart","├ Cart"],
   ["buyer-checkout","├ M-Pesa Checkout"],
   ["buyer-order-tracking","├ Order Tracking"],
-  ["buyer-order-history","└ Order History"],
+  ["buyer-order-history","├ Order History"],
+  ["buyer-dispute","└ Dispute"],
   ["dash-transport","🚛 Transport Dashboard"],
   ["transport-available","├ Available Orders"],
   ["transport-delivery-otp","├ Delivery OTP"],
@@ -2406,6 +2516,7 @@ export default function App() {
       case "buyer-checkout": return <BuyerCheckoutScreen go={go}/>;
       case "buyer-order-tracking": return <BuyerOrderTrackingScreen go={go}/>;
       case "buyer-order-history": return <BuyerOrderHistoryScreen go={go}/>;
+      case "buyer-dispute": return <BuyerDisputeScreen go={go}/>;
       case "dash-transport": return <TransportDash go={go}/>;
       case "transport-available": return <TransportAvailableScreen go={go}/>;
       case "transport-delivery-otp": return <TransportDeliveryOtpScreen go={go}/>;
