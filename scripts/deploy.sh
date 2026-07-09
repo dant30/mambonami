@@ -1,6 +1,8 @@
 #!/bin/bash
 # mambonami/scripts/deploy.sh – systemd version
 
+# ~/apps/mambonami/scripts/deploy.sh
+
 set -e
 
 PROJECT_DIR="/home/dante/apps/mambonami"
@@ -63,6 +65,7 @@ sudo systemctl restart fastapi
 echo "🔄 Restarting Celery..."
 sudo systemctl restart celery
 echo "🔄 Reloading Nginx..."
+sudo nginx -t
 sudo systemctl reload nginx
 
 # Status check
