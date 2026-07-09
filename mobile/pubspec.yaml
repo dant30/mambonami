@@ -60,9 +60,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.0
   # Optional: if you plan to use Hive code generation later, add:
   # hive_generator: ^2.0.0
   # build_runner: ^2.4.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/logo.png"            # Path to your 1024x1024 PNG icon
+  min_sdk_android: 21
+  adaptive_icon_background: "#1B7F3B"          # Solid background for Android adaptive icons
+  adaptive_icon_foreground: "assets/icons/logo.png"  # Foreground for adaptive icon
 
 flutter:
   uses-material-design: true

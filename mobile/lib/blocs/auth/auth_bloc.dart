@@ -187,8 +187,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       if (event.newPassword.isEmpty) {
-        emit(ForgotPasswordSuccess());
-        return;
+        throw Exception('New password is required');
       }
       await authRepository.forgotPasswordVerify(
           event.phone, event.otp, event.newPassword);

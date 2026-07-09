@@ -12,6 +12,7 @@ import '../../../config/role_routes.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 
 class OtpPage extends StatefulWidget {
   final String? phone;
@@ -26,9 +27,13 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   final _otpController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   int _resendSeconds = 45;
   Timer? _countdownTimer;
   String? _error;
+  bool _isPasswordHidden = true;
+  bool _isConfirmPasswordHidden = true;
 
   @override
   void initState() {
@@ -40,6 +45,8 @@ class _OtpPageState extends State<OtpPage> {
   void dispose() {
     _countdownTimer?.cancel();
     _otpController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -57,12 +64,25 @@ class _OtpPageState extends State<OtpPage> {
     });
   }
 
-  void _resendCode() {
-    if (_resendSeconds == 0) {
-      _startCountdown();
-      // Optionally dispatch a resend OTP event to the BLoC
-      // context.read<AuthBloc>().add(ResendOtpEvent(widget.phone ?? ''));
+  void _resendCode(BuildContext context) {
+    if (_resendSeconds != 0) return;
+
+    final phone = widget.phone?.trim() ?? '';
+    final mode = widget.mode ?? 'login';
+    if (phone.isEmpty) {
+      setState(() => _error = 'Missing phone number to resend OTP.');
+      return;
     }
+
+    if (mode == 'register') {
+      final dto = widget.data ?? {};
+      final role = dto['role']?.toString() ?? 'buyer';
+      context.read<AuthBloc>().add(RegisterInitEvent(phone, role));
+    } else if (mode == 'forgot_password') {
+      context.read<AuthBloc>().add(ForgotPasswordInitEvent(phone));
+    }
+
+    _startCountdown();
   }
 
   void _submitOtp(String otp) {
@@ -78,53 +98,69 @@ class _OtpPageState extends State<OtpPage> {
           'user';
       final password = dto['password']?.toString() ?? 'Mambonami@123';
       context.read<AuthBloc>().add(
-        RegisterVerifyEvent(
-          phone: phone,
-          otp: otp,
-          username: username,
-          password: password,
-          role: dto['role']?.toString() ?? 'buyer',
-          email: dto['email']?.toString(),
-          fullName: dto['full_name']?.toString(),
-          ownerFullName: dto['owner_full_name']?.toString(),
-          nationalId: dto['national_id']?.toString(),
-          farmGps: dto['farm_gps']?.toString(),
-          mpesaNumber: dto['mpesa_number']?.toString(),
-          cooperative: dto['cooperative']?.toString(),
-          vehicleType: dto['vehicle_type']?.toString(),
-          licensePlate: dto['license_plate']?.toString(),
-          driverLicense: dto['driver_license']?.toString(),
-          bankAccount: dto['bank_account']?.toString(),
-          deliveryAddress: dto['delivery_address']?.toString(),
-          deliveryInstructions: dto['delivery_instructions']?.toString(),
-          businessName: dto['business_name']?.toString(),
-          businessPhone: dto['business_phone']?.toString(),
-          businessEmail: dto['business_email']?.toString(),
-          businessAddress: dto['business_address']?.toString(),
-          businessType: dto['business_type']?.toString(),
-          kraPin: dto['kra_pin']?.toString(),
-        ),
-      );
+            RegisterVerifyEvent(
+              phone: phone,
+              otp: otp,
+              username: username,
+              password: password,
+              role: dto['role']?.toString() ?? 'buyer',
+              email: dto['email']?.toString(),
+              fullName: dto['full_name']?.toString(),
+              ownerFullName: dto['owner_full_name']?.toString(),
+              nationalId: dto['national_id']?.toString(),
+              farmGps: dto['farm_gps']?.toString(),
+              mpesaNumber: dto['mpesa_number']?.toString(),
+              cooperative: dto['cooperative']?.toString(),
+              vehicleType: dto['vehicle_type']?.toString(),
+              licensePlate: dto['license_plate']?.toString(),
+              driverLicense: dto['driver_license']?.toString(),
+              bankAccount: dto['bank_account']?.toString(),
+              deliveryAddress: dto['delivery_address']?.toString(),
+              deliveryInstructions: dto['delivery_instructions']?.toString(),
+              businessName: dto['business_name']?.toString(),
+              businessPhone: dto['business_phone']?.toString(),
+              businessEmail: dto['business_email']?.toString(),
+              businessAddress: dto['business_address']?.toString(),
+              businessType: dto['business_type']?.toString(),
+              kraPin: dto['kra_pin']?.toString(),
+            ),
+          );
       return;
     }
 
     if (mode == 'forgot_password') {
+      final newPassword = _newPasswordController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
+
+      if (newPassword.isEmpty || confirmPassword.isEmpty) {
+        setState(() => _error = 'Enter and confirm your new password.');
+        return;
+      }
+      if (newPassword != confirmPassword) {
+        setState(() => _error = 'Passwords do not match.');
+        return;
+      }
+      if (newPassword.length < 8) {
+        setState(() => _error = 'Password must be at least 8 characters.');
+        return;
+      }
+
       context.read<AuthBloc>().add(
-        ForgotPasswordVerifyEvent(
-          phone: phone,
-          otp: otp,
-          newPassword: widget.data?['new_password']?.toString() ?? '',
-        ),
-      );
+            ForgotPasswordVerifyEvent(
+              phone: phone,
+              otp: otp,
+              newPassword: newPassword,
+            ),
+          );
       return;
     }
 
     context.read<AuthBloc>().add(
-      OtpVerifyRequested(
-        phone: phone,
-        otp: otp,
-      ),
-    );
+          OtpVerifyRequested(
+            phone: phone,
+            otp: otp,
+          ),
+        );
   }
 
   String get _maskedPhone {
@@ -141,7 +177,27 @@ class _OtpPageState extends State<OtpPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          context.go(AppRole.homePathFor(state.role));
+          if (widget.mode == 'register') {
+            context.go(RoutePaths.success, extra: {'role': state.role});
+          } else {
+            context.go(AppRole.homePathFor(state.role));
+          }
+        } else if (state is RegisterInitSuccess && widget.mode == 'register') {
+          setState(() {
+            _error = null;
+            _startCountdown();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Verification code resent.')),
+          );
+        } else if (state is ForgotPasswordInitSuccess && widget.mode == 'forgot_password') {
+          setState(() {
+            _error = null;
+            _startCountdown();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reset code resent.')),
+          );
         } else if (state is ForgotPasswordSuccess) {
           context.go(RoutePaths.login);
         } else if (state is AuthError) {
@@ -266,6 +322,40 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                if (widget.mode == 'forgot_password') ...[
+                  CustomTextField(
+                    controller: _newPasswordController,
+                    label: 'New password',
+                    hint: 'Enter new password',
+                    obscureText: _isPasswordHidden,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_isPasswordHidden
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() {
+                        _isPasswordHidden = !_isPasswordHidden;
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: _confirmPasswordController,
+                    label: 'Confirm password',
+                    hint: 'Re-enter new password',
+                    obscureText: _isConfirmPasswordHidden,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_isConfirmPasswordHidden
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() {
+                        _isConfirmPasswordHidden = !_isConfirmPasswordHidden;
+                      }),
+                    ),
+                  ),
+                ],
                 if (_error != null) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -315,7 +405,7 @@ class _OtpPageState extends State<OtpPage> {
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: _resendSeconds == 0 ? _resendCode : null,
+                  onPressed: _resendSeconds == 0 ? () => _resendCode(context) : null,
                   child: Text(
                     'Resend OTP',
                     style: TextStyle(

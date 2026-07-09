@@ -77,7 +77,11 @@ class NotFoundPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => context.go(AppRole.homePathFor(context.read<AuthBloc>().state is AuthAuthenticated ? (context.read<AuthBloc>().state as AuthAuthenticated).role : null)),
+                onPressed: () => context.go(AppRole.homePathFor(context
+                        .read<AuthBloc>()
+                        .state is AuthAuthenticated
+                    ? (context.read<AuthBloc>().state as AuthAuthenticated).role
+                    : null)),
                 icon: const Icon(Icons.home_outlined),
                 label: const Text('Go home'),
               ),
@@ -95,7 +99,8 @@ class AppRouter {
     redirect: (context, state) => _handleDeepLinksAndAuth(context, state),
     routes: [
       GoRoute(path: RoutePaths.splash, builder: (_, __) => const SplashPage()),
-      GoRoute(path: RoutePaths.welcome, builder: (_, __) => const WelcomePage()),
+      GoRoute(
+          path: RoutePaths.welcome, builder: (_, __) => const WelcomePage()),
       GoRoute(path: RoutePaths.login, builder: (_, __) => const LoginPage()),
       GoRoute(
         path: RoutePaths.otp,
@@ -108,7 +113,11 @@ class AppRouter {
           if (extra is Map<String, dynamic>) {
             phone = extra['phone']?.toString();
             mode = extra['mode']?.toString();
-            data = extra;
+            if (extra['dto'] is Map<String, dynamic>) {
+              data = extra['dto'] as Map<String, dynamic>;
+            } else {
+              data = extra;
+            }
           } else if (extra is String) {
             phone = extra;
           }
@@ -116,14 +125,15 @@ class AppRouter {
           return OtpPage(phone: phone ?? 'your phone', mode: mode, data: data);
         },
       ),
-      GoRoute(path: RoutePaths.roleSelect, builder: (_, __) => const RoleSelectPage()),
+      GoRoute(
+          path: RoutePaths.roleSelect,
+          builder: (_, __) => const RoleSelectPage()),
       GoRoute(
         path: RoutePaths.success,
         builder: (context, state) {
           final extra = state.extra;
-          final role = extra is Map<String, dynamic>
-              ? extra['role'] as String?
-              : null;
+          final role =
+              extra is Map<String, dynamic> ? extra['role'] as String? : null;
           return SuccessPage(role: role);
         },
       ),
@@ -444,7 +454,6 @@ class AppRouter {
         path == RoutePaths.roleSelect ||
         path == RoutePaths.success ||
         path == RoutePaths.register ||
-
         path == RoutePaths.forgotPassword ||
         path.startsWith('${RoutePaths.register}/');
 
@@ -534,13 +543,18 @@ class AppRouter {
         return AppRole.homePathFor(role);
       }
       if (!knownRoutes.contains(path) &&
-          !path.startsWith('${RoutePaths.productDetail.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.orderTracking.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.tripDetail.replaceAll(':uuid', '')}') &&
+          !path.startsWith(
+              '${RoutePaths.productDetail.replaceAll(':uuid', '')}') &&
+          !path.startsWith(
+              '${RoutePaths.orderTracking.replaceAll(':uuid', '')}') &&
+          !path
+              .startsWith('${RoutePaths.tripDetail.replaceAll(':uuid', '')}') &&
           !path.startsWith('${RoutePaths.pickup.replaceAll(':uuid', '')}') &&
           !path.startsWith('${RoutePaths.delivery.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.farmerProductEdit.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.farmerOrderRequestDetail.replaceAll(':id', '')}')) {
+          !path.startsWith(
+              '${RoutePaths.farmerProductEdit.replaceAll(':uuid', '')}') &&
+          !path.startsWith(
+              '${RoutePaths.farmerOrderRequestDetail.replaceAll(':id', '')}')) {
         return '/404';
       }
       return null;
