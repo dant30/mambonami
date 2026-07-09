@@ -93,4 +93,6 @@ pubspec.lock
 "@ | Out-File -FilePath .gitignore -Encoding utf8
 
 # mobile/.gitignore
-android/key.properties
+android/key.propertiesbackups/
+admin-dashboard/
+backups/
