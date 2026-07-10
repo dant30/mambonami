@@ -19,14 +19,6 @@ class Notification(BaseModel):
         ('failed', 'Failed'),
         ('read', 'Read'),
     ]
-<<<<<<< HEAD
-    TYPE_CHOICES = [
-        ('payment', 'Payment'),
-        ('order', 'Order'),
-        ('delivery', 'Delivery'),
-        ('review', 'Review'),
-        ('alert', 'Alert'),
-=======
     NOTIFICATION_TYPES = [
         ('payment', 'Payment / Escrow'),
         ('order', 'Order Update'),
@@ -34,7 +26,6 @@ class Notification(BaseModel):
         ('review', 'New Review'),
         ('alert', 'Price / Market Alert'),
         ('system', 'System / Platform'),
->>>>>>> b3899a6 (feat: backend code refactor)
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
