@@ -295,28 +295,17 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     farm_profile = serializers.SerializerMethodField()
     transport_profile = serializers.SerializerMethodField()
-<<<<<<< HEAD
-    buyer_profile = serializers.SerializerMethodField()
-    retailer_profile = serializers.SerializerMethodField()
-=======
     avatar_url = serializers.SerializerMethodField()
     full_name = serializers.CharField(source='full_name', read_only=True)
     display_name = serializers.CharField(source='display_name', read_only=True)
->>>>>>> b3899a6 (feat: backend code refactor)
 
     class Meta:
         model = User
         fields = (
-<<<<<<< HEAD
-            'id', 'phone', 'username', 'email', 'first_name', 'last_name', 'role',
-            'national_id', 'is_phone_verified', 'is_staff', 'is_superuser', 'date_joined',
-            'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
-=======
             'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
             'is_id_verified', 'avatar', 'avatar_url', 'is_staff', 'is_superuser',
             'date_joined', 'farm_profile', 'transport_profile',
->>>>>>> b3899a6 (feat: backend code refactor)
         )
         read_only_fields = ('id', 'date_joined', 'is_staff', 'is_superuser')
 
@@ -357,35 +346,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
             }
         return None
 
-<<<<<<< HEAD
-    def get_buyer_profile(self, obj):
-        if hasattr(obj, 'buyer_profile'):
-            return {
-                'delivery_address': obj.buyer_profile.delivery_address,
-                'delivery_instructions': obj.buyer_profile.delivery_instructions,
-                'bank_account': obj.buyer_profile.bank_account,
-            }
-        return None
-
-    def get_retailer_profile(self, obj):
-        if hasattr(obj, 'retailer_profile'):
-            return {
-                'business_name': obj.retailer_profile.business_name,
-                'owner_full_name': obj.retailer_profile.owner_full_name,
-                'business_phone': obj.retailer_profile.business_phone,
-                'business_email': obj.retailer_profile.business_email,
-                'business_address': obj.retailer_profile.business_address,
-                'business_type': obj.retailer_profile.business_type,
-                'kra_pin': obj.retailer_profile.kra_pin,
-                'bank_account': obj.retailer_profile.bank_account,
-            }
-=======
     def _get_avatar_url(self, profile):
         if profile.avatar:
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(profile.avatar.url)
->>>>>>> b3899a6 (feat: backend code refactor)
         return None
 
 

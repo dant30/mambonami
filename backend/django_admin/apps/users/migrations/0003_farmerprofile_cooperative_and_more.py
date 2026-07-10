@@ -32,24 +32,13 @@ class Migration(migrations.Migration):
                 max_length=50,
             ),
         ),
-        migrations.AddField(
-            model_name="user",
-            name="national_id",
-            field=models.CharField(
-                blank=True,
-                help_text="National identification number for KYC and verification",
-                max_length=30,
-                null=True,
-                unique=True,
-            ),
+        migrations.RunSQL(
+            sql='ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "national_id" varchar(30);',
+            reverse_sql='ALTER TABLE "users" DROP COLUMN IF EXISTS "national_id";',
         ),
-        migrations.AddField(
-            model_name="user",
-            name="national_id_verified",
-            field=models.BooleanField(
-                default=False,
-                help_text="Has the user national ID been verified by admin?",
-            ),
+        migrations.RunSQL(
+            sql='ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "national_id_verified" boolean NOT NULL DEFAULT false;',
+            reverse_sql='ALTER TABLE "users" DROP COLUMN IF EXISTS "national_id_verified";',
         ),
         migrations.CreateModel(
             name="BuyerProfile",

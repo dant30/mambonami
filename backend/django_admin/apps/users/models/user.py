@@ -182,7 +182,6 @@ class TransportProviderProfile(BaseModel):
         verbose_name_plural = 'Transport Provider Profiles'
 
     def __str__(self):
-<<<<<<< HEAD
         return f"Provider: {self.user.phone} ({self.vehicle_type or 'unassigned'})"
 
 
@@ -224,6 +223,3 @@ class RetailerProfile(BaseModel):
 
     def __str__(self):
         return f"Retailer: {self.business_name or self.user.phone}"
-=======
-        return f"Provider: {self.user.phone} ({self.vehicle_type or 'unassigned'})"
->>>>>>> b3899a6 (feat: backend code refactor)

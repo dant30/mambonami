@@ -31,19 +31,6 @@ class TripSerializer(serializers.ModelSerializer):
     etaMinutes = serializers.SerializerMethodField()
     date = serializers.SerializerMethodField()
 
-<<<<<<< HEAD
-    class Meta:
-        model = Trip
-        fields = (
-            'id', 'uuid', 'order', 'order_detail', 'provider', 'provider_detail',
-            'status', 'pickup_lat', 'pickup_lng', 'delivery_lat', 'delivery_lng',
-            'pickupLocation', 'deliveryLocation', 'distanceKm', 'etaMinutes',
-            'agreed_fee', 'waiting_surcharge',
-            'pickup_photo', 'delivery_photo', 'picked_up_at', 'delivered_at',
-            'date', 'otp_code', 'otp_expires_at', 'otp_attempts', 'created_at', 'updated_at'
-        )
-        read_only_fields = ('id', 'uuid', 'created_at', 'updated_at', 'otp_code', 'otp_expires_at', 'agreed_fee', 'waiting_surcharge')
-=======
     # ── New computed display fields ──
     order_id = serializers.SerializerMethodField()
     fee = serializers.DecimalField(source='agreed_fee', decimal_places=2, max_digits=10)
@@ -69,8 +56,6 @@ class TripSerializer(serializers.ModelSerializer):
         if obj.provider:
             return f"{obj.provider.get_vehicle_type_display()} · {obj.provider.license_plate}"
         return None
->>>>>>> b3899a6 (feat: backend code refactor)
-
     def get_provider_detail(self, obj):
         if obj.provider:
             return {

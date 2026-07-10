@@ -17,13 +17,8 @@ class ProductSerializer(serializers.ModelSerializer):
     farmer_rating = serializers.FloatField(source='farmer.rating', read_only=True)
     category_detail = ProductCategorySerializer(source='category', read_only=True)
     remaining_shelf_life = serializers.SerializerMethodField()
-<<<<<<< HEAD
-    quantityAvailable = serializers.DecimalField(source='available_quantity', read_only=True, max_digits=12, decimal_places=2)
-    imageUrl = serializers.SerializerMethodField()
-=======
     image_url = serializers.SerializerMethodField()
     distance_km = serializers.SerializerMethodField()
->>>>>>> b3899a6 (feat: backend code refactor)
 
     class Meta:
         model = Product
@@ -31,14 +26,9 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'uuid', 'sku', 'farmer', 'farmer_phone', 'farmer_name',
             'farmer_verified', 'farmer_rating',
             'category', 'category_detail', 'name', 'variety', 'price_per_unit',
-<<<<<<< HEAD
-            'available_quantity', 'quantityAvailable', 'reserved_quantity', 'unit', 'harvest_date', 'shelf_life_days',
-            'expiry_date', 'is_organic', 'remaining_shelf_life', 'is_active', 'image', 'imageUrl', 'description',
-=======
             'available_quantity', 'reserved_quantity', 'unit', 'harvest_date', 'shelf_life_days',
             'expiry_date', 'is_organic', 'remaining_shelf_life', 'is_active', 'image',
             'image_url', 'description',
->>>>>>> b3899a6 (feat: backend code refactor)
             'pickup_lat', 'pickup_lng', 'weight_per_unit',
             'rating', 'review_count', 'wishlist_count',
             'distance_km',
@@ -53,15 +43,6 @@ class ProductSerializer(serializers.ModelSerializer):
             remaining = max(0, obj.shelf_life_days - days_passed)
             return remaining
         return 0
-    
-    def get_imageUrl(self, obj):
-        """Return the image URL or None if no image."""
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
 
     def get_image_url(self, obj):
         request = self.context.get('request')

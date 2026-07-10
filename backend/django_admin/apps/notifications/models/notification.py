@@ -32,7 +32,7 @@ class Notification(BaseModel):
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
     title = models.CharField(max_length=200)
     body = models.TextField()
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='alert', help_text="Notification type for UI icon selection")
+    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='alert', help_text="Notification type for UI icon selection")
     metadata = models.JSONField(default=dict, help_text="Extra data (order_id, dispute_id, etc.)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     notification_type = models.CharField(

@@ -28,29 +28,13 @@ class SubOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)
     buyer_phone = serializers.CharField(source='buyer.phone', read_only=True)
-<<<<<<< HEAD
-    buyerName = serializers.SerializerMethodField()
-    timeAgo = serializers.SerializerMethodField()
-    itemSummary = serializers.SerializerMethodField()
-=======
-    
-    # NEW FIELDS
     buyer_name = serializers.CharField(source='buyer.display_name', read_only=True)
     time_ago = serializers.SerializerMethodField()
     item_summary = serializers.SerializerMethodField()
->>>>>>> b3899a6 (feat: backend code refactor)
 
     class Meta:
         model = Order
         fields = (
-<<<<<<< HEAD
-            'id', 'uuid', 'buyer', 'buyer_phone', 'buyerName', 'total_amount', 'delivery_fee',
-            'platform_commission', 'status', 'account_number', 'delivery_address',
-            'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
-            'delivery_lat', 'delivery_lng', 'total_weight_kg',
-            'scheduled_date', 'scheduled_time_window', 'assigned_provider',
-            'sub_orders', 'timeAgo', 'itemSummary', 'created_at', 'paid_at', 'delivered_at'
-=======
             'id', 'uuid', 'buyer', 'buyer_phone', 'buyer_name',
             'total_amount', 'delivery_fee', 'platform_commission',
             'promo_code', 'discount_amount',
@@ -60,36 +44,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
             'sub_orders', 'created_at', 'paid_at', 'delivered_at',
             'time_ago', 'item_summary',
->>>>>>> b3899a6 (feat: backend code refactor)
         )
         read_only_fields = ('id', 'uuid', 'account_number', 'status', 'created_at', 'paid_at', 'delivered_at')
-    
-    def get_buyerName(self, obj):
-        """Return buyer's name or phone if name not available."""
-        if obj.buyer.first_name:
-            return obj.buyer.first_name
-        return obj.buyer.phone
-    
-    def get_timeAgo(self, obj):
-        """Return relative time string from creation."""
-        return timesince(obj.created_at) + ' ago'
-    
-    def get_itemSummary(self, obj):
-        """Generate summary like 'Avocado 2kg + Tomatoes 3kg'."""
-        items = []
-        for sub_order in obj.sub_orders.all():
-            for item in sub_order.items.all():
-                summary_item = f"{item.product.name} {item.quantity}{item.product.unit}"
-                items.append(summary_item)
-        
-        if not items:
-            return ""
-        
-        # Limit summary to 2 items and add "+" if more
-        if len(items) <= 2:
-            return " + ".join(items)
-        else:
-            return " + ".join(items[:2]) + f" +{len(items) - 2} more"
 
     def get_time_ago(self, obj):
         return timesince(obj.created_at)
