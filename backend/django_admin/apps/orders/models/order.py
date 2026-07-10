@@ -1,5 +1,4 @@
 ﻿# backend/django_admin/apps/orders/models/order.py
-# backend/django_admin/apps/orders/models/order.py
 from django.db import models
 from django.utils import timezone
 from shared.db_models.base import BaseModel
@@ -51,7 +50,6 @@ class Order(BaseModel):
     )
     scheduled_date = models.DateField()
     scheduled_time_window = models.CharField(max_length=50, help_text="e.g., 10:00-12:00")
-    # Transport provider (assigned after all farmers ready)
     assigned_provider = models.ForeignKey(
         'users.TransportProviderProfile',
         on_delete=models.SET_NULL,
@@ -59,10 +57,13 @@ class Order(BaseModel):
         blank=True,
         related_name='assigned_orders'
     )
-    # Payment tracking
     paybill_transaction_code = models.CharField(max_length=50, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+
+    # NEW FIELDS
+    promo_code = models.CharField(max_length=30, blank=True)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         db_table = 'orders'
@@ -83,16 +84,13 @@ class Order(BaseModel):
         super().save(*args, **kwargs)
 
     def mark_paid(self, transaction_code):
-        """Transition to paid escrow."""
         self.status = 'paid_escrow'
         self.paybill_transaction_code = transaction_code
         self.paid_at = timezone.now()
         self.save(update_fields=['status', 'paybill_transaction_code', 'paid_at'])
 
     def is_fully_confirmed(self):
-        """All sub‑orders are confirmed by farmers."""
         return all(sub.status == 'confirmed' for sub in self.sub_orders.all())
 
     def are_all_farmers_ready(self):
-        """All farmers marked ready for pickup."""
         return all(sub.status == 'ready' for sub in self.sub_orders.all())
