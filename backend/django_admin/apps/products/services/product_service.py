@@ -1,5 +1,4 @@
-﻿# djando_admin/apps/products/services/product_service.py
-# backend/django_admin/apps/products/services/product_service.py
+﻿# backend/django_admin/apps/products/services/product_service.py
 from django.db import transaction
 from django.core.exceptions import PermissionDenied
 from ..models import Product
@@ -18,6 +17,9 @@ def list_active_products(filters=None):
             queryset = queryset.filter(price_per_unit__gte=min_price)
         if max_price := filters.get('max_price'):
             queryset = queryset.filter(price_per_unit__lte=max_price)
+        # Optional: filter by rating
+        if min_rating := filters.get('min_rating'):
+            queryset = queryset.filter(rating__gte=min_rating)
     return queryset
 
 def create_product(farmer_profile: FarmerProfile, data: dict) -> Product:
@@ -46,3 +48,5 @@ def delete_product(product: Product, user) -> None:
         raise PermissionDenied("You do not own this product.")
     product.is_active = False
     product.save()
+    RedisCache.delete(f'product_{product.id}')
+    RedisCache.delete('product_list_cache')

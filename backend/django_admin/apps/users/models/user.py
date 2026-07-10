@@ -35,6 +35,19 @@ class User(AbstractUser):   # no BaseModel
         help_text='Has the user national ID been verified by admin?',
     )
 
+    # ─── NEW FIELDS ──────────────────────────────────────────────
+    avatar = models.ImageField(upload_to='avatars/users/', blank=True, null=True)
+    middle_name = models.CharField(max_length=150, blank=True, null=True, help_text='Second given name (middle name)')
+    national_id = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text='National ID number (optional at registration)',
+    )
+    is_id_verified = models.BooleanField(default=False, help_text='Admin-verified national ID')
+    is_email_verified = models.BooleanField(default=False, help_text='Email confirmed via OTP/link')
+
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['username']
 
@@ -53,6 +66,26 @@ class User(AbstractUser):   # no BaseModel
 
     def __str__(self):
         return f"{self.phone} ({self.role})"
+
+    # ─── PROPERTIES ──────────────────────────────────────────────
+
+    @property
+    def full_name(self) -> str:
+        """Full name: first_name + middle_name + last_name (excluding blanks)."""
+        parts = [self.first_name.strip() if self.first_name else '']
+        if self.middle_name:
+            parts.append(self.middle_name.strip())
+        if self.last_name:
+            parts.append(self.last_name.strip())
+        return ' '.join(p for p in parts if p)
+
+    @property
+    def display_name(self) -> str:
+        """Public‑facing name: full_name if available, else username or phone."""
+        full = self.full_name
+        if full:
+            return full
+        return self.username or self.phone
 
 
 class FarmerProfile(BaseModel):
@@ -80,6 +113,11 @@ class FarmerProfile(BaseModel):
         help_text='M-Pesa number for the farmer',
     )
     total_sales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    # ─── NEW FIELDS ──────────────────────────────────────────────
+    rating = models.FloatField(default=5.0, help_text="Average buyer rating 1-5")
+    total_orders = models.PositiveIntegerField(default=0)
+    avatar = models.ImageField(upload_to='avatars/farmers/', blank=True, null=True)
 
     class Meta:
         db_table = 'farmer_profiles'
@@ -120,7 +158,7 @@ class TransportProviderProfile(BaseModel):
     )
     rating = models.FloatField(default=5.0)
     total_deliveries = models.PositiveIntegerField(default=0)
-    
+
     # Dynamic pricing parameters (provider-specific)
     base_rate_per_km = models.DecimalField(
         max_digits=5, decimal_places=2, default=25.00,
@@ -135,12 +173,16 @@ class TransportProviderProfile(BaseModel):
         help_text="Extra KES per minute after grace period"
     )
 
+    # ─── NEW FIELD ──────────────────────────────────────────────
+    avatar = models.ImageField(upload_to='avatars/transport/', blank=True, null=True)
+
     class Meta:
         db_table = 'transport_provider_profiles'
         verbose_name = 'Transport Provider Profile'
         verbose_name_plural = 'Transport Provider Profiles'
 
     def __str__(self):
+<<<<<<< HEAD
         return f"Provider: {self.user.phone} ({self.vehicle_type or 'unassigned'})"
 
 
@@ -182,3 +224,6 @@ class RetailerProfile(BaseModel):
 
     def __str__(self):
         return f"Retailer: {self.business_name or self.user.phone}"
+=======
+        return f"Provider: {self.user.phone} ({self.vehicle_type or 'unassigned'})"
+>>>>>>> b3899a6 (feat: backend code refactor)

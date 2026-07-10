@@ -2,7 +2,7 @@
 from django.db import models
 from django.utils import timezone
 from shared.db_models.base import BaseModel
-from apps.users.models import User
+from django.conf import settings
 
 class Notification(BaseModel):
     """Log of a notification sent to a user."""
@@ -19,21 +19,38 @@ class Notification(BaseModel):
         ('failed', 'Failed'),
         ('read', 'Read'),
     ]
+<<<<<<< HEAD
     TYPE_CHOICES = [
         ('payment', 'Payment'),
         ('order', 'Order'),
         ('delivery', 'Delivery'),
         ('review', 'Review'),
         ('alert', 'Alert'),
+=======
+    NOTIFICATION_TYPES = [
+        ('payment', 'Payment / Escrow'),
+        ('order', 'Order Update'),
+        ('delivery', 'Delivery Update'),
+        ('review', 'New Review'),
+        ('alert', 'Price / Market Alert'),
+        ('system', 'System / Platform'),
+>>>>>>> b3899a6 (feat: backend code refactor)
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
     title = models.CharField(max_length=200)
     body = models.TextField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='alert', help_text="Notification type for UI icon selection")
     metadata = models.JSONField(default=dict, help_text="Extra data (order_id, dispute_id, etc.)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPES,
+        default='system',
+        db_index=True,
+        help_text="Semantic type for UI icon/routing",
+    )
     external_id = models.CharField(max_length=100, blank=True, help_text="Provider's message ID (Twilio, SendGrid, FCM)")
     error_message = models.TextField(blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
@@ -45,6 +62,7 @@ class Notification(BaseModel):
         indexes = [
             models.Index(fields=['user', 'status']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['notification_type']),
         ]
 
     def __str__(self):
@@ -55,6 +73,7 @@ class Notification(BaseModel):
             self.read_at = timezone.now()
             self.status = 'read'
             self.save(update_fields=['read_at', 'status'])
+
 
 class NotificationTemplate(models.Model):
     """Predefined templates for messages."""

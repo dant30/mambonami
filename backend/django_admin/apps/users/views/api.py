@@ -1,6 +1,7 @@
 ﻿# backend/django_admin/apps/users/views/api.py
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from core.throttling import BurstThrottle
@@ -87,11 +88,9 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
         user = authenticate_user(phone, password)
         if not user:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         tokens = get_tokens_for_user(user)
         user_data = UserDetailSerializer(user).data
-        
-        # Return both tokens and user data in a single response
         return Response(
             {'tokens': tokens, 'user': user_data},
             status=status.HTTP_200_OK
@@ -110,22 +109,53 @@ class PasswordChangeView(generics.GenericAPIView):
 
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update (partial), or delete the authenticated user's profile.
+    Supports avatar upload via multipart/form-data.
+    """
     serializer_class = UserDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # allow file uploads
 
     def get_object(self):
         return self.request.user
 
     def patch(self, request, *args, **kwargs):
         user = self.get_object()
-        user.email = request.data.get('email', user.email)
-        user.username = request.data.get('username', user.username)
-        user.first_name = request.data.get('first_name', user.first_name)
-        user.last_name = request.data.get('last_name', user.last_name)
-        user.save(update_fields=['email', 'username', 'first_name', 'last_name'])
+        # Update simple fields (including new ones)
+        update_fields = ['email', 'username', 'first_name', 'last_name', 'middle_name', 'national_id']
+        for field in update_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        # Avatar is handled automatically by the serializer if present in request.FILES
+        # but we need to explicitly set it if present
+        if 'avatar' in request.FILES:
+            user.avatar = request.FILES['avatar']
+        user.save(update_fields=update_fields + ['avatar'])
         return Response(self.get_serializer(user).data)
 
     def delete(self, request, *args, **kwargs):
         user = self.get_object()
         user.delete()
         return Response({'message': 'Account deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class AvatarUploadView(generics.UpdateAPIView):
+    """
+    Dedicated endpoint to upload/update the user's avatar.
+    Accepts multipart/form-data with field 'avatar'.
+    """
+    serializer_class = UserDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self):
+        return self.request.user
+
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        if 'avatar' not in request.FILES:
+            return Response({'error': 'No avatar file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        user.avatar = request.FILES['avatar']
+        user.save(update_fields=['avatar'])
+        return Response(self.get_serializer(user).data)

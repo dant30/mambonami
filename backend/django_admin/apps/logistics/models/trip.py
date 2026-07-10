@@ -1,40 +1,46 @@
-﻿# django_admin/apps/logistics/models/trip.py
-# backend/django_admin/apps/logistics/models/trip.py
+﻿# backend/django_admin/apps/logistics/models/trip.py
 from django.db import models
 from shared.db_models.base import BaseModel
-from apps.orders.models import Order
-from apps.users.models import TransportProviderProfile
 
 class Trip(BaseModel):
     """Tracks a delivery from farm to buyer, assigned to one provider."""
+    
+    # ── Status choices (with offered/accepted for marketplace flow) ──
     TRIP_STATUS = [
-        ('assigned', 'Assigned'),
+        ('offered', 'Offered to Provider Pool'),
+        ('accepted', 'Accepted by Provider'),
         ('picked_up', 'Picked Up from Farm'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
         ('disputed', 'Disputed'),
     ]
 
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='trip')
-    provider = models.ForeignKey(TransportProviderProfile, on_delete=models.SET_NULL, null=True, related_name='trips')
-    status = models.CharField(max_length=20, choices=TRIP_STATUS, default='assigned')
+    order = models.OneToOneField('orders.Order', on_delete=models.CASCADE, related_name='trip')
+    provider = models.ForeignKey('users.TransportProviderProfile', on_delete=models.SET_NULL, null=True, related_name='trips')
+    status = models.CharField(max_length=20, choices=TRIP_STATUS, default='offered')
 
-    # Location tracking
+    # ── Tracking fields ──
     pickup_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     pickup_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     delivery_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     delivery_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
-    # Photos
+    # ── Photos ──
     pickup_photo = models.ImageField(upload_to='trips/pickup/', blank=True, null=True)
     delivery_photo = models.ImageField(upload_to='trips/delivery/', blank=True, null=True)
 
-    # Timestamps
+    # ── Timestamps ──
+    accepted_at = models.DateTimeField(null=True, blank=True)
     arrived_at_farm = models.DateTimeField(null=True, blank=True, help_text="When provider arrived at pickup")
     picked_up_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
-    
-    # Fee tracking
+
+    # ── Address & distance ──
+    pickup_address = models.CharField(max_length=200, blank=True, help_text="Pickup address string for display")
+    distance_km = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text="Pickup → delivery distance in km")
+    eta_minutes = models.PositiveIntegerField(default=0, help_text="Estimated minutes to delivery (updated in real-time)")
+
+    # ── Fee tracking ──
     agreed_fee = models.DecimalField(
         max_digits=10, decimal_places=2, default=0,
         help_text="Total delivery fee (before commission) agreed at assignment"
@@ -44,7 +50,7 @@ class Trip(BaseModel):
         help_text="Additional waiting time charge (added after pickup)"
     )
 
-    # OTP (generated per delivery)
+    # ── OTP ──
     otp_code = models.CharField(max_length=6, blank=True)
     otp_expires_at = models.DateTimeField(null=True, blank=True)
     otp_attempts = models.PositiveSmallIntegerField(default=0)

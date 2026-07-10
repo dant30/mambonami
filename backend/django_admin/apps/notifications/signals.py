@@ -14,6 +14,7 @@ def order_notification(sender, instance, created, **kwargs):
         notif = Notification.objects.create(
             user=instance.buyer,
             channel='in_app',
+            notification_type='order',
             title='Order Placed',
             body=f"Your order #{instance.id} has been placed. Payment is pending.",
             metadata={'order_id': instance.id, 'status': instance.status}
@@ -25,11 +26,13 @@ def order_notification(sender, instance, created, **kwargs):
         notif = Notification.objects.create(
             user=farmer,
             channel='whatsapp',
+            notification_type='payment',
             title='Order Paid',
             body=f"Order #{instance.id} has been paid. Please confirm within 30 minutes.",
             metadata={'order_id': instance.id}
         )
         send_notification_task.delay(notif.id)
+
 
 @receiver(post_save, sender=Trip)
 def trip_notification(sender, instance, created, **kwargs):
@@ -37,6 +40,7 @@ def trip_notification(sender, instance, created, **kwargs):
         notif = Notification.objects.create(
             user=instance.provider.user,
             channel='push',
+            notification_type='delivery',
             title='New Delivery Assignment',
             body=f"Pick up order #{instance.order.id} from farm.",
             metadata={'order_id': instance.order.id, 'trip_id': instance.id}
@@ -47,11 +51,13 @@ def trip_notification(sender, instance, created, **kwargs):
         notif = Notification.objects.create(
             user=buyer,
             channel='in_app',
+            notification_type='delivery',
             title='Delivery Confirmed',
             body=f"Your order #{instance.order.id} has been delivered. Rate your experience.",
             metadata={'order_id': instance.order.id}
         )
         send_notification_task.delay(notif.id)
+
 
 @receiver(post_save, sender=Dispute)
 def dispute_notification(sender, instance, created, **kwargs):
@@ -63,6 +69,7 @@ def dispute_notification(sender, instance, created, **kwargs):
             notif = Notification.objects.create(
                 user=admin,
                 channel='email',
+                notification_type='alert',
                 title='New Dispute Raised',
                 body=f"Dispute #{instance.id} for order {instance.order.id}. Reason: {instance.reason}",
                 metadata={'dispute_id': instance.id}

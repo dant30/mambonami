@@ -8,6 +8,7 @@ from ..views.api import (
     PasswordChangeView,
     CustomTokenObtainPairView,
     ProfileView,
+    AvatarUploadView,          # ← add this import
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path('password-change/', PasswordChangeView.as_view(), name='password_change'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
+    path('profile/avatar/', AvatarUploadView.as_view(), name='avatar-upload'),  # ← new endpoint
 ]

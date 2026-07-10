@@ -2,8 +2,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from shared.db_models.base import BaseModel
-from apps.orders.models import Order
-from apps.users.models import User
+from django.conf import settings
 
 class Payout(BaseModel):
     """Records a single B2C payout to a farmer, transport provider, or buyer refund."""
@@ -20,9 +19,9 @@ class Payout(BaseModel):
         ('retry', 'Retry Scheduled'),
     ]
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payouts')
+    order = models.ForeignKey('orders.Order', on_delete=models.CASCADE, related_name='payouts')
     recipient_type = models.CharField(max_length=20, choices=RECIPIENT_TYPE)
-    recipient_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payouts')
+    recipient_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payouts')
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     b2c_transaction_id = models.CharField(max_length=50, blank=True, help_text="Safaricom B2C transaction ID")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)

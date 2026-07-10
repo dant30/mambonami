@@ -1,5 +1,4 @@
-﻿# backend/django_admin/apps/orders/admin.py
-from django.contrib import admin
+﻿from django.contrib import admin
 from .models import Order, SubOrder, OrderItem
 
 class OrderItemInline(admin.TabularInline):
@@ -15,7 +14,7 @@ class SubOrderInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'buyer', 'total_amount', 'status', 'account_number', 'created_at')
+    list_display = ('id', 'buyer', 'total_amount', 'status', 'account_number', 'promo_code', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('id', 'buyer__phone', 'account_number')
     readonly_fields = ('id', 'uuid', 'account_number', 'created_at', 'updated_at')
@@ -28,6 +27,7 @@ class OrderAdmin(admin.ModelAdmin):
             )
         }),
         ('Totals', {'fields': ('total_amount', 'delivery_fee', 'platform_commission', 'total_weight_kg')}),
+        ('Promotions', {'fields': ('promo_code', 'discount_amount')}),
         ('Schedule', {'fields': ('scheduled_date', 'scheduled_time_window')}),
         ('Provider', {'fields': ('assigned_provider',)}),
         ('Payment', {'fields': ('paybill_transaction_code', 'paid_at', 'delivered_at')}),

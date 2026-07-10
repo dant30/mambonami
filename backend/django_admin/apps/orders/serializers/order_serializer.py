@@ -1,5 +1,4 @@
-﻿# django_admin/apps/orders/serializers/order_serializer.py
-# backend/django_admin/apps/orders/serializers/order_serializer.py
+﻿# backend/django_admin/apps/orders/serializers/order_serializer.py
 from rest_framework import serializers
 from decimal import Decimal
 from django.utils.timesince import timesince
@@ -8,7 +7,6 @@ from apps.products.serializers import ProductSerializer
 from ..models import Order, SubOrder, OrderItem
 
 class CartItemSerializer(serializers.Serializer):
-    """For adding to cart: product UUID and quantity."""
     product_uuid = serializers.UUIDField()
     quantity = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal('0.01'))
 
@@ -30,19 +28,39 @@ class SubOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)
     buyer_phone = serializers.CharField(source='buyer.phone', read_only=True)
+<<<<<<< HEAD
     buyerName = serializers.SerializerMethodField()
     timeAgo = serializers.SerializerMethodField()
     itemSummary = serializers.SerializerMethodField()
+=======
+    
+    # NEW FIELDS
+    buyer_name = serializers.CharField(source='buyer.display_name', read_only=True)
+    time_ago = serializers.SerializerMethodField()
+    item_summary = serializers.SerializerMethodField()
+>>>>>>> b3899a6 (feat: backend code refactor)
 
     class Meta:
         model = Order
         fields = (
+<<<<<<< HEAD
             'id', 'uuid', 'buyer', 'buyer_phone', 'buyerName', 'total_amount', 'delivery_fee',
             'platform_commission', 'status', 'account_number', 'delivery_address',
             'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
             'delivery_lat', 'delivery_lng', 'total_weight_kg',
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
             'sub_orders', 'timeAgo', 'itemSummary', 'created_at', 'paid_at', 'delivered_at'
+=======
+            'id', 'uuid', 'buyer', 'buyer_phone', 'buyer_name',
+            'total_amount', 'delivery_fee', 'platform_commission',
+            'promo_code', 'discount_amount',
+            'status', 'account_number', 'delivery_address',
+            'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
+            'delivery_lat', 'delivery_lng', 'total_weight_kg',
+            'scheduled_date', 'scheduled_time_window', 'assigned_provider',
+            'sub_orders', 'created_at', 'paid_at', 'delivered_at',
+            'time_ago', 'item_summary',
+>>>>>>> b3899a6 (feat: backend code refactor)
         )
         read_only_fields = ('id', 'uuid', 'account_number', 'status', 'created_at', 'paid_at', 'delivered_at')
     
@@ -73,18 +91,28 @@ class OrderSerializer(serializers.ModelSerializer):
         else:
             return " + ".join(items[:2]) + f" +{len(items) - 2} more"
 
+    def get_time_ago(self, obj):
+        return timesince(obj.created_at)
+
+    def get_item_summary(self, obj):
+        items = []
+        for sub in obj.sub_orders.all():
+            for item in sub.items.all()[:2]:
+                items.append(f"{item.product.name} {item.quantity}{item.product.unit}")
+        return ", ".join(items[:3])
+
 class OrderCreateSerializer(serializers.Serializer):
-    """Create order from cart items with delivery location."""
     delivery_address = serializers.CharField(required=False, allow_blank=True)
     delivery_street = serializers.CharField(required=False, allow_blank=True, max_length=200)
     delivery_city = serializers.CharField(required=False, allow_blank=True, max_length=100)
     delivery_postal_code = serializers.CharField(required=False, allow_blank=True, max_length=20)
     delivery_landmark = serializers.CharField(required=False, allow_blank=True, max_length=200)
-    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Latitude of delivery location")
-    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, help_text="Longitude of delivery location")
+    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6)
+    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6)
     scheduled_date = serializers.DateField()
     scheduled_time_window = serializers.CharField(max_length=50)
     payment_method = serializers.CharField(required=False, allow_blank=True, max_length=64)
+    promo_code = serializers.CharField(required=False, allow_blank=True, max_length=30)
     items = CartItemSerializer(many=True)
 
     def validate_delivery_lat(self, value):
@@ -98,14 +126,12 @@ class OrderCreateSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
-        # Ensure all products exist and are active
         product_uuids = [item['product_uuid'] for item in attrs['items']]
         products = Product.objects.filter(uuid__in=product_uuids, is_active=True)
         if len(products) != len(product_uuids):
             raise serializers.ValidationError("One or more products are invalid or inactive.")
-        # Build lookup of products by UUID for merging quantities
+        
         product_lookup = {p.uuid: p for p in products}
-        # Group by farmer, preserving quantity per item
         farmer_map = {}
         for item in attrs['items']:
             prod = product_lookup.get(item['product_uuid'])
@@ -116,13 +142,11 @@ class OrderCreateSerializer(serializers.Serializer):
             farmer_map[prod.farmer_id] = farmer_products
         attrs['grouped_products'] = farmer_map
 
-        # Structured address support
         if not attrs.get('delivery_address'):
             street = attrs.get('delivery_street', '').strip()
             city = attrs.get('delivery_city', '').strip()
             postal_code = attrs.get('delivery_postal_code', '').strip()
             landmark = attrs.get('delivery_landmark', '').strip()
-
             if street or city or postal_code or landmark:
                 address_parts = [part for part in [street, city, postal_code, landmark] if part]
                 attrs['delivery_address'] = ', '.join(address_parts)
@@ -130,5 +154,20 @@ class OrderCreateSerializer(serializers.Serializer):
                 raise serializers.ValidationError({
                     'delivery_address': 'Either delivery_address or structured delivery fields are required.'
                 })
+
+        # Validate promo code if provided
+        if attrs.get('promo_code'):
+            from apps.orders.models.promo import PromoCode
+            try:
+                promo = PromoCode.objects.get(code=attrs['promo_code'], is_active=True)
+                # Check validity
+                from django.utils import timezone
+                if promo.valid_from > timezone.now() or promo.valid_until < timezone.now():
+                    raise serializers.ValidationError({'promo_code': 'Promo code expired.'})
+                if promo.times_used >= promo.max_uses:
+                    raise serializers.ValidationError({'promo_code': 'Promo code already used.'})
+                attrs['_promo_code'] = promo
+            except PromoCode.DoesNotExist:
+                raise serializers.ValidationError({'promo_code': 'Invalid promo code.'})
 
         return attrs

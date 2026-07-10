@@ -1,8 +1,7 @@
 ﻿# backend/django_admin/apps/disputes/models/dispute.py
 from django.db import models
 from shared.db_models.base import BaseModel
-from apps.orders.models import Order
-from apps.users.models import User
+from django.conf import settings
 
 class Dispute(BaseModel):
     """Represents a user complaint about an order."""
@@ -29,19 +28,19 @@ class Dispute(BaseModel):
         ('compensate_provider', 'Compensate Provider'),
     ]
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='disputes')
-    raised_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='raised_disputes')
+    order = models.ForeignKey('orders.Order', on_delete=models.CASCADE, related_name='disputes')
+    raised_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='raised_disputes')
     reason = models.CharField(max_length=30, choices=DISPUTE_REASONS)
     description = models.TextField(help_text="Detailed description of the issue")
     evidence_photos = models.JSONField(default=list, help_text="List of photo URLs uploaded by user")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open', db_index=True)
     resolution_type = models.CharField(max_length=30, choices=RESOLUTION_TYPES, blank=True, null=True)
     resolution_notes = models.TextField(blank=True)
-    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_disputes')
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_disputes')
     resolved_at = models.DateTimeField(null=True, blank=True)
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     penalty_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    penalty_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='penalties')
+    penalty_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='penalties')
 
     class Meta:
         db_table = 'disputes'

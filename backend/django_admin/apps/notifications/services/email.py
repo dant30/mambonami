@@ -12,13 +12,16 @@ class EmailService:
         self.use_sendgrid = hasattr(settings, 'SENDGRID_API_KEY') and settings.SENDGRID_API_KEY
 
     def send(self, notification: Notification) -> bool:
-        """Send email using SendGrid or Django's mail backend."""
         to_email = notification.user.email
         if not to_email:
             notification.status = 'failed'
             notification.error_message = "User has no email address"
             notification.save(update_fields=['status', 'error_message'])
             return False
+
+        # Optional: Prepend notification type to subject
+        type_label = notification.get_notification_type_display()
+        subject = f"[{type_label}] {notification.title}"
 
         try:
             if self.use_sendgrid:
@@ -28,16 +31,15 @@ class EmailService:
                 mail = Mail(
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     to_emails=to_email,
-                    subject=notification.title,
+                    subject=subject,
                     plain_text_content=notification.body
                 )
                 response = sg.send(mail)
                 notification.external_id = response.headers.get('X-Message-Id', '')
                 success = response.status_code == 202
             else:
-                # Fallback to Django's send_mail
                 result = django_send_mail(
-                    subject=notification.title,
+                    subject=subject,
                     message=notification.body,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[to_email],
@@ -50,7 +52,7 @@ class EmailService:
                 notification.status = 'sent'
                 notification.delivered_at = timezone.now()
                 notification.save(update_fields=['status', 'delivered_at', 'external_id'])
-                logger.info(f"Email sent to {to_email}")
+                logger.info(f"Email sent to {to_email} (type: {type_label})")
                 return True
             else:
                 raise Exception("Send failed")

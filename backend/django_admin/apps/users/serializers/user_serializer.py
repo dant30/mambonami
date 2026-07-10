@@ -295,16 +295,37 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     farm_profile = serializers.SerializerMethodField()
     transport_profile = serializers.SerializerMethodField()
+<<<<<<< HEAD
     buyer_profile = serializers.SerializerMethodField()
     retailer_profile = serializers.SerializerMethodField()
+=======
+    avatar_url = serializers.SerializerMethodField()
+    full_name = serializers.CharField(source='full_name', read_only=True)
+    display_name = serializers.CharField(source='display_name', read_only=True)
+>>>>>>> b3899a6 (feat: backend code refactor)
 
     class Meta:
         model = User
         fields = (
+<<<<<<< HEAD
             'id', 'phone', 'username', 'email', 'first_name', 'last_name', 'role',
             'national_id', 'is_phone_verified', 'is_staff', 'is_superuser', 'date_joined',
             'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
+=======
+            'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
+            'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
+            'is_id_verified', 'avatar', 'avatar_url', 'is_staff', 'is_superuser',
+            'date_joined', 'farm_profile', 'transport_profile',
+>>>>>>> b3899a6 (feat: backend code refactor)
         )
+        read_only_fields = ('id', 'date_joined', 'is_staff', 'is_superuser')
+
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+        return None
 
     def get_farm_profile(self, obj):
         if hasattr(obj, 'farmer_profile'):
@@ -313,6 +334,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'coop_verified': obj.farmer_profile.coop_verified,
                 'mpesa_number': obj.farmer_profile.mpesa_number,
                 'total_sales': obj.farmer_profile.total_sales,
+                'rating': obj.farmer_profile.rating,
+                'total_orders': obj.farmer_profile.total_orders,
+                'avatar_url': self._get_avatar_url(obj.farmer_profile),
             }
         return None
 
@@ -326,9 +350,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'is_approved': obj.transport_profile.is_approved,
                 'rating': obj.transport_profile.rating,
                 'total_deliveries': obj.transport_profile.total_deliveries,
+                'avatar_url': self._get_avatar_url(obj.transport_profile),
+                'base_rate_per_km': obj.transport_profile.base_rate_per_km,
+                'waiting_grace_minutes': obj.transport_profile.waiting_grace_minutes,
+                'waiting_rate_per_min': obj.transport_profile.waiting_rate_per_min,
             }
         return None
 
+<<<<<<< HEAD
     def get_buyer_profile(self, obj):
         if hasattr(obj, 'buyer_profile'):
             return {
@@ -350,6 +379,13 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'kra_pin': obj.retailer_profile.kra_pin,
                 'bank_account': obj.retailer_profile.bank_account,
             }
+=======
+    def _get_avatar_url(self, profile):
+        if profile.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(profile.avatar.url)
+>>>>>>> b3899a6 (feat: backend code refactor)
         return None
 
 

@@ -3,8 +3,6 @@
 from django.db import models
 from django.utils import timezone
 from shared.db_models.base import BaseModel
-from apps.products.models import Product
-from apps.users.models import FarmerProfile
 
 class SubOrder(BaseModel):
     """
@@ -18,7 +16,7 @@ class SubOrder(BaseModel):
         ('cancelled', 'Cancelled by Farmer'),
     ]
     order = models.ForeignKey('orders.Order', on_delete=models.CASCADE, related_name='sub_orders')
-    farmer = models.ForeignKey(FarmerProfile, on_delete=models.PROTECT, related_name='sub_orders')
+    farmer = models.ForeignKey('users.FarmerProfile', on_delete=models.PROTECT, related_name='sub_orders')
     status = models.CharField(max_length=20, choices=SUBORDER_STATUS, default='pending')
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     farmer_payout = models.DecimalField(max_digits=10, decimal_places=2, help_text="Amount payable to the farmer after platform commission")
@@ -52,7 +50,7 @@ class SubOrder(BaseModel):
 class OrderItem(BaseModel):
     """Individual product line item within a sub‑order."""
     sub_order = models.ForeignKey(SubOrder, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product = models.ForeignKey('products.Product', on_delete=models.PROTECT)
     quantity = models.DecimalField(max_digits=12, decimal_places=2)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=12, decimal_places=2)

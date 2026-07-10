@@ -2,7 +2,7 @@
 # backend/django_admin/apps/audit/models/audit_log.py
 from django.db import models
 from shared.db_models.base import BaseModel
-from apps.users.models import User
+from django.conf import settings
 
 class AuditLog(BaseModel):
     """Immutable log of admin actions and critical data changes."""
@@ -22,7 +22,7 @@ class AuditLog(BaseModel):
     ]
 
     # Who did it
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
     user_ip = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
 

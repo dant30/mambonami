@@ -1,11 +1,9 @@
-﻿# django_admin/apps/logistics/serializers/logistics_serializer.py
-# backend/django_admin/apps/logistics/serializers/logistics_serializer.py
+﻿# backend/django_admin/apps/logistics/serializers/logistics_serializer.py
 from rest_framework import serializers
 from django.utils.timesince import timesince
 from math import radians, cos, sin, asin, sqrt
 from ..models import Trip
 from apps.orders.serializers import OrderSerializer
-from apps.users.serializers import UserDetailSerializer
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     """
@@ -24,6 +22,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return km
 
 class TripSerializer(serializers.ModelSerializer):
+    # ── Existing nested fields ──
     order_detail = OrderSerializer(source='order', read_only=True)
     provider_detail = serializers.SerializerMethodField()
     pickupLocation = serializers.SerializerMethodField()
@@ -32,6 +31,7 @@ class TripSerializer(serializers.ModelSerializer):
     etaMinutes = serializers.SerializerMethodField()
     date = serializers.SerializerMethodField()
 
+<<<<<<< HEAD
     class Meta:
         model = Trip
         fields = (
@@ -43,6 +43,33 @@ class TripSerializer(serializers.ModelSerializer):
             'date', 'otp_code', 'otp_expires_at', 'otp_attempts', 'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'uuid', 'created_at', 'updated_at', 'otp_code', 'otp_expires_at', 'agreed_fee', 'waiting_surcharge')
+=======
+    # ── New computed display fields ──
+    order_id = serializers.SerializerMethodField()
+    fee = serializers.DecimalField(source='agreed_fee', decimal_places=2, max_digits=10)
+    delivery_location = serializers.CharField(source='order.delivery_address', read_only=True)
+
+    driver_name = serializers.CharField(source='provider.user.display_name', read_only=True)
+    driver_phone = serializers.CharField(source='provider.user.phone', read_only=True)
+    driver_avatar_url = serializers.SerializerMethodField()
+    driver_rating = serializers.FloatField(source='provider.rating', read_only=True)
+    vehicle_label = serializers.SerializerMethodField()
+
+    def get_order_id(self, obj):
+        return f"ORD-{obj.order.id}"
+
+    def get_driver_avatar_url(self, obj):
+        if obj.provider and obj.provider.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.provider.avatar.url)
+        return None
+
+    def get_vehicle_label(self, obj):
+        if obj.provider:
+            return f"{obj.provider.get_vehicle_type_display()} · {obj.provider.license_plate}"
+        return None
+>>>>>>> b3899a6 (feat: backend code refactor)
 
     def get_provider_detail(self, obj):
         if obj.provider:
@@ -96,6 +123,29 @@ class TripSerializer(serializers.ModelSerializer):
     def get_date(self, obj):
         """Return formatted date of trip creation."""
         return obj.created_at.strftime('%d %b %Y')
+
+    class Meta:
+        model = Trip
+        fields = (
+            'id', 'uuid', 'order', 'order_detail', 'order_id',
+            'provider', 'provider_detail',
+            'status',
+            'pickup_lat', 'pickup_lng', 'delivery_lat', 'delivery_lng',
+            'pickup_address', 'distance_km', 'eta_minutes',
+            'agreed_fee', 'fee', 'waiting_surcharge',
+            'pickup_photo', 'delivery_photo',
+            'accepted_at', 'arrived_at_farm', 'picked_up_at', 'delivered_at',
+            'driver_name', 'driver_phone', 'driver_avatar_url', 'driver_rating',
+            'vehicle_label', 'delivery_location',
+            'otp_code', 'otp_expires_at', 'otp_attempts',
+            'created_at', 'updated_at'
+        )
+        read_only_fields = (
+            'id', 'uuid', 'created_at', 'updated_at',
+            'otp_code', 'otp_expires_at', 'otp_attempts',
+            'agreed_fee', 'waiting_surcharge', 'accepted_at',
+            'distance_km', 'eta_minutes'   # these are computed/assigned programmatically
+        )
 
 
 class TripAssignSerializer(serializers.Serializer):

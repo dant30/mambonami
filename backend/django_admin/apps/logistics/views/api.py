@@ -1,14 +1,15 @@
-﻿# django_admin/apps/logistics/views/api.py
-# backend/django_admin/apps/logistics/views/api.py
+﻿# backend/django_admin/apps/logistics/views/api.py
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from decimal import Decimal
 from ..models import Trip
-from ..serializers import TripSerializer, TripAssignSerializer, TripPickupSerializer, TripDeliverSerializer, OTPVerifySerializer
+from ..serializers import (
+    TripSerializer, TripAssignSerializer, TripPickupSerializer,
+    TripDeliverSerializer, OTPVerifySerializer
+)
 from ..services.matching import assign_provider_to_order
 from ..services.fee_calculator import calculate_waiting_surcharge
 from ..services.otp_service import generate_otp, verify_otp
@@ -21,18 +22,43 @@ class AvailableOrdersView(generics.ListAPIView):
     serializer_class = TripSerializer
 
     def get_queryset(self):
-        # Orders that are paid, not yet assigned to any provider
-        return Order.objects.filter(status='paid_escrow', trip__isnull=True)
+        # Trips that are offered (not yet accepted) or orders with no trip yet
+        # We return Trip objects with status='offered' (or orders without trip)
+        # For simplicity, we return trips with status='offered'
+        return Trip.objects.filter(status='offered')
+
 
 class AssignToMeView(generics.GenericAPIView):
-    """Provider self-assigns to an order."""
+    """Provider self-assigns to an order (creates or updates a trip with status 'accepted')."""
     permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
     serializer_class = TripAssignSerializer
 
     def post(self, request, order_id):
-        order = get_object_or_404(Order, id=order_id, status='paid_escrow', trip__isnull=True)
-        provider = request.user.transport_profile
-        trip = assign_provider_to_order(order, provider)
+        order = get_object_or_404(Order, id=order_id, status='paid_escrow')
+        # Check if trip already exists and is offered
+        trip, created = Trip.objects.get_or_create(order=order, defaults={
+            'provider': request.user.transport_profile,
+            'status': 'accepted',
+            'agreed_fee': order.delivery_fee,  # pre-calculated
+            'accepted_at': timezone.now(),
+        })
+        if not created:
+            # If trip exists and is offered, update to accepted
+            if trip.status == 'offered':
+                trip.provider = request.user.transport_profile
+                trip.status = 'accepted'
+                trip.accepted_at = timezone.now()
+                trip.agreed_fee = order.delivery_fee
+                trip.save()
+            else:
+                return Response(
+                    {'error': 'This trip is no longer available'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        # Update order status to transport_assigned
+        order.status = 'transport_assigned'
+        order.assigned_provider = request.user.transport_profile
+        order.save(update_fields=['status', 'assigned_provider'])
         return Response(TripSerializer(trip).data, status=status.HTTP_201_CREATED)
 
 
@@ -45,7 +71,7 @@ class TripArriveAtFarmView(generics.GenericAPIView):
             Trip, 
             uuid=trip_uuid, 
             provider=request.user.transport_profile,
-            status='assigned'
+            status='accepted'
         )
         trip.arrived_at_farm = timezone.now()
         trip.save(update_fields=['arrived_at_farm'])
@@ -71,7 +97,7 @@ class TripPickupView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status='assigned'
+            status='accepted'
         )
         
         serializer = TripPickupSerializer(data=request.data, partial=True)
@@ -116,6 +142,7 @@ class ProviderTripListView(generics.ListAPIView):
     def get_queryset(self):
         return Trip.objects.filter(provider=self.request.user.transport_profile)
 
+
 class ProviderTripDetailView(generics.RetrieveUpdateAPIView):
     """Provider updates pickup/delivery."""
     permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
@@ -126,26 +153,6 @@ class ProviderTripDetailView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         return Trip.objects.filter(provider=self.request.user.transport_profile)
 
-    def patch(self, request, *args, **kwargs):
-        trip = self.get_object()
-        if 'pickup' in request.path:  # or use separate actions
-            serializer = TripPickupSerializer(data=request.data, partial=True)
-            if serializer.is_valid():
-                trip.pickup_lat = serializer.validated_data.get('pickup_lat', trip.pickup_lat)
-                trip.pickup_lng = serializer.validated_data.get('pickup_lng', trip.pickup_lng)
-                trip.pickup_photo = serializer.validated_data.get('pickup_photo', trip.pickup_photo)
-                trip.status = 'picked_up'
-                trip.picked_up_at = timezone.now()
-                trip.save()
-                return Response(TripSerializer(trip).data)
-        elif 'deliver' in request.path:
-            serializer = TripDeliverSerializer(data=request.data, partial=True)
-            if serializer.is_valid():
-                # Generate OTP
-                otp = generate_otp(trip)
-                # TODO: send OTP to buyer via notification
-                return Response({'otp': otp, 'message': 'OTP generated for delivery'})
-        return super().patch(request, *args, **kwargs)
 
 class GenerateOTPView(generics.GenericAPIView):
     """Provider generates OTP for delivery."""
@@ -155,6 +162,7 @@ class GenerateOTPView(generics.GenericAPIView):
         otp = generate_otp(trip)
         # TODO: send via notification (WhatsApp/SMS)
         return Response({'otp': otp, 'expires_in': 300}, status=status.HTTP_200_OK)
+
 
 class VerifyOTPView(generics.GenericAPIView):
     """Buyer verifies OTP to complete delivery."""

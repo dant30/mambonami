@@ -4,8 +4,8 @@ from .models import Notification, NotificationTemplate
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'channel', 'title', 'status', 'created_at')
-    list_filter = ('channel', 'status', 'created_at')
+    list_display = ('id', 'user', 'channel', 'notification_type', 'title', 'status', 'created_at')
+    list_filter = ('channel', 'notification_type', 'status', 'created_at')
     search_fields = ('user__phone', 'title', 'body')
     readonly_fields = ('uuid', 'created_at')
     actions = ['resend_failed']
@@ -16,6 +16,7 @@ class NotificationAdmin(admin.ModelAdmin):
             send_notification_task.delay(notif.id)
         self.message_user(request, f"Rescheduled {queryset.count()} failed notifications.")
     resend_failed.short_description = "Resend selected failed notifications"
+
 
 @admin.register(NotificationTemplate)
 class NotificationTemplateAdmin(admin.ModelAdmin):

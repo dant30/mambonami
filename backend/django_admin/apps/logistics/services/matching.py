@@ -1,7 +1,7 @@
-﻿# django_admin/apps/logistics/services/matching.py
-# backend/django_admin/apps/logistics/services/matching.py
+﻿# backend/django_admin/apps/logistics/services/matching.py
 import logging
 from decimal import Decimal
+from django.utils import timezone
 from django.db.models import Q
 from apps.users.models import TransportProviderProfile
 from apps.orders.models import Order
@@ -150,11 +150,13 @@ def _suggest_vehicle_types(total_weight_kg: float):
     else:
         return ['pickup', 'lorry', 'van']
 
+
 def assign_provider_to_order(order: Order, provider: TransportProviderProfile) -> 'Trip':
     """
-    Create a Trip and assign provider to order.
+    Create a Trip and assign provider to order (provider accepts the offer).
     
     Calculates delivery fee based on distance and weight.
+    Sets trip status to 'accepted' and records acceptance time.
     
     Args:
         order: Order instance
@@ -185,33 +187,47 @@ def assign_provider_to_order(order: Order, provider: TransportProviderProfile) -
         waiting_minutes=0
     )
     
-    # Create Trip with fee
+    # Create or update Trip with status 'accepted'
     trip, created = Trip.objects.get_or_create(
         order=order,
         defaults={
             'provider': provider,
-            'status': 'assigned',
+            'status': 'accepted',
             'agreed_fee': agreed_fee,
+            'accepted_at': timezone.now(),
             'pickup_lat': Decimal(str(pickup_location[0])),
             'pickup_lng': Decimal(str(pickup_location[1])),
             'delivery_lat': order.delivery_lat,
             'delivery_lng': order.delivery_lng,
+            'distance_km': Decimal(str(distance_km)),
         }
     )
-
-    if created:
-        # Update order totals after provider assignment
-        old_delivery_fee = order.delivery_fee or Decimal('0')
-        order.delivery_fee = agreed_fee
-        order.total_amount = order.total_amount - old_delivery_fee + agreed_fee
-        order.assigned_provider = provider
-        order.status = 'transport_assigned'
-        order.save(update_fields=['delivery_fee', 'total_amount', 'assigned_provider', 'status'])
-
-        logger.info(
-            f"Assigned provider {provider.id} to order {order.id} "
-            f"with fee KES {agreed_fee} (distance: {distance_km:.1f}km)"
-        )
-        # TODO: send notification to provider with fee details
+    
+    if not created:
+        # If trip exists (e.g., was offered), update to accepted
+        trip.provider = provider
+        trip.status = 'accepted'
+        trip.accepted_at = timezone.now()
+        trip.agreed_fee = agreed_fee
+        trip.pickup_lat = Decimal(str(pickup_location[0]))
+        trip.pickup_lng = Decimal(str(pickup_location[1]))
+        trip.delivery_lat = order.delivery_lat
+        trip.delivery_lng = order.delivery_lng
+        trip.distance_km = Decimal(str(distance_km))
+        trip.save()
+    
+    # Update order status and assigned provider
+    old_delivery_fee = order.delivery_fee or Decimal('0')
+    order.delivery_fee = agreed_fee
+    order.total_amount = order.total_amount - old_delivery_fee + agreed_fee
+    order.assigned_provider = provider
+    order.status = 'transport_assigned'
+    order.save(update_fields=['delivery_fee', 'total_amount', 'assigned_provider', 'status'])
+    
+    logger.info(
+        f"Assigned provider {provider.id} to order {order.id} "
+        f"with fee KES {agreed_fee} (distance: {distance_km:.1f}km)"
+    )
+    # TODO: send notification to provider with fee details
     
     return trip

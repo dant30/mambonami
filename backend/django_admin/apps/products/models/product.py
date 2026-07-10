@@ -1,10 +1,8 @@
-﻿# django_admin/apps/products/models/product.py
-# backend/django_admin/apps/products/models/product.py
+﻿# backend/django_admin/apps/products/models/product.py
 from django.db import models
 from django.core.validators import MinValueValidator
 from datetime import timedelta
 from shared.db_models.base import BaseModel
-from apps.users.models import FarmerProfile
 from .category import ProductCategory
 
 class Product(BaseModel):
@@ -18,7 +16,7 @@ class Product(BaseModel):
         ('bunch', 'Bunch'),
     ]
     
-    farmer = models.ForeignKey(FarmerProfile, on_delete=models.CASCADE, related_name='products')
+    farmer = models.ForeignKey('users.FarmerProfile', on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name='products')
     sku = models.CharField(
         max_length=30,
@@ -77,6 +75,20 @@ class Product(BaseModel):
         help_text="Longitude of harvest/pickup location"
     )
 
+    # ─── NEW FIELDS from gap analysis ────────────────────────────────────────
+    rating = models.FloatField(
+        default=5.0,
+        help_text="Average buyer rating 1-5 (computed from product reviews)"
+    )
+    review_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Total number of buyer reviews"
+    )
+    wishlist_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of buyers who saved this product to wishlist"
+    )
+
     class Meta:
         db_table = 'products'
         verbose_name = 'Product'
@@ -88,6 +100,7 @@ class Product(BaseModel):
             models.Index(fields=['harvest_date']),
             models.Index(fields=['expiry_date']),
             models.Index(fields=['price_per_unit']),
+            models.Index(fields=['rating']),          # for sorting by rating
         ]
 
     def save(self, *args, **kwargs):

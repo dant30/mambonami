@@ -6,11 +6,17 @@ from .models import Trip
 
 @shared_task
 def auto_cancel_unassigned_trips():
-    """Cancel trips that have been 'assigned' for more than 2 hours without pickup."""
+    """
+    Cancel trips that are still 'offered' or 'accepted' but not picked up after 2 hours.
+    """
     cutoff = timezone.now() - timedelta(hours=2)
-    stale = Trip.objects.filter(status='assigned', created_at__lt=cutoff)
+    stale = Trip.objects.filter(
+        status__in=['offered', 'accepted'],
+        created_at__lt=cutoff
+    )
     count = stale.update(status='cancelled')
-    return f"Cancelled {count} stale trips."
+    return f"Cancelled {count} stale trips (offered/accepted over 2 hours)."
+
 
 @shared_task
 def cleanup_expired_otp():
