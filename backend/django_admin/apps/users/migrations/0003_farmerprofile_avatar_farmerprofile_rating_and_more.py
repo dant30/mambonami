@@ -63,15 +63,25 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
-        migrations.AddField(
-            model_name="user",
-            name="national_id",
-            field=models.CharField(
-                blank=True,
-                help_text="National ID number (optional at registration)",
-                max_length=20,
-                null=True,
-                unique=True,
-            ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql='ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "national_id" varchar(20);',
+                    reverse_sql='ALTER TABLE "users" DROP COLUMN IF EXISTS "national_id";',
+                )
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="user",
+                    name="national_id",
+                    field=models.CharField(
+                        blank=True,
+                        help_text="National ID number (optional at registration)",
+                        max_length=20,
+                        null=True,
+                        unique=True,
+                    ),
+                ),
+            ],
         ),
     ]
