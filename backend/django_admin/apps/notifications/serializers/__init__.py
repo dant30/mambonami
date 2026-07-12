@@ -1,9 +1,11 @@
 ﻿from .notification_serializer import (
-	NotificationSerializer,
-	MarkReadSerializer,
+    NotificationSerializer,
+    NotificationPreferenceSerializer,
+    MarkReadSerializer,
 )
 
 __all__ = [
-	'NotificationSerializer',
-	'MarkReadSerializer',
+    'NotificationSerializer',
+    'NotificationPreferenceSerializer',
+    'MarkReadSerializer',
 ]

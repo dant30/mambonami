@@ -1,9 +1,13 @@
 ﻿from .api import (
-	UserNotificationListView,
-	MarkNotificationsReadView,
+    UserNotificationListView,
+    MarkNotificationsReadView,
+    NotificationPreferenceListView,
+    NotificationPreferenceDetailView,
 )
 
 __all__ = [
-	'UserNotificationListView',
-	'MarkNotificationsReadView',
+    'UserNotificationListView',
+    'MarkNotificationsReadView',
+    'NotificationPreferenceListView',
+    'NotificationPreferenceDetailView',
 ]

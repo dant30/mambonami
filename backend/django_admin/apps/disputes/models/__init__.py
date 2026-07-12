@@ -1,3 +1,3 @@
-﻿from .dispute import Dispute
+﻿from .dispute import Dispute, DisputeEvent
 
-__all__ = ['Dispute']
+__all__ = ['Dispute', 'DisputeEvent']

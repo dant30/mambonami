@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from core.throttling import BurstThrottle
 from ..serializers import (
     RegisterInitSerializer,
@@ -13,9 +15,13 @@ from ..serializers import (
     ChangePasswordSerializer,
     UserDetailSerializer,
     LoginSerializer,
+    VerificationDocumentSerializer,
+    TrustScoreSerializer,
+    VerificationReviewSerializer,
 )
-from ..models import User
+from ..models import User, VerificationDocument, TrustScore
 from ..services import get_tokens_for_user, authenticate_user
+from apps.users.permissions import IsAdmin
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -159,3 +165,46 @@ class AvatarUploadView(generics.UpdateAPIView):
         user.avatar = request.FILES['avatar']
         user.save(update_fields=['avatar'])
         return Response(self.get_serializer(user).data)
+
+
+class VerificationDocumentListCreateView(generics.ListCreateAPIView):
+    serializer_class = VerificationDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return VerificationDocument.objects.all().order_by('-created_at')
+        return VerificationDocument.objects.filter(user=user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class VerificationDocumentReviewView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    serializer_class = VerificationReviewSerializer
+
+    def post(self, request, uuid):
+        document = get_object_or_404(VerificationDocument, uuid=uuid)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        document.status = serializer.validated_data['status']
+        document.notes = serializer.validated_data.get('notes', '')
+        document.reviewed_by = request.user
+        document.reviewed_at = timezone.now()
+        document.save()
+        return Response(VerificationDocumentSerializer(document).data, status=status.HTTP_200_OK)
+
+
+class TrustScoreDetailView(generics.RetrieveAPIView):
+    serializer_class = TrustScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'uuid'
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return TrustScore.objects.all()
+        return TrustScore.objects.filter(user=user)

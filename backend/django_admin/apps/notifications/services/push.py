@@ -20,9 +20,9 @@ class PushNotificationService:
         # For MVP, we'll skip if no token.
         fcm_token = getattr(notification.user, 'fcm_token', None)
         if not fcm_token:
-            notification.status = 'failed'
+            notification.delivery_status = Notification.DeliveryStatus.FAILED
             notification.error_message = "User has no FCM token"
-            notification.save(update_fields=['status', 'error_message'])
+            notification.save(update_fields=['delivery_status', 'error_message'])
             return False
 
         try:
@@ -36,14 +36,14 @@ class PushNotificationService:
             )
             response = messaging.send(message)
             notification.external_id = response
-            notification.status = 'sent'
+            notification.delivery_status = Notification.DeliveryStatus.SENT
             notification.delivered_at = timezone.now()
-            notification.save(update_fields=['external_id', 'status', 'delivered_at'])
+            notification.save(update_fields=['external_id', 'delivery_status', 'delivered_at'])
             logger.info(f"Push sent to {fcm_token}: {response}")
             return True
         except Exception as e:
-            notification.status = 'failed'
+            notification.delivery_status = Notification.DeliveryStatus.FAILED
             notification.error_message = str(e)
-            notification.save(update_fields=['status', 'error_message'])
+            notification.save(update_fields=['delivery_status', 'error_message'])
             logger.error(f"Push failed: {e}")
             return False

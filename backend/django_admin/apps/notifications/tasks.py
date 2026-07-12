@@ -11,25 +11,23 @@ from .services.sms import OTSSMS
 def send_notification_task(self, notification_id):
     try:
         notif = Notification.objects.get(id=notification_id)
-        if notif.status != 'pending':
+        if notif.delivery_status != Notification.DeliveryStatus.PENDING:
             return
-        if notif.channel == 'whatsapp':
+        if notif.channel == Notification.Channel.WHATSAPP:
             service = WhatsAppService()
-        elif notif.channel == 'email':
+        elif notif.channel == Notification.Channel.EMAIL:
             service = EmailService()
-        elif notif.channel == 'push':
+        elif notif.channel == Notification.Channel.PUSH:
             service = PushNotificationService()
-        elif notif.channel == 'sms':
+        elif notif.channel == Notification.Channel.SMS:
             service = OTSSMS()
         else:
-            # In-app: just mark as sent (already stored)
-            notif.status = 'sent'
+            notif.delivery_status = Notification.DeliveryStatus.SENT
             notif.delivered_at = timezone.now()
-            notif.save(update_fields=['status', 'delivered_at'])
+            notif.save(update_fields=['delivery_status', 'delivered_at'])
             return
         service.send(notif)
     except Notification.DoesNotExist:
         pass
     except Exception as e:
-        # Retry in 60 seconds if not already retried too many times
         self.retry(exc=e, countdown=60)

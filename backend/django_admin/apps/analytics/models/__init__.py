@@ -1,5 +1,6 @@
-﻿from .metric import DailyMetric
+﻿from .metric import AnalyticsExportJob, DailyMetric
 
 __all__ = [
     'DailyMetric',
+    'AnalyticsExportJob',
 ]

@@ -139,14 +139,14 @@ class OTSSMS:
         result = self.send_sms(notification.user.phone, notification.body)
         if result.get('status') == 'success':
             notification.external_id = result.get('message_id', '')
-            notification.status = 'sent'
+            notification.delivery_status = Notification.DeliveryStatus.SENT
             notification.delivered_at = timezone.now()
-            notification.save(update_fields=['external_id', 'status', 'delivered_at'])
+            notification.save(update_fields=['external_id', 'delivery_status', 'delivered_at'])
             return True
 
-        notification.status = 'failed'
+        notification.delivery_status = Notification.DeliveryStatus.FAILED
         notification.error_message = result.get('error', '')
-        notification.save(update_fields=['status', 'error_message'])
+        notification.save(update_fields=['delivery_status', 'error_message'])
         return False
 
     def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:

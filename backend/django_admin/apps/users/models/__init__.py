@@ -5,6 +5,8 @@ from .user import (
     TransportProviderProfile,
     BuyerProfile,
     RetailerProfile,
+    VerificationDocument,
+    TrustScore,
 )
 
 __all__ = [
@@ -13,4 +15,6 @@ __all__ = [
     'TransportProviderProfile',
     'BuyerProfile',
     'RetailerProfile',
+    'VerificationDocument',
+    'TrustScore',
 ]

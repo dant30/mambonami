@@ -7,6 +7,11 @@
     UserDetailSerializer,
     LoginSerializer,
 )
+from .verification_serializer import (
+    VerificationDocumentSerializer,
+    TrustScoreSerializer,
+    VerificationReviewSerializer,
+)
 
 __all__ = [
     'RegisterInitSerializer',
@@ -16,4 +21,7 @@ __all__ = [
     'ChangePasswordSerializer',
     'UserDetailSerializer',
     'LoginSerializer',
+    'VerificationDocumentSerializer',
+    'TrustScoreSerializer',
+    'VerificationReviewSerializer',
 ]

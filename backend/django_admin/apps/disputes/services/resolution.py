@@ -15,14 +15,14 @@ def resolve_dispute(dispute: Dispute, resolution_data: dict, admin_user) -> Disp
     Apply resolution: refund buyer, penalize farmer/provider, and optionally release any remaining funds.
     """
     with transaction.atomic():
-        dispute.resolution_type = resolution_data['resolution_type']
-        dispute.resolution_notes = resolution_data.get('resolution_notes', '')
-        dispute.refund_amount = resolution_data.get('refund_amount', Decimal('0'))
-        dispute.penalty_amount = resolution_data.get('penalty_amount', Decimal('0'))
-        if penalty_user_id := resolution_data.get('penalty_user_id'):
+        dispute.resolution = resolution_data.get("resolution", Dispute.Resolution.NO_ACTION)
+        dispute.resolution_notes = resolution_data.get("resolution_notes", "")
+        dispute.refund_amount = resolution_data.get("refund_amount", Decimal("0"))
+        dispute.penalty_amount = resolution_data.get("penalty_amount", Decimal("0"))
+        if penalty_user_id := resolution_data.get("penalty_user_id"):
             from apps.users.models import User
             dispute.penalty_user = User.objects.get(id=penalty_user_id)
-        dispute.status = 'resolved'
+        dispute.status = Dispute.Status.RESOLVED
         dispute.resolved_by = admin_user
         dispute.resolved_at = timezone.now()
         dispute.save()

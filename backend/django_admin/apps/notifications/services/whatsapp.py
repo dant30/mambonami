@@ -25,14 +25,14 @@ class WhatsAppService:
                 to=f'whatsapp:{to_phone}'
             )
             notification.external_id = message.sid
-            notification.status = 'sent'
+            notification.delivery_status = Notification.DeliveryStatus.SENT
             notification.delivered_at = timezone.now()
-            notification.save(update_fields=['external_id', 'status', 'delivered_at'])
+            notification.save(update_fields=['external_id', 'delivery_status', 'delivered_at'])
             logger.info(f"WhatsApp sent to {to_phone}: {message.sid}")
             return True
         except Exception as e:
-            notification.status = 'failed'
+            notification.delivery_status = Notification.DeliveryStatus.FAILED
             notification.error_message = str(e)
-            notification.save(update_fields=['status', 'error_message'])
+            notification.save(update_fields=['delivery_status', 'error_message'])
             logger.error(f"WhatsApp failed: {e}")
             return False

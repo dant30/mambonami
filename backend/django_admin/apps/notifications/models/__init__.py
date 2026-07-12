@@ -1,3 +1,3 @@
-﻿from .notification import Notification, NotificationTemplate
+﻿from .notification import Notification, NotificationTemplate, NotificationPreference
 
-__all__ = ['Notification', 'NotificationTemplate']
+__all__ = ['Notification', 'NotificationTemplate', 'NotificationPreference']

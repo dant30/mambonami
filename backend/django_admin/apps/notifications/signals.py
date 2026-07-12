@@ -10,26 +10,28 @@ from .tasks import send_notification_task
 @receiver(post_save, sender=Order)
 def order_notification(sender, instance, created, **kwargs):
     if created:
-        # Buyer: order placed
         notif = Notification.objects.create(
             user=instance.buyer,
-            channel='in_app',
-            notification_type='order',
+            channel=Notification.Channel.IN_APP,
+            category=Notification.Category.ORDER,
+            priority=Notification.Priority.NORMAL,
             title='Order Placed',
             body=f"Your order #{instance.id} has been placed. Payment is pending.",
-            metadata={'order_id': instance.id, 'status': instance.status}
+            metadata={'order_id': instance.id, 'status': instance.status},
+            delivery_status=Notification.DeliveryStatus.PENDING,
         )
         send_notification_task.delay(notif.id)
     elif instance.status == 'paid_escrow':
-        # Farmer: order confirmed payment
         farmer = instance.farmer_profile.user
         notif = Notification.objects.create(
             user=farmer,
-            channel='whatsapp',
-            notification_type='payment',
+            channel=Notification.Channel.WHATSAPP,
+            category=Notification.Category.PAYMENT,
+            priority=Notification.Priority.HIGH,
             title='Order Paid',
             body=f"Order #{instance.id} has been paid. Please confirm within 30 minutes.",
-            metadata={'order_id': instance.id}
+            metadata={'order_id': instance.id},
+            delivery_status=Notification.DeliveryStatus.PENDING,
         )
         send_notification_task.delay(notif.id)
 
@@ -39,22 +41,26 @@ def trip_notification(sender, instance, created, **kwargs):
     if instance.status == 'assigned' and instance.provider:
         notif = Notification.objects.create(
             user=instance.provider.user,
-            channel='push',
-            notification_type='delivery',
+            channel=Notification.Channel.PUSH,
+            category=Notification.Category.DELIVERY,
+            priority=Notification.Priority.HIGH,
             title='New Delivery Assignment',
             body=f"Pick up order #{instance.order.id} from farm.",
-            metadata={'order_id': instance.order.id, 'trip_id': instance.id}
+            metadata={'order_id': instance.order.id, 'trip_id': instance.id},
+            delivery_status=Notification.DeliveryStatus.PENDING,
         )
         send_notification_task.delay(notif.id)
     elif instance.status == 'delivered':
         buyer = instance.order.buyer
         notif = Notification.objects.create(
             user=buyer,
-            channel='in_app',
-            notification_type='delivery',
+            channel=Notification.Channel.IN_APP,
+            category=Notification.Category.DELIVERY,
+            priority=Notification.Priority.NORMAL,
             title='Delivery Confirmed',
             body=f"Your order #{instance.order.id} has been delivered. Rate your experience.",
-            metadata={'order_id': instance.order.id}
+            metadata={'order_id': instance.order.id},
+            delivery_status=Notification.DeliveryStatus.PENDING,
         )
         send_notification_task.delay(notif.id)
 
@@ -62,16 +68,17 @@ def trip_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Dispute)
 def dispute_notification(sender, instance, created, **kwargs):
     if created:
-        # Notify admin (use a group or superusers)
         from django.contrib.auth.models import User
         admins = User.objects.filter(is_staff=True)
         for admin in admins:
             notif = Notification.objects.create(
                 user=admin,
-                channel='email',
-                notification_type='alert',
+                channel=Notification.Channel.EMAIL,
+                category=Notification.Category.DISPUTE,
+                priority=Notification.Priority.HIGH,
                 title='New Dispute Raised',
                 body=f"Dispute #{instance.id} for order {instance.order.id}. Reason: {instance.reason}",
-                metadata={'dispute_id': instance.id}
+                metadata={'dispute_id': instance.id},
+                delivery_status=Notification.DeliveryStatus.PENDING,
             )
             send_notification_task.delay(notif.id)

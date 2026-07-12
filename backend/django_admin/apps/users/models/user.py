@@ -6,6 +6,57 @@ from shared.db_models.base import BaseModel
 from core.validators import normalize_phone_number, validate_gps_coordinates, validate_phone_number
 
 
+class VerificationDocument(BaseModel):
+    DOCUMENT_TYPES = [
+        ('national_id', 'National ID'),
+        ('business_license', 'Business License'),
+        ('coop_certificate', 'Cooperative Certificate'),
+        ('other', 'Other'),
+    ]
+    STATUS_CHOICES = [
+        ('submitted', 'Submitted'),
+        ('reviewed', 'Reviewed'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='verification_documents')
+    document_type = models.CharField(max_length=30, choices=DOCUMENT_TYPES)
+    file = models.FileField(upload_to='verification/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted', db_index=True)
+    notes = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_documents')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'verification_documents'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.phone} - {self.document_type} ({self.status})"
+
+
+class TrustScore(BaseModel):
+    BAND_CHOICES = [
+        ('poor', 'Poor'),
+        ('fair', 'Fair'),
+        ('good', 'Good'),
+        ('excellent', 'Excellent'),
+    ]
+
+    user = models.OneToOneField('users.User', on_delete=models.CASCADE, related_name='trust_score')
+    score = models.PositiveIntegerField(default=0)
+    score_band = models.CharField(max_length=20, choices=BAND_CHOICES, default='fair')
+    reason = models.TextField(blank=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'trust_scores'
+
+    def __str__(self):
+        return f"{self.user.phone} - {self.score} ({self.score_band})"
+
+
 class User(AbstractUser):   # no BaseModel
     ROLE_CHOICES = [
         ('farmer', 'Farmer'),

@@ -1,1 +1,27 @@
-﻿# django_admin/apps/users/views/__init__.py
+﻿from .api import (
+    RegisterInitView,
+    VerifyOTPView,
+    PasswordResetInitView,
+    PasswordResetVerifyView,
+    PasswordChangeView,
+    CustomTokenObtainPairView,
+    ProfileView,
+    AvatarUploadView,
+    VerificationDocumentListCreateView,
+    VerificationDocumentReviewView,
+    TrustScoreDetailView,
+)
+
+__all__ = [
+    'RegisterInitView',
+    'VerifyOTPView',
+    'PasswordResetInitView',
+    'PasswordResetVerifyView',
+    'PasswordChangeView',
+    'CustomTokenObtainPairView',
+    'ProfileView',
+    'AvatarUploadView',
+    'VerificationDocumentListCreateView',
+    'VerificationDocumentReviewView',
+    'TrustScoreDetailView',
+]

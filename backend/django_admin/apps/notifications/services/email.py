@@ -14,12 +14,11 @@ class EmailService:
     def send(self, notification: Notification) -> bool:
         to_email = notification.user.email
         if not to_email:
-            notification.status = 'failed'
+            notification.delivery_status = Notification.DeliveryStatus.FAILED
             notification.error_message = "User has no email address"
-            notification.save(update_fields=['status', 'error_message'])
+            notification.save(update_fields=['delivery_status', 'error_message'])
             return False
 
-        # Optional: Prepend notification type to subject
         type_label = notification.get_notification_type_display()
         subject = f"[{type_label}] {notification.title}"
 
@@ -49,16 +48,16 @@ class EmailService:
                 notification.external_id = f"django_{notification.id}"
 
             if success:
-                notification.status = 'sent'
+                notification.delivery_status = Notification.DeliveryStatus.SENT
                 notification.delivered_at = timezone.now()
-                notification.save(update_fields=['status', 'delivered_at', 'external_id'])
+                notification.save(update_fields=['delivery_status', 'delivered_at', 'external_id'])
                 logger.info(f"Email sent to {to_email} (type: {type_label})")
                 return True
             else:
                 raise Exception("Send failed")
         except Exception as e:
-            notification.status = 'failed'
+            notification.delivery_status = Notification.DeliveryStatus.FAILED
             notification.error_message = str(e)
-            notification.save(update_fields=['status', 'error_message'])
+            notification.save(update_fields=['delivery_status', 'error_message'])
             logger.error(f"Email failed: {e}")
             return False

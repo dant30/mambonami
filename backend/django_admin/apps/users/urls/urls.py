@@ -8,7 +8,10 @@ from ..views.api import (
     PasswordChangeView,
     CustomTokenObtainPairView,
     ProfileView,
-    AvatarUploadView,          # ← add this import
+    AvatarUploadView,
+    VerificationDocumentListCreateView,
+    VerificationDocumentReviewView,
+    TrustScoreDetailView,
 )
 
 urlpatterns = [
@@ -19,5 +22,8 @@ urlpatterns = [
     path('password-change/', PasswordChangeView.as_view(), name='password_change'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
-    path('profile/avatar/', AvatarUploadView.as_view(), name='avatar-upload'),  # ← new endpoint
+    path('profile/avatar/', AvatarUploadView.as_view(), name='avatar-upload'),
+    path('verification/documents/', VerificationDocumentListCreateView.as_view(), name='verification-documents'),
+    path('verification/documents/<uuid:uuid>/review/', VerificationDocumentReviewView.as_view(), name='verification-document-review'),
+    path('verification/trust-score/', TrustScoreDetailView.as_view(), name='trust-score-detail'),
 ]
