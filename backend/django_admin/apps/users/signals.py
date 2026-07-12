@@ -1,7 +1,7 @@
 ﻿# backend/django_admin/apps/users/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import User, FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile
+from .models import User, FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile, TrustScore
 
 
 @receiver(post_save, sender=User)
@@ -17,3 +17,9 @@ def create_role_profile(sender, instance, created, **kwargs):
         BuyerProfile.objects.create(user=instance)
     elif instance.role == 'retailer' and not hasattr(instance, 'retailer_profile'):
         RetailerProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def create_trust_score(sender, instance, created, **kwargs):
+    if created:
+        TrustScore.objects.get_or_create(user=instance, defaults={'score': 0, 'score_band': 'fair'})

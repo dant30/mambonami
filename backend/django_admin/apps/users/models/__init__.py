@@ -7,6 +7,9 @@ from .user import (
     RetailerProfile,
     VerificationDocument,
     TrustScore,
+    Role,
+    AccountStatus,
+    KycStatus,
 )
 
 __all__ = [
@@ -17,4 +20,7 @@ __all__ = [
     'RetailerProfile',
     'VerificationDocument',
     'TrustScore',
+    'Role',
+    'AccountStatus',
+    'KycStatus',
 ]

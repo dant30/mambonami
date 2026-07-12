@@ -1,27 +1,40 @@
 ﻿# backend/django_admin/apps/users/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile
+
+from .models import (
+    BuyerProfile,
+    FarmerProfile,
+    RetailerProfile,
+    TransportProviderProfile,
+    User,
+)
 
 
 class FarmerProfileInline(admin.StackedInline):
     model = FarmerProfile
     can_delete = False
     verbose_name_plural = 'Farmer Profile'
-    fields = ('farm_gps', 'coop_verified', 'bank_account', 'mpesa_number',
-              'total_sales', 'rating', 'total_orders', 'avatar')
-    readonly_fields = ('total_sales', 'rating', 'total_orders')
+    fields = (
+        'latitude', 'longitude', 'county', 'sub_county', 'ward', 'village',
+        'cooperative', 'coop_verified', 'bank_account', 'mpesa_number',
+        'total_sales', 'rating', 'rating_count', 'total_orders',
+    )
+    readonly_fields = ('total_sales', 'rating', 'rating_count', 'total_orders')
 
 
 class TransportProfileInline(admin.StackedInline):
     model = TransportProviderProfile
     can_delete = False
     verbose_name_plural = 'Transport Provider Profile'
-    fields = ('vehicle_type', 'capacity_kg', 'license_plate', 'driver_license',
-              'deposit_paid', 'is_approved', 'rating', 'total_deliveries',
-              'base_rate_per_km', 'waiting_grace_minutes', 'waiting_rate_per_min',
-              'avatar')
-    readonly_fields = ('rating', 'total_deliveries')
+    fields = (
+        'vehicle_type', 'capacity_kg', 'license_plate', 'driver_license',
+        'bank_account', 'deposit_paid', 'deposit_transaction_id', 'is_approved',
+        'base_rate_per_km', 'waiting_grace_minutes', 'waiting_rate_per_min',
+        'rating', 'rating_count', 'total_deliveries', 'current_latitude',
+        'current_longitude', 'is_online', 'available',
+    )
+    readonly_fields = ('rating', 'rating_count', 'total_deliveries')
 
 
 class BuyerProfileInline(admin.StackedInline):
@@ -38,15 +51,20 @@ class RetailerProfileInline(admin.StackedInline):
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('phone', 'username', 'email', 'role', 'is_phone_verified',
-                    'is_id_verified', 'is_staff', 'is_active')
-    list_filter = ('role', 'is_phone_verified', 'is_id_verified', 'is_staff', 'is_active')
+    list_display = (
+        'phone', 'username', 'email', 'role', 'is_phone_verified',
+        'is_staff', 'is_active', 'account_status', 'kyc_status',
+    )
+    list_filter = (
+        'role', 'is_phone_verified', 'is_staff', 'is_active',
+        'account_status', 'kyc_status',
+    )
     search_fields = ('phone', 'username', 'email', 'middle_name', 'national_id')
     ordering = ('-date_joined',)
     fieldsets = UserAdmin.fieldsets + (
         ('MAMBONAMI Info', {'fields': (
             'role', 'phone', 'is_phone_verified', 'is_email_verified',
-            'is_id_verified', 'middle_name', 'national_id', 'avatar'
+            'account_status', 'kyc_status', 'middle_name', 'national_id', 'avatar'
         )}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
@@ -62,14 +80,15 @@ class FarmerProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__phone', 'user__username')
     readonly_fields = ('rating', 'total_sales', 'total_orders')
     fieldsets = (
-        (None, {'fields': ('user', 'avatar', 'farm_gps', 'coop_verified')}),
+        (None, {'fields': ('user', 'latitude', 'longitude', 'county', 'sub_county', 'ward', 'village', 'cooperative', 'coop_verified')}),
         ('Financial', {'fields': ('bank_account', 'mpesa_number', 'total_sales')}),
-        ('Performance', {'fields': ('rating', 'total_orders')}),
+        ('Performance', {'fields': ('rating', 'rating_count', 'total_orders')}),
     )
     actions = ['approve_coop']
 
     def approve_coop(self, request, queryset):
         queryset.update(coop_verified=True)
+
     approve_coop.short_description = 'Mark cooperative as verified'
 
 
@@ -81,10 +100,10 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
     )
     list_filter = ('vehicle_type', 'deposit_paid', 'is_approved')
     search_fields = ('user__phone', 'license_plate')
-    readonly_fields = ('rating', 'total_deliveries')
+    readonly_fields = ('rating', 'rating_count', 'total_deliveries')
     fieldsets = (
         ('Provider Info', {
-            'fields': ('user', 'vehicle_type', 'license_plate', 'driver_license', 'avatar')
+            'fields': ('user', 'vehicle_type', 'license_plate', 'driver_license', 'bank_account')
         }),
         ('Capacity', {
             'fields': ('capacity_kg',),
@@ -96,10 +115,13 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
             'description': 'Configure provider-specific delivery fee parameters'
         }),
         ('Status', {
-            'fields': ('deposit_paid', 'is_approved')
+            'fields': ('deposit_paid', 'deposit_transaction_id', 'is_approved')
+        }),
+        ('Location', {
+            'fields': ('current_latitude', 'current_longitude', 'is_online', 'available')
         }),
         ('Performance', {
-            'fields': ('rating', 'total_deliveries'),
+            'fields': ('rating', 'rating_count', 'total_deliveries'),
             'classes': ('collapse',)
         }),
     )
@@ -107,6 +129,7 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
 
     def approve_provider(self, request, queryset):
         queryset.update(is_approved=True)
+
     approve_provider.short_description = 'Approve transport providers'
 
     def reset_rates_to_defaults(self, request, queryset):
@@ -119,4 +142,5 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
             provider.waiting_grace_minutes = defaults['waiting_grace_minutes']
             provider.waiting_rate_per_min = defaults['waiting_rate_per_min']
             provider.save()
+
     reset_rates_to_defaults.short_description = 'Reset rates to vehicle type defaults'

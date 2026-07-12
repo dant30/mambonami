@@ -9,6 +9,9 @@ from core.validators import normalize_phone_number, validate_phone_number
 from apps.notifications.services.sms import send_otp_message
 from ..models import (
     User,
+    Role,
+    AccountStatus,
+    KycStatus,
     FarmerProfile,
     TransportProviderProfile,
     BuyerProfile,
@@ -20,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class RegisterInitSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
-    role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
+    role = serializers.ChoiceField(choices=Role.choices)
 
     def validate_phone(self, value):
         normalized_phone = normalize_phone_number(value)
@@ -43,14 +46,25 @@ class VerifyOTPSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
-    role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
+    role = serializers.ChoiceField(choices=Role.choices)
+
+    # Profile fields
     full_name = serializers.CharField(required=False, allow_blank=True)
     owner_full_name = serializers.CharField(required=False, allow_blank=True)
     national_id = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
-    farm_gps = serializers.CharField(required=False, allow_blank=True)
+
+    # Farmer specific
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    county = serializers.CharField(required=False, allow_blank=True)
+    sub_county = serializers.CharField(required=False, allow_blank=True)
+    ward = serializers.CharField(required=False, allow_blank=True)
+    village = serializers.CharField(required=False, allow_blank=True)
     mpesa_number = serializers.CharField(required=False, allow_blank=True)
     cooperative = serializers.CharField(required=False, allow_blank=True)
+
+    # Transport provider specific
     vehicle_type = serializers.ChoiceField(
         choices=TransportProviderProfile.VEHICLE_TYPES,
         required=False,
@@ -58,15 +72,22 @@ class VerifyOTPSerializer(serializers.Serializer):
     )
     license_plate = serializers.CharField(required=False, allow_blank=True)
     driver_license = serializers.CharField(required=False, allow_blank=True)
+
+    # Common
     bank_account = serializers.CharField(required=False, allow_blank=True)
+
+    # Buyer specific
     delivery_address = serializers.CharField(required=False, allow_blank=True)
     delivery_instructions = serializers.CharField(required=False, allow_blank=True)
+
+    # Retailer specific
     business_name = serializers.CharField(required=False, allow_blank=True)
     business_phone = serializers.CharField(required=False, allow_blank=True)
     business_email = serializers.EmailField(required=False, allow_blank=True)
     business_address = serializers.CharField(required=False, allow_blank=True)
     business_type = serializers.CharField(required=False, allow_blank=True)
     kra_pin = serializers.CharField(required=False, allow_blank=True)
+    business_registration_number = serializers.CharField(required=False, allow_blank=True)
 
     def validate_phone(self, value):
         normalized_phone = normalize_phone_number(value)
@@ -98,16 +119,17 @@ class VerifyOTPSerializer(serializers.Serializer):
 
         RedisCache.delete(attempts_key)
 
-        if attrs['role'] == 'farmer':
-            if not attrs.get('farm_gps') or not attrs.get('mpesa_number'):
-                raise serializers.ValidationError('Farm GPS and M-Pesa number are required for farmers.')
-        elif attrs['role'] == 'transport_provider':
+        role = attrs['role']
+        if role == Role.FARMER:
+            if not attrs.get('latitude') or not attrs.get('longitude') or not attrs.get('mpesa_number'):
+                raise serializers.ValidationError('GPS coordinates and M-Pesa number are required for farmers.')
+        elif role == Role.TRANSPORT_PROVIDER:
             if not attrs.get('vehicle_type') or not attrs.get('license_plate'):
                 raise serializers.ValidationError('Vehicle type and license plate are required for transport providers.')
-        elif attrs['role'] == 'buyer':
+        elif role == Role.BUYER:
             if not attrs.get('delivery_address'):
                 raise serializers.ValidationError('Delivery address is required for buyers.')
-        elif attrs['role'] == 'retailer':
+        elif role == Role.RETAILER:
             if not attrs.get('business_name') or not attrs.get('owner_full_name'):
                 raise serializers.ValidationError('Business name and owner full name are required for retailers.')
 
@@ -117,26 +139,34 @@ class VerifyOTPSerializer(serializers.Serializer):
         validated_data.pop('otp')
         validated_data.pop('confirm_password')
 
+        # Extract optional fields
         email = validated_data.pop('email', None)
         full_name = validated_data.pop('full_name', None)
         owner_full_name = validated_data.pop('owner_full_name', None)
         national_id = validated_data.pop('national_id', None)
-        farm_gps = validated_data.pop('farm_gps', None)
+        latitude = validated_data.pop('latitude', None)
+        longitude = validated_data.pop('longitude', None)
+        county = validated_data.pop('county', '')
+        sub_county = validated_data.pop('sub_county', '')
+        ward = validated_data.pop('ward', '')
+        village = validated_data.pop('village', '')
         mpesa_number = validated_data.pop('mpesa_number', None)
-        cooperative = validated_data.pop('cooperative', None)
-        vehicle_type = validated_data.pop('vehicle_type', None)
-        license_plate = validated_data.pop('license_plate', None)
-        driver_license = validated_data.pop('driver_license', None)
-        bank_account = validated_data.pop('bank_account', None)
-        delivery_address = validated_data.pop('delivery_address', None)
-        delivery_instructions = validated_data.pop('delivery_instructions', None)
-        business_name = validated_data.pop('business_name', None)
-        business_phone = validated_data.pop('business_phone', None)
-        business_email = validated_data.pop('business_email', None)
-        business_address = validated_data.pop('business_address', None)
-        business_type = validated_data.pop('business_type', None)
-        kra_pin = validated_data.pop('kra_pin', None)
+        cooperative = validated_data.pop('cooperative', '')
+        vehicle_type = validated_data.pop('vehicle_type', '')
+        license_plate = validated_data.pop('license_plate', '')
+        driver_license = validated_data.pop('driver_license', '')
+        bank_account = validated_data.pop('bank_account', '')
+        delivery_address = validated_data.pop('delivery_address', '')
+        delivery_instructions = validated_data.pop('delivery_instructions', '')
+        business_name = validated_data.pop('business_name', '')
+        business_phone = validated_data.pop('business_phone', '')
+        business_email = validated_data.pop('business_email', '')
+        business_address = validated_data.pop('business_address', '')
+        business_type = validated_data.pop('business_type', '')
+        kra_pin = validated_data.pop('kra_pin', '')
+        business_registration_number = validated_data.pop('business_registration_number', '')
 
+        # Create user
         user = User.objects.create_user(
             phone=validated_data['phone'],
             username=validated_data['username'],
@@ -145,73 +175,84 @@ class VerifyOTPSerializer(serializers.Serializer):
             email=email,
             national_id=national_id,
             is_phone_verified=True,
+            account_status=AccountStatus.PENDING,
+            kyc_status=KycStatus.PENDING,
         )
 
-        if full_name and user.role in ['farmer', 'buyer', 'transport_provider']:
-            user.first_name = full_name
-            user.save(update_fields=['first_name'])
-        elif owner_full_name and user.role == 'retailer':
-            user.first_name = owner_full_name
-            user.save(update_fields=['first_name'])
+        # Set name
+        if full_name and user.role in [Role.FARMER, Role.BUYER, Role.TRANSPORT_PROVIDER]:
+            parts = full_name.split(' ', 1)
+            user.first_name = parts[0]
+            if len(parts) > 1:
+                user.last_name = parts[1]
+            user.save(update_fields=['first_name', 'last_name'])
+        elif owner_full_name and user.role == Role.RETAILER:
+            parts = owner_full_name.split(' ', 1)
+            user.first_name = parts[0]
+            if len(parts) > 1:
+                user.last_name = parts[1]
+            user.save(update_fields=['first_name', 'last_name'])
 
-        if user.role == 'farmer':
+        # Create role profile
+        if user.role == Role.FARMER:
             farmer_profile, _ = FarmerProfile.objects.get_or_create(user=user)
-            farmer_profile.farm_gps = farm_gps or ''
+            farmer_profile.latitude = latitude
+            farmer_profile.longitude = longitude
+            farmer_profile.county = county
+            farmer_profile.sub_county = sub_county
+            farmer_profile.ward = ward
+            farmer_profile.village = village
             farmer_profile.mpesa_number = mpesa_number or user.phone
-            farmer_profile.cooperative = cooperative or ''
+            farmer_profile.cooperative = cooperative
             farmer_profile.coop_verified = False
-            if bank_account is not None:
+            if bank_account:
                 farmer_profile.bank_account = bank_account
-            farmer_profile.save(update_fields=['farm_gps', 'mpesa_number', 'cooperative', 'coop_verified', 'bank_account'])
-        elif user.role == 'transport_provider':
+            farmer_profile.save()
+
+        elif user.role == Role.TRANSPORT_PROVIDER:
             transport_profile, _ = TransportProviderProfile.objects.get_or_create(user=user)
-            transport_profile.vehicle_type = vehicle_type or ''
-            transport_profile.license_plate = license_plate or ''
-            transport_profile.driver_license = driver_license or ''
-            if bank_account is not None:
+            transport_profile.vehicle_type = vehicle_type
+            transport_profile.license_plate = license_plate
+            transport_profile.driver_license = driver_license
+            if bank_account:
                 transport_profile.bank_account = bank_account
             transport_profile.deposit_paid = False
             transport_profile.is_approved = False
-            transport_profile.save(update_fields=['vehicle_type', 'license_plate', 'driver_license', 'bank_account', 'deposit_paid', 'is_approved'])
-        elif user.role == 'buyer':
+            transport_profile.save()
+
+        elif user.role == Role.BUYER:
             buyer_profile, _ = BuyerProfile.objects.get_or_create(user=user)
-            buyer_profile.delivery_address = delivery_address or ''
-            buyer_profile.delivery_instructions = delivery_instructions or ''
-            if bank_account is not None:
+            buyer_profile.delivery_address = delivery_address
+            buyer_profile.delivery_instructions = delivery_instructions
+            if bank_account:
                 buyer_profile.bank_account = bank_account
-            buyer_profile.save(update_fields=['delivery_address', 'delivery_instructions', 'bank_account'])
-        elif user.role == 'retailer':
+            buyer_profile.save()
+
+        elif user.role == Role.RETAILER:
             retailer_profile, _ = RetailerProfile.objects.get_or_create(user=user)
-            retailer_profile.business_name = business_name or ''
-            retailer_profile.owner_full_name = owner_full_name or ''
-            retailer_profile.business_phone = business_phone or ''
-            retailer_profile.business_email = business_email or ''
-            retailer_profile.business_address = business_address or ''
-            retailer_profile.business_type = business_type or ''
-            retailer_profile.kra_pin = kra_pin or ''
-            if bank_account is not None:
+            retailer_profile.business_name = business_name
+            retailer_profile.owner_full_name = owner_full_name
+            retailer_profile.business_phone = business_phone
+            retailer_profile.business_email = business_email
+            retailer_profile.business_address = business_address
+            retailer_profile.business_type = business_type
+            retailer_profile.kra_pin = kra_pin
+            retailer_profile.business_registration_number = business_registration_number
+            if bank_account:
                 retailer_profile.bank_account = bank_account
-            retailer_profile.save(update_fields=[
-                'business_name',
-                'owner_full_name',
-                'business_phone',
-                'business_email',
-                'business_address',
-                'business_type',
-                'kra_pin',
-                'bank_account',
-            ])
+            retailer_profile.save()
 
         delete_otp(validated_data['phone'])
         return user
 
 
+# ─── Password Reset, Change Password (unchanged, but keep them) ───
+
 class PasswordResetInitSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
 
     def validate_phone(self, value):
-        normalized_phone = normalize_phone_number(value)
-        return normalized_phone
+        return normalize_phone_number(value)
 
     def save(self):
         phone = self.validated_data['phone']
@@ -295,6 +336,8 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     farm_profile = serializers.SerializerMethodField()
     transport_profile = serializers.SerializerMethodField()
+    buyer_profile = serializers.SerializerMethodField()
+    retailer_profile = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     full_name = serializers.CharField(source='full_name', read_only=True)
     display_name = serializers.CharField(source='display_name', read_only=True)
@@ -304,10 +347,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
-            'is_id_verified', 'avatar', 'avatar_url', 'is_staff', 'is_superuser',
-            'date_joined', 'farm_profile', 'transport_profile',
+            'is_id_verified', 'account_status', 'kyc_status', 'avatar', 'avatar_url',
+            'is_staff', 'is_superuser', 'date_joined', 'last_seen',
+            'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
-        read_only_fields = ('id', 'date_joined', 'is_staff', 'is_superuser')
+        read_only_fields = ('id', 'date_joined', 'is_staff', 'is_superuser', 'last_seen')
 
     def get_avatar_url(self, obj):
         if obj.avatar:
@@ -318,31 +362,69 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     def get_farm_profile(self, obj):
         if hasattr(obj, 'farmer_profile'):
+            p = obj.farmer_profile
             return {
-                'farm_gps': obj.farmer_profile.farm_gps,
-                'coop_verified': obj.farmer_profile.coop_verified,
-                'mpesa_number': obj.farmer_profile.mpesa_number,
-                'total_sales': obj.farmer_profile.total_sales,
-                'rating': obj.farmer_profile.rating,
-                'total_orders': obj.farmer_profile.total_orders,
-                'avatar_url': self._get_avatar_url(obj.farmer_profile),
+                'latitude': p.latitude,
+                'longitude': p.longitude,
+                'farm_gps': p.farm_gps,
+                'county': p.county,
+                'sub_county': p.sub_county,
+                'ward': p.ward,
+                'village': p.village,
+                'cooperative': p.cooperative,
+                'coop_verified': p.coop_verified,
+                'mpesa_number': p.mpesa_number,
+                'total_sales': p.total_sales,
+                'rating': p.rating,
+                'total_orders': p.total_orders,
+                'avatar_url': self._get_avatar_url(p),
             }
         return None
 
     def get_transport_profile(self, obj):
         if hasattr(obj, 'transport_profile'):
+            p = obj.transport_profile
             return {
-                'vehicle_type': obj.transport_profile.vehicle_type,
-                'capacity_kg': obj.transport_profile.capacity_kg,
-                'license_plate': obj.transport_profile.license_plate,
-                'deposit_paid': obj.transport_profile.deposit_paid,
-                'is_approved': obj.transport_profile.is_approved,
-                'rating': obj.transport_profile.rating,
-                'total_deliveries': obj.transport_profile.total_deliveries,
-                'avatar_url': self._get_avatar_url(obj.transport_profile),
-                'base_rate_per_km': obj.transport_profile.base_rate_per_km,
-                'waiting_grace_minutes': obj.transport_profile.waiting_grace_minutes,
-                'waiting_rate_per_min': obj.transport_profile.waiting_rate_per_min,
+                'vehicle_type': p.vehicle_type,
+                'capacity_kg': p.capacity_kg,
+                'license_plate': p.license_plate,
+                'deposit_paid': p.deposit_paid,
+                'is_approved': p.is_approved,
+                'rating': p.rating,
+                'total_deliveries': p.total_deliveries,
+                'avatar_url': self._get_avatar_url(p),
+                'base_rate_per_km': p.base_rate_per_km,
+                'waiting_grace_minutes': p.waiting_grace_minutes,
+                'waiting_rate_per_min': p.waiting_rate_per_min,
+                'is_online': p.is_online,
+                'available': p.available,
+            }
+        return None
+
+    def get_buyer_profile(self, obj):
+        if hasattr(obj, 'buyer_profile'):
+            return {
+                'delivery_address': obj.buyer_profile.delivery_address,
+                'delivery_instructions': obj.buyer_profile.delivery_instructions,
+                'bank_account': obj.buyer_profile.bank_account,
+            }
+        return None
+
+    def get_retailer_profile(self, obj):
+        if hasattr(obj, 'retailer_profile'):
+            p = obj.retailer_profile
+            return {
+                'business_name': p.business_name,
+                'owner_full_name': p.owner_full_name,
+                'business_phone': p.business_phone,
+                'business_email': p.business_email,
+                'business_address': p.business_address,
+                'business_type': p.business_type,
+                'kra_pin': p.kra_pin,
+                'bank_account': p.bank_account,
+                'business_registration_number': p.business_registration_number,
+                'latitude': p.latitude,
+                'longitude': p.longitude,
             }
         return None
 
