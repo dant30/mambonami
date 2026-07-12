@@ -155,7 +155,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final role = event.dto['role']?.toString() ?? 'buyer';
       final phone = event.dto['phone']?.toString() ?? '';
       if (phone.isEmpty) {
-        emit(AuthError('Phone number is required for registration'));
+        emit(const AuthError('Phone number is required for registration'));
         return;
       }
 

@@ -15,6 +15,7 @@ import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../widgets/category_chip_bar.dart';
@@ -48,7 +49,6 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final userLocation = 'Westlands, Nairobi'; // TODO: from address repository
 
     // Compute unread count from NotificationBloc state
     final notifState = context.watch<NotificationBloc>().state;
@@ -59,6 +59,16 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     // Active order from OrderBloc
     final orderState = context.watch<OrderBloc>().state;
     final activeOrder = orderState is BuyerOrdersLoaded ? orderState.activeOrder : null;
+    final productState = context.watch<ProductBloc>().state;
+    final products = productState is ProductLoaded ? productState.products : <Product>[];
+
+    final userLocation = (activeOrder?.deliveryCity.isNotEmpty ?? false)
+        ? activeOrder!.deliveryCity
+        : (products.where((product) => product.location != null && product.location!.isNotEmpty).isNotEmpty
+            ? products.where((product) => product.location != null && product.location!.isNotEmpty).first.location!
+            : 'Your preferred delivery location');
+    final nearbyFarmers = buildNearbyFarmers(products);
+    final featuredProducts = products.take(6).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,7 +95,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Hero banner
-                      _buildHeroBanner(context),
+                      _buildHeroBanner(context, products: products),
                       const SizedBox(height: 16),
 
                       // Category chips
@@ -105,7 +115,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       const SizedBox(height: 20),
 
                       // Nearby farmers
-                      _buildNearbyFarmers(context),
+                      _buildNearbyFarmers(context, farmers: nearbyFarmers),
                       const SizedBox(height: 20),
 
                       // Recommended products grid
@@ -122,9 +132,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                             );
                           }
                           if (state is ProductLoaded) {
-                            final products = state.products;
-                            final displayProducts = products.take(6).toList();
-                            return _buildProductGrid(context, products: displayProducts);
+                            return _buildProductGrid(context, products: featuredProducts);
                           }
                           return const SizedBox.shrink();
                         },
@@ -157,6 +165,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     final userName = authState is AuthAuthenticated
         ? authState.username ?? authState.phone
         : 'Guest';
+    final avatarLabel = userName.isNotEmpty ? userName[0].toUpperCase() : 'G';
 
     return Container(
       color: Colors.white,
@@ -232,23 +241,20 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               // Avatar
               GestureDetector(
                 onTap: () => context.go(RoutePaths.profile),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=40&h=40&fit=crop',
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.light,
-                        borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      avatarLabel,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
                       ),
-                      child: const Icon(Icons.person_outline,
-                          color: AppColors.primary, size: 18),
                     ),
                   ),
                 ),
@@ -289,8 +295,16 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── Hero banner ─────────────────────────────────────────────────
-  Widget _buildHeroBanner(BuildContext context) {
+  Widget _buildHeroBanner(BuildContext context, {required List<Product> products}) {
     final theme = Theme.of(context);
+    final featuredProduct = products.isNotEmpty ? products.first : null;
+    final bannerTitle = featuredProduct != null
+        ? 'Fresh from ${featuredProduct.farmerName}'
+        : 'Fresh from the Farm';
+    final bannerSubtitle = featuredProduct != null
+        ? '${featuredProduct.name} is now available'
+        : 'Up to 30% off today';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: ClipRRect(
@@ -335,13 +349,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Flash Deal 🔥',
+                  Text('Fresh picks',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white70,
                       )),
                   const SizedBox(height: 4),
                   Text(
-                    'Fresh from\nthe Farm',
+                    bannerTitle,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
@@ -349,7 +363,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('Up to 30% off today',
+                  Text(bannerSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white70,
                       )),
@@ -386,15 +400,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── Nearby farmers horizontal row ─────────────────────────────
-  Widget _buildNearbyFarmers(BuildContext context) {
+  Widget _buildNearbyFarmers(BuildContext context, {required List<Map<String, String>> farmers}) {
     final theme = Theme.of(context);
-    // Mock data – in real app, fetch from a farmers list or extract from products
-    final farmers = [
-      {'name': 'Kamau Farm', 'dist': '2.1 km', 'img': 'https://images.unsplash.com/photo-1607305387299-a3d9611cd469?w=60&h=60&fit=crop'},
-      {'name': 'Wanjiku Farm', 'dist': '3.4 km', 'img': 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=60&h=60&fit=crop'},
-      {'name': 'Coastal Farms', 'dist': '5.2 km', 'img': 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=60&h=60&fit=crop'},
-      {'name': 'Thika Growers', 'dist': '7.1 km', 'img': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=60&h=60&fit=crop'},
-    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,7 +433,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: CachedNetworkImage(
-                        imageUrl: f['img']!,
+                        imageUrl: f['image'] ?? '',
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
@@ -443,7 +450,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      f['name']!,
+                      f['name'] ?? 'Nearby farm',
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.dark,
@@ -451,7 +458,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       textAlign: TextAlign.center,
                     ),
                     Text(
-                      f['dist']!,
+                      f['distance'] ?? 'Nearby',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.muted,
                         fontSize: 9,
@@ -515,12 +522,19 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   // ── Active order tracking strip ───────────────────────────────
   Widget _buildActiveOrderStrip(BuildContext context, Order order) {
     final theme = Theme.of(context);
+    final statusLabel = order.statusLabel;
+    final distanceLabel = order.totalDistanceKm != null
+        ? '${order.totalDistanceKm!.toStringAsFixed(1)} km away'
+        : 'On the route';
+    final etaLabel = order.etaMinutes != null ? '${order.etaMinutes} min' : 'soon';
+    final completedSteps = order.isDelivered ? 5 : (order.status.toLowerCase().contains('picked') ? 4 : (order.status.toLowerCase().contains('assigned') ? 3 : 2));
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader(title: 'Your Active Order'),
+          const SectionHeader(title: 'Your Active Order'),
           const SizedBox(height: 8),
           CustomCard(
             padding: const EdgeInsets.all(16),
@@ -544,7 +558,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                         borderRadius: BorderRadius.circular(99),
                       ),
                       child: Text(
-                        'On the way',
+                        statusLabel,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.secondary,
@@ -555,7 +569,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                 ),
                 const SizedBox(height: 12),
                 // Progress steps
-                _buildStepProgress(),
+                _buildStepProgress(completedSteps),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -568,14 +582,14 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                         children: [
                           const TextSpan(text: 'Driver is '),
                           TextSpan(
-                            text: '1.2 km',
+                            text: distanceLabel,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.dark),
                           ),
-                          const TextSpan(text: ' away · ETA '),
+                          const TextSpan(text: ' · ETA '),
                           TextSpan(
-                            text: '8 min',
+                            text: etaLabel,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.dark),
@@ -612,9 +626,9 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── 5‑step progress indicator ──────────────────────────────────
-  Widget _buildStepProgress() {
+  Widget _buildStepProgress(int completed) {
     const steps = ['Placed', 'Confirmed', 'Pickup', 'On way', 'Done'];
-    const completed = 4; // example: "On way" is active
+    final safeCompleted = completed.clamp(0, steps.length);
     return Row(
       children: List.generate(steps.length, (i) {
         final done = i < completed;
@@ -637,7 +651,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                 Expanded(
                   child: Container(
                     height: 2,
-                    color: i < completed - 1
+                    color: i < safeCompleted - 1
                         ? AppColors.primary
                         : AppColors.light,
                   ),

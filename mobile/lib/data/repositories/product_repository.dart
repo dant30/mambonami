@@ -29,7 +29,10 @@ class ProductRepository {
 
       final response = await _apiClient.dio.get('/api/products/', queryParameters: queryParams);
       if (response.statusCode == 200) {
-        final products = normalizeList<Map<String, dynamic>>(response.data).map(Product.fromJson).toList();
+        final payload = response.data is Map<String, dynamic> && (response.data as Map<String, dynamic>).containsKey('results')
+            ? response.data['results']
+            : response.data;
+        final products = normalizeList<Map<String, dynamic>>(payload).map(Product.fromJson).toList();
 
         // persist each product into local DB for offline access with TTL
         for (final p in products) {
@@ -58,7 +61,8 @@ class ProductRepository {
     try {
       final response = await _apiClient.dio.get('/api/products/$uuid/');
       if (response.statusCode == 200) {
-        final product = Product.fromJson(response.data as Map<String, dynamic>);
+        final payload = normalizeMap(response.data);
+        final product = Product.fromJson(payload);
         try {
           await _databaseHelper.insertOrUpdateRecord(kProductTable, uuid, product.toJson(), ttl: kProductCacheTTL);
         } catch (_) {}

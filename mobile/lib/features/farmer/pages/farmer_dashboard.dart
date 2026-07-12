@@ -11,8 +11,11 @@ import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
+import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../../../data/models/order.dart';
+import '../../../data/models/product.dart';
 
 class FarmerDashboard extends StatelessWidget {
   const FarmerDashboard({super.key});
@@ -28,11 +31,30 @@ class FarmerDashboard extends StatelessWidget {
       username = authState.username ?? authState.phone;
     }
 
+    final productList = productState is ProductLoaded ? productState.products : <Product>[];
     final pendingOrders = orderState is FarmerSubOrdersLoaded
         ? orderState.subOrders.where((o) => o.isPending).length
         : 0;
-    final totalRevenue = 45750.0;
-    final productCount = productState is ProductLoaded ? productState.products.length : 0;
+    final totalRevenue = orderState is FarmerSubOrdersLoaded
+        ? calculateFarmerRevenue(orderState.subOrders)
+        : 0.0;
+    final readyPickupCount = orderState is FarmerSubOrdersLoaded
+        ? countReadySubOrders(orderState.subOrders)
+        : 0;
+    final productCount = productList.length;
+    final averageRating = productList.isNotEmpty
+        ? productList.map((product) => product.averageRating).reduce((a, b) => a + b) / productList.length
+        : 0.0;
+    final recentSubOrders = orderState is FarmerSubOrdersLoaded
+        ? orderState.subOrders.take(3).toList()
+        : <SubOrder>[];
+    String locationLabel = 'Your farm';
+    if (productList.isNotEmpty) {
+      final matches = productList.where((product) => product.location != null && product.location!.isNotEmpty).toList();
+      if (matches.isNotEmpty) {
+        locationLabel = matches.first.location!;
+      }
+    }
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -50,9 +72,9 @@ class FarmerDashboard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: AppGradients.hero,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,10 +95,10 @@ class FarmerDashboard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Row(
-                          children: const [
-                            Icon(Icons.location_on, size: 12, color: Colors.white70),
-                            SizedBox(width: 4),
-                            Text('Kiambu, Kenya', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          children: [
+                            const Icon(Icons.location_on, size: 12, color: Colors.white70),
+                            const SizedBox(width: 4),
+                            Text(locationLabel, style: const TextStyle(color: Colors.white70, fontSize: 12)),
                           ],
                         ),
                       ],
@@ -96,9 +118,9 @@ class FarmerDashboard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Wrap(
+                const Wrap(
                   spacing: 12,
-                  children: const [
+                  children: [
                     Chip(label: Text('24°C'), avatar: Icon(Icons.thermostat, size: 14)),
                     Chip(label: Text('68%'), avatar: Icon(Icons.water_drop, size: 14)),
                     Chip(label: Text('12 km/h'), avatar: Icon(Icons.air, size: 14)),
@@ -135,7 +157,7 @@ class FarmerDashboard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.15),
+                                color: AppColors.success.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text('▲ 18.3%', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
@@ -173,12 +195,12 @@ class FarmerDashboard extends StatelessWidget {
                         label: 'Pending Orders',
                         value: pendingOrders.toString(),
                         icon: Icons.pending_actions_outlined,
-                        badge: '3 new',
+                        badge: pendingOrders > 0 ? '$pendingOrders new' : null,
                         color: AppColors.primary,
                       ),
                       _StatCard(
                         label: 'Ready Pickup',
-                        value: '5',
+                        value: readyPickupCount.toString(),
                         icon: Icons.check_circle_outline,
                         color: AppColors.success,
                       ),
@@ -190,7 +212,7 @@ class FarmerDashboard extends StatelessWidget {
                       ),
                       _StatCard(
                         label: 'Avg Rating',
-                        value: '4.8 ★',
+                        value: '${averageRating.toStringAsFixed(1)} ★',
                         icon: Icons.star,
                         color: AppColors.gold,
                       ),
@@ -237,18 +259,30 @@ class FarmerDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...List.generate(3, (index) {
-                    return CustomCard(
+                  if (recentSubOrders.isEmpty)
+                    CustomCard(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: const Icon(Icons.shopping_bag_outlined),
-                        title: const Text('Mary Wanjiku'),
-                        subtitle: const Text('Sukuma Wiki 5kg'),
-                        trailing: const Text('KES 250'),
-                        onTap: () => context.go(RoutePaths.farmerOrderRequests),
+                        title: const Text('No recent orders'),
+                        subtitle: const Text('New orders will appear here as they come in.'),
                       ),
-                    );
-                  }),
+                    )
+                  else
+                    ...recentSubOrders.map((subOrder) {
+                      final title = subOrder.items.isNotEmpty ? subOrder.items.first.productName : 'Fresh produce';
+                      final subtitle = subOrder.items.isNotEmpty ? '${subOrder.items.length} item${subOrder.items.length == 1 ? '' : 's'} • ${subOrder.status}' : subOrder.status;
+                      return CustomCard(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: const Icon(Icons.shopping_bag_outlined),
+                          title: Text(title),
+                          subtitle: Text(subtitle),
+                          trailing: Text('KES ${subOrder.subtotal.toStringAsFixed(0)}'),
+                          onTap: () => context.go(RoutePaths.farmerOrderRequests),
+                        ),
+                      );
+                    }),
                   const SizedBox(height: 16),
                   SectionHeader(
                     title: 'Inventory Overview',
@@ -258,9 +292,24 @@ class FarmerDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const _InventoryTile(name: 'Avocado', quantity: '120 kg', progress: 0.6),
-                  const _InventoryTile(name: 'Tomatoes', quantity: '80 kg', progress: 0.4),
-                  const _InventoryTile(name: 'Sukuma Wiki', quantity: '200 bunches', progress: 0.85),
+                  if (productList.isEmpty)
+                    CustomCard(
+                      padding: const EdgeInsets.all(12),
+                      child: const Text('Add your first product to start filling your inventory view.'),
+                    )
+                  else
+                    ...productList.take(3).map((product) {
+                      final quantityLabel = '${product.availableQuantity.toStringAsFixed(0)} ${product.unit.isNotEmpty ? product.unit : 'units'}';
+                      final progress = product.availableQuantity > 0
+                          ? (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0)
+                          : 0.0;
+                      return _InventoryTile(
+                        name: product.name,
+                        quantity: quantityLabel,
+                        progress: progress,
+                        imageUrl: product.imageUrl,
+                      );
+                    }),
                 ],
               ),
             ),
@@ -301,7 +350,7 @@ class _StatCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -309,7 +358,7 @@ class _StatCard extends StatelessWidget {
               if (badge != null)
                 Text(
                   badge!,
-                  style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10),
+                  style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10),
                 ),
             ],
           ),
@@ -347,7 +396,7 @@ class _ActionButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8)],
+              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)],
             ),
             child: Icon(icon, color: Colors.white, size: 22),
           ),
@@ -363,11 +412,13 @@ class _InventoryTile extends StatelessWidget {
   final String name;
   final String quantity;
   final double progress;
+  final String? imageUrl;
 
   const _InventoryTile({
     required this.name,
     required this.quantity,
     required this.progress,
+    this.imageUrl,
   });
 
   @override
@@ -376,7 +427,14 @@ class _InventoryTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          const CircleAvatar(radius: 16, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=40&h=40&fit=crop')),
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: AppColors.light,
+            backgroundImage: imageUrl != null && imageUrl!.isNotEmpty ? NetworkImage(imageUrl!) : null,
+            child: imageUrl == null || imageUrl!.isEmpty
+                ? const Icon(Icons.agriculture, color: AppColors.primary)
+                : null,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

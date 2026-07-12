@@ -45,7 +45,7 @@ class RetailerDashboard extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color(0xFF4C1D95).withOpacity(0.05), AppColors.background],
+            colors: [const Color(0xFF4C1D95).withValues(alpha: 0.05), AppColors.background],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -98,7 +98,7 @@ class RetailerDashboard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.transportPurple.withOpacity(0.15),
+                color: AppColors.transportPurple.withValues(alpha: 0.15),
                 borderRadius: AppRadius.lg,
               ),
               child: const Icon(Icons.storefront, color: AppColors.transportPurple),
@@ -108,9 +108,9 @@ class RetailerDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Retailer Dashboard',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   Text(
                     username.isNotEmpty ? username : 'Kamau Fresh Groceries',
@@ -146,7 +146,7 @@ class RetailerDashboard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.15),
+                    color: AppColors.success.withValues(alpha: 0.15),
                     borderRadius: AppRadius.sm,
                   ),
                   child: const Text('▲ 8.1%', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
@@ -160,9 +160,9 @@ class RetailerDashboard extends StatelessWidget {
                 BarChartData(
                   gridData: const FlGridData(show: false),
                   titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -215,16 +215,16 @@ class RetailerDashboard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
+        const Expanded(
           child: CustomCard(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               child: Column(
                 children: [
-                  const Icon(Icons.store_outlined, color: AppColors.secondaryGreen),
-                  const SizedBox(height: 4),
-                  const Text('24', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                  const Text('Suppliers', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                  Icon(Icons.store_outlined, color: AppColors.secondaryGreen),
+                  SizedBox(height: 4),
+                  Text('24', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  Text('Suppliers', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
                 ],
               ),
             ),
@@ -303,7 +303,7 @@ class RetailerDashboard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: (order['color'] as Color).withOpacity(0.15),
+                              color: (order['color'] as Color).withValues(alpha: 0.15),
                               borderRadius: AppRadius.sm,
                             ),
                             child: Text(order['status']!, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: order['color'] as Color)),

@@ -115,7 +115,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.xl,
                         ),
@@ -128,7 +128,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryGreen,
                             borderRadius: AppRadius.lg,
                           ),
@@ -171,7 +171,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.lightGreen,
                     borderRadius: AppRadius.lg,
                   ),
@@ -180,10 +180,10 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                       const Icon(Icons.location_on,
                           color: AppColors.primaryGreen, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text('Farm GPS Location',
                                 style: TextStyle(
                                     fontSize: 13,
@@ -200,7 +200,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                         style: OutlinedButton.styleFrom(
                           backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                               borderRadius: AppRadius.md),
                         ),
                         child: const Text('Pick', style: TextStyle(fontSize: 11)),
@@ -237,13 +237,13 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                     color: const Color(0xFFFFFBEB),
                     borderRadius: AppRadius.lg,
                     border: Border.all(
-                        color: AppColors.goldAccent.withOpacity(0.25)),
+                        color: AppColors.goldAccent.withValues(alpha: 0.25)),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(Icons.info_outline,
+                      Icon(Icons.info_outline,
                           color: AppColors.goldAccent, size: 14),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Cooperative endorsement increases buyer trust and gives you priority listings. Unaffiliated farmers may continue without it.',

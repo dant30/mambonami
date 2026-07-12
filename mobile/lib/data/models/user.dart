@@ -9,6 +9,7 @@ class UserModel {
   final String? fullName;
   final String? displayName;
   final String? avatarUrl;
+  final String? profileImage;
   final String? location;
   final String? bio;
   final bool isVerified;
@@ -27,6 +28,7 @@ class UserModel {
     this.fullName,
     this.displayName,
     this.avatarUrl,
+    this.profileImage,
     this.location,
     this.bio,
     this.isVerified = false,
@@ -46,7 +48,8 @@ class UserModel {
       role: json['role']?.toString(),
       fullName: _coerceString(json['full_name'] ?? json['fullName'] ?? json['display_name'] ?? json['displayName']),
       displayName: _coerceString(json['display_name'] ?? json['displayName']),
-      avatarUrl: _coerceString(json['avatar_url'] ?? json['avatarUrl'] ?? json['photo_url'] ?? json['photoUrl']),
+      avatarUrl: _coerceString(json['avatar_url'] ?? json['avatarUrl'] ?? json['photo_url'] ?? json['photoUrl'] ?? json['avatar'] ?? json['profile_image'] ?? json['profileImage']),
+      profileImage: _coerceString(json['profile_image'] ?? json['profileImage'] ?? json['avatar_url'] ?? json['avatarUrl'] ?? json['avatar']),
       location: _coerceString(json['location'] ?? json['address'] ?? json['city']),
       bio: _coerceString(json['bio'] ?? json['about']),
       isVerified: _coerceBool(json['is_verified'] ?? json['isVerified']),
@@ -67,6 +70,7 @@ class UserModel {
         'full_name': fullName,
         'display_name': displayName,
         'avatar_url': avatarUrl,
+        'profile_image': profileImage,
         'location': location,
         'bio': bio,
         'is_verified': isVerified,

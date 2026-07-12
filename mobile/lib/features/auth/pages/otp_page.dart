@@ -225,7 +225,7 @@ class _OtpPageState extends State<OtpPage> {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.lightGreen,
                     borderRadius: AppRadius.lg,
                   ),
@@ -283,7 +283,7 @@ class _OtpPageState extends State<OtpPage> {
                       color: Colors.white,
                       borderRadius: AppRadius.lg,
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         width: 1.8,
                       ),
                     ),

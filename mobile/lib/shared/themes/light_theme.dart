@@ -153,7 +153,7 @@ ThemeData lightTheme = ThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
   ),
-  extensions: <ThemeExtension<dynamic>>[
+  extensions: const <ThemeExtension<dynamic>>[
     AppThemeExtension(
       heroGradient: AppGradients.hero,
       warmGradient: AppGradients.warm,

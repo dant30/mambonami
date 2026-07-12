@@ -14,6 +14,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     // Buyer
     on<CreateOrderEvent>(_onCreateOrder);
     on<FetchMyOrdersEvent>(_onFetchMyOrders);
+    on<FetchActiveOrderEvent>(_onFetchActiveOrder);
     on<FetchOrderDetailEvent>(_onFetchOrderDetail);
     on<FetchBuyerOrdersEvent>(_onFetchBuyerOrders);
     on<FetchOrderDetailsEvent>(_onFetchOrderDetails);
@@ -75,6 +76,21 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     try {
       final orders = await orderRepository.fetchMyOrders();
       emit(MyOrdersLoaded(orders));
+    } catch (e) {
+      emit(OrderError(e.toString()));
+    }
+  }
+
+  Future<void> _onFetchActiveOrder(FetchActiveOrderEvent event, Emitter<OrderState> emit) async {
+    emit(OrderLoading());
+    try {
+      final activeOrder = await orderRepository.fetchActiveOrder();
+      if (state is BuyerOrdersLoaded) {
+        final previous = state as BuyerOrdersLoaded;
+        emit(BuyerOrdersLoaded(previous.orders, activeOrder: activeOrder));
+      } else {
+        emit(BuyerOrdersLoaded(const [], activeOrder: activeOrder));
+      }
     } catch (e) {
       emit(OrderError(e.toString()));
     }

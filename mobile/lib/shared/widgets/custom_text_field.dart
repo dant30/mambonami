@@ -79,11 +79,11 @@ class CustomTextField extends StatelessWidget {
           : theme.colorScheme.surface.withValues(alpha: 0.6),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -91,7 +91,7 @@ class CustomTextField extends StatelessWidget {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.error),
+        borderSide: const BorderSide(color: AppColors.error),
       ),
     );
 

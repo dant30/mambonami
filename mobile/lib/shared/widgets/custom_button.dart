@@ -185,7 +185,7 @@ class CustomButton extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: (gold ? AppColors.gold : AppColors.primary)
-                  .withOpacity(0.35),
+                  .withValues(alpha: 0.35),
               blurRadius: 15,
               offset: const Offset(0, 4),
             ),
@@ -199,17 +199,17 @@ class CustomButton extends StatelessWidget {
       button = ElevatedButton(
         onPressed: isDisabled ? null : onPressed,
         style: (style ?? ElevatedButton.styleFrom()).copyWith(
-          backgroundColor: MaterialStateProperty.all(Colors.transparent),
-          foregroundColor: MaterialStateProperty.all(fgColor),
-          side: MaterialStateProperty.all(
-              BorderSide(color: AppColors.primary, width: 2)),
-          shape: MaterialStateProperty.all(
+          backgroundColor: WidgetStateProperty.all(Colors.transparent),
+          foregroundColor: WidgetStateProperty.all(fgColor),
+          side: WidgetStateProperty.all(
+              const BorderSide(color: AppColors.primary, width: 2)),
+          shape: WidgetStateProperty.all(
               RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(borderRadius))),
-          minimumSize: MaterialStateProperty.all(Size(
+          minimumSize: WidgetStateProperty.all(Size(
               fullWidth ? double.infinity : (minWidth ?? 120),
               effectiveHeight)),
-          padding: MaterialStateProperty.all(padding),
+          padding: WidgetStateProperty.all(padding),
         ),
         child: buttonContent,
       );

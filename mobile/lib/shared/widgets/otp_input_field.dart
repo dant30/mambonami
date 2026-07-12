@@ -66,8 +66,12 @@ class _OtpInputFieldState extends State<OtpInputField> {
 
   @override
   void dispose() {
-    for (var node in _focusNodes) node.dispose();
-    for (var ctrl in _controllers) ctrl.dispose();
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
+    for (var ctrl in _controllers) {
+      ctrl.dispose();
+    }
     widget.controller?.removeListener(_handleExternalChange);
     super.dispose();
   }
@@ -137,7 +141,7 @@ class _OtpInputFieldState extends State<OtpInputField> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: borderColor.withOpacity(0.6), width: 2),
+        borderSide: BorderSide(color: borderColor.withValues(alpha: 0.6), width: 2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -145,8 +149,8 @@ class _OtpInputFieldState extends State<OtpInputField> {
       ),
       filled: true,
       fillColor: isFilled
-          ? theme.colorScheme.primary.withOpacity(0.08)
-          : theme.colorScheme.surfaceVariant.withOpacity(0.08),
+          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.08),
       counterText: '',
       contentPadding: const EdgeInsets.symmetric(vertical: 18),
     );

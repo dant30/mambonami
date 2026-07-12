@@ -351,7 +351,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       // ── Sticky bottom bar ─────────────────────────────────────
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(
               top: BorderSide(

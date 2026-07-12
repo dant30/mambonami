@@ -77,7 +77,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.xl,
                         ),
@@ -93,7 +93,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryGreen,
                             borderRadius: AppRadius.lg,
                           ),
@@ -147,7 +147,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.lightGreen,
                     borderRadius: AppRadius.lg,
                   ),
@@ -159,10 +159,10 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                         size: 18,
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'Delivery Address',
                               style: TextStyle(
@@ -188,7 +188,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                         style: OutlinedButton.styleFrom(
                           backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                             borderRadius: AppRadius.md,
                           ),
                         ),

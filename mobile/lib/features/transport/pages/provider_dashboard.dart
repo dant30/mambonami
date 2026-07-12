@@ -10,6 +10,7 @@ import '../../../shared/widgets/greeting_header.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../blocs/trip/trip_bloc.dart';
 import '../../../config/route_paths.dart';
+import '../../../data/models/trip.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/role_dashboard_widgets.dart';
@@ -26,13 +27,19 @@ class ProviderDashboard extends StatelessWidget {
       username = authState.username ?? authState.phone;
     }
 
+    final trips = tripState is MyTripsLoaded ? tripState.trips : <Trip>[];
     String activeTripLabel = '';
-    if (tripState is MyTripsLoaded && tripState.trips.isNotEmpty) {
-      final activeTrip = tripState.trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').firstOrNull;
+    if (trips.isNotEmpty) {
+      final activeTrip = trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').isNotEmpty
+          ? trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').first
+          : null;
       if (activeTrip != null) {
         activeTripLabel = 'You have an active trip in ${activeTrip.status}. Tap to continue.';
       }
     }
+    final activeTrips = trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').length;
+    final earnings = trips.fold<double>(0.0, (sum, trip) => sum + (trip.agreedFee ?? 0.0));
+    final statusLabel = activeTrips > 0 ? 'Active' : 'Ready';
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -65,7 +72,7 @@ class ProviderDashboard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.route_outlined, color: AppColors.providerAccent),
+                    const Icon(Icons.route_outlined, color: AppColors.providerAccent),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -83,8 +90,9 @@ class ProviderDashboard extends StatelessWidget {
             ],
             RoleHeroCard(
               title: 'Delivery control',
-              subtitle:
-                  'Claim available orders, manage pickup flow, and complete delivery verification with confidence.',
+              subtitle: activeTrips > 0
+                  ? 'You currently have $activeTrips trip${activeTrips == 1 ? '' : 's'} in motion. Open your queue to continue.'
+                  : 'Claim available orders, manage pickup flow, and complete delivery verification with confidence.',
               icon: Icons.local_shipping_outlined,
               gradient: AppGradients.logistics,
               actions: [
@@ -103,7 +111,7 @@ class ProviderDashboard extends StatelessWidget {
             const SizedBox(height: 18),
             _buildQuickAccessCards(context),
             const SizedBox(height: 18),
-            _buildStatsSection(context),
+            _buildStatsSection(context, activeTrips: activeTrips, earnings: earnings, statusLabel: statusLabel),
           ],
         ),
       ),
@@ -163,7 +171,7 @@ class ProviderDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context) {
+  Widget _buildStatsSection(BuildContext context, {required int activeTrips, required double earnings, required String statusLabel}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -173,21 +181,21 @@ class ProviderDashboard extends StatelessWidget {
                 .titleMedium
                 ?.copyWith(fontWeight: FontWeight.w900)),
         const SizedBox(height: 12),
-        const DashboardStatStrip(
+        DashboardStatStrip(
           stats: [
             DashboardStat(
               label: 'Trips',
-              value: '0',
+              value: activeTrips.toString(),
               icon: Icons.route_outlined,
             ),
             DashboardStat(
               label: 'Earnings',
-              value: 'Ksh 0',
+              value: 'Ksh ${earnings.toStringAsFixed(0)}',
               icon: Icons.payments_outlined,
             ),
             DashboardStat(
               label: 'Status',
-              value: 'Ready',
+              value: statusLabel,
               icon: Icons.verified_outlined,
             ),
           ],

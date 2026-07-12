@@ -381,7 +381,7 @@ class _SettingsPageState extends State<SettingsPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: theme.colorScheme.primary, size: 22),
@@ -395,7 +395,7 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           trailing: Icon(
@@ -426,7 +426,7 @@ class _SettingsPageState extends State<SettingsPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: theme.colorScheme.primary, size: 22),
@@ -440,7 +440,7 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           trailing: Transform.scale(
@@ -448,7 +448,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: theme.colorScheme.primary,
+              activeThumbColor: theme.colorScheme.primary,
             ),
           ),
           onTap: () => onChanged(!value),
@@ -476,8 +476,8 @@ class _SettingsPageState extends State<SettingsPage> {
             height: 40,
             decoration: BoxDecoration(
               color: destructive
-                  ? theme.colorScheme.error.withOpacity(0.12)
-                  : theme.colorScheme.primary.withOpacity(0.12),
+                  ? theme.colorScheme.error.withValues(alpha: 0.12)
+                  : theme.colorScheme.primary.withValues(alpha: 0.12),
             ),
             child: Icon(icon, color: color, size: 22),
           ),
@@ -491,12 +491,12 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           trailing: Icon(
             Icons.chevron_right_rounded,
-            color: color.withOpacity(0.5),
+            color: color.withValues(alpha: 0.5),
             size: 18,
           ),
           onTap: onTap,

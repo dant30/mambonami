@@ -117,39 +117,19 @@ class AuthRepository {
   Future<void> loginSendOtp(String phone, String password) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
-      final endpoints = <String>[
-        '/api/auth/login/send-otp/',
-        '/api/users/login/send-otp/',
+      final response = await _apiClient.dio.post(
         kLoginEndpoint,
-      ];
+        data: {
+          'phone': normalizedPhone,
+          'password': password,
+        },
+      );
 
-      Object? lastError;
-      for (final endpoint in endpoints) {
-        try {
-          final response = await _apiClient.dio.post(
-            endpoint,
-            data: {
-              'phone': normalizedPhone,
-              'password': password,
-            },
-          );
-
-          if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-            return;
-          }
-          lastError = Exception('Failed to initiate login OTP flow');
-        } on DioException catch (error) {
-          lastError = error;
-          if (endpoint == kLoginEndpoint) {
-            break;
-          }
-        }
+      if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+        return;
       }
 
-      if (lastError != null) {
-        throw _handleError(lastError);
-      }
-      throw Exception('Failed to initiate login OTP flow');
+      throw Exception('Failed to initiate login flow');
     } catch (e) {
       throw _handleError(e);
     }
@@ -162,41 +142,11 @@ class AuthRepository {
   }) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
-      final endpoints = <String>[
-        '/api/auth/login/verify-otp/',
-        '/api/users/login/verify-otp/',
-        '/api/users/login/verify/',
-      ];
-
-      Object? lastError;
-      for (final endpoint in endpoints) {
-        try {
-          final response = await _apiClient.dio.post(
-            endpoint,
-            data: {
-              'phone': normalizedPhone,
-              'otp': otp,
-              if (password != null && password.isNotEmpty) 'password': password,
-            },
-          );
-
-          if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-            return _persistAuthenticatedUser(response.data, normalizedPhone);
-          }
-          lastError = Exception('Invalid OTP');
-        } on DioException catch (error) {
-          lastError = error;
-        }
-      }
-
       if (password != null && password.isNotEmpty) {
         return login(normalizedPhone, password);
       }
 
-      if (lastError != null) {
-        throw _handleError(lastError);
-      }
-      throw Exception('Invalid OTP');
+      throw Exception('OTP verification is not supported by the current backend; use password login instead.');
     } catch (e) {
       throw _handleError(e);
     }
@@ -234,7 +184,7 @@ class AuthRepository {
       throw Exception('Missing access or refresh token');
     }
 
-    final user = normalizeMap(data['user']);
+    final user = _normalizeProfilePayload(normalizeMap(data['user']));
     final userRole = stringValue(user['role']);
     final userPhone = stringValue(user['phone']);
     if (userRole.isEmpty || userPhone.isEmpty) {
@@ -257,19 +207,19 @@ class AuthRepository {
     try {
       final response = await _apiClient.dio.get(kProfileEndpoint);
       if (response.statusCode == 200) {
-        final profile = normalizeMap(response.data);
+        final profile = _normalizeProfilePayload(normalizeMap(response.data));
         if (profile.isNotEmpty) {
-        final phone = stringValue(profile['phone']);
-        if (phone.isNotEmpty) {
-          final formattedPhone = _normalizePhoneNumber(phone);
-          profile['phone'] = formattedPhone;
-        }
-        await _cacheManager.saveJson(kCachedProfileKey, profile);
-        final userId = stringValue(profile['phone']);
-        if (userId.isNotEmpty) {
-          await _databaseHelper.insertOrUpdateRecord(kUserTable, userId, profile);
-        }
-        return profile;
+          final phone = stringValue(profile['phone']);
+          if (phone.isNotEmpty) {
+            final formattedPhone = _normalizePhoneNumber(phone);
+            profile['phone'] = formattedPhone;
+          }
+          await _cacheManager.saveJson(kCachedProfileKey, profile);
+          final userId = stringValue(profile['phone']);
+          if (userId.isNotEmpty) {
+            await _databaseHelper.insertOrUpdateRecord(kUserTable, userId, profile);
+          }
+          return profile;
         }
       }
 
@@ -353,6 +303,42 @@ class AuthRepository {
     await _secureStorage.clearAll();
     await _cacheManager.remove(kCachedProfileKey);
     await _databaseHelper.clearTable(kUserTable);
+  }
+
+  Map<String, dynamic> _normalizeProfilePayload(Map<String, dynamic> profile) {
+    final normalized = Map<String, dynamic>.from(profile);
+    final avatarUrl = stringValue(
+      normalized['profile_image'] ??
+          normalized['profileImage'] ??
+          normalized['avatar_url'] ??
+          normalized['avatarUrl'] ??
+          normalized['avatar'],
+    );
+    if (avatarUrl.isNotEmpty) {
+      normalized['avatar_url'] = avatarUrl;
+      normalized['profile_image'] = avatarUrl;
+    }
+
+    final fullName = stringValue(normalized['full_name'] ?? normalized['fullName']);
+    if (fullName.isEmpty) {
+      final firstName = stringValue(normalized['first_name']);
+      final lastName = stringValue(normalized['last_name']);
+      final combined = [firstName, lastName].where((value) => value.isNotEmpty).join(' ').trim();
+      if (combined.isNotEmpty) {
+        normalized['full_name'] = combined;
+      }
+    }
+
+    if (normalized['display_name'] == null && normalized['full_name'] != null) {
+      normalized['display_name'] = normalized['full_name'];
+    }
+
+    final location = stringValue(normalized['location'] ?? normalized['address'] ?? normalized['city']);
+    if (location.isNotEmpty) {
+      normalized['location'] = location;
+    }
+
+    return normalized;
   }
 
   String _normalizePhoneNumber(String phone) {

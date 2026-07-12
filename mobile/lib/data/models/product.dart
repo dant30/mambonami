@@ -54,6 +54,7 @@ class Product {
   final bool isFavorite;
   final double averageRating;
   final int reviewCount;
+  final int wishlistCount;
   final DateTime createdAt;
   final DateTime updatedAt;
   final double? pickupLat;
@@ -90,6 +91,7 @@ class Product {
     this.isFavorite = false,
     this.averageRating = 0.0,
     this.reviewCount = 0,
+    this.wishlistCount = 0,
     required this.createdAt,
     required this.updatedAt,
     this.pickupLat,
@@ -112,7 +114,7 @@ class Product {
       category: ProductCategory.fromJson(json['category_detail'] is Map<String, dynamic> ? json['category_detail'] as Map<String, dynamic> : const {}),
       name: json['name']?.toString() ?? '',
       variety: json['variety']?.toString(),
-      sku: json['sku'] != null ? json['sku'].toString() : null,
+      sku: json['sku']?.toString(),
       pricePerUnit: _parseDouble(json['price_per_unit']),
       availableQuantity: _parseDouble(json['available_quantity']),
       reservedQuantity: _parseDouble(json['reserved_quantity']),
@@ -123,13 +125,16 @@ class Product {
       isOrganic: _parseBool(json['is_organic']),
       remainingShelfLife: json['remaining_shelf_life'] is int ? json['remaining_shelf_life'] : int.tryParse(json['remaining_shelf_life']?.toString() ?? '') ?? 0,
       isActive: _parseBool(json['is_active']),
-      imageUrl: json['image']?.toString(),
+      imageUrl: json['image_url']?.toString() ?? json['image']?.toString(),
       description: json['description']?.toString(),
       isFavorite: _parseBool(json['is_favorite'] ?? json['isFavorite']),
-      averageRating: _parseDouble(json['average_rating'] ?? json['averageRating']),
+      averageRating: _parseDouble(json['rating'] ?? json['average_rating'] ?? json['averageRating']),
       reviewCount: json['review_count'] is int
           ? json['review_count']
           : int.tryParse((json['review_count'] ?? json['reviewCount'])?.toString() ?? '') ?? 0,
+      wishlistCount: json['wishlist_count'] is int
+          ? json['wishlist_count']
+          : int.tryParse((json['wishlist_count'] ?? json['wishlistCount'])?.toString() ?? '') ?? 0,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
       pickupLat: _parseNullableDouble(json['pickup_lat']),
@@ -166,8 +171,10 @@ class Product {
         'image': imageUrl,
         'description': description,
         'is_favorite': isFavorite,
+        'rating': averageRating,
         'average_rating': averageRating,
         'review_count': reviewCount,
+        'wishlist_count': wishlistCount,
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
         'pickup_lat': pickupLat,
@@ -214,6 +221,7 @@ class Product {
     bool? isFavorite,
     double? averageRating,
     int? reviewCount,
+    int? wishlistCount,
     DateTime? createdAt,
     DateTime? updatedAt,
     double? pickupLat,
@@ -250,6 +258,7 @@ class Product {
       isFavorite: isFavorite ?? this.isFavorite,
       averageRating: averageRating ?? this.averageRating,
       reviewCount: reviewCount ?? this.reviewCount,
+      wishlistCount: wishlistCount ?? this.wishlistCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       pickupLat: pickupLat ?? this.pickupLat,
@@ -289,6 +298,7 @@ class Product {
         isFavorite,
         averageRating,
         reviewCount,
+        wishlistCount,
         createdAt,
         updatedAt,
         pickupLat,

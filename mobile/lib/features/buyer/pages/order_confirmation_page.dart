@@ -75,7 +75,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.40),
+                        color: AppColors.primary.withValues(alpha: 0.40),
                         blurRadius: 40,
                         offset: const Offset(0, 16),
                       ),
@@ -167,7 +167,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
                 onPressed: () => context.go(RoutePaths.buyerDashboard),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 52),
-                  side: BorderSide(color: AppColors.primary.withOpacity(0.3)),
+                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),

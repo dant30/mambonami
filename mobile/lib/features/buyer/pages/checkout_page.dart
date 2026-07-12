@@ -107,7 +107,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           children: [
             // ── Gradient header ────────────────────────────────
             Container(
-              decoration: BoxDecoration(gradient: AppGradients.hero),
+              decoration: const BoxDecoration(gradient: AppGradients.hero),
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               child: Row(
                 children: [
@@ -225,7 +225,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 const SizedBox(height: 5),
                                 _Row('Platform fee',
                                     'KES ${_platformFee.toStringAsFixed(0)}'),
-                                Divider(
+                                const Divider(
                                     height: 20, color: AppColors.light),
                                 Row(
                                   mainAxisAlignment:

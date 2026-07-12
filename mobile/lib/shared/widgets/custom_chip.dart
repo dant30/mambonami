@@ -46,7 +46,7 @@ class CustomChip extends StatelessWidget {
       backgroundColor: bgColor,
       onDeleted: onDeleted,
       deleteIcon: onDeleted != null
-          ? Icon(Icons.close, size: 16)
+          ? const Icon(Icons.close, size: 16)
           : null,
       side: BorderSide(
         color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline,

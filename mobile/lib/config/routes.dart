@@ -195,9 +195,10 @@ class AppRouter {
           final extra = state.extra;
           Product? product;
           if (extra is Product) product = extra;
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(
                 body: Center(child: Text('Missing product id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.farmerRoles,
             child: ProductEditPage(productUuid: uuid, initialProduct: product),
@@ -213,7 +214,7 @@ class AppRouter {
       ),
       GoRoute(
         path: RoutePaths.farmerEarnings,
-        builder: (_, __) => AuthGuard(
+        builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.farmerRoles,
           child: FarmerEarningsPage(),
         ),
@@ -290,9 +291,10 @@ class AppRouter {
           final extra = state.extra;
           Product? product;
           if (extra is Product) product = extra;
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(
                 body: Center(child: Text('Missing product id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.buyerRoles,
             child:
@@ -367,9 +369,10 @@ class AppRouter {
         path: RoutePaths.orderTracking,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(
                 body: Center(child: Text('Missing order id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.operationalRoles,
             child: OrderTrackingPage(orderUuid: uuid),
@@ -394,8 +397,9 @@ class AppRouter {
         path: RoutePaths.tripDetail,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(body: Center(child: Text('Missing trip id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.transportProviderRoles,
             child: TripDetailPage(tripUuid: uuid),
@@ -406,8 +410,9 @@ class AppRouter {
         path: RoutePaths.pickup,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(body: Center(child: Text('Missing trip id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.transportProviderRoles,
             child: PickupPage(tripUuid: uuid),
@@ -418,8 +423,9 @@ class AppRouter {
         path: RoutePaths.delivery,
         builder: (context, state) {
           final uuid = state.pathParameters['uuid'];
-          if (uuid == null)
+          if (uuid == null) {
             return const Scaffold(body: Center(child: Text('Missing trip id')));
+          }
           return AuthGuard(
             allowedRoles: AppRole.transportProviderRoles,
             child: DeliveryPage(tripUuid: uuid),
@@ -544,17 +550,17 @@ class AppRouter {
       }
       if (!knownRoutes.contains(path) &&
           !path.startsWith(
-              '${RoutePaths.productDetail.replaceAll(':uuid', '')}') &&
+              RoutePaths.productDetail.replaceAll(':uuid', '')) &&
           !path.startsWith(
-              '${RoutePaths.orderTracking.replaceAll(':uuid', '')}') &&
+              RoutePaths.orderTracking.replaceAll(':uuid', '')) &&
           !path
-              .startsWith('${RoutePaths.tripDetail.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.pickup.replaceAll(':uuid', '')}') &&
-          !path.startsWith('${RoutePaths.delivery.replaceAll(':uuid', '')}') &&
+              .startsWith(RoutePaths.tripDetail.replaceAll(':uuid', '')) &&
+          !path.startsWith(RoutePaths.pickup.replaceAll(':uuid', '')) &&
+          !path.startsWith(RoutePaths.delivery.replaceAll(':uuid', '')) &&
           !path.startsWith(
-              '${RoutePaths.farmerProductEdit.replaceAll(':uuid', '')}') &&
+              RoutePaths.farmerProductEdit.replaceAll(':uuid', '')) &&
           !path.startsWith(
-              '${RoutePaths.farmerOrderRequestDetail.replaceAll(':id', '')}')) {
+              RoutePaths.farmerOrderRequestDetail.replaceAll(':id', ''))) {
         return '/404';
       }
       return null;

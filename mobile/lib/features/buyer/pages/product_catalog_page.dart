@@ -31,7 +31,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(FetchProductsEvent());
+    context.read<ProductBloc>().add(const FetchProductsEvent());
     _searchCtrl.addListener(_onSearch);
   }
 
@@ -182,7 +182,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                           ElevatedButton(
                             onPressed: () => context
                                 .read<ProductBloc>()
-                                .add(FetchProductsEvent()),
+                                .add(const FetchProductsEvent()),
                             child: const Text('Retry'),
                           ),
                         ],

@@ -438,7 +438,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.camera_alt_rounded,
                         color: AppColors.primary,
                         size: 40,
@@ -466,7 +466,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline_rounded,
                   color: AppColors.muted,
                   size: 14,
@@ -641,7 +641,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.warning_amber_rounded,
             color: AppColors.gold,
             size: 18,

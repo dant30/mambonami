@@ -28,7 +28,7 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
   final TextEditingController _orderUuidController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  List<File> _evidenceImages = [];
+  final List<File> _evidenceImages = [];
 
   @override
   void initState() {
@@ -93,11 +93,11 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'Disputes',
         showNotificationAction: true,
         showBackButton: true,
-        actions: const [CartActionButton()],
+        actions: [CartActionButton()],
       ),
       body: Column(
         children: [

@@ -336,7 +336,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.withOpacity(0.1),
+        color: Colors.blueGrey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -401,7 +401,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
             if (trip.pickedUpAt != null)
               Row(
                 children: [
-                  Icon(Icons.check_circle, size: 20, color: Colors.green),
+                  const Icon(Icons.check_circle, size: 20, color: Colors.green),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -415,7 +415,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.check_circle_outline,
+                  const Icon(Icons.check_circle_outline,
                       size: 20, color: Colors.blue),
                   const SizedBox(width: 12),
                   Expanded(

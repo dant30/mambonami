@@ -89,7 +89,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.xl,
                         ),
@@ -105,7 +105,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryGreen,
                             borderRadius: AppRadius.lg,
                           ),
@@ -193,9 +193,9 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Business Type',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryGreen,
@@ -205,12 +205,12 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: AppColors.primaryGreen.withOpacity(0.2),
+                          color: AppColors.primaryGreen.withValues(alpha: 0.2),
                         ),
                         borderRadius: AppRadius.lg,
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: _selectedBusinessType,
+                        initialValue: _selectedBusinessType,
                         items: _businessTypes.map((type) {
                           return DropdownMenuItem(
                             value: type,

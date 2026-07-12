@@ -83,61 +83,61 @@ class AppDrawer extends StatelessWidget {
         route: homeRoute,
         allowedRoles: [],
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.shopping_bag_rounded,
         title: 'Products',
         route: RoutePaths.products,
         allowedRoles: AppRole.buyerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.shopping_cart_rounded,
         title: 'Cart',
         route: RoutePaths.cart,
         allowedRoles: AppRole.buyerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.receipt_long_rounded,
         title: 'My Orders',
         route: RoutePaths.orders,
         allowedRoles: AppRole.buyerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.inventory_2_rounded,
         title: 'My Products',
         route: RoutePaths.farmerProducts,
         allowedRoles: AppRole.farmerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.list_alt_rounded,
         title: 'Order Requests',
         route: RoutePaths.farmerOrderRequests,
         allowedRoles: AppRole.farmerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.show_chart_rounded,
         title: 'Earnings',
         route: RoutePaths.farmerEarnings,
         allowedRoles: AppRole.farmerRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.local_shipping_rounded,
         title: 'Available Orders',
         route: RoutePaths.availableOrders,
         allowedRoles: AppRole.transportProviderRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.route_rounded,
         title: 'My Trips',
         route: RoutePaths.myTrips,
         allowedRoles: AppRole.transportProviderRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.payments_rounded,
         title: 'Earnings',
         route: RoutePaths.transportEarnings,
         allowedRoles: AppRole.transportProviderRoles,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.notifications_none_rounded,
         title: 'Notifications',
         route: RoutePaths.notifications,
@@ -146,19 +146,19 @@ class AppDrawer extends StatelessWidget {
     ];
 
     final secondaryItems = <_DrawerItem>[
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.person_outline_rounded,
         title: 'Profile',
         route: RoutePaths.profile,
         allowedRoles: [],
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.settings_outlined,
         title: 'Settings',
         route: RoutePaths.settings,
         allowedRoles: [],
       ),
-      _DrawerItem(
+      const _DrawerItem(
         icon: Icons.help_outline_rounded,
         title: 'Support',
         route: RoutePaths.support,
@@ -167,7 +167,7 @@ class AppDrawer extends StatelessWidget {
     ];
 
     // ── Helper to build a badge ──────────────────────────────
-    Widget _buildTrailingBadge(int count) {
+    Widget buildTrailingBadge(int count) {
       if (count <= 0) return const SizedBox.shrink();
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -280,7 +280,7 @@ class AppDrawer extends StatelessWidget {
                     return ListTile(
                       leading: Icon(item.icon),
                       title: Text(item.title),
-                      trailing: badge > 0 ? _buildTrailingBadge(badge) : null,
+                      trailing: badge > 0 ? buildTrailingBadge(badge) : null,
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.primary,
                       selectedTileColor:

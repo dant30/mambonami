@@ -21,7 +21,7 @@ class EarningsSummary extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: color ?? Theme.of(context).colorScheme.surfaceVariant,
+          color: color ?? Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -47,7 +47,7 @@ class EarningsSummary extends StatelessWidget {
         const SizedBox(height: 14),
         Row(
           children: [
-            _buildMetric(context, 'Orders', totalOrders.toString(), color: Theme.of(context).colorScheme.surfaceVariant),
+            _buildMetric(context, 'Orders', totalOrders.toString(), color: Theme.of(context).colorScheme.surfaceContainerHighest),
             const SizedBox(width: 12),
             _buildMetric(context, 'Confirmed', confirmedOrders.toString(), color: Theme.of(context).colorScheme.secondaryContainer),
           ],
@@ -55,9 +55,9 @@ class EarningsSummary extends StatelessWidget {
         const SizedBox(height: 14),
         Row(
           children: [
-            _buildMetric(context, 'Ready', readyOrders.toString(), color: Theme.of(context).colorScheme.primary.withOpacity(0.12)),
+            _buildMetric(context, 'Ready', readyOrders.toString(), color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)),
             const SizedBox(width: 12),
-            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Theme.of(context).colorScheme.secondary.withOpacity(0.12)),
+            _buildMetric(context, 'Pending', pendingOrders.toString(), color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12)),
           ],
         ),
       ],

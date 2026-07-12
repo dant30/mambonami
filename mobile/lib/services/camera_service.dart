@@ -58,7 +58,7 @@ class CameraService {
     int maxImages = 5,
   }) async {
     try {
-      final List<XFile>? pickedFiles = await _picker.pickMultiImage(
+      final List<XFile> pickedFiles = await _picker.pickMultiImage(
         imageQuality: 80,
       );
       if (pickedFiles == null) return <File>[];

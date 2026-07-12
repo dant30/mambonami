@@ -59,10 +59,10 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
                 width: double.infinity,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),

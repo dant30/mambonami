@@ -205,7 +205,7 @@ class _ProductListPageState extends State<ProductListPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _SummaryChip(label: '${products.length} listings', color: Colors.white.withOpacity(0.25)),
+                        _SummaryChip(label: '${products.length} listings', color: Colors.white.withValues(alpha: 0.25)),
                         _SummaryChip(label: '${products.where((p) => p.isActive).length} active', color: AppColors.success),
                         _SummaryChip(label: '${products.where((p) => !p.isActive).length} paused', color: AppColors.warning),
                       ],
@@ -245,7 +245,7 @@ class _ProductListPageState extends State<ProductListPage> {
                       label: Text(filter),
                       selected: selected,
                       onSelected: (_) => setState(() => _selectedFilter = filter),
-                      selectedColor: AppColors.primary.withOpacity(0.16),
+                      selectedColor: AppColors.primary.withValues(alpha: 0.16),
                       checkmarkColor: AppColors.primary,
                       labelStyle: TextStyle(
                         color: selected ? AppColors.primary : AppColors.muted,
@@ -276,9 +276,9 @@ class _ProductListPageState extends State<ProductListPage> {
                   onRefresh: () async => _fetchProducts(),
                   child: visibleProducts.isEmpty
                       ? ListView(
-                          children: [
+                          children: const [
                             Padding(
-                              padding: const EdgeInsets.all(16),
+                              padding: EdgeInsets.all(16),
                               child: EmptyState(
                                 title: 'No matching products',
                                 description: 'Try a different search or filter.',
@@ -330,12 +330,12 @@ class _SummaryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.25),
+        color: color.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 11,
           fontWeight: FontWeight.w700,

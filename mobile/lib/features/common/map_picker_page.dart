@@ -108,9 +108,9 @@ class _MapPickerPageState extends State<MapPickerPage> {
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black26)],
               ),
               child: Column(

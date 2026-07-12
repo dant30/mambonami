@@ -82,7 +82,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.xl,
                         ),
@@ -94,7 +94,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryGreen,
                             borderRadius: AppRadius.lg,
                           ),
@@ -129,7 +129,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   validator: (v) => v == null || v.isEmpty ? 'Enter ID number' : null,
                 ),
                 const SizedBox(height: 16),
-                Text('Vehicle Type', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
+                const Text('Vehicle Type', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
                 const SizedBox(height: 8),
                 GridView.count(
                   shrinkWrap: true,
@@ -148,7 +148,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                           color: isSelected ? AppColors.lightGreen : Colors.white,
                           borderRadius: AppRadius.xl,
                           border: Border.all(
-                            color: isSelected ? AppColors.primaryGreen : AppColors.primaryGreen.withOpacity(0.15),
+                            color: isSelected ? AppColors.primaryGreen : AppColors.primaryGreen.withValues(alpha: 0.15),
                             width: isSelected ? 2 : 1,
                           ),
                         ),
@@ -191,20 +191,20 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF8E7),
                     borderRadius: AppRadius.xl,
-                    border: Border.all(color: AppColors.goldAccent.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: AppColors.goldAccent),
-                          const SizedBox(width: 8),
-                          const Text('Refundable Deposit: KES 500', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          Icon(Icons.warning_amber_rounded, color: AppColors.goldAccent),
+                          SizedBox(width: 8),
+                          Text('Refundable Deposit: KES 500', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Pay via M-Pesa PayBill 123456, Account: DEP-TRANSPORT-{your_id}. '
                         'Fully refunded via B2C when you leave in good standing.',
                         style: TextStyle(fontSize: 11, color: AppColors.textMuted),
@@ -217,7 +217,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.goldAccent,
                           minimumSize: const Size(double.infinity, 44),
-                          shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
+                          shape: const RoundedRectangleBorder(borderRadius: AppRadius.md),
                         ),
                         child: const Text('Pay Deposit via M-Pesa', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
                       ),

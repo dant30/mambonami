@@ -17,15 +17,15 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: notification.isRead ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.primary.withOpacity(0.06),
+      color: notification.isRead ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 22,
-          backgroundColor: notification.isRead ? Theme.of(context).colorScheme.surfaceVariant : Theme.of(context).colorScheme.primary,
+          backgroundColor: notification.isRead ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.primary,
           child: Icon(
             notification.type == 'order' ? Icons.receipt_long : notification.type == 'delivery' ? Icons.local_shipping : Icons.notifications,
-            color: notification.isRead ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7) : Theme.of(context).colorScheme.onPrimary,
+            color: notification.isRead ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7) : Theme.of(context).colorScheme.onPrimary,
           ),
         ),
         title: Tooltip(
@@ -67,7 +67,7 @@ class NotificationTile extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -94,7 +94,7 @@ class NotificationTile extends StatelessWidget {
               _formatDate(notification.createdAt),
                 style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],

@@ -33,7 +33,7 @@ class ShimmerGrid extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+            border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +41,7 @@ class ShimmerGrid extends StatelessWidget {
               Container(
                 height: placeholderHeight,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.05),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 ),
                 child: const Center(
@@ -60,13 +60,13 @@ class ShimmerGrid extends StatelessWidget {
                     Container(
                       height: 12,
                       width: double.infinity,
-                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.05),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       height: 10,
                       width: 60,
-                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.05),
                     ),
                   ],
                 ),
@@ -97,7 +97,7 @@ class ShimmerList extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+            border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
@@ -105,7 +105,7 @@ class ShimmerList extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.05),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
@@ -124,19 +124,19 @@ class ShimmerList extends StatelessWidget {
                     Container(
                       height: 14,
                       width: double.infinity,
-                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.05),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       height: 10,
                       width: 80,
-                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.05),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       height: 10,
                       width: 50,
-                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.05),
                     ),
                   ],
                 ),

@@ -97,7 +97,7 @@ class EmptyState extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Text(effectiveButtonText!),
+                          child: Text(effectiveButtonText),
                         ),
                       )
                     : const SizedBox.shrink(),

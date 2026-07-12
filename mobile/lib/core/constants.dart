@@ -24,6 +24,7 @@ const String kRegisterInitEndpoint = '/api/users/register/init/';
 const String kRegisterVerifyEndpoint = '/api/users/register/verify/';
 const String kLoginEndpoint = '/api/users/login/';
 const String kProfileEndpoint = '/api/users/profile/';
+const String kProfileAvatarEndpoint = '/api/users/profile/avatar/';
 const String kForgotPasswordInitEndpoint = '/api/users/password-reset/init/';
 const String kForgotPasswordVerifyEndpoint = '/api/users/password-reset/verify/';
 const String kRefreshTokenEndpoint = '/api/token/refresh/';

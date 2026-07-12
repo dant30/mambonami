@@ -13,9 +13,7 @@ class CacheManager {
   }
 
   Future<bool> _ensureInitialized() async {
-    if (_preferences == null) {
-      _preferences = await SharedPreferences.getInstance();
-    }
+    _preferences ??= await SharedPreferences.getInstance();
     return _preferences != null;
   }
 

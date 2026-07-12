@@ -1,4 +1,5 @@
 /// Dispute DTOs for creating and managing disputes
+library;
 
 // ============ CREATE DISPUTE REQUEST ============
 class CreateDisputeRequest {

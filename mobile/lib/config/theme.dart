@@ -24,7 +24,6 @@ ThemeData buildTheme(ThemeData themeData) {
   return themeData.copyWith(
     textTheme: themed,
     primaryTextTheme: GoogleFonts.interTextTheme(themeData.primaryTextTheme),
-    useMaterial3: true,
     scaffoldBackgroundColor: themeData.scaffoldBackgroundColor,
     appBarTheme: themeData.appBarTheme.copyWith(
       titleTextStyle: themed.titleLarge,

@@ -1,4 +1,5 @@
-﻿import 'package:firebase_messaging/firebase_messaging.dart';
+﻿import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
@@ -129,6 +130,12 @@ class NotificationService {
         },
       );
       debugPrint('[NotificationService] FCM token saved successfully');
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) {
+        debugPrint('[NotificationService] FCM token endpoint not available on backend; skipping');
+      } else {
+        debugPrint('[NotificationService] Failed to save FCM token: $error');
+      }
     } catch (error, stackTrace) {
       debugPrint('[NotificationService] Failed to save FCM token: $error');
       debugPrint(stackTrace.toString());

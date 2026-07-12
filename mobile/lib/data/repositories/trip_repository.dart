@@ -35,7 +35,10 @@ class TripRepository {
   Future<List<Trip>> getMyTrips() async {
     try {
       final response = await _apiClient.dio.get('/api/logistics/my-trips/');
-        return normalizeList<Map<String, dynamic>>(response.data).map(Trip.fromJson).toList();
+      final payload = response.data is Map<String, dynamic> && (response.data as Map<String, dynamic>).containsKey('results')
+          ? response.data['results']
+          : response.data;
+      return normalizeList<Map<String, dynamic>>(payload).map(Trip.fromJson).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -59,8 +62,9 @@ class TripRepository {
         final payload = data.toJson();
         // Add non-file fields
         payload.forEach((k, v) {
-          if (k != 'pickup_photo' && v != null)
+          if (k != 'pickup_photo' && v != null) {
             form.fields.add(MapEntry(k, v.toString()));
+          }
         });
         // Attach file
         final file = File(data.photoPath!);
@@ -87,8 +91,9 @@ class TripRepository {
         final form = FormData();
         final payload = data.toJson();
         payload.forEach((k, v) {
-          if (k != 'delivery_photo' && v != null)
+          if (k != 'delivery_photo' && v != null) {
             form.fields.add(MapEntry(k, v.toString()));
+          }
         });
         final file = File(data.photoPath!);
         form.files.add(MapEntry(

@@ -12,7 +12,7 @@ class OrderRepository {
 
   Future<Map<String, dynamic>> createOrder(CreateOrderRequest request) async {
     try {
-      final response = await _apiClient.dio.post('/api/orders/cart/create-order/', data: request.toJson());
+      final response = await _apiClient.dio.post('/api/orders/create/', data: request.toJson());
       return normalizeMap(response.data);
     } catch (e) {
       throw _handleError(e);
@@ -22,7 +22,10 @@ class OrderRepository {
   Future<List<Order>> fetchMyOrders() async {
     try {
       final response = await _apiClient.dio.get('/api/orders/');
-      return normalizeList<Map<String, dynamic>>(response.data).map(Order.fromJson).toList();
+      final payload = response.data is Map<String, dynamic> && (response.data as Map<String, dynamic>).containsKey('results')
+          ? response.data['results']
+          : response.data;
+      return normalizeList<Map<String, dynamic>>(payload).map(Order.fromJson).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -37,11 +40,26 @@ class OrderRepository {
     }
   }
 
+  Future<Order?> fetchActiveOrder() async {
+    try {
+      final response = await _apiClient.dio.get('/api/orders/active/');
+      if (response.statusCode == 200 && response.data != null) {
+        return Order.fromJson(normalizeMap(response.data));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Farmer endpoints
   Future<List<SubOrder>> fetchFarmerSubOrders() async {
     try {
-      final response = await _apiClient.dio.get('/api/orders/farmer/suborders/');
-      return normalizeList<Map<String, dynamic>>(response.data).map(SubOrder.fromJson).toList();
+      final response = await _apiClient.dio.get('/api/orders/suborders/');
+      final payload = response.data is Map<String, dynamic> && (response.data as Map<String, dynamic>).containsKey('results')
+          ? response.data['results']
+          : response.data;
+      return normalizeList<Map<String, dynamic>>(payload).map(SubOrder.fromJson).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -49,7 +67,7 @@ class OrderRepository {
 
   Future<void> confirmSubOrder(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/confirm/', data: {'action': 'confirm'});
+      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/confirm/', data: {'action': 'confirm'});
     } catch (e) {
       throw _handleError(e);
     }
@@ -57,7 +75,7 @@ class OrderRepository {
 
   Future<void> rejectSubOrder(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/confirm/', data: {'action': 'reject'});
+      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/confirm/', data: {'action': 'reject'});
     } catch (e) {
       throw _handleError(e);
     }
@@ -65,7 +83,7 @@ class OrderRepository {
 
   Future<void> markSubOrderReady(int subOrderId) async {
     try {
-      await _apiClient.dio.post('/api/orders/suborder/$subOrderId/ready/');
+      await _apiClient.dio.post('/api/orders/suborders/$subOrderId/ready/');
     } catch (e) {
       throw _handleError(e);
     }
@@ -73,7 +91,7 @@ class OrderRepository {
 
   Future<SubOrder> fetchFarmerSubOrder(int subOrderId) async {
     try {
-      final response = await _apiClient.dio.get('/api/orders/farmer/suborders/$subOrderId/');
+      final response = await _apiClient.dio.get('/api/orders/suborders/$subOrderId/');
       return SubOrder.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);

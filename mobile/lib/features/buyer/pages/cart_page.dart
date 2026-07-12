@@ -28,7 +28,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     final groups = _cartRepo.itemsGroupedByFarmer;
     final subtotal = _cartRepo.subtotal;
-    final deliveryFee = 150.0;
+    const deliveryFee = 150.0;
     final platformFee = (subtotal * 0.05).roundToDouble();
     final total = subtotal + deliveryFee + platformFee;
 
@@ -143,7 +143,7 @@ class _CartPageState extends State<CartPage> {
                   const SizedBox(height: 6),
                   _SummaryRow('Platform fee',
                       'KES ${platformFee.toStringAsFixed(0)}'),
-                  Divider(
+                  const Divider(
                       height: 20,
                       color: AppColors.light,
                       thickness: 1.5),

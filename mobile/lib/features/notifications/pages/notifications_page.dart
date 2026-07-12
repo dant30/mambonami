@@ -121,7 +121,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             return RefreshIndicator(
               onRefresh: _refresh,
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 itemCount: groupedItems.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
@@ -278,7 +278,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

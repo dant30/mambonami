@@ -109,7 +109,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       Container(
                         width: 64,
                         height: 64,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.lg,
                         ),

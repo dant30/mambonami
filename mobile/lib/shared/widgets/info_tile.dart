@@ -51,7 +51,7 @@ class InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final borderRadius = AppRadius.lg;
+    const borderRadius = AppRadius.lg;
 
     // ── Leading widget ──────────────────────────────────────────────────────
     Widget? leadingWidget;
@@ -64,7 +64,7 @@ class InfoTile extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.12),
+          color: theme.colorScheme.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -83,7 +83,7 @@ class InfoTile extends StatelessWidget {
       trailingWidget = Icon(
         Icons.chevron_right_rounded,
         size: 20,
-        color: theme.colorScheme.onSurface.withOpacity(0.5),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
       );
     }
 
@@ -107,7 +107,7 @@ class InfoTile extends StatelessWidget {
                 borderRadius: borderRadius,
                 border: showBorder
                     ? Border.all(
-                        color: theme.colorScheme.outline.withOpacity(0.5),
+                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
                         width: 0.8,
                       )
                     : null,
@@ -142,7 +142,7 @@ class InfoTile extends StatelessWidget {
                             subtitle!,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                               height: 1.35,
                             ),
                           ),

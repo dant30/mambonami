@@ -23,11 +23,17 @@ class AppBottomNavigationBar extends StatelessWidget {
       return 0;
     }
     if (normalizedLocation == RoutePaths.notifications ||
-        normalizedLocation.startsWith('${RoutePaths.notifications}/')) return 1;
+        normalizedLocation.startsWith('${RoutePaths.notifications}/')) {
+      return 1;
+    }
     if (normalizedLocation == RoutePaths.support ||
-        normalizedLocation.startsWith('${RoutePaths.support}/')) return 2;
+        normalizedLocation.startsWith('${RoutePaths.support}/')) {
+      return 2;
+    }
     if (normalizedLocation == RoutePaths.profile ||
-        normalizedLocation.startsWith('${RoutePaths.profile}/')) return 3;
+        normalizedLocation.startsWith('${RoutePaths.profile}/')) {
+      return 3;
+    }
     return 0;
   }
 

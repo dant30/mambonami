@@ -59,7 +59,6 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _lastName;
   String? _username;
   String? _role;
-  String? _location;
   Map<String, dynamic>? _transportProfile;
   Map<String, dynamic>? _farmProfile;
 
@@ -109,12 +108,11 @@ class _ProfilePageState extends State<ProfilePage> {
           : null;
 
       setState(() {
-        _profileImageUrl = profile['profile_image']?.toString();
+        _profileImageUrl = _resolveProfileImage(profile);
         _selectedAvatarFile = null;
         _firstName = profile['first_name']?.toString();
         _lastName = profile['last_name']?.toString();
         _username = profile['username']?.toString();
-        _location = profile['location']?.toString();
       });
     } catch (e) {
       CustomSnackbar.showError(context, 'Failed to load profile: ${e.toString()}');
@@ -178,12 +176,12 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final api = GetIt.I<ApiClient>();
       final formData = FormData.fromMap({
-        'profile_image': await MultipartFile.fromFile(
+        'avatar': await MultipartFile.fromFile(
           file.path,
           filename: file.path.split(Platform.pathSeparator).last,
         ),
       });
-      await api.dio.patch(kProfileEndpoint, data: formData);
+      await api.dio.patch(kProfileAvatarEndpoint, data: formData);
       setState(() {
         _selectedAvatarFile = file;
       });
@@ -279,6 +277,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
+  String? _resolveProfileImage(Map<String, dynamic> profile) {
+    for (final key in const ['profile_image', 'profileImage', 'avatar_url', 'avatarUrl', 'avatar']) {
+      final value = profile[key]?.toString();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return null;
+  }
+
   String get _displayName {
     final full = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
     return full.isNotEmpty ? full : (_username ?? 'User');
@@ -330,8 +336,6 @@ class _ProfilePageState extends State<ProfilePage> {
   // ─── Build ───────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
@@ -736,7 +740,7 @@ class _ProfilePageState extends State<ProfilePage> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
+            color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: AppRadius.medium,
           ),
           child: Icon(icon, color: AppColors.primary, size: 20),

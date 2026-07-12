@@ -24,12 +24,12 @@ class WelcomePage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 28, 20, 44),
             decoration: BoxDecoration(
               gradient: isDark
-                  ? LinearGradient(
+                  ? const LinearGradient(
                       colors: [AppColors.primaryDark, AppColors.secondaryDark],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
-                  : LinearGradient(
+                  : const LinearGradient(
                       colors: [AppColors.primary, AppColors.secondary],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -47,7 +47,7 @@ class WelcomePage extends StatelessWidget {
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withValues(alpha: 0.08),
                     ),
                   ),
                 ),
@@ -59,7 +59,7 @@ class WelcomePage extends StatelessWidget {
                     height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.goldAccent.withOpacity(0.08),
+                      color: AppColors.goldAccent.withValues(alpha: 0.08),
                     ),
                   ),
                 ),
@@ -73,7 +73,7 @@ class WelcomePage extends StatelessWidget {
                           Container(
                             width: 56,
                             height: 56,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Colors.white,
                               borderRadius: AppRadius.large,
                             ),
@@ -84,7 +84,7 @@ class WelcomePage extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'MAMBONAMI',
                                 style: TextStyle(
                                   fontSize: 22,
@@ -97,7 +97,7 @@ class WelcomePage extends StatelessWidget {
                                 'Fresh from farm to your door',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -121,7 +121,7 @@ class WelcomePage extends StatelessWidget {
                               placeholder: (_, __) => Container(
                                 height: 180,
                                 width: double.infinity,
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 child: const Center(
                                   child: CircularProgressIndicator(
                                     color: Colors.white,
@@ -132,8 +132,8 @@ class WelcomePage extends StatelessWidget {
                               errorWidget: (_, __, ___) => Container(
                                 height: 180,
                                 width: double.infinity,
-                                color: Colors.white.withOpacity(0.2),
-                                child: Icon(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                child: const Icon(
                                   Icons.image_not_supported,
                                   color: Colors.white60,
                                   size: 48,
@@ -151,16 +151,16 @@ class WelcomePage extends StatelessWidget {
                                 borderRadius: AppRadius.mdRadius,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
+                                    color: Colors.black.withValues(alpha: 0.12),
                                     blurRadius: 14,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
-                                  const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                                  const SizedBox(width: 8),
+                                  Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                  SizedBox(width: 8),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -215,12 +215,12 @@ class WelcomePage extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.foregroundDark.withOpacity(0.7) : AppColors.textMuted,
+                      color: isDark ? AppColors.foregroundDark.withValues(alpha: 0.7) : AppColors.textMuted,
                       height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _RoleIcon(asset: 'assets/icons/farmer_icon.png', label: 'Farmer'),
@@ -248,7 +248,7 @@ class WelcomePage extends StatelessWidget {
                       text: 'By continuing you agree to our ',
                       style: TextStyle(
                         fontSize: 10,
-                        color: isDark ? AppColors.foregroundDark.withOpacity(0.6) : AppColors.textMuted,
+                        color: isDark ? AppColors.foregroundDark.withValues(alpha: 0.6) : AppColors.textMuted,
                       ),
                       children: [
                         TextSpan(
@@ -287,7 +287,7 @@ class _RoleIcon extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: AppRadius.lgRadius,
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 2))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 2))],
           ),
           padding: const EdgeInsets.all(8),
           child: Image.asset(asset),

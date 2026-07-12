@@ -13,6 +13,7 @@ class CreateOrderEvent extends OrderEvent {
 }
 
 class FetchMyOrdersEvent extends OrderEvent {}
+class FetchActiveOrderEvent extends OrderEvent {}
 class FetchOrderDetailEvent extends OrderEvent {
   final String uuid;
   const FetchOrderDetailEvent(this.uuid);

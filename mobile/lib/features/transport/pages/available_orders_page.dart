@@ -7,8 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/trip/trip_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/trip.dart';
-import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/custom_card.dart';

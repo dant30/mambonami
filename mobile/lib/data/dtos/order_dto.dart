@@ -1,4 +1,5 @@
 /// Request/Response DTOs for Order API operations
+library;
 
 // ============ CREATE ORDER REQUEST ============
 class CreateOrderRequest {

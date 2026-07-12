@@ -7,11 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/trip/trip_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
-import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/role_dashboard_widgets.dart';
 import '../widgets/trip_card.dart'; // assumes you have a TripCard widget
 

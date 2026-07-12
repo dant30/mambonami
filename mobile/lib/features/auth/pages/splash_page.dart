@@ -127,7 +127,7 @@ class _SplashPageState extends State<SplashPage>
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withValues(alpha: 0.08),
                     ),
                   ),
                 ),
@@ -139,7 +139,7 @@ class _SplashPageState extends State<SplashPage>
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.08),
+                      color: AppColors.gold.withValues(alpha: 0.08),
                     ),
                   ),
                 ),
@@ -152,7 +152,7 @@ class _SplashPageState extends State<SplashPage>
                     height: 160,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                     ),
                   ),
                 ),
@@ -173,10 +173,10 @@ class _SplashPageState extends State<SplashPage>
                               width: 112,
                               height: 112,
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: AppRadius.extraExtraLarge,
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
                                     color: Colors.black26,
                                     blurRadius: 30,
@@ -206,7 +206,7 @@ class _SplashPageState extends State<SplashPage>
                             Text(
                               'Fresh from farm to your door',
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withOpacity(0.84),
+                                color: Colors.white.withValues(alpha: 0.84),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -225,7 +225,7 @@ class _SplashPageState extends State<SplashPage>
                                   decoration: BoxDecoration(
                                     color: active
                                         ? Colors.white
-                                        : Colors.white.withOpacity(0.45),
+                                        : Colors.white.withValues(alpha: 0.45),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                 );

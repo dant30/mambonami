@@ -240,7 +240,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Category',
                         style: TextStyle(
                           fontSize: 13,
@@ -250,7 +250,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<ProductCategory>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
@@ -402,7 +402,7 @@ class _UnitDropdown extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Unit',
             style: TextStyle(
               fontSize: 13,
@@ -412,7 +412,7 @@ class _UnitDropdown extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,

@@ -82,7 +82,7 @@ class _SuccessPageState extends State<SuccessPage>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.40),
+                        color: AppColors.primary.withValues(alpha: 0.40),
                         blurRadius: 40,
                         offset: const Offset(0, 16),
                       ),

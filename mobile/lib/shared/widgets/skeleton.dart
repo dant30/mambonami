@@ -34,7 +34,7 @@ class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStat
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
         ),
       ),
@@ -58,10 +58,10 @@ class SkeletonList extends StatelessWidget {
         children: [
           SkeletonBox(width: 56, height: 56, borderRadius: BorderRadius.circular(8)),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 SkeletonBox(height: 12),
                 SizedBox(height: 8),
                 SkeletonBox(height: 12),

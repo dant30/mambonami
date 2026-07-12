@@ -257,7 +257,7 @@ class _SupportPageState extends State<SupportPage> {
 
                           // Issue type dropdown
                           DropdownButtonFormField<String>(
-                            value: _issueType,
+                            initialValue: _issueType,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: isDark
@@ -318,7 +318,7 @@ class _SupportPageState extends State<SupportPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.check_circle_rounded,
                                     color: AppColors.success,
                                     size: 20,

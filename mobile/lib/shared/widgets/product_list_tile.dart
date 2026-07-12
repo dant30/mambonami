@@ -30,7 +30,7 @@ class ProductListTile extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: theme.colorScheme.primary.withOpacity(0.05),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
                 ),
                 child: product.imageUrl != null && product.imageUrl!.isNotEmpty
                     ? ClipRRect(
@@ -77,7 +77,7 @@ class ProductListTile extends StatelessWidget {
                     Text(
                       product.category.name,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -94,7 +94,7 @@ class ProductListTile extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withOpacity(0.08),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
