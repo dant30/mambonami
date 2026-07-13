@@ -33,6 +33,14 @@ app.conf.beat_schedule = {
         'task': 'apps.logistics.tasks.cleanup_expired_otp',
         'schedule': 1800.0,   # every 30 minutes
     },
+    'check-low-stock-products': {
+        'task': 'apps.products.tasks.check_low_stock_products',
+        'schedule': crontab(hour='*/6', minute=0),
+    },
+    'check-expiring-products': {
+        'task': 'apps.products.tasks.check_expiring_products',
+        'schedule': crontab(hour='*/6', minute=15),
+    },
 }
 
 @setup_logging.connect

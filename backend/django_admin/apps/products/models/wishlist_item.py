@@ -1,3 +1,4 @@
+# backend/django_admin/apps/products/models/wishlist_item.py
 from django.db import models
 from django.conf import settings
 from shared.db_models.base import BaseModel

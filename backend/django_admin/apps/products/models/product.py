@@ -34,6 +34,13 @@ class Product(BaseModel):
     )
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     available_quantity = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    min_stock_level = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text="Minimum quantity threshold before low-stock alerts are raised"
+    )
     reserved_quantity = models.DecimalField(
         max_digits=12, decimal_places=2, default=0,
         validators=[MinValueValidator(0)],
