@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/users/serializers/user_serializer.py
 import logging
+from django.db import IntegrityError, transaction
 from django.conf import settings
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
@@ -166,18 +167,27 @@ class VerifyOTPSerializer(serializers.Serializer):
         kra_pin = validated_data.pop('kra_pin', '')
         business_registration_number = validated_data.pop('business_registration_number', '')
 
-        # Create user
-        user = User.objects.create_user(
-            phone=validated_data['phone'],
-            username=validated_data['username'],
-            password=validated_data['password'],
-            role=validated_data['role'],
-            email=email,
-            national_id=national_id,
-            is_phone_verified=True,
-            account_status=AccountStatus.PENDING,
-            kyc_status=KycStatus.PENDING,
-        )
+        # Create user (handle possible race that creates a duplicate between validation and save)
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    phone=validated_data['phone'],
+                    username=validated_data['username'],
+                    password=validated_data['password'],
+                    role=validated_data['role'],
+                    email=email,
+                    national_id=national_id,
+                    is_phone_verified=True,
+                    account_status=AccountStatus.PENDING,
+                    kyc_status=KycStatus.PENDING,
+                )
+        except IntegrityError:
+            # Another process may have created the user after validation; try to return that user instead
+            logger.warning('IntegrityError while creating user during verify; attempting to fetch existing user for phone=%s', validated_data.get('phone'))
+            user = User.objects.filter(phone=validated_data.get('phone')).first()
+            if not user:
+                # If we couldn't find the user, re-raise to let the view handle/log it
+                raise
 
         # Set name
         if full_name and user.role in [Role.FARMER, Role.BUYER, Role.TRANSPORT_PROVIDER]:
