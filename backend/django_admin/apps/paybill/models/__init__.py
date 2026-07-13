@@ -3,10 +3,14 @@ from .transaction import PayBillTransaction
 from .mpesa_callback import MpesaCallback
 from .account_number import AccountNumberReservation
 from .float_adjustment import FloatAdjustment
+from .settlement import PayBillSettlement
+from .allocation import PaymentAllocation
 
 __all__ = [
     'PayBillTransaction',
     'MpesaCallback',
     'AccountNumberReservation',
     'FloatAdjustment',
+    'PayBillSettlement',
+    'PaymentAllocation',
 ]

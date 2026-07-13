@@ -4,14 +4,16 @@ import logging
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 
 from apps.paybill.permissions import CanViewPayBillTransactions
 from apps.paybill.services.ipn_handler import IPNHandler
+from apps.paybill.services.reconciliation import get_estimated_float_balance
 from apps.paybill.serializers import IPNCallbackSerializer, PayBillTransactionSerializer
-from apps.paybill.models import PayBillTransaction
+from apps.paybill.serializers.settlement_serializer import SettlementSerializer
+from apps.paybill.models import PayBillTransaction, PayBillSettlement
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +61,26 @@ class PayBillTransactionListView(APIView):
         transactions = PayBillTransaction.objects.all().order_by('-created_at')
         serializer = PayBillTransactionSerializer(transactions, many=True)
         return Response(serializer.data)
+
+
+class PayBillSettlementListView(APIView):
+    """
+    Admin-only: list all PayBill settlements.
+    """
+    permission_classes = [CanViewPayBillTransactions]
+
+    def get(self, request):
+        settlements = PayBillSettlement.objects.all().order_by('-settlement_date')
+        serializer = SettlementSerializer(settlements, many=True)
+        return Response(serializer.data)
+
+
+class FloatBalanceView(APIView):
+    """
+    Admin-only: return the current estimated PayBill float balance.
+    """
+    permission_classes = [CanViewPayBillTransactions]
+
+    def get(self, request):
+        balance = get_estimated_float_balance()
+        return Response({'float_balance': str(balance)})

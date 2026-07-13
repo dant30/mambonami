@@ -63,7 +63,7 @@ class AuthRepository {
   }) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
-      final data = {
+      final Map<String, dynamic> data = {
         'phone': normalizedPhone,
         'otp': otp,
         'username': username,
@@ -75,7 +75,21 @@ class AuthRepository {
       if (fullName != null && fullName.isNotEmpty) data['full_name'] = fullName;
       if (ownerFullName != null && ownerFullName.isNotEmpty) data['owner_full_name'] = ownerFullName;
       if (nationalId != null && nationalId.isNotEmpty) data['national_id'] = nationalId;
-      if (farmGps != null && farmGps.isNotEmpty) data['farm_gps'] = farmGps;
+      if (farmGps != null && farmGps.isNotEmpty) {
+        final parts = farmGps.split(',');
+        if (parts.length == 2) {
+          final latitude = double.tryParse(parts[0].trim());
+          final longitude = double.tryParse(parts[1].trim());
+          if (latitude != null && longitude != null) {
+            data['latitude'] = latitude;
+            data['longitude'] = longitude;
+          } else {
+            data['farm_gps'] = farmGps;
+          }
+        } else {
+          data['farm_gps'] = farmGps;
+        }
+      }
       if (mpesaNumber != null && mpesaNumber.isNotEmpty) data['mpesa_number'] = mpesaNumber;
       if (cooperative != null && cooperative.isNotEmpty) data['cooperative'] = cooperative;
       if (vehicleType != null && vehicleType.isNotEmpty) data['vehicle_type'] = vehicleType;

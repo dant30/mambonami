@@ -1,6 +1,8 @@
 # backend/django_admin/apps/paybill/models/account_number.py
 from django.db import models
+from django.conf import settings
 from shared.db_models.base import BaseModel
+
 
 class AccountNumberReservation(BaseModel):
     """
@@ -35,6 +37,16 @@ class AccountNumberReservation(BaseModel):
         help_text="If set, this account number is no longer valid after this time"
     )
     is_used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When this account number was actually used in a payment"
+    )
+    reserved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        help_text="User who reserved this account number"
+    )
 
     class Meta:
         db_table = 'account_number_reservations'

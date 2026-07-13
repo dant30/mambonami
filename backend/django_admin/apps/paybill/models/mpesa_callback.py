@@ -1,12 +1,20 @@
-﻿# MpesaCallback model for idempotency
-# backend/django_admin/apps/paybill/models/mpesa_callback.py
+﻿# backend/django_admin/apps/paybill/models/mpesa_callback.py
 from django.db import models
+from shared.db_models.base import BaseModel
 
-class MpesaCallback(models.Model):
+
+class MpesaCallback(BaseModel):
     """
     Idempotency table for M-Pesa IPN callbacks.
     Primary key is the TransactionCode from Safaricom.
     """
+    # Remove inherited auto PK, uuid, and timestamps from BaseModel when this model
+    # uses a domain-specific primary key and custom processing timestamp.
+    id = None
+    uuid = None
+    created_at = None
+    updated_at = None
+
     transaction_code = models.CharField(
         max_length=50,
         primary_key=True,
@@ -16,13 +24,21 @@ class MpesaCallback(models.Model):
         null=True, blank=True,
         help_text="Order ID (internal) that this payment corresponds to"
     )
-    processed_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Timestamp when this callback was first processed"
-    )
     callback_payload = models.JSONField(
         default=dict,
         help_text="Full raw payload received from Safaricom (for debugging)"
+    )
+    is_processed = models.BooleanField(
+        default=False,
+        help_text="Whether this callback has been fully processed"
+    )
+    processing_attempts = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of processing attempts (for retries)"
+    )
+    processed_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Timestamp when processing completed"
     )
 
     class Meta:

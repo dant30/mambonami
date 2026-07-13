@@ -33,19 +33,18 @@ def get_estimated_float_balance() -> Decimal:
 def reconcile_orphaned_transactions():
     """
     Attempt to re-match orphaned PayBill transactions to orders.
-    This can be called by a management command or admin action.
     """
     orphaned = PayBillTransaction.objects.filter(status='orphaned')
     for txn in orphaned:
-        # Try to match again (maybe order was created after IPN arrived)
         if txn.account_number.startswith('ORD-'):
             try:
                 order_id = int(txn.account_number.split('-')[1])
-                if Order.objects.filter(id=order_id).exists():
+                order = Order.objects.filter(id=order_id).first()
+                if order:
+                    txn.matched_order = order
                     txn.status = 'matched'
-                    txn.matched_order_id = order_id
-                    txn.save(update_fields=['status', 'matched_order_id'])
-                    logger.info(f"Re-matched transaction {txn.transaction_code} to order {order_id}")
+                    txn.save(update_fields=['matched_order', 'status'])
+                    logger.info(f"Re-matched transaction {txn.transaction_code} to order {order.id}")
             except (IndexError, ValueError):
                 continue
 
