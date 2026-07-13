@@ -54,9 +54,9 @@ class DeclineSubOrderEvent extends OrderEvent {
 // Transport provider events
 class FetchAvailableOrdersEvent extends OrderEvent {}
 class AssignToOrderEvent extends OrderEvent {
-  final int orderId;
-  const AssignToOrderEvent(this.orderId);
-  @override List<Object> get props => [orderId];
+  final String tripUuid;
+  const AssignToOrderEvent(this.tripUuid);
+  @override List<Object> get props => [tripUuid];
 }
 class GenerateOTPEvent extends OrderEvent {
   final String tripUuid;

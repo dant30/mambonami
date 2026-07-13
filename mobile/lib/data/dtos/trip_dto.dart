@@ -27,6 +27,36 @@ class TripDeliveryDto {
       };
 }
 
+class TripLocationPingDto {
+  final double latitude;
+  final double longitude;
+  final int? heading;
+  final double? speedKmh;
+  final int? accuracyM;
+  final int? altitudeM;
+  final int? batteryLevel;
+
+  TripLocationPingDto({
+    required this.latitude,
+    required this.longitude,
+    this.heading,
+    this.speedKmh,
+    this.accuracyM,
+    this.altitudeM,
+    this.batteryLevel,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'latitude': latitude,
+        'longitude': longitude,
+        if (heading != null) 'heading': heading,
+        if (speedKmh != null) 'speed_kmh': speedKmh,
+        if (accuracyM != null) 'accuracy_m': accuracyM,
+        if (altitudeM != null) 'altitude_m': altitudeM,
+        if (batteryLevel != null) 'battery_level': batteryLevel,
+      };
+}
+
 class GenerateOtpResponse {
   final String otp;
   final int expiresIn;

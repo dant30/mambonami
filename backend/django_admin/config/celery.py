@@ -21,6 +21,18 @@ app.conf.beat_schedule = {
         'task': 'apps.analytics.tasks.aggregate_today_metrics',
         'schedule': crontab(hour=0, minute=5),  # 00:05 every day
     },
+    'update-provider-reliability': {
+        'task': 'apps.logistics.tasks.update_provider_reliability_metrics',
+        'schedule': 86400.0,  # once per day
+    },
+    'auto-cancel-stale-trips': {
+        'task': 'apps.logistics.tasks.auto_cancel_unassigned_trips',
+        'schedule': 3600.0,   # every hour
+    },
+    'cleanup-expired-otp': {
+        'task': 'apps.logistics.tasks.cleanup_expired_otp',
+        'schedule': 1800.0,   # every 30 minutes
+    },
 }
 
 @setup_logging.connect

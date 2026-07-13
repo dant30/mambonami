@@ -42,7 +42,7 @@ class TripCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Order: #${trip.order}',
+                          'Trip: ${trip.uuid.substring(0, trip.uuid.length > 8 ? 8 : trip.uuid.length)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.62),
@@ -123,7 +123,7 @@ class TripCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              if (trip.deliveredAt != null)
+              if (trip.completedAt != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Row(
@@ -133,7 +133,7 @@ class TripCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Delivered: ${trip.deliveredAt?.toLocal().toString().split('.')[0] ?? 'N/A'}',
+                          'Delivered: ${trip.completedAt?.toLocal().toString().split('.')[0] ?? 'N/A'}',
                           style: theme.textTheme.labelSmall,
                           overflow: TextOverflow.ellipsis,
                         ),

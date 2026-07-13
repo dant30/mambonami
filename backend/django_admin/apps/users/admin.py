@@ -96,11 +96,15 @@ class FarmerProfileAdmin(admin.ModelAdmin):
 class TransportProviderProfileAdmin(admin.ModelAdmin):
     list_display = (
         'user', 'vehicle_type', 'capacity_kg', 'base_rate_per_km',
-        'deposit_paid', 'is_approved', 'rating'
+        'deposit_paid', 'is_approved', 'rating', 'acceptance_rate',
+        'completion_rate', 'on_time_percentage'
     )
     list_filter = ('vehicle_type', 'deposit_paid', 'is_approved')
     search_fields = ('user__phone', 'license_plate')
-    readonly_fields = ('rating', 'rating_count', 'total_deliveries')
+    readonly_fields = (
+        'rating', 'rating_count', 'total_deliveries', 'acceptance_rate',
+        'completion_rate', 'on_time_percentage'
+    )
     fieldsets = (
         ('Provider Info', {
             'fields': ('user', 'vehicle_type', 'license_plate', 'driver_license', 'bank_account')
@@ -121,7 +125,7 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
             'fields': ('current_latitude', 'current_longitude', 'is_online', 'available')
         }),
         ('Performance', {
-            'fields': ('rating', 'rating_count', 'total_deliveries'),
+            'fields': ('rating', 'rating_count', 'total_deliveries', 'acceptance_rate', 'completion_rate', 'on_time_percentage'),
             'classes': ('collapse',)
         }),
     )

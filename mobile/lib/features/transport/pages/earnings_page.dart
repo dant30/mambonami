@@ -40,8 +40,8 @@ class _TransportEarningsPageState extends State<TransportEarningsPage> {
           }
 
           final trips = state is MyTripsLoaded ? state.trips : <Trip>[];
-          final completed = trips.where((trip) => trip.deliveredAt != null).toList();
-          final active = trips.where((trip) => trip.deliveredAt == null).toList();
+          final completed = trips.where((trip) => trip.completedAt != null).toList();
+          final active = trips.where((trip) => trip.completedAt == null).toList();
           final total = _totalEarnings(completed);
           final pending = _totalEarnings(active);
 

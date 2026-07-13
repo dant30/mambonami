@@ -9,9 +9,9 @@ abstract class TripEvent extends Equatable {
 class FetchAvailableOrdersEvent extends TripEvent {}
 
 class AssignOrderEvent extends TripEvent {
-  final int orderId;
-  const AssignOrderEvent(this.orderId);
-  @override List<Object> get props => [orderId];
+  final String tripUuid;
+  const AssignOrderEvent(this.tripUuid);
+  @override List<Object> get props => [tripUuid];
 }
 
 class FetchMyTripsEvent extends TripEvent {}

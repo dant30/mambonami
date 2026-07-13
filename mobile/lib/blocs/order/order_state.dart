@@ -54,8 +54,8 @@ class AvailableOrdersLoaded extends OrderState {
   const AvailableOrdersLoaded(this.orders);
 }
 class OrderAssigned extends OrderState {
-  final int orderId;
-  const OrderAssigned(this.orderId);
+  final String tripUuid;
+  const OrderAssigned(this.tripUuid);
 }
 class OTPGenerated extends OrderState {
   final String otp;

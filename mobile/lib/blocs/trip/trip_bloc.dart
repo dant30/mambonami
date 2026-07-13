@@ -39,7 +39,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
       AssignOrderEvent event, Emitter<TripState> emit) async {
     emit(TripLoading());
     try {
-      final trip = await tripRepository.assignToMe(event.orderId);
+      final trip = await tripRepository.assignToMe(event.tripUuid);
       emit(TripAssigned(trip));
     } catch (e) {
       emit(TripError(e.toString()));

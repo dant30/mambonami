@@ -127,7 +127,7 @@ class _AvailableOrdersPageState extends State<AvailableOrdersPage> {
                                 onAccept: () {
                                   context
                                       .read<TripBloc>()
-                                      .add(AssignOrderEvent(trip.order));
+                                      .add(AssignOrderEvent(trip.uuid));
                                 },
                               ),
                             ),

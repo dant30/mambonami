@@ -28,6 +28,22 @@ const String kProfileAvatarEndpoint = '/api/users/profile/avatar/';
 const String kForgotPasswordInitEndpoint = '/api/users/password-reset/init/';
 const String kForgotPasswordVerifyEndpoint = '/api/users/password-reset/verify/';
 const String kRefreshTokenEndpoint = '/api/token/refresh/';
+const String kPasswordChangeEndpoint = '/api/users/password-change/';
+
+// Logistics endpoints
+const String kAvailableOrdersEndpoint = '/api/logistics/orders/available/';
+const String kMyTripsEndpoint = '/api/logistics/my-trips/';
+const String kTripDetailEndpoint = '/api/logistics/my-trips/';
+const String kTripAssignEndpoint = '/api/logistics/trips/';
+const String kTripPickupEndpoint = '/api/logistics/trips/';
+const String kTripStartPickupNavEndpoint = '/api/logistics/trips/';
+const String kTripArrivePickupEndpoint = '/api/logistics/trips/';
+const String kTripStartDeliveryNavEndpoint = '/api/logistics/trips/';
+const String kTripArriveDeliveryEndpoint = '/api/logistics/trips/';
+const String kTripGenerateOtpEndpoint = '/api/logistics/trips/';
+const String kTripVerifyOtpEndpoint = '/api/logistics/trips/';
+const String kTripLocationEndpoint = '/api/logistics/my-trips/';
+const String kTripMediaEndpoint = '/api/logistics/my-trips/';
 
 // Notification constants
 const String kNotificationChannelId = 'mambonami_channel';
@@ -49,7 +65,4 @@ const String kCartItemTable = 'cart_items';
 const String kAddressTable = 'saved_addresses';
 // Product cache TTL
 const Duration kProductCacheTTL = Duration(hours: 6);
-
-// Auth endpoints
-const String kPasswordChangeEndpoint = '/api/users/password-change/';
 

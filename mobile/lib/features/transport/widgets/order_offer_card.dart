@@ -88,7 +88,7 @@ class _OrderOfferCardState extends State<OrderOfferCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #${trip.order}',
+                        'Trip ${trip.uuid.substring(0, trip.uuid.length > 8 ? 8 : trip.uuid.length)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),

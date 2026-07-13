@@ -108,9 +108,9 @@ class OrderRepository {
     }
   }
 
-  Future<void> assignToOrder(int orderId) async {
+  Future<void> assignToOrder(String tripUuid) async {
     try {
-      await _apiClient.dio.post('/api/logistics/orders/$orderId/assign/');
+      await _apiClient.dio.post('/api/logistics/trips/$tripUuid/assign/');
     } catch (e) {
       throw _handleError(e);
     }
@@ -119,7 +119,7 @@ class OrderRepository {
   // Delivery OTP
   Future<String> generateOTP(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('/api/logistics/my-trips/$tripUuid/generate-otp/');
+      final response = await _apiClient.dio.post('/api/logistics/trips/$tripUuid/generate-otp/');
       return stringValue(normalizeMap(response.data)['otp']);
     } catch (e) {
       throw _handleError(e);

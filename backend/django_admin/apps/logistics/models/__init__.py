@@ -1,3 +1,10 @@
-﻿from .trip import Trip
+﻿from .trip import Trip, TripStatus, TripStatusHistory, TripLocationPing, TripMedia
 
-__all__ = ['Trip']
+__all__ = [
+    'Trip',
+    'TripStatus',
+    'TripStatusHistory',
+    'TripLocationPing',
+    'TripMedia',
+]
+

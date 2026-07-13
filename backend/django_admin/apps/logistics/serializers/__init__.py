@@ -4,6 +4,10 @@
     TripPickupSerializer,
     TripDeliverSerializer,
     OTPVerifySerializer,
+    TripStatusHistorySerializer,
+    TripLocationPingSerializer,
+    TripMediaUploadSerializer,
+    TripMediaSerializer,
 )
 
 __all__ = [
@@ -12,4 +16,8 @@ __all__ = [
     'TripPickupSerializer',
     'TripDeliverSerializer',
     'OTPVerifySerializer',
+    'TripStatusHistorySerializer',
+    'TripLocationPingSerializer',
+    'TripMediaUploadSerializer',
+    'TripMediaSerializer',
 ]

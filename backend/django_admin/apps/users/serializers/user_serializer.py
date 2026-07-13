@@ -398,6 +398,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'waiting_rate_per_min': p.waiting_rate_per_min,
                 'is_online': p.is_online,
                 'available': p.available,
+                'acceptance_rate': p.acceptance_rate,
+                'completion_rate': p.completion_rate,
+                'on_time_percentage': p.on_time_percentage,
             }
         return None
 

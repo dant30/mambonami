@@ -112,7 +112,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               ),
             ),
             const SizedBox(height: 12),
-            if (trip.driverName != null || trip.vehiclePlate != null || trip.etaMinutes != null || trip.distanceKm != null)
+            if (trip.driverName != null || trip.vehiclePlate != null || trip.etaMinutes != null || trip.distanceKm != null || trip.straightLineKm != null || trip.roadKm != null)
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
@@ -125,6 +125,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                     _buildInfoChip(Icons.access_time, '${trip.etaMinutes!} min ETA'),
                   if (trip.distanceKm != null)
                     _buildInfoChip(Icons.route_outlined, '${trip.distanceKm!.toStringAsFixed(1)} km'),
+                  if (trip.straightLineKm != null)
+                    _buildInfoChip(Icons.straighten, '${trip.straightLineKm!.toStringAsFixed(1)} km straight'),
+                  if (trip.roadKm != null)
+                    _buildInfoChip(Icons.map_outlined, '${trip.roadKm!.toStringAsFixed(1)} km road'),
                 ],
               ),
             const SizedBox(height: 12),

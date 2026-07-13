@@ -2,18 +2,13 @@
 from rest_framework import serializers
 from django.utils.timesince import timesince
 from math import radians, cos, sin, asin, sqrt
-from ..models import Trip
+from ..models import Trip, TripStatusHistory, TripLocationPing, TripMedia
 from apps.orders.serializers import OrderSerializer
 
+
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees) in kilometers
-    """
-    # Convert decimal degrees to radians
+    """Haversine distance as fallback when road distance is unavailable."""
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    
-    # Haversine formula
     dlat = lat2 - lat1
     dlon = lon2 - lon1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
@@ -21,19 +16,49 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     km = 6371 * c
     return km
 
+
+class TripStatusHistorySerializer(serializers.ModelSerializer):
+    actor_phone = serializers.CharField(source='actor.phone', read_only=True, default=None)
+
+    class Meta:
+        model = TripStatusHistory
+        fields = ('status', 'changed_at', 'location_lat', 'location_lng', 
+                  'battery_level', 'speed_kmh', 'actor', 'actor_phone', 'source', 'note', 'ip_address')
+
+
+class TripLocationPingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripLocationPing
+        fields = ('id', 'latitude', 'longitude', 'heading', 'speed_kmh', 
+                  'accuracy_m', 'altitude_m', 'battery_level', 'timestamp')
+
+
+class TripMediaSerializer(serializers.ModelSerializer):
+    uploaded_by_phone = serializers.CharField(source='uploaded_by.phone', read_only=True, default=None)
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+    class Meta:
+        model = TripMedia
+        fields = ('id', 'media_type', 'image_url', 'uploaded_by', 'uploaded_by_phone', 
+                  'uploaded_at', 'latitude', 'longitude', 'caption', 'is_verified')
+
+
 class TripSerializer(serializers.ModelSerializer):
-    # ── Existing nested fields ──
+    # ── Nested relations ──
     order_detail = OrderSerializer(source='order', read_only=True)
     provider_detail = serializers.SerializerMethodField()
-    pickupLocation = serializers.SerializerMethodField()
-    deliveryLocation = serializers.SerializerMethodField()
-    distanceKm = serializers.SerializerMethodField()
-    etaMinutes = serializers.SerializerMethodField()
-    date = serializers.SerializerMethodField()
+    status_history = TripStatusHistorySerializer(source='status_history', many=True, read_only=True)
+    location_pings = TripLocationPingSerializer(source='location_pings', many=True, read_only=True)
+    media = TripMediaSerializer(source='media', many=True, read_only=True)
 
-    # ── New computed display fields ──
+    # ── Computed display fields ──
     order_id = serializers.SerializerMethodField()
-    fee = serializers.DecimalField(source='agreed_fee', decimal_places=2, max_digits=10)
     delivery_location = serializers.CharField(source='order.delivery_address', read_only=True)
 
     driver_name = serializers.CharField(source='provider.user.display_name', read_only=True)
@@ -41,6 +66,11 @@ class TripSerializer(serializers.ModelSerializer):
     driver_avatar_url = serializers.SerializerMethodField()
     driver_rating = serializers.FloatField(source='provider.rating', read_only=True)
     vehicle_label = serializers.SerializerMethodField()
+
+    # ── Timings ──
+    total_duration_minutes = serializers.SerializerMethodField()
+    pickup_delay_minutes = serializers.SerializerMethodField()
+    driving_time_minutes = serializers.SerializerMethodField()
 
     def get_order_id(self, obj):
         return f"ORD-{obj.order.id}"
@@ -56,6 +86,7 @@ class TripSerializer(serializers.ModelSerializer):
         if obj.provider:
             return f"{obj.provider.get_vehicle_type_display()} · {obj.provider.license_plate}"
         return None
+
     def get_provider_detail(self, obj):
         if obj.provider:
             return {
@@ -63,51 +94,29 @@ class TripSerializer(serializers.ModelSerializer):
                 'vehicle_type': obj.provider.vehicle_type,
                 'license_plate': obj.provider.license_plate,
                 'rating': obj.provider.rating,
+                'on_time_percentage': obj.provider.on_time_percentage,
+                'acceptance_rate': obj.provider.acceptance_rate,
+                'completion_rate': obj.provider.completion_rate,
             }
         return None
-    
-    def get_pickupLocation(self, obj):
-        """Return pickup location as address string. Falls back to coordinates."""
-        if obj.order and obj.order.delivery_address:
-            return obj.order.delivery_address
-        if obj.pickup_lat and obj.pickup_lng:
-            return f"{obj.pickup_lat},{obj.pickup_lng}"
-        return "TBD"
-    
-    def get_deliveryLocation(self, obj):
-        """Return delivery location as address string. Falls back to coordinates."""
-        if obj.order and obj.order.delivery_address:
-            return obj.order.delivery_address
-        if obj.delivery_lat and obj.delivery_lng:
-            return f"{obj.delivery_lat},{obj.delivery_lng}"
-        return "TBD"
-    
-    def get_distanceKm(self, obj):
-        """Calculate distance between pickup and delivery using Haversine formula."""
-        if obj.pickup_lat and obj.pickup_lng and obj.delivery_lat and obj.delivery_lng:
-            try:
-                distance = haversine_distance(
-                    float(obj.pickup_lat), float(obj.pickup_lng),
-                    float(obj.delivery_lat), float(obj.delivery_lng)
-                )
-                return round(distance, 2)
-            except:
-                return None
+
+    def get_total_duration_minutes(self, obj):
+        if obj.completed_at and obj.accepted_at:
+            delta = obj.completed_at - obj.accepted_at
+            return int(delta.total_seconds() / 60)
         return None
-    
-    def get_etaMinutes(self, obj):
-        """Estimate ETA based on distance and average speed (40 km/h in Kenya)."""
-        distance = self.get_distanceKm(obj)
-        if distance:
-            # Assume average speed of 40 km/h
-            hours = distance / 40
-            minutes = int(hours * 60)
-            return max(10, minutes)  # Minimum 10 minutes
+
+    def get_pickup_delay_minutes(self, obj):
+        if obj.picked_up_at and obj.arrived_pickup_at:
+            delta = obj.picked_up_at - obj.arrived_pickup_at
+            return max(0, int(delta.total_seconds() / 60))
+        return 0
+
+    def get_driving_time_minutes(self, obj):
+        if obj.arrived_delivery_at and obj.left_pickup_at:
+            delta = obj.arrived_delivery_at - obj.left_pickup_at
+            return int(delta.total_seconds() / 60)
         return None
-    
-    def get_date(self, obj):
-        """Return formatted date of trip creation."""
-        return obj.created_at.strftime('%d %b %Y')
 
     class Meta:
         model = Trip
@@ -115,44 +124,89 @@ class TripSerializer(serializers.ModelSerializer):
             'id', 'uuid', 'order', 'order_detail', 'order_id',
             'provider', 'provider_detail',
             'status',
+            # Location
             'pickup_lat', 'pickup_lng', 'delivery_lat', 'delivery_lng',
-            'pickup_address', 'distance_km', 'eta_minutes',
-            'agreed_fee', 'fee', 'waiting_surcharge',
-            'pickup_photo', 'delivery_photo',
-            'accepted_at', 'arrived_at_farm', 'picked_up_at', 'delivered_at',
+            'current_lat', 'current_lng',
+            'pickup_address', 'delivery_address',
+            'straight_line_km', 'road_km', 'eta_minutes',
+            # Fees
+            'base_fee', 'distance_fee', 'weight_fee', 'waiting_fee', 'surge_fee',
+            'commission', 'provider_payout', 'platform_fee', 'buyer_total',
+            # Legacy (kept for compatibility)
+            'agreed_fee', 'waiting_surcharge',
+            # Vehicle snapshot
+            'vehicle_type', 'vehicle_plate', 'vehicle_make', 'vehicle_model',
+            # Timestamps
+            'created_at_trip', 'offered_at', 'accepted_at',
+            'started_navigation_pickup', 'arrived_pickup_at', 'picked_up_at',
+            'left_pickup_at', 'started_navigation_delivery', 'arrived_delivery_at',
+            'otp_verified_at', 'completed_at', 'cancelled_at', 'failed_at',
+            # Audit
+            'assigned_by', 'accepted_device', 'completed_device', 'ip_address',
+            # Cancellation / failure
+            'cancel_reason', 'cancelled_by', 'failure_reason',
+            # Delivery
+            'delivery_notes', 'buyer_signature',
+            # Ratings
+            'buyer_rating', 'provider_rating',
+            # Driver info
             'driver_name', 'driver_phone', 'driver_avatar_url', 'driver_rating',
             'vehicle_label', 'delivery_location',
-            'otp_code', 'otp_expires_at', 'otp_attempts',
+            # OTP
+            'otp_hash', 'otp_expires_at', 'otp_attempts',
+            # Nested
+            'status_history', 'location_pings', 'media',
+            # Computed timings
+            'total_duration_minutes', 'pickup_delay_minutes', 'driving_time_minutes',
             'created_at', 'updated_at'
         )
         read_only_fields = (
             'id', 'uuid', 'created_at', 'updated_at',
-            'otp_code', 'otp_expires_at', 'otp_attempts',
-            'agreed_fee', 'waiting_surcharge', 'accepted_at',
-            'distance_km', 'eta_minutes'   # these are computed/assigned programmatically
+            'created_at_trip', 'offered_at', 'accepted_at',
+            'started_navigation_pickup', 'arrived_pickup_at', 'picked_up_at',
+            'left_pickup_at', 'started_navigation_delivery', 'arrived_delivery_at',
+            'otp_verified_at', 'completed_at', 'cancelled_at', 'failed_at',
+            'otp_hash', 'otp_expires_at', 'otp_attempts',
+            'status_history', 'location_pings', 'media',
+            'total_duration_minutes', 'pickup_delay_minutes', 'driving_time_minutes'
         )
 
 
+# ── Existing serializers (unchanged) ──
 class TripAssignSerializer(serializers.Serializer):
-    """Used to assign a transport provider to a trip."""
     provider_id = serializers.IntegerField()
     order_id = serializers.IntegerField()
 
 
 class TripPickupSerializer(serializers.Serializer):
-    """Provider marks pickup and uploads photo."""
     pickup_lat = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
     pickup_lng = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
     pickup_photo = serializers.ImageField(required=False)
 
 
 class TripDeliverSerializer(serializers.Serializer):
-    """Provider generates OTP; buyer verifies."""
     delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
     delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
     delivery_photo = serializers.ImageField(required=False)
 
 
 class OTPVerifySerializer(serializers.Serializer):
-    """Buyer enters OTP to confirm delivery."""
     otp = serializers.CharField(max_length=6)
+
+
+class TripLocationPingSerializer(serializers.Serializer):
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+    heading = serializers.IntegerField(min_value=0, max_value=359, required=False)
+    speed_kmh = serializers.DecimalField(max_digits=5, decimal_places=2, required=False)
+    accuracy_m = serializers.IntegerField(min_value=0, required=False)
+    altitude_m = serializers.IntegerField(min_value=0, required=False)
+    battery_level = serializers.IntegerField(min_value=0, max_value=100, required=False)
+
+
+class TripMediaUploadSerializer(serializers.Serializer):
+    media_type = serializers.ChoiceField(choices=TripMedia.MEDIA_TYPES)
+    image = serializers.ImageField()
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
+    caption = serializers.CharField(max_length=255, required=False, allow_blank=True)

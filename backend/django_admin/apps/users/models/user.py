@@ -406,6 +406,29 @@ class TransportProviderProfile(BaseModel):
     )
     last_location_update = models.DateTimeField(null=True, blank=True)
 
+    # ── Reliability metrics (cached) ───────────────────────────
+    on_time_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=100.0)
+    acceptance_rate = models.DecimalField(max_digits=5, decimal_places=2, default=100.0)
+    completion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=100.0)
+
+    def update_reliability_metrics(self):
+        from apps.logistics.models import Trip
+
+        total_offered = Trip.objects.filter(provider=self).count()
+        total_accepted = Trip.objects.filter(provider=self, status__in=['accepted', 'picked_up', 'delivered']).count()
+        total_delivered = Trip.objects.filter(provider=self, status='delivered').count()
+
+        on_time = Trip.objects.filter(
+            provider=self,
+            status='delivered',
+            delivered_at__lte=models.F('order__scheduled_date')
+        ).count()
+
+        self.acceptance_rate = (total_accepted / total_offered * 100) if total_offered > 0 else 0
+        self.completion_rate = (total_delivered / total_accepted * 100) if total_accepted > 0 else 0
+        self.on_time_percentage = (on_time / total_delivered * 100) if total_delivered > 0 else 100.0
+        self.save(update_fields=['acceptance_rate', 'completion_rate', 'on_time_percentage'])
+
     class Meta:
         db_table = 'transport_provider_profiles'
         verbose_name = 'Transport Provider Profile'

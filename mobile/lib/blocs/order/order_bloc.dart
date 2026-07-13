@@ -159,8 +159,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   Future<void> _onAssignToOrder(AssignToOrderEvent event, Emitter<OrderState> emit) async {
     emit(OrderLoading());
     try {
-      await orderRepository.assignToOrder(event.orderId);
-      emit(OrderAssigned(event.orderId));
+      await orderRepository.assignToOrder(event.tripUuid);
+      emit(OrderAssigned(event.tripUuid));
     } catch (e) {
       emit(OrderError(e.toString()));
     }

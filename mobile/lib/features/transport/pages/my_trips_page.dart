@@ -153,11 +153,11 @@ class _TripsSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completed = trips.where((t) => t.status == 'completed').length;
-    final active = trips.where((t) => t.status == 'assigned' || t.status == 'picked_up').length;
+    final completed = trips.where((t) => t.status.toLowerCase() == 'delivered').length;
+    final active = trips.where((t) => ['accepted','assigned','picked_up','en_route_pickup','en_route_delivery','arrived_pickup','arrived_delivery','otp_pending'].contains(t.status.toLowerCase())).length;
     final totalEarned = trips
-        .where((t) => t.status == 'completed')
-        .fold<double>(0, (sum, t) => sum + (t.fee ?? 0));
+        .where((t) => t.status.toLowerCase() == 'delivered')
+        .fold<double>(0, (sum, t) => sum + (t.agreedFee ?? 0));
 
     return DashboardStatStrip(
       stats: [
