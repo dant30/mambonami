@@ -61,7 +61,17 @@ LOGGING['root']['handlers'] = ['file']
 
 # Celery broker – use production Redis URL
 CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost:6379/0')
-CACHES['default']['LOCATION'] = env('REDIS_URL', default='redis://localhost:6379/0')
+
+# Ensure production uses Redis for Django cache (OTP and other shared cache state)
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env('REDIS_URL', default='redis://localhost:6379/0'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
 
 # M-Pesa – use production credentials
 MPESA_ENVIRONMENT = 'production'
