@@ -34,16 +34,30 @@ class _MapPickerPageState extends State<MapPickerPage> {
   }
 
   Future<void> _initializeLocation() async {
-    if (widget.initialLocation != null) {
-      _selectedLocation = widget.initialLocation!;
-      _selectedAddress = widget.initialAddress ?? await widget.geocodingRepository.reverseGeocode(_selectedLocation);
-    } else {
-      // Get current GPS
-      final pos = await Geolocator.getCurrentPosition();
-      _selectedLocation = LatLng(pos.latitude, pos.longitude);
-      _selectedAddress = await widget.geocodingRepository.reverseGeocode(_selectedLocation);
+    try {
+      if (widget.initialLocation != null) {
+        _selectedLocation = widget.initialLocation!;
+        _selectedAddress = widget.initialAddress ??
+            await widget.geocodingRepository.reverseGeocode(_selectedLocation);
+      } else {
+        final permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          await Geolocator.requestPermission();
+        }
+
+        final pos = await Geolocator.getCurrentPosition();
+        _selectedLocation = LatLng(pos.latitude, pos.longitude);
+        _selectedAddress =
+            await widget.geocodingRepository.reverseGeocode(_selectedLocation);
+      }
+    } catch (_) {
+      _selectedAddress = widget.initialAddress ?? 'Location unavailable';
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-    setState(() => _isLoading = false);
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -93,7 +107,8 @@ class _MapPickerPageState extends State<MapPickerPage> {
           if (!_isLoading)
             GoogleMap(
               onMapCreated: _onMapCreated,
-              initialCameraPosition: CameraPosition(target: _selectedLocation, zoom: 15),
+              initialCameraPosition:
+                  CameraPosition(target: _selectedLocation, zoom: 15),
               onCameraMove: _onCameraMove,
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
@@ -121,7 +136,8 @@ class _MapPickerPageState extends State<MapPickerPage> {
                     decoration: InputDecoration(
                       hintText: 'Search address...',
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onSubmitted: _searchAddress,
                   ),

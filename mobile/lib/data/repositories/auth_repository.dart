@@ -73,8 +73,10 @@ class AuthRepository {
       };
       if (email != null && email.isNotEmpty) data['email'] = email;
       if (fullName != null && fullName.isNotEmpty) data['full_name'] = fullName;
-      if (ownerFullName != null && ownerFullName.isNotEmpty) data['owner_full_name'] = ownerFullName;
-      if (nationalId != null && nationalId.isNotEmpty) data['national_id'] = nationalId;
+      if (ownerFullName != null && ownerFullName.isNotEmpty)
+        data['owner_full_name'] = ownerFullName;
+      if (nationalId != null && nationalId.isNotEmpty)
+        data['national_id'] = nationalId;
       if (farmGps != null && farmGps.isNotEmpty) {
         final parts = farmGps.split(',');
         if (parts.length == 2) {
@@ -90,22 +92,36 @@ class AuthRepository {
           data['farm_gps'] = farmGps;
         }
       }
-      if (mpesaNumber != null && mpesaNumber.isNotEmpty) data['mpesa_number'] = mpesaNumber;
-      if (cooperative != null && cooperative.isNotEmpty) data['cooperative'] = cooperative;
-      if (vehicleType != null && vehicleType.isNotEmpty) data['vehicle_type'] = vehicleType;
-      if (licensePlate != null && licensePlate.isNotEmpty) data['license_plate'] = licensePlate;
-      if (driverLicense != null && driverLicense.isNotEmpty) data['driver_license'] = driverLicense;
-      if (bankAccount != null && bankAccount.isNotEmpty) data['bank_account'] = bankAccount;
-      if (deliveryAddress != null && deliveryAddress.isNotEmpty) data['delivery_address'] = deliveryAddress;
-      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) data['delivery_instructions'] = deliveryInstructions;
-      if (businessName != null && businessName.isNotEmpty) data['business_name'] = businessName;
-      if (businessPhone != null && businessPhone.isNotEmpty) data['business_phone'] = businessPhone;
-      if (businessEmail != null && businessEmail.isNotEmpty) data['business_email'] = businessEmail;
-      if (businessAddress != null && businessAddress.isNotEmpty) data['business_address'] = businessAddress;
-      if (businessType != null && businessType.isNotEmpty) data['business_type'] = businessType;
+      if (mpesaNumber != null && mpesaNumber.isNotEmpty)
+        data['mpesa_number'] = mpesaNumber;
+      if (cooperative != null && cooperative.isNotEmpty)
+        data['cooperative'] = cooperative;
+      if (vehicleType != null && vehicleType.isNotEmpty)
+        data['vehicle_type'] = vehicleType;
+      if (licensePlate != null && licensePlate.isNotEmpty)
+        data['license_plate'] = licensePlate;
+      if (driverLicense != null && driverLicense.isNotEmpty)
+        data['driver_license'] = driverLicense;
+      if (bankAccount != null && bankAccount.isNotEmpty)
+        data['bank_account'] = bankAccount;
+      if (deliveryAddress != null && deliveryAddress.isNotEmpty)
+        data['delivery_address'] = deliveryAddress;
+      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty)
+        data['delivery_instructions'] = deliveryInstructions;
+      if (businessName != null && businessName.isNotEmpty)
+        data['business_name'] = businessName;
+      if (businessPhone != null && businessPhone.isNotEmpty)
+        data['business_phone'] = businessPhone;
+      if (businessEmail != null && businessEmail.isNotEmpty)
+        data['business_email'] = businessEmail;
+      if (businessAddress != null && businessAddress.isNotEmpty)
+        data['business_address'] = businessAddress;
+      if (businessType != null && businessType.isNotEmpty)
+        data['business_type'] = businessType;
       if (kraPin != null && kraPin.isNotEmpty) data['kra_pin'] = kraPin;
 
-      final response = await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
+      final response =
+          await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
       if (response.statusCode == 201) {
         final responseData = normalizeMap(response.data);
         final tokens = normalizeMap(responseData['tokens']);
@@ -116,10 +132,13 @@ class AuthRepository {
           throw Exception('Missing tokens in registration response');
         }
         await _secureStorage.saveTokens(accessToken, refreshToken);
-        await _secureStorage.saveUserRole(stringValue(user['role'], fallback: role));
-        await _secureStorage.saveUserPhone(stringValue(user['phone'], fallback: normalizedPhone));
+        await _secureStorage
+            .saveUserRole(stringValue(user['role'], fallback: role));
+        await _secureStorage.saveUserPhone(
+            stringValue(user['phone'], fallback: normalizedPhone));
         await _cacheManager.saveJson(kCachedProfileKey, user);
-        await _databaseHelper.insertOrUpdateRecord(kUserTable, stringValue(user['phone'], fallback: normalizedPhone), user);
+        await _databaseHelper.insertOrUpdateRecord(kUserTable,
+            stringValue(user['phone'], fallback: normalizedPhone), user);
         return user;
       }
       throw Exception('Registration failed');
@@ -139,7 +158,9 @@ class AuthRepository {
         },
       );
 
-      if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300) {
         return;
       }
 
@@ -160,7 +181,8 @@ class AuthRepository {
         return login(normalizedPhone, password);
       }
 
-      throw Exception('OTP verification is not supported by the current backend; use password login instead.');
+      throw Exception(
+          'OTP verification is not supported by the current backend; use password login instead.');
     } catch (e) {
       throw _handleError(e);
     }
@@ -184,7 +206,8 @@ class AuthRepository {
     }
   }
 
-  Future<Map<String, dynamic>> _persistAuthenticatedUser(dynamic responseData, String normalizedPhone) async {
+  Future<Map<String, dynamic>> _persistAuthenticatedUser(
+      dynamic responseData, String normalizedPhone) async {
     final data = normalizeMap(responseData);
     if (data.isEmpty) {
       throw Exception('Invalid response format from server');
@@ -212,7 +235,8 @@ class AuthRepository {
     await _secureStorage.saveUserRole(userRole);
     await _secureStorage.saveUserPhone(formattedPhone);
     await _cacheManager.saveJson(kCachedProfileKey, user);
-    await _databaseHelper.insertOrUpdateRecord(kUserTable, formattedPhone, user);
+    await _databaseHelper.insertOrUpdateRecord(
+        kUserTable, formattedPhone, user);
 
     return user;
   }
@@ -231,7 +255,8 @@ class AuthRepository {
           await _cacheManager.saveJson(kCachedProfileKey, profile);
           final userId = stringValue(profile['phone']);
           if (userId.isNotEmpty) {
-            await _databaseHelper.insertOrUpdateRecord(kUserTable, userId, profile);
+            await _databaseHelper.insertOrUpdateRecord(
+                kUserTable, userId, profile);
           }
           return profile;
         }
@@ -248,6 +273,11 @@ class AuthRepository {
       if (cached != null) {
         return cached;
       }
+
+      if (e is DioException && e.response?.statusCode == 401) {
+        throw Exception('Authentication required. Please log in again.');
+      }
+
       throw _handleError(e);
     }
   }
@@ -255,7 +285,8 @@ class AuthRepository {
   Future<void> forgotPasswordInit(String phone) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
-      final response = await _apiClient.dio.post(kForgotPasswordInitEndpoint, data: {
+      final response =
+          await _apiClient.dio.post(kForgotPasswordInitEndpoint, data: {
         'phone': normalizedPhone,
       });
       if (response.statusCode != 200) {
@@ -266,10 +297,12 @@ class AuthRepository {
     }
   }
 
-  Future<void> forgotPasswordVerify(String phone, String otp, String newPassword) async {
+  Future<void> forgotPasswordVerify(
+      String phone, String otp, String newPassword) async {
     try {
       final normalizedPhone = _normalizePhoneNumber(phone);
-      final response = await _apiClient.dio.post(kForgotPasswordVerifyEndpoint, data: {
+      final response =
+          await _apiClient.dio.post(kForgotPasswordVerifyEndpoint, data: {
         'phone': normalizedPhone,
         'otp': otp,
         'new_password': newPassword,
@@ -333,11 +366,15 @@ class AuthRepository {
       normalized['profile_image'] = avatarUrl;
     }
 
-    final fullName = stringValue(normalized['full_name'] ?? normalized['fullName']);
+    final fullName =
+        stringValue(normalized['full_name'] ?? normalized['fullName']);
     if (fullName.isEmpty) {
       final firstName = stringValue(normalized['first_name']);
       final lastName = stringValue(normalized['last_name']);
-      final combined = [firstName, lastName].where((value) => value.isNotEmpty).join(' ').trim();
+      final combined = [firstName, lastName]
+          .where((value) => value.isNotEmpty)
+          .join(' ')
+          .trim();
       if (combined.isNotEmpty) {
         normalized['full_name'] = combined;
       }
@@ -347,7 +384,8 @@ class AuthRepository {
       normalized['display_name'] = normalized['full_name'];
     }
 
-    final location = stringValue(normalized['location'] ?? normalized['address'] ?? normalized['city']);
+    final location = stringValue(
+        normalized['location'] ?? normalized['address'] ?? normalized['city']);
     if (location.isNotEmpty) {
       normalized['location'] = location;
     }
@@ -394,7 +432,9 @@ class AuthRepository {
               ? serverMessage
               : 'Invalid phone number or password';
         case 409:
-          return serverMessage.isNotEmpty ? serverMessage : 'User already exists';
+          return serverMessage.isNotEmpty
+              ? serverMessage
+              : 'User already exists';
         case 429:
           return 'Too many login attempts. Please try again later.';
         case 500:
@@ -408,12 +448,12 @@ class AuthRepository {
           return 'Network error: ${error.message}';
       }
     }
-    
+
     // Handle validation errors from response parsing
     if (error is Exception) {
       print('AuthRepository Exception: ${error.toString()}');
     }
-    
+
     return error.toString();
   }
 

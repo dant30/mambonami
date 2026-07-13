@@ -349,15 +349,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
     buyer_profile = serializers.SerializerMethodField()
     retailer_profile = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
-    full_name = serializers.CharField(source='full_name', read_only=True)
-    display_name = serializers.CharField(source='display_name', read_only=True)
+    full_name = serializers.CharField(read_only=True)
+    display_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
-            'is_id_verified', 'account_status', 'kyc_status', 'avatar', 'avatar_url',
+            'account_status', 'kyc_status', 'avatar', 'avatar_url',
             'is_staff', 'is_superuser', 'date_joined', 'last_seen',
             'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
