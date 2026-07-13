@@ -6,6 +6,7 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
+import '../../../shared/utils/form_validators.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 
@@ -19,6 +20,9 @@ class TransportRegisterPage extends StatefulWidget {
 class _TransportRegisterPageState extends State<TransportRegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _idController = TextEditingController();
   final _licensePlateController = TextEditingController();
@@ -35,6 +39,9 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _phoneController.dispose();
     _idController.dispose();
     _licensePlateController.dispose();
@@ -55,7 +62,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
         } else if (state is RegisterSuccess) {
           ctx.go(RoutePaths.success, extra: 'transport');
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(ctx)
+              .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -86,7 +94,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                           color: AppColors.lightGreen,
                           borderRadius: AppRadius.xl,
                         ),
-                        child: Image.asset('assets/icons/transport_icon.png', width: 48, height: 48),
+                        child: Image.asset('assets/icons/transport_icon.png',
+                            width: 48, height: 48),
                       ),
                       Positioned(
                         bottom: -4,
@@ -98,7 +107,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                             color: AppColors.primaryGreen,
                             borderRadius: AppRadius.lg,
                           ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                          child: const Icon(Icons.camera_alt,
+                              color: Colors.white, size: 16),
                         ),
                       ),
                     ],
@@ -109,7 +119,33 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   controller: _fullNameController,
                   label: 'Full Name',
                   hint: 'David Ochieng',
-                  validator: (v) => v == null || v.isEmpty ? 'Enter full name' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter full name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'davidok',
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter a username' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: FormValidators.validatePassword,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: (value) => FormValidators.validateConfirmPassword(
+                      value, _passwordController.text.trim()),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -117,19 +153,27 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   label: 'Phone Number',
                   hint: '+254 7XX XXX XXX',
                   keyboardType: TextInputType.phone,
-                  prefixIcon: const Icon(Icons.phone_rounded, color: AppColors.textMuted, size: 18),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter phone number' : null,
+                  prefixIcon: const Icon(Icons.phone_rounded,
+                      color: AppColors.textMuted, size: 18),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter phone number' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _idController,
                   label: 'National ID Number',
                   hint: '12345678',
-                  prefixIcon: const Icon(Icons.file_present_outlined, color: AppColors.textMuted, size: 18),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter ID number' : null,
+                  prefixIcon: const Icon(Icons.file_present_outlined,
+                      color: AppColors.textMuted, size: 18),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter ID number' : null,
                 ),
                 const SizedBox(height: 16),
-                const Text('Vehicle Type', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
+                const Text('Vehicle Type',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryGreen)),
                 const SizedBox(height: 8),
                 GridView.count(
                   shrinkWrap: true,
@@ -141,28 +185,36 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   children: _vehicles.map((v) {
                     final isSelected = _selectedVehicle == v['label'];
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedVehicle = v['label']!),
+                      onTap: () =>
+                          setState(() => _selectedVehicle = v['label']!),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.lightGreen : Colors.white,
+                          color:
+                              isSelected ? AppColors.lightGreen : Colors.white,
                           borderRadius: AppRadius.xl,
                           border: Border.all(
-                            color: isSelected ? AppColors.primaryGreen : AppColors.primaryGreen.withValues(alpha: 0.15),
+                            color: isSelected
+                                ? AppColors.primaryGreen
+                                : AppColors.primaryGreen
+                                    .withValues(alpha: 0.15),
                             width: isSelected ? 2 : 1,
                           ),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(v['emoji'], style: const TextStyle(fontSize: 28)),
+                            Text(v['emoji'],
+                                style: const TextStyle(fontSize: 28)),
                             const SizedBox(height: 6),
                             Text(
                               v['label']!,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? AppColors.primaryGreen : AppColors.textMuted,
+                                color: isSelected
+                                    ? AppColors.primaryGreen
+                                    : AppColors.textMuted,
                               ),
                             ),
                           ],
@@ -176,14 +228,16 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   controller: _licensePlateController,
                   label: 'License Plate',
                   hint: 'KAA 000A',
-                  validator: (v) => v == null || v.isEmpty ? 'Enter license plate' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter license plate' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _licenseNumberController,
                   label: 'Driver License Number',
                   hint: 'A000000Z',
-                  validator: (v) => v == null || v.isEmpty ? 'Enter driver license' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter driver license' : null,
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -191,23 +245,28 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF8E7),
                     borderRadius: AppRadius.xl,
-                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: AppColors.goldAccent.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: AppColors.goldAccent),
+                          Icon(Icons.warning_amber_rounded,
+                              color: AppColors.goldAccent),
                           SizedBox(width: 8),
-                          Text('Refundable Deposit: KES 500', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          Text('Refundable Deposit: KES 500',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 14)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         'Pay via M-Pesa PayBill 123456, Account: DEP-TRANSPORT-{your_id}. '
                         'Fully refunded via B2C when you leave in good standing.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        style:
+                            TextStyle(fontSize: 11, color: AppColors.textMuted),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -217,9 +276,13 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.goldAccent,
                           minimumSize: const Size(double.infinity, 44),
-                          shape: const RoundedRectangleBorder(borderRadius: AppRadius.md),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: AppRadius.md),
                         ),
-                        child: const Text('Pay Deposit via M-Pesa', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+                        child: const Text('Pay Deposit via M-Pesa',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white)),
                       ),
                     ],
                   ),
@@ -233,18 +296,23 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           ctx.read<AuthBloc>().add(
-                            RegisterRequested(
-                              dto: {
-                                'role': 'transport_provider',
-                                'phone': _phoneController.text.trim(),
-                                'full_name': _fullNameController.text.trim(),
-                                'national_id': _idController.text.trim(),
-                                'vehicle_type': _selectedVehicle,
-                                'license_plate': _licensePlateController.text.trim(),
-                                'driver_license': _licenseNumberController.text.trim(),
-                              },
-                            ),
-                          );
+                                RegisterRequested(
+                                  dto: {
+                                    'role': 'transport_provider',
+                                    'username': _usernameController.text.trim(),
+                                    'password': _passwordController.text.trim(),
+                                    'phone': _phoneController.text.trim(),
+                                    'full_name':
+                                        _fullNameController.text.trim(),
+                                    'national_id': _idController.text.trim(),
+                                    'vehicle_type': _selectedVehicle,
+                                    'license_plate':
+                                        _licensePlateController.text.trim(),
+                                    'driver_license':
+                                        _licenseNumberController.text.trim(),
+                                  },
+                                ),
+                              );
                         }
                       },
                     );
@@ -265,8 +333,14 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Step $step of 4', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-            Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+            Text('Step $step of 4',
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark)),
           ],
         ),
         const SizedBox(height: 6),

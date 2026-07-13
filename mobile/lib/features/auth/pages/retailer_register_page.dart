@@ -7,6 +7,7 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
+import '../../../shared/utils/form_validators.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 
@@ -19,6 +20,9 @@ class RetailerRegisterPage extends StatefulWidget {
 
 class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _ownerNameController = TextEditingController();
@@ -37,6 +41,9 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _phoneController.dispose();
     _businessNameController.dispose();
     _ownerNameController.dispose();
@@ -124,7 +131,33 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                   controller: _businessNameController,
                   label: 'Business Name',
                   hint: 'Kamau Fresh Groceries',
-                  validator: (v) => v == null || v.isEmpty ? 'Enter business name' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter business name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'kamaufresh',
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter a username' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: FormValidators.validatePassword,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: (value) => FormValidators.validateConfirmPassword(
+                      value, _passwordController.text.trim()),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -137,14 +170,16 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     color: AppColors.textMuted,
                     size: 18,
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter phone number' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter phone number' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _ownerNameController,
                   label: 'Owner Full Name',
                   hint: 'James Kamau',
-                  validator: (v) => v == null || v.isEmpty ? 'Enter owner name' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter owner name' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -157,7 +192,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     color: AppColors.textMuted,
                     size: 18,
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter business phone' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter business phone' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -186,7 +222,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     color: AppColors.textMuted,
                     size: 18,
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter business address' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter business address' : null,
                 ),
                 const SizedBox(height: 16),
                 // Business Type Dropdown
@@ -224,9 +261,12 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                         },
                         decoration: const InputDecoration(
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
                         ),
-                        validator: (_) => _selectedBusinessType.isEmpty ? 'Select a business type' : null,
+                        validator: (_) => _selectedBusinessType.isEmpty
+                            ? 'Select a business type'
+                            : null,
                       ),
                     ),
                   ],
@@ -246,22 +286,30 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           ctx.read<AuthBloc>().add(
-                            RegisterRequested(
-                              dto: {
-                                'role': 'retailer',
-                                'phone': _phoneController.text.trim(),
-                                'business_name': _businessNameController.text.trim(),
-                                'owner_full_name': _ownerNameController.text.trim(),
-                                'business_phone': _businessPhoneController.text.trim(),
-                                'business_email': _businessEmailController.text.trim(),
-                                'business_address': _businessAddressController.text.trim(),
-                                'business_type': _selectedBusinessType,
-                                'kra_pin': _kraPinController.text.trim().isEmpty
-                                    ? null
-                                    : _kraPinController.text.trim(),
-                              },
-                            ),
-                          );
+                                RegisterRequested(
+                                  dto: {
+                                    'role': 'retailer',
+                                    'username': _usernameController.text.trim(),
+                                    'password': _passwordController.text.trim(),
+                                    'phone': _phoneController.text.trim(),
+                                    'business_name':
+                                        _businessNameController.text.trim(),
+                                    'owner_full_name':
+                                        _ownerNameController.text.trim(),
+                                    'business_phone':
+                                        _businessPhoneController.text.trim(),
+                                    'business_email':
+                                        _businessEmailController.text.trim(),
+                                    'business_address':
+                                        _businessAddressController.text.trim(),
+                                    'business_type': _selectedBusinessType,
+                                    'kra_pin':
+                                        _kraPinController.text.trim().isEmpty
+                                            ? null
+                                            : _kraPinController.text.trim(),
+                                  },
+                                ),
+                              );
                         }
                       },
                     );
@@ -288,7 +336,10 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark),
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark),
             ),
           ],
         ),

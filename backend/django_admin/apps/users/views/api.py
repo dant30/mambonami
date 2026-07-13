@@ -53,12 +53,22 @@ class VerifyOTPView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        tokens = get_tokens_for_user(user)
-        return Response(
-            {'user': UserDetailSerializer(user, context={'request': request}).data, 'tokens': tokens},
-            status=status.HTTP_201_CREATED,
-        )
+        try:
+            user = serializer.save()
+            tokens = get_tokens_for_user(user)
+            return Response(
+                {'user': UserDetailSerializer(user, context={'request': request}).data, 'tokens': tokens},
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as exc:
+            # Mask sensitive fields before logging
+            safe_data = dict(request.data)
+            for key in ('password', 'confirm_password', 'otp'):
+                if key in safe_data:
+                    safe_data[key] = '***'
+            logger = __import__('logging').getLogger(__name__)
+            logger.exception('Error creating user during verify. request_data=%s', safe_data)
+            return Response({'detail': 'Internal server error while creating user.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

@@ -26,6 +26,9 @@ class FarmerRegisterPage extends StatefulWidget {
 class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _idController = TextEditingController();
   final _phoneController = TextEditingController();
   final _coopController = TextEditingController();
@@ -34,6 +37,9 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _idController.dispose();
     _phoneController.dispose();
     _coopController.dispose();
@@ -146,6 +152,29 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                   hint: 'John Kamau',
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Enter full name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'johnkamau',
+                  validator: (v) => v == null || v.isEmpty ? 'Enter a username' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: FormValidators.validatePassword,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: (value) => FormValidators.validateConfirmPassword(value, _passwordController.text.trim()),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -266,6 +295,8 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                                 RegisterRequested(
                                   dto: {
                                     'role': 'farmer',
+                                    'username': _usernameController.text.trim(),
+                                    'password': _passwordController.text.trim(),
                                     'phone': _phoneController.text.trim(),
                                     'full_name':
                                         _fullNameController.text.trim(),

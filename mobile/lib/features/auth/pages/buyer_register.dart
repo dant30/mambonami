@@ -7,6 +7,7 @@ import '../../../blocs/auth/auth_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
+import '../../../shared/utils/form_validators.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 
@@ -20,6 +21,9 @@ class BuyerRegisterPage extends StatefulWidget {
 class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -28,6 +32,9 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
@@ -113,6 +120,29 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                   label: 'Full Name',
                   hint: 'Mary Wanjiku',
                   validator: (v) => v == null || v.isEmpty ? 'Enter full name' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'mary123',
+                  validator: (v) => v == null || v.isEmpty ? 'Enter a username' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: FormValidators.validatePassword,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  validator: (value) => FormValidators.validateConfirmPassword(value, _passwordController.text.trim()),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -218,6 +248,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                             RegisterRequested(
                               dto: {
                                 'role': 'buyer',
+                                'username': _usernameController.text.trim(),
+                                'password': _passwordController.text.trim(),
                                 'full_name': _fullNameController.text.trim(),
                                 'email': _emailController.text.trim(),
                                 'phone': _phoneController.text.trim(),
