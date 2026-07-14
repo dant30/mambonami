@@ -24,6 +24,7 @@ from ..serializers import (
 )
 from ..models import User, VerificationDocument, TrustScore, KycStatus, AccountStatus
 from ..services import get_tokens_for_user, authenticate_user
+from core.cache import delete_otp
 
 
 # ────────────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ class VerifyOTPView(generics.CreateAPIView):
         try:
             user = serializer.save()
             tokens = get_tokens_for_user(user)
+            delete_otp(serializer.validated_data['phone'])
             return Response(
                 {'user': UserDetailSerializer(user, context={'request': request}).data, 'tokens': tokens},
                 status=status.HTTP_201_CREATED,
@@ -92,6 +94,7 @@ class VerifyOTPView(generics.CreateAPIView):
                     resp = {'user': user_data}
                     if tokens:
                         resp['tokens'] = tokens
+                    delete_otp(normalize_phone_number(phone))
                     return Response(resp, status=status.HTTP_201_CREATED)
                 except Exception:
                     logger.exception('Fallback response generation failed for existing user during verify.')

@@ -85,7 +85,11 @@ class _OtpPageState extends State<OtpPage> {
     _startCountdown();
   }
 
+  bool _isSubmitting = false;
+
   void _submitOtp(String otp) {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
     final phone = widget.phone ?? '';
     final mode = widget.mode ?? 'login';
 
@@ -186,6 +190,7 @@ class _OtpPageState extends State<OtpPage> {
           setState(() {
             _error = null;
             _startCountdown();
+            _isSubmitting = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Verification code resent.')),
@@ -199,9 +204,13 @@ class _OtpPageState extends State<OtpPage> {
             const SnackBar(content: Text('Reset code resent.')),
           );
         } else if (state is ForgotPasswordSuccess) {
+          _isSubmitting = false;
           context.go(RoutePaths.login);
         } else if (state is AuthError) {
-          setState(() => _error = state.message);
+          setState(() {
+            _error = state.message;
+            _isSubmitting = false;
+          });
         }
       },
       child: Scaffold(
@@ -371,15 +380,20 @@ class _OtpPageState extends State<OtpPage> {
                 // Verify button
                 CustomButton(
                   label: 'Verify & Continue',
+                  enabled: !_isSubmitting,
                   onPressed: () {
                     final otp = _otpController.text.trim();
                     if (otp.length == 4) {
                       _submitOtp(otp);
                     } else {
-                      setState(() => _error = 'Enter 4-digit OTP');
+                      setState(() {
+                        _error = 'Enter 4-digit OTP';
+                        _isSubmitting = false;
+                      });
                     }
                   },
                   icon: const Icon(Icons.arrow_forward_rounded),
+                  isLoading: _isSubmitting,
                 ),
                 const SizedBox(height: 16),
 

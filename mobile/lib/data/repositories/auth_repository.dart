@@ -137,13 +137,16 @@ class AuthRepository {
 
       final response =
           await _apiClient.dio.post(kRegisterVerifyEndpoint, data: data);
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final responseData = normalizeMap(response.data);
         final tokens = normalizeMap(responseData['tokens']);
         final user = normalizeMap(responseData['user']);
         final accessToken = stringValue(tokens['access']);
         final refreshToken = stringValue(tokens['refresh']);
         if (accessToken.isEmpty || refreshToken.isEmpty) {
+          if (user.isNotEmpty) {
+            return await login(normalizedPhone, password);
+          }
           throw Exception('Missing tokens in registration response');
         }
         await _secureStorage.saveTokens(accessToken, refreshToken);

@@ -265,7 +265,6 @@ class VerifyOTPSerializer(serializers.Serializer):
                 retailer_profile.bank_account = bank_account
             retailer_profile.save()
 
-        delete_otp(validated_data['phone'])
         return user
 
 
