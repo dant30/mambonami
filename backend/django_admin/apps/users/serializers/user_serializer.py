@@ -92,12 +92,21 @@ class VerifyOTPSerializer(serializers.Serializer):
 
     def validate_phone(self, value):
         normalized_phone = normalize_phone_number(value)
-        if User.objects.filter(phone=normalized_phone).exists():
+        existing_user = User.objects.filter(phone=normalized_phone).first()
+        if existing_user and existing_user.username != self.initial_data.get('username'):
             raise serializers.ValidationError('User with this phone already exists.')
         return normalized_phone
 
     def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
+        existing_user = User.objects.filter(username=value).first()
+        if existing_user:
+            normalized_phone = None
+            try:
+                normalized_phone = normalize_phone_number(self.initial_data.get('phone', ''))
+            except Exception:
+                normalized_phone = None
+            if normalized_phone and existing_user.phone == normalized_phone:
+                return value
             raise serializers.ValidationError('Username already taken.')
         return value
 
@@ -167,27 +176,31 @@ class VerifyOTPSerializer(serializers.Serializer):
         kra_pin = validated_data.pop('kra_pin', '')
         business_registration_number = validated_data.pop('business_registration_number', '')
 
-        # Create user (handle possible race that creates a duplicate between validation and save)
-        try:
-            with transaction.atomic():
-                user = User.objects.create_user(
-                    phone=validated_data['phone'],
-                    username=validated_data['username'],
-                    password=validated_data['password'],
-                    role=validated_data['role'],
-                    email=email,
-                    national_id=national_id,
-                    is_phone_verified=True,
-                    account_status=AccountStatus.PENDING,
-                    kyc_status=KycStatus.PENDING,
-                )
-        except IntegrityError:
-            # Another process may have created the user after validation; try to return that user instead
-            logger.warning('IntegrityError while creating user during verify; attempting to fetch existing user for phone=%s', validated_data.get('phone'))
-            user = User.objects.filter(phone=validated_data.get('phone')).first()
-            if not user:
-                # If we couldn't find the user, re-raise to let the view handle/log it
-                raise
+        # Create or reuse the user for a duplicate verification retry.
+        existing_user = User.objects.filter(phone=validated_data['phone']).first()
+        if existing_user:
+            if existing_user.username != validated_data['username'] or existing_user.role != validated_data['role']:
+                raise serializers.ValidationError({'phone': 'User with this phone already exists.'})
+            user = existing_user
+        else:
+            try:
+                with transaction.atomic():
+                    user = User.objects.create_user(
+                        phone=validated_data['phone'],
+                        username=validated_data['username'],
+                        password=validated_data['password'],
+                        role=validated_data['role'],
+                        email=email,
+                        national_id=national_id,
+                        is_phone_verified=True,
+                        account_status=AccountStatus.PENDING,
+                        kyc_status=KycStatus.PENDING,
+                    )
+            except IntegrityError:
+                logger.warning('IntegrityError while creating user during verify; attempting to fetch existing user for phone=%s', validated_data.get('phone'))
+                user = User.objects.filter(phone=validated_data.get('phone')).first()
+                if not user:
+                    raise
 
         # Set name
         if full_name and user.role in [Role.FARMER, Role.BUYER, Role.TRANSPORT_PROVIDER]:

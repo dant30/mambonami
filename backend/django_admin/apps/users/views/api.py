@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from core.throttling import BurstThrottle
+from core.validators import normalize_phone_number
 from apps.users.permissions import IsAdmin
 from ..serializers import (
     RegisterInitSerializer,
@@ -60,14 +61,33 @@ class VerifyOTPView(generics.CreateAPIView):
                 {'user': UserDetailSerializer(user, context={'request': request}).data, 'tokens': tokens},
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as exc:
-            # Mask sensitive fields before logging
+        except Exception:
             safe_data = dict(request.data)
             for key in ('password', 'confirm_password', 'otp'):
                 if key in safe_data:
                     safe_data[key] = '***'
             logger = __import__('logging').getLogger(__name__)
             logger.exception('Error creating user during verify. request_data=%s', safe_data)
+
+            phone = request.data.get('phone')
+            username = request.data.get('username')
+            existing_user = None
+            if phone:
+                try:
+                    existing_user = User.objects.filter(phone=normalize_phone_number(phone)).first()
+                except Exception:
+                    existing_user = None
+
+            if existing_user and (not username or existing_user.username == username):
+                try:
+                    tokens = get_tokens_for_user(existing_user)
+                    return Response(
+                        {'user': UserDetailSerializer(existing_user, context={'request': request}).data, 'tokens': tokens},
+                        status=status.HTTP_201_CREATED,
+                    )
+                except Exception:
+                    logger.exception('Fallback response generation failed for existing user during verify.')
+
             return Response({'detail': 'Internal server error while creating user.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
