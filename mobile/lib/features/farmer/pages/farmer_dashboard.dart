@@ -260,12 +260,12 @@ class FarmerDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (recentSubOrders.isEmpty)
-                    CustomCard(
-                      margin: const EdgeInsets.only(bottom: 8),
+                    const CustomCard(
+                      margin: EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: const Icon(Icons.shopping_bag_outlined),
-                        title: const Text('No recent orders'),
-                        subtitle: const Text('New orders will appear here as they come in.'),
+                        leading: Icon(Icons.shopping_bag_outlined),
+                        title: Text('No recent orders'),
+                        subtitle: Text('New orders will appear here as they come in.'),
                       ),
                     )
                   else
@@ -293,9 +293,9 @@ class FarmerDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (productList.isEmpty)
-                    CustomCard(
-                      padding: const EdgeInsets.all(12),
-                      child: const Text('Add your first product to start filling your inventory view.'),
+                    const CustomCard(
+                      padding: EdgeInsets.all(12),
+                      child: Text('Add your first product to start filling your inventory view.'),
                     )
                   else
                     ...productList.take(3).map((product) {

@@ -98,7 +98,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Farmer Registration'),
           leading: IconButton(
@@ -121,8 +121,8 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightGreen,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: AppRadius.xl,
                         ),
                         child: Image.asset('assets/icons/farmer_icon.png',
@@ -134,8 +134,8 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: AppRadius.lg,
                           ),
                           child: const Icon(Icons.camera_alt,
@@ -200,16 +200,16 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: AppColors.lightGreen,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: AppRadius.lg,
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on,
-                          color: AppColors.primaryGreen, size: 18),
+                      Icon(Icons.location_on,
+                          color: Theme.of(context).colorScheme.primary, size: 18),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -220,14 +220,14 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                                     color: AppColors.textDark)),
                             Text('Tap to pick on map or enter coordinates below',
                                 style: TextStyle(
-                                    fontSize: 11, color: AppColors.textMuted)),
+                                    fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                           ],
                         ),
                       ),
                       OutlinedButton(
                         onPressed: _pickFarmLocation,
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                           shape: const RoundedRectangleBorder(
                               borderRadius: AppRadius.md),
@@ -332,18 +332,18 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                 style:
                     const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark)),
+                    color: Theme.of(context).colorScheme.onSurface)),
           ],
         ),
         const SizedBox(height: 6),
         LinearProgressIndicator(
           value: step / 4,
           minHeight: 6,
-          backgroundColor: AppColors.lightGreen,
-          color: AppColors.primaryGreen,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: AppRadius.full,
         ),
       ],

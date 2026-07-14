@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "876505502302",
+    "project_id": "mambonami-20821",
+    "storage_bucket": "mambonami-20821.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876505502302:android:875646bda02ee2bafa1acf",
+        "android_client_info": {
+          "package_name": "com.mambonami.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUObK42QzuU68oYbiIJXW-xWEkpuUj5jo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

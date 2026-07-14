@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/product/product_bloc.dart';
-import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../widgets/category_chip_bar.dart';

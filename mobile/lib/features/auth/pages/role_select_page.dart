@@ -87,7 +87,7 @@ class _RoleSelectPageState extends State<RoleSelectPage>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: AppScreen(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),

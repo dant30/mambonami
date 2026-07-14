@@ -71,28 +71,60 @@ class CustomTextField extends StatelessWidget {
       alignLabelWithHint: maxLines != 1,
       isDense: true,
       errorMaxLines: 3,
-      prefixIcon: prefixIcon,
-      suffixIcon: suffixIcon,
+      prefixIcon: prefixIcon != null
+          ? IconTheme(
+              data: IconThemeData(
+                color: errorText != null
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              child: prefixIcon!,
+            )
+          : null,
+      suffixIcon: suffixIcon != null
+          ? IconTheme(
+              data: IconThemeData(
+                color: errorText != null
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              child: suffixIcon!,
+            )
+          : null,
       filled: true,
       fillColor: enabled
-          ? Colors.white // always white background
-          : theme.colorScheme.surface.withValues(alpha: 0.6),
+          ? theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.92 : 1.0,
+            )
+          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.error),
+        borderSide: BorderSide(color: theme.colorScheme.error),
       ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+      hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+      helperStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+      floatingLabelStyle: TextStyle(color: theme.colorScheme.primary),
     );
 
     // Apply if we want to use theme's inputDecorationTheme? We'll override with explicit.
@@ -112,6 +144,8 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
+      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface),
+      cursorColor: theme.colorScheme.primary,
       decoration: inputDecoration,
     );
   }

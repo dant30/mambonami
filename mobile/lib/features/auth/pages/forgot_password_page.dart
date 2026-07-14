@@ -73,7 +73,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
@@ -109,13 +109,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       Container(
                         width: 64,
                         height: 64,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightGreen,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
                           borderRadius: AppRadius.lg,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.shield_rounded,
-                          color: AppColors.primaryGreen,
+                          color: theme.colorScheme.primary,
                           size: 32,
                         ),
                       ),
@@ -125,7 +125,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       Text(
                         _codeSent ? 'Code Sent!' : 'Forgot Password?',
                         style: theme.textTheme.headlineSmall?.copyWith(
-                          color: AppColors.textDark,
+                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -135,7 +135,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ? 'A 4-digit reset code was sent to $_maskedPhone. Check your SMS.'
                             : "Enter your registered phone number. We'll send a reset code via SMS.",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textMuted,
+                          color: theme.colorScheme.onSurfaceVariant,
                           height: 1.4,
                         ),
                       ),
@@ -171,23 +171,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               Container(
                                 width: 80,
                                 height: 80,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.lightGreen,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.send_rounded,
-                                  color: AppColors.primaryGreen,
+                                  color: theme.colorScheme.primary,
                                   size: 36,
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              const Text(
+                              Text(
                                 'Code Sent!',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.textDark,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -195,16 +195,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 textAlign: TextAlign.center,
                                 text: TextSpan(
                                   text: 'A 4-digit reset code was sent to ',
-                                  style: const TextStyle(
-                                    color: AppColors.textMuted,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurfaceVariant,
                                     fontSize: 13,
                                   ),
                                   children: [
                                     TextSpan(
                                       text: _maskedPhone,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w700,
-                                        color: AppColors.textDark,
+                                        color: theme.colorScheme.onSurface,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -231,8 +231,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                       : 'Resend code',
                                   style: TextStyle(
                                     color: _resendSeconds == 0
-                                        ? AppColors.secondaryGreen
-                                        : AppColors.textMuted,
+                                        ? theme.colorScheme.secondary
+                                        : theme.colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

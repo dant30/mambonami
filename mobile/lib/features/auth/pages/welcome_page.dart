@@ -16,7 +16,7 @@ class WelcomePage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           // ─── Gradient Header ──────────────────────────────────────────────
@@ -73,8 +73,8 @@ class WelcomePage extends StatelessWidget {
                           Container(
                             width: 56,
                             height: 56,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
                               borderRadius: AppRadius.large,
                             ),
                             padding: const EdgeInsets.all(8),
@@ -84,7 +84,7 @@ class WelcomePage extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'MAMBONAMI',
                                 style: TextStyle(
                                   fontSize: 22,
@@ -147,7 +147,7 @@ class WelcomePage extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: theme.colorScheme.surface,
                                 borderRadius: AppRadius.mdRadius,
                                 boxShadow: [
                                   BoxShadow(
@@ -157,10 +157,10 @@ class WelcomePage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                  const SizedBox(width: 8),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -169,14 +169,14 @@ class WelcomePage extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.textDark,
+                                          color: theme.colorScheme.onSurface,
                                         ),
                                       ),
                                       Text(
                                         'across Kenya',
                                         style: TextStyle(
                                           fontSize: 9,
-                                          color: AppColors.textMuted,
+                                          color: theme.colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -205,7 +205,7 @@ class WelcomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.foregroundDark : AppColors.textDark,
+                      color: theme.colorScheme.onSurface,
                       height: 1.2,
                     ),
                   ),
@@ -215,7 +215,7 @@ class WelcomePage extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.foregroundDark.withValues(alpha: 0.7) : AppColors.textMuted,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -248,14 +248,14 @@ class WelcomePage extends StatelessWidget {
                       text: 'By continuing you agree to our ',
                       style: TextStyle(
                         fontSize: 10,
-                        color: isDark ? AppColors.foregroundDark.withValues(alpha: 0.6) : AppColors.textMuted,
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),
                       children: [
                         TextSpan(
                           text: 'Terms & Privacy Policy',
                           style: TextStyle(
                             fontSize: 10,
-                            color: isDark ? AppColors.primaryDark : AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -295,10 +295,10 @@ class _RoleIcon extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w600,
-            color: AppColors.textMuted,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

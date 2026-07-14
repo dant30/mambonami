@@ -61,7 +61,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Buyer Registration'),
           leading: IconButton(
@@ -84,8 +84,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightGreen,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: AppRadius.xl,
                         ),
                         child: Image.asset(
@@ -100,8 +100,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: AppRadius.lg,
                           ),
                           child: const Icon(
@@ -177,15 +177,15 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: AppColors.lightGreen,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: AppRadius.lg,
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
-                        color: AppColors.primaryGreen,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
@@ -284,7 +284,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
             ),
           ],
         ),
@@ -292,8 +292,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
         LinearProgressIndicator(
           value: step / 4,
           minHeight: 6,
-          backgroundColor: AppColors.lightGreen,
-          color: AppColors.primaryGreen,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: AppRadius.full,
         ),
       ],

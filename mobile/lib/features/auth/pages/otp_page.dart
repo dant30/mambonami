@@ -205,7 +205,7 @@ class _OtpPageState extends State<OtpPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
@@ -225,13 +225,13 @@ class _OtpPageState extends State<OtpPage> {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(
-                    color: AppColors.lightGreen,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
                     borderRadius: AppRadius.lg,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.phone_rounded,
-                    color: AppColors.primary,
+                    color: theme.colorScheme.primary,
                     size: 32,
                   ),
                 ),
@@ -241,7 +241,7 @@ class _OtpPageState extends State<OtpPage> {
                 Text(
                   'Verify your phone',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.dark,
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -258,9 +258,9 @@ class _OtpPageState extends State<OtpPage> {
                     children: [
                       TextSpan(
                         text: _maskedPhone,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.dark,
+                          color: theme.colorScheme.onSurface,
                           fontSize: 13,
                         ),
                       ),
@@ -280,10 +280,10 @@ class _OtpPageState extends State<OtpPage> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: AppRadius.lg,
                       border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
+                        color: theme.colorScheme.outlineVariant,
                         width: 1.8,
                       ),
                     ),
@@ -360,8 +360,8 @@ class _OtpPageState extends State<OtpPage> {
                   const SizedBox(height: 12),
                   Text(
                     _error!,
-                    style: const TextStyle(
-                      color: AppColors.error,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
                       fontSize: 13,
                     ),
                   ),

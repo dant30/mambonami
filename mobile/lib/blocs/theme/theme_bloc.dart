@@ -12,7 +12,7 @@ class ThemeState {
 
 // Theme cubit (simpler than bloc for single event)
 class ThemeCubit extends Cubit<ThemeState> {
-  ThemeCubit() : super(ThemeState(themeMode: ThemeMode.system)) {
+  ThemeCubit() : super(ThemeState(themeMode: ThemeMode.light)) {
     _loadTheme();
   }
 
@@ -29,7 +29,7 @@ class ThemeCubit extends Cubit<ThemeState> {
 
   Future<void> _loadTheme() async {
     final storedIndex = await CacheManager.instance.getInt(kThemeModeKey);
-    final index = storedIndex ?? 2; // 0: light, 1: dark, 2: system
+    final index = storedIndex ?? 0; // 0: light, 1: dark, 2: system
     final mode = ThemeMode.values[index.clamp(0, 2)];
     emit(ThemeState(themeMode: mode));
   }

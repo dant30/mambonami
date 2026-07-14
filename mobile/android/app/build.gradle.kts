@@ -3,6 +3,7 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -23,6 +24,8 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Inject Maps API key from local.properties via manifest placeholders
+        manifestPlaceholders["com.google.android.geo.API_KEY"] = (project.findProperty("MAPS_API_KEY") ?: "")
     }
 
     val keystorePropertiesFile = rootProject.file("key.properties")
@@ -72,3 +75,6 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
+
+// Apply the Google Services plugin to read google-services.json and generate resources
+apply(plugin = "com.google.gms.google-services")

@@ -61,7 +61,6 @@ class CameraService {
       final List<XFile> pickedFiles = await _picker.pickMultiImage(
         imageQuality: 80,
       );
-      if (pickedFiles == null) return <File>[];
       return pickedFiles.take(maxImages).map((file) => File(file.path)).toList();
     } catch (error, stackTrace) {
       debugPrint('CameraService.pickMultipleFromGallery failed: $error');

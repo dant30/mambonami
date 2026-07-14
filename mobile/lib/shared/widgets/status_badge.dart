@@ -1,6 +1,5 @@
 // mobile/lib/shared/widgets/status_badge.dart
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
 
 class StatusBadge extends StatelessWidget {
   final String label;

@@ -1,0 +1,8 @@
+# Example local.properties (DO NOT commit this file)
+# Add your Maps API key here. Keep this file private and out of VCS.
+MAPS_API_KEY=AIzaSyCc-9apHWtfEEEHLIVb8xlSeqqxlbPxmvM
+
+# Place your Firebase config at:
+# mobile/android/app/google-services.json
+# After adding google-services.json, the google-services Gradle plugin (applied in the app module)
+# will generate necessary resources (values.xml) for Firebase.initializeApp() to work.

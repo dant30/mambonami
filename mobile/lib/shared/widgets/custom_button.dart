@@ -66,19 +66,19 @@ class CustomButton extends StatelessWidget {
     final bgColor = outlined
         ? Colors.transparent
         : (enabled
-            ? (color ?? (gold ? AppColors.gold : AppColors.primary))
-            : (disabledColor ?? theme.disabledColor.withValues(alpha: 0.3)));
+            ? (color ?? (gold ? AppColors.gold : theme.colorScheme.primary))
+            : (disabledColor ?? theme.colorScheme.onSurface.withValues(alpha: 0.12)));
 
     final fgColor = textColor ??
         (outlined
-            ? AppColors.primary
+            ? theme.colorScheme.primary
             : (gold ? Colors.white : theme.colorScheme.onPrimary));
 
     final borderSide = outlined
         ? BorderSide(
             color: enabled
-                ? (color ?? AppColors.primary)
-                : theme.disabledColor,
+                ? (color ?? theme.colorScheme.primary)
+                : theme.colorScheme.outlineVariant,
           )
         : BorderSide.none;
 
@@ -177,15 +177,15 @@ class CustomButton extends StatelessWidget {
     if (!outlined && enabled) {
       final gradientColors = gold
           ? [const Color(0xFFE8C547), AppColors.gold]
-          : [AppColors.secondary, AppColors.primary];
+          : [theme.colorScheme.secondary, theme.colorScheme.primary];
       button = Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: gradientColors),
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: (gold ? AppColors.gold : AppColors.primary)
-                  .withValues(alpha: 0.35),
+              color: (gold ? AppColors.gold : theme.colorScheme.primary)
+                  .withValues(alpha: 0.28),
               blurRadius: 15,
               offset: const Offset(0, 4),
             ),
@@ -202,7 +202,7 @@ class CustomButton extends StatelessWidget {
           backgroundColor: WidgetStateProperty.all(Colors.transparent),
           foregroundColor: WidgetStateProperty.all(fgColor),
           side: WidgetStateProperty.all(
-              const BorderSide(color: AppColors.primary, width: 2)),
+              BorderSide(color: theme.colorScheme.primary, width: 2)),
           shape: WidgetStateProperty.all(
               RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(borderRadius))),

@@ -8,6 +8,10 @@
         android:icon="@mipmap/launcher_icon"
         android:roundIcon="@mipmap/launcher_icon"
         android:enableOnBackInvokedCallback="true">
+        <!-- Google Maps API key (injected from local.properties via manifestPlaceholders) -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${com.google.android.geo.API_KEY}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

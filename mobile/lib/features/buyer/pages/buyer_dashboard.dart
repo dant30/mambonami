@@ -14,7 +14,6 @@ import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
-import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';

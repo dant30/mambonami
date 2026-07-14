@@ -1,6 +1,17 @@
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.dsl.ApplicationExtension
 
+// Add Google Services buildscript classpath for the google-services Gradle plugin
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.google.gms:google-services:4.5.0")
+    }
+}
+
 allprojects {
     repositories {
         google()

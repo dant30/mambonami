@@ -73,10 +73,12 @@ class AuthRepository {
       };
       if (email != null && email.isNotEmpty) data['email'] = email;
       if (fullName != null && fullName.isNotEmpty) data['full_name'] = fullName;
-      if (ownerFullName != null && ownerFullName.isNotEmpty)
+      if (ownerFullName != null && ownerFullName.isNotEmpty) {
         data['owner_full_name'] = ownerFullName;
-      if (nationalId != null && nationalId.isNotEmpty)
+      }
+      if (nationalId != null && nationalId.isNotEmpty) {
         data['national_id'] = nationalId;
+      }
       if (farmGps != null && farmGps.isNotEmpty) {
         final parts = farmGps.split(',');
         if (parts.length == 2) {
@@ -92,32 +94,45 @@ class AuthRepository {
           data['farm_gps'] = farmGps;
         }
       }
-      if (mpesaNumber != null && mpesaNumber.isNotEmpty)
+      if (mpesaNumber != null && mpesaNumber.isNotEmpty) {
         data['mpesa_number'] = mpesaNumber;
-      if (cooperative != null && cooperative.isNotEmpty)
+      }
+      if (cooperative != null && cooperative.isNotEmpty) {
         data['cooperative'] = cooperative;
-      if (vehicleType != null && vehicleType.isNotEmpty)
+      }
+      if (vehicleType != null && vehicleType.isNotEmpty) {
         data['vehicle_type'] = vehicleType;
-      if (licensePlate != null && licensePlate.isNotEmpty)
+      }
+      if (licensePlate != null && licensePlate.isNotEmpty) {
         data['license_plate'] = licensePlate;
-      if (driverLicense != null && driverLicense.isNotEmpty)
+      }
+      if (driverLicense != null && driverLicense.isNotEmpty) {
         data['driver_license'] = driverLicense;
-      if (bankAccount != null && bankAccount.isNotEmpty)
+      }
+      if (bankAccount != null && bankAccount.isNotEmpty) {
         data['bank_account'] = bankAccount;
-      if (deliveryAddress != null && deliveryAddress.isNotEmpty)
+      }
+      if (deliveryAddress != null && deliveryAddress.isNotEmpty) {
         data['delivery_address'] = deliveryAddress;
-      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty)
+      }
+      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
         data['delivery_instructions'] = deliveryInstructions;
-      if (businessName != null && businessName.isNotEmpty)
+      }
+      if (businessName != null && businessName.isNotEmpty) {
         data['business_name'] = businessName;
-      if (businessPhone != null && businessPhone.isNotEmpty)
+      }
+      if (businessPhone != null && businessPhone.isNotEmpty) {
         data['business_phone'] = businessPhone;
-      if (businessEmail != null && businessEmail.isNotEmpty)
+      }
+      if (businessEmail != null && businessEmail.isNotEmpty) {
         data['business_email'] = businessEmail;
-      if (businessAddress != null && businessAddress.isNotEmpty)
+      }
+      if (businessAddress != null && businessAddress.isNotEmpty) {
         data['business_address'] = businessAddress;
-      if (businessType != null && businessType.isNotEmpty)
+      }
+      if (businessType != null && businessType.isNotEmpty) {
         data['business_type'] = businessType;
+      }
       if (kraPin != null && kraPin.isNotEmpty) data['kra_pin'] = kraPin;
 
       final response =

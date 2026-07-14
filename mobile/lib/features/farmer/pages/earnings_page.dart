@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../blocs/order/order_bloc.dart';
-import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';

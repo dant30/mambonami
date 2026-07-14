@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -87,11 +87,11 @@ class _LoginPageState extends State<LoginPage> {
                           height: 52,
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.16),
+                                color: theme.colorScheme.primary.withValues(alpha: 0.16),
                                 blurRadius: 14,
                                 offset: const Offset(0, 4),
                               ),
@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                               Text(
                                 'Welcome back 👋',
                                 style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.dark,
+                                  color: theme.colorScheme.onSurface,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -115,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                               Text(
                                 'Sign in to your account',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.muted,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                   height: 1.35,
                                 ),
                               ),
@@ -180,27 +180,27 @@ class _LoginPageState extends State<LoginPage> {
                                 height: 18,
                                 decoration: BoxDecoration(
                                   color: _rememberMe
-                                      ? AppColors.surfaceHighLight
-                                      : Colors.white,
+                                      ? theme.colorScheme.primaryContainer
+                                      : theme.colorScheme.surface,
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: AppColors.primary,
+                                    color: theme.colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
                                 child: _rememberMe
-                                    ? const Icon(
+                                    ? Icon(
                                         Icons.check_rounded,
                                         size: 12,
-                                        color: AppColors.primary,
+                                        color: theme.colorScheme.primary,
                                       )
                                     : null,
                               ),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'Remember me',
                                 style: TextStyle(
-                                  color: AppColors.muted,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                   fontSize: 12,
                                 ),
                               ),
@@ -212,10 +212,10 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: isLoading
                               ? null
                               : () => context.go(RoutePaths.forgotPassword),
-                          child: const Text(
+                          child: Text(
                             'Forgot password?',
                             style: TextStyle(
-                              color: AppColors.secondary,
+                              color: theme.colorScheme.secondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
@@ -247,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: Text(
                             'or',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.muted,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),

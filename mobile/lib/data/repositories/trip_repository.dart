@@ -24,7 +24,7 @@ class TripRepository {
 
   Future<Trip> assignToMe(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripAssignEndpoint}$tripUuid/assign/');
+      final response = await _apiClient.dio.post('$kTripAssignEndpoint$tripUuid/assign/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -45,7 +45,7 @@ class TripRepository {
 
   Future<Trip> getTripDetail(String uuid) async {
     try {
-      final response = await _apiClient.dio.get('${kMyTripsEndpoint}$uuid/');
+      final response = await _apiClient.dio.get('$kMyTripsEndpoint$uuid/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -54,7 +54,7 @@ class TripRepository {
 
   Future<Trip> markPickup(String uuid, TripPickupDto data) async {
     try {
-      final endpoint = '${kMyTripsEndpoint}$uuid/pickup/';
+      final endpoint = '$kMyTripsEndpoint$uuid/pickup/';
       if (data.photoPath != null) {
         final form = FormData();
         final payload = data.toJson();
@@ -81,7 +81,7 @@ class TripRepository {
 
   Future<Trip> markDelivery(String uuid, TripDeliveryDto data) async {
     try {
-      final endpoint = '${kMyTripsEndpoint}$uuid/arrive-delivery/';
+      final endpoint = '$kMyTripsEndpoint$uuid/arrive-delivery/';
       if (data.photoPath != null) {
         final form = FormData();
         final payload = data.toJson();
@@ -108,7 +108,7 @@ class TripRepository {
 
   Future<Trip> startPickupNavigation(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripStartPickupNavEndpoint}$tripUuid/start-pickup-nav/');
+      final response = await _apiClient.dio.post('$kTripStartPickupNavEndpoint$tripUuid/start-pickup-nav/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -117,7 +117,7 @@ class TripRepository {
 
   Future<Trip> arriveAtPickup(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripArrivePickupEndpoint}$tripUuid/arrive-pickup/');
+      final response = await _apiClient.dio.post('$kTripArrivePickupEndpoint$tripUuid/arrive-pickup/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -126,7 +126,7 @@ class TripRepository {
 
   Future<Trip> startDeliveryNavigation(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripStartDeliveryNavEndpoint}$tripUuid/start-delivery-nav/');
+      final response = await _apiClient.dio.post('$kTripStartDeliveryNavEndpoint$tripUuid/start-delivery-nav/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -135,7 +135,7 @@ class TripRepository {
 
   Future<Trip> arriveAtDelivery(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripArriveDeliveryEndpoint}$tripUuid/arrive-delivery/');
+      final response = await _apiClient.dio.post('$kTripArriveDeliveryEndpoint$tripUuid/arrive-delivery/');
       return Trip.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -144,7 +144,7 @@ class TripRepository {
 
   Future<TripArriveResponse> arriveAtFarm(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripArrivePickupEndpoint}$tripUuid/arrive-pickup/');
+      final response = await _apiClient.dio.post('$kTripArrivePickupEndpoint$tripUuid/arrive-pickup/');
       return TripArriveResponse.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -153,7 +153,7 @@ class TripRepository {
 
   Future<GenerateOtpResponse> generateOtp(String tripUuid) async {
     try {
-      final response = await _apiClient.dio.post('${kTripGenerateOtpEndpoint}$tripUuid/generate-otp/');
+      final response = await _apiClient.dio.post('$kTripGenerateOtpEndpoint$tripUuid/generate-otp/');
       return GenerateOtpResponse.fromJson(normalizeMap(response.data));
     } catch (e) {
       throw _handleError(e);
@@ -162,7 +162,7 @@ class TripRepository {
 
   Future<void> verifyOtp(String tripUuid, String otp) async {
     try {
-      await _apiClient.dio.post('${kTripVerifyOtpEndpoint}$tripUuid/verify-otp/', data: {'otp': otp});
+      await _apiClient.dio.post('$kTripVerifyOtpEndpoint$tripUuid/verify-otp/', data: {'otp': otp});
     } catch (e) {
       throw _handleError(e);
     }
@@ -170,7 +170,7 @@ class TripRepository {
 
   Future<void> pingLocation(String tripUuid, TripLocationPingDto data) async {
     try {
-      await _apiClient.dio.post('${kTripLocationEndpoint}$tripUuid/location/', data: data.toJson());
+      await _apiClient.dio.post('$kTripLocationEndpoint$tripUuid/location/', data: data.toJson());
     } catch (e) {
       throw _handleError(e);
     }
@@ -183,7 +183,7 @@ class TripRepository {
       if (caption != null && caption.isNotEmpty) form.fields.add(MapEntry('caption', caption));
       final file = File(filePath);
       form.files.add(MapEntry('image', MultipartFile.fromFileSync(file.path, filename: file.path.split(Platform.pathSeparator).last)));
-      await _apiClient.dio.post('${kTripMediaEndpoint}$tripUuid/media/', data: form);
+      await _apiClient.dio.post('$kTripMediaEndpoint$tripUuid/media/', data: form);
     } catch (e) {
       throw _handleError(e);
     }

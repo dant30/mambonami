@@ -15,7 +15,6 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
-import '../widgets/photo_capture_widget.dart';
 
 /// Transport provider completes delivery by:
 /// 1. Taking a delivery photo with GPS location

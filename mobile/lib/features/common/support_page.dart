@@ -1,11 +1,8 @@
 ﻿// lib/features/common/support_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../blocs/theme/theme_bloc.dart';
 import '../../config/route_paths.dart';
 import '../../shared/layouts/app_drawer.dart';
 import '../../shared/layouts/app_navigation.dart';

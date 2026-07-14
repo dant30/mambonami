@@ -32,7 +32,6 @@ import 'blocs/order/order_bloc.dart';
 import 'blocs/trip/trip_bloc.dart';
 import 'blocs/notification/notification_bloc.dart';
 import 'blocs/dispute/dispute_bloc.dart';
-import 'blocs/theme/theme_bloc.dart';
 
 final getIt = GetIt.instance;
 

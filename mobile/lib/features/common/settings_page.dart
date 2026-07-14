@@ -21,8 +21,6 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/custom_dialog.dart';
 import '../../shared/widgets/custom_snackbar.dart';
-import '../../shared/widgets/section_header.dart';
-import '../../shared/widgets/info_tile.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

@@ -67,7 +67,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Transport Provider Registration'),
           leading: IconButton(
@@ -90,8 +90,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightGreen,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: AppRadius.xl,
                         ),
                         child: Image.asset('assets/icons/transport_icon.png',
@@ -103,8 +103,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: AppRadius.lg,
                           ),
                           child: const Icon(Icons.camera_alt,
@@ -195,8 +195,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                           borderRadius: AppRadius.xl,
                           border: Border.all(
                             color: isSelected
-                                ? AppColors.primaryGreen
-                                : AppColors.primaryGreen
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.primary
                                     .withValues(alpha: 0.15),
                             width: isSelected ? 2 : 1,
                           ),
@@ -213,8 +213,8 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: isSelected
-                                    ? AppColors.primaryGreen
-                                    : AppColors.textMuted,
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -246,27 +246,28 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                     color: const Color(0xFFFFF8E7),
                     borderRadius: AppRadius.xl,
                     border: Border.all(
-                        color: AppColors.goldAccent.withValues(alpha: 0.3)),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded,
+                          const Icon(Icons.warning_amber_rounded,
                               color: AppColors.goldAccent),
-                          SizedBox(width: 8),
-                          Text('Refundable Deposit: KES 500',
+                          const SizedBox(width: 8),
+                          const Text('Refundable Deposit: KES 500',
                               style: TextStyle(
                                   fontWeight: FontWeight.w700, fontSize: 14)),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Pay via M-Pesa PayBill 123456, Account: DEP-TRANSPORT-{your_id}. '
                         'Fully refunded via B2C when you leave in good standing.',
-                        style:
-                            TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -337,18 +338,18 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                 style:
                     const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark)),
+                    color: Theme.of(context).colorScheme.onSurface)),
           ],
         ),
         const SizedBox(height: 6),
         LinearProgressIndicator(
           value: step / 4,
           minHeight: 6,
-          backgroundColor: AppColors.lightGreen,
-          color: AppColors.primaryGreen,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: AppRadius.full,
         ),
       ],

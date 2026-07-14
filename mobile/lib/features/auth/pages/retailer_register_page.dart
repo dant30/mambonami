@@ -73,7 +73,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Retailer Registration'),
           leading: IconButton(
@@ -96,8 +96,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightGreen,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: AppRadius.xl,
                         ),
                         child: Image.asset(
@@ -112,8 +112,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                         child: Container(
                           width: 32,
                           height: 32,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: AppRadius.lg,
                           ),
                           child: const Icon(
@@ -242,7 +242,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: AppColors.primaryGreen.withValues(alpha: 0.2),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                         ),
                         borderRadius: AppRadius.lg,
                       ),
@@ -336,10 +336,10 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
             ),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textDark),
+                  color: Theme.of(context).colorScheme.onSurface),
             ),
           ],
         ),
@@ -347,8 +347,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
         LinearProgressIndicator(
           value: step / 4,
           minHeight: 6,
-          backgroundColor: AppColors.lightGreen,
-          color: AppColors.primaryGreen,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: AppRadius.full,
         ),
       ],

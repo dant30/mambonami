@@ -11,7 +11,6 @@ import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/section_header.dart';
 import '../widgets/cart_item.dart';
 
 class CartPage extends StatefulWidget {

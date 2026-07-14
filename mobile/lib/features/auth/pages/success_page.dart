@@ -67,7 +67,7 @@ class _SuccessPageState extends State<SuccessPage>
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -124,7 +124,7 @@ class _SuccessPageState extends State<SuccessPage>
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: AppColors.dark,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -135,7 +135,7 @@ class _SuccessPageState extends State<SuccessPage>
                   'Welcome to the MAMBONAMI family. Your $roleLabel account is ready.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.muted,
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.45,
                   ),
                 ),
@@ -154,9 +154,9 @@ class _SuccessPageState extends State<SuccessPage>
                       height: 180,
                       width: double.infinity,
                       color: AppColors.surfaceHighLight,
-                      child: const Center(
+                      child: Center(
                         child: CircularProgressIndicator(
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                           strokeWidth: 2,
                         ),
                       ),

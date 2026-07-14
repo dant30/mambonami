@@ -1,7 +1,6 @@
 // lib/shared/widgets/info_tile.dart
 
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
 import '../themes/app_radius.dart';
 
 /// A versatile info tile with optional leading icon, subtitle, and trailing widget.
