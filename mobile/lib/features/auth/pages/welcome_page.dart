@@ -84,7 +84,7 @@ class WelcomePage extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'MAMBONAMI',
                                 style: TextStyle(
                                   fontSize: 22,

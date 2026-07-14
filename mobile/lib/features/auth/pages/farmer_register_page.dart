@@ -213,7 +213,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Farm GPS Location',
+                            const Text('Farm GPS Location',
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,

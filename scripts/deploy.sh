@@ -2,6 +2,7 @@
 # mambonami/scripts/deploy.sh – systemd version
 
 # ~/apps/mambonami/scripts/deploy.sh
+# sudo journalctl -u gunicorn -f
 
 set -e
 

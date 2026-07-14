@@ -251,12 +251,12 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded,
+                          Icon(Icons.warning_amber_rounded,
                               color: AppColors.goldAccent),
-                          const SizedBox(width: 8),
-                          const Text('Refundable Deposit: KES 500',
+                          SizedBox(width: 8),
+                          Text('Refundable Deposit: KES 500',
                               style: TextStyle(
                                   fontWeight: FontWeight.w700, fontSize: 14)),
                         ],
