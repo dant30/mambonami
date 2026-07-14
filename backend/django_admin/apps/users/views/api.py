@@ -78,13 +78,21 @@ class VerifyOTPView(generics.CreateAPIView):
                 except Exception:
                     existing_user = None
 
+            # If a user record exists (created during the failing save), return the user data.
+            # Attempt to include tokens, but don't fail the whole request if token generation fails.
             if existing_user and (not username or existing_user.username == username):
                 try:
-                    tokens = get_tokens_for_user(existing_user)
-                    return Response(
-                        {'user': UserDetailSerializer(existing_user, context={'request': request}).data, 'tokens': tokens},
-                        status=status.HTTP_201_CREATED,
-                    )
+                    tokens = None
+                    try:
+                        tokens = get_tokens_for_user(existing_user)
+                    except Exception:
+                        logger.exception('Token generation failed for existing user during verify; returning user data without tokens.')
+
+                    user_data = UserDetailSerializer(existing_user, context={'request': request}).data
+                    resp = {'user': user_data}
+                    if tokens:
+                        resp['tokens'] = tokens
+                    return Response(resp, status=status.HTTP_201_CREATED)
                 except Exception:
                     logger.exception('Fallback response generation failed for existing user during verify.')
 
