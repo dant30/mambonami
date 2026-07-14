@@ -1,4 +1,6 @@
 ﻿# backend/django_admin/apps/users/views/api.py
+import logging
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -58,48 +60,72 @@ class VerifyOTPView(generics.CreateAPIView):
         try:
             user = serializer.save()
             tokens = get_tokens_for_user(user)
-            delete_otp(serializer.validated_data['phone'])
+            delete_otp(serializer.validated_data.get('phone'))
             return Response(
-                {'user': UserDetailSerializer(user, context={'request': request}).data, 'tokens': tokens},
+                {
+                    'user': UserDetailSerializer(user, context={'request': request}).data,
+                    'tokens': tokens,
+                },
                 status=status.HTTP_201_CREATED,
             )
-        except Exception:
+        except Exception as exc:
             safe_data = dict(request.data)
             for key in ('password', 'confirm_password', 'otp'):
                 if key in safe_data:
                     safe_data[key] = '***'
-            logger = __import__('logging').getLogger(__name__)
+            logger = logging.getLogger(__name__)
             logger.exception('Error creating user during verify. request_data=%s', safe_data)
 
             phone = request.data.get('phone')
             username = request.data.get('username')
             existing_user = None
+
             if phone:
                 try:
-                    existing_user = User.objects.filter(phone=normalize_phone_number(phone)).first()
-                except Exception:
-                    existing_user = None
+                    normalized_phone = normalize_phone_number(phone)
+                    existing_user = User.objects.filter(phone=normalized_phone).first()
+                except Exception as norm_exc:
+                    logger.warning(
+                        'Phone normalization failed during fallback for verify. phone=%s error=%s',
+                        phone,
+                        str(norm_exc),
+                    )
+                    existing_user = User.objects.filter(phone=phone).first()
 
-            # If a user record exists (created during the failing save), return the user data.
-            # Attempt to include tokens, but don't fail the whole request if token generation fails.
             if existing_user and (not username or existing_user.username == username):
                 try:
                     tokens = None
                     try:
                         tokens = get_tokens_for_user(existing_user)
-                    except Exception:
-                        logger.exception('Token generation failed for existing user during verify; returning user data without tokens.')
+                    except Exception as token_exc:
+                        logger.warning(
+                            'Token generation failed for existing user during verify; returning user data without tokens. user_id=%s error=%s',
+                            existing_user.id,
+                            str(token_exc),
+                        )
 
                     user_data = UserDetailSerializer(existing_user, context={'request': request}).data
-                    resp = {'user': user_data}
+                    response_data = {'user': user_data}
                     if tokens:
-                        resp['tokens'] = tokens
-                    delete_otp(normalize_phone_number(phone))
-                    return Response(resp, status=status.HTTP_201_CREATED)
-                except Exception:
-                    logger.exception('Fallback response generation failed for existing user during verify.')
+                        response_data['tokens'] = tokens
+                    delete_otp(phone)
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as fallback_exc:
+                    logger.exception(
+                        'Fallback response generation failed for existing user during verify. user_id=%s',
+                        existing_user.id,
+                    )
+                    return Response(
+                        {
+                            'detail': 'User was created, but the response could not be generated. Please login manually.',
+                        },
+                        status=status.HTTP_200_OK,
+                    )
 
-            return Response({'detail': 'Internal server error while creating user.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'detail': 'Internal server error while creating user.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 @method_decorator(csrf_exempt, name='dispatch')
