@@ -57,8 +57,13 @@ class VerifyOTPView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        logger = logging.getLogger(__name__)
+
         try:
             user = serializer.save()
+            if not user:
+                raise ValueError('Serializer save returned no user')
+
             tokens = get_tokens_for_user(user)
             delete_otp(serializer.validated_data.get('phone'))
             return Response(
@@ -73,7 +78,6 @@ class VerifyOTPView(generics.CreateAPIView):
             for key in ('password', 'confirm_password', 'otp'):
                 if key in safe_data:
                     safe_data[key] = '***'
-            logger = logging.getLogger(__name__)
             logger.exception('Error creating user during verify. request_data=%s', safe_data)
 
             phone = request.data.get('phone')
@@ -94,9 +98,11 @@ class VerifyOTPView(generics.CreateAPIView):
 
             if existing_user and (not username or existing_user.username == username):
                 try:
-                    tokens = None
+                    user_data = UserDetailSerializer(existing_user, context={'request': request}).data
+                    response_data = {'user': user_data, 'tokens': None}
+
                     try:
-                        tokens = get_tokens_for_user(existing_user)
+                        response_data['tokens'] = get_tokens_for_user(existing_user)
                     except Exception as token_exc:
                         logger.warning(
                             'Token generation failed for existing user during verify; returning user data without tokens. user_id=%s error=%s',
@@ -104,10 +110,6 @@ class VerifyOTPView(generics.CreateAPIView):
                             str(token_exc),
                         )
 
-                    user_data = UserDetailSerializer(existing_user, context={'request': request}).data
-                    response_data = {'user': user_data}
-                    if tokens:
-                        response_data['tokens'] = tokens
                     delete_otp(phone)
                     return Response(response_data, status=status.HTTP_201_CREATED)
                 except Exception as fallback_exc:
@@ -117,9 +119,14 @@ class VerifyOTPView(generics.CreateAPIView):
                     )
                     return Response(
                         {
-                            'detail': 'User was created, but the response could not be generated. Please login manually.',
+                            'user': {
+                                'phone': existing_user.phone,
+                                'username': existing_user.username,
+                                'role': existing_user.role,
+                            },
+                            'tokens': None,
                         },
-                        status=status.HTTP_200_OK,
+                        status=status.HTTP_201_CREATED,
                     )
 
             return Response(
