@@ -186,6 +186,8 @@ class _OtpPageState extends State<OtpPage> {
           } else {
             context.go(AppRole.homePathFor(state.role));
           }
+        } else if (state is RegisterSuccess && widget.mode == 'register') {
+          context.go(RoutePaths.success, extra: {'role': state.role});
         } else if (state is RegisterInitSuccess && widget.mode == 'register') {
           setState(() {
             _error = null;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../data/repositories/geocoding_repository.dart';
+import '../../shared/widgets/custom_button.dart';
 
 class MapPickerPage extends StatefulWidget {
   final LatLng? initialLocation;
@@ -21,10 +22,11 @@ class MapPickerPage extends StatefulWidget {
 }
 
 class _MapPickerPageState extends State<MapPickerPage> {
-  late GoogleMapController _mapController;
+  GoogleMapController? _mapController;
   LatLng _selectedLocation = const LatLng(-1.2921, 36.8219); // Nairobi default
   String _selectedAddress = '';
   bool _isLoading = true;
+  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -62,6 +64,9 @@ class _MapPickerPageState extends State<MapPickerPage> {
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -74,7 +79,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     }
   }
 
-  void _confirmLocation() {
+  Future<void> _confirmLocation() async {
     Navigator.pop(context, {
       'lat': _selectedLocation.latitude,
       'lng': _selectedLocation.longitude,
@@ -82,17 +87,55 @@ class _MapPickerPageState extends State<MapPickerPage> {
     });
   }
 
-  void _searchAddress(String query) async {
+  Future<void> _searchAddress(String query) async {
+    final trimmedQuery = query.trim();
+    if (trimmedQuery.isEmpty) return;
+
+    setState(() => _isSearching = true);
     try {
-      final latLng = await widget.geocodingRepository.geocodeAddress(query);
-      _mapController.animateCamera(CameraUpdate.newLatLngZoom(latLng, 15));
+      final latLng = await widget.geocodingRepository.geocodeAddress(trimmedQuery);
+      if (!mounted) return;
+      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 15));
       setState(() => _selectedLocation = latLng);
       final address = await widget.geocodingRepository.reverseGeocode(latLng);
+      if (!mounted) return;
       setState(() => _selectedAddress = address);
     } catch (_) {
-      // Show error if address not found
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address not found')),
+        const SnackBar(content: Text('Address not found. Try another place name.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSearching = false);
+      }
+    }
+  }
+
+  Future<void> _goToCurrentLocation() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        final status = await Geolocator.requestPermission();
+        if (status == LocationPermission.denied ||
+            status == LocationPermission.deniedForever) {
+          throw Exception('Location permission denied');
+        }
+      }
+
+      final pos = await Geolocator.getCurrentPosition();
+      final latLng = LatLng(pos.latitude, pos.longitude);
+      if (!mounted) return;
+      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 15));
+      setState(() => _selectedLocation = latLng);
+      final address = await widget.geocodingRepository.reverseGeocode(latLng);
+      if (!mounted) return;
+      setState(() => _selectedAddress = address);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to access your current location.')),
       );
     }
   }
@@ -134,12 +177,46 @@ class _MapPickerPageState extends State<MapPickerPage> {
                   TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search address...',
+                      hintText: 'Search address or place...',
                       prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _isSearching
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.send_rounded),
+                              onPressed: () => _searchAddress(_searchController.text),
+                            ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onSubmitted: _searchAddress,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _goToCurrentLocation,
+                          icon: const Icon(Icons.my_location_rounded),
+                          label: const Text('Use current location'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: CustomButton(
+                          onPressed: _confirmLocation,
+                          label: 'Confirm',
+                          icon: const Icon(Icons.check),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -147,15 +224,6 @@ class _MapPickerPageState extends State<MapPickerPage> {
                     style: const TextStyle(fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _confirmLocation,
-                      icon: const Icon(Icons.check),
-                      label: const Text('Confirm Location'),
-                    ),
                   ),
                 ],
               ),

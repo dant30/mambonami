@@ -33,6 +33,8 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
   final _phoneController = TextEditingController();
   final _coopController = TextEditingController();
   final _gpsController = TextEditingController();
+  bool _isPasswordHidden = true;
+  bool _isConfirmPasswordHidden = true;
 
   @override
   void dispose() {
@@ -165,7 +167,11 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                   controller: _passwordController,
                   label: 'Password',
                   hint: '••••••••',
-                  obscureText: true,
+                  obscureText: _isPasswordHidden,
+                  suffixIcon: IconButton(
+                    icon: Icon(_isPasswordHidden ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
+                  ),
                   validator: FormValidators.validatePassword,
                 ),
                 const SizedBox(height: 16),
@@ -173,7 +179,11 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
                   hint: '••••••••',
-                  obscureText: true,
+                  obscureText: _isConfirmPasswordHidden,
+                  suffixIcon: IconButton(
+                    icon: Icon(_isConfirmPasswordHidden ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden),
+                  ),
                   validator: (value) => FormValidators.validateConfirmPassword(value, _passwordController.text.trim()),
                 ),
                 const SizedBox(height: 16),

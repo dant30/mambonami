@@ -14,6 +14,7 @@ class CustomTextField extends StatelessWidget {
   final String? errorText;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final bool? obscureTextOverride;
   final bool enabled;
   final bool autofocus;
   final int? maxLines;
@@ -35,6 +36,7 @@ class CustomTextField extends StatelessWidget {
     this.hint,
     this.hintText,
     this.obscureText = false,
+    this.obscureTextOverride,
     this.keyboardType = TextInputType.text,
     this.textInputAction,
     this.validator,
@@ -59,6 +61,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveLabel = label ?? labelText;
+    final effectiveObscureText = obscureTextOverride ?? obscureText;
 
     // Build decoration
     final inputDecoration = InputDecoration(
@@ -130,7 +133,7 @@ class CustomTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
-      obscureText: obscureText,
+      obscureText: effectiveObscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       textCapitalization: textCapitalization,

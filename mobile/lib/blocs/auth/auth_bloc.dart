@@ -84,8 +84,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (role == null || phone == null) {
         throw Exception('Invalid user data from registration: missing role or phone');
       }
-      
-      emit(AuthAuthenticated(role, phone, username));
+
+      emit(RegisterSuccess(role));
     } catch (e) {
       emit(AuthError(e.toString()));
     }

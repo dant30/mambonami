@@ -55,8 +55,12 @@ class _SuccessPageState extends State<SuccessPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = context.watch<AuthBloc>().state;
-    final role =
-        widget.role ?? (authState is AuthAuthenticated ? authState.role : null);
+    final role = widget.role ??
+        (authState is RegisterSuccess
+            ? authState.role
+            : authState is AuthAuthenticated
+                ? authState.role
+                : null);
     final roleLabel = AppRole.displayLabel(role).toLowerCase();
 
     return BlocListener<AuthBloc, AuthState>(
