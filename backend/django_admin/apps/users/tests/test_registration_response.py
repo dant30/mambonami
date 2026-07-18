@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from apps.users.models import Role, User
 from apps.users.serializers.user_serializer import UserDetailSerializer
+from apps.users.views.api import CustomTokenObtainPairView
 from core.throttling import BurstThrottle
 
 
@@ -36,3 +37,37 @@ class ThrottlingFallbackTests(SimpleTestCase):
 
         with patch('rest_framework.throttling.SimpleRateThrottle.allow_request', side_effect=Exception('cache down')):
             self.assertTrue(throttle.allow_request(request, APIView()))
+
+
+class LoginViewFallbackTests(TestCase):
+    def test_login_returns_user_payload_when_user_serializer_raises(self):
+        user = User.objects.create_user(
+            phone='+254700000001',
+            username='logintest',
+            password='TestPass123!',
+            role=Role.BUYER,
+        )
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            '/api/users/login/',
+            {'phone': '+254700000001', 'password': 'TestPass123!'},
+            format='json',
+        )
+        request.user = AnonymousUser()
+
+        class BrokenUserSerializer:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            @property
+            def data(self):
+                raise RuntimeError('serializer exploded')
+
+        response = None
+        with patch('apps.users.views.api.UserDetailSerializer', BrokenUserSerializer):
+            response = CustomTokenObtainPairView.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('tokens', response.data)
+        self.assertEqual(response.data['user']['phone'], user.phone)

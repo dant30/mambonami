@@ -28,6 +28,31 @@ from ..models import User, VerificationDocument, TrustScore, KycStatus, AccountS
 from ..services import get_tokens_for_user, authenticate_user
 from core.cache import delete_otp
 
+logger = logging.getLogger(__name__)
+
+
+def _build_safe_user_payload(user, request):
+    """Return a stable user payload even if the serializer raises unexpectedly."""
+    try:
+        return UserDetailSerializer(user, context={'request': request}).data
+    except Exception as exc:
+        logger.warning('Falling back to a basic user payload because serialization failed: %s', exc)
+        return {
+            'id': getattr(user, 'id', None),
+            'phone': getattr(user, 'phone', None),
+            'username': getattr(user, 'username', None),
+            'email': getattr(user, 'email', None),
+            'first_name': getattr(user, 'first_name', None),
+            'middle_name': getattr(user, 'middle_name', None),
+            'last_name': getattr(user, 'last_name', None),
+            'role': getattr(user, 'role', None),
+            'is_phone_verified': getattr(user, 'is_phone_verified', None),
+            'is_email_verified': getattr(user, 'is_email_verified', None),
+            'account_status': getattr(user, 'account_status', None),
+            'kyc_status': getattr(user, 'kyc_status', None),
+            'avatar_url': None,
+        }
+
 
 # ────────────────────────────────────────────────────────────────
 # AUTHENTICATION & REGISTRATION
@@ -68,7 +93,7 @@ class VerifyOTPView(generics.CreateAPIView):
             delete_otp(serializer.validated_data.get('phone'))
             return Response(
                 {
-                    'user': UserDetailSerializer(user, context={'request': request}).data,
+                    'user': _build_safe_user_payload(user, request),
                     'tokens': tokens,
                 },
                 status=status.HTTP_201_CREATED,
@@ -98,7 +123,7 @@ class VerifyOTPView(generics.CreateAPIView):
 
             if existing_user and (not username or existing_user.username == username):
                 try:
-                    user_data = UserDetailSerializer(existing_user, context={'request': request}).data
+                    user_data = _build_safe_user_payload(existing_user, request)
                     response_data = {'user': user_data, 'tokens': None}
 
                     try:
@@ -186,7 +211,7 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
         user.save(update_fields=['last_login', 'last_login_ip'])
 
         tokens = get_tokens_for_user(user)
-        user_data = UserDetailSerializer(user, context={'request': request}).data
+        user_data = _build_safe_user_payload(user, request)
         return Response(
             {'tokens': tokens, 'user': user_data},
             status=status.HTTP_200_OK
