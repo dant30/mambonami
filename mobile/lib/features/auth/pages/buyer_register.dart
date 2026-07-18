@@ -78,7 +78,7 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
             'dto': state.dto,
           });
         } else if (state is RegisterSuccess) {
-          ctx.go(RoutePaths.success, extra: 'buyer');
+          ctx.go(RoutePaths.success, extra: {'role': 'buyer'});
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(content: Text(state.message)),

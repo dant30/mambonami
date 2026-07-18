@@ -62,7 +62,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
             'dto': state.dto,
           });
         } else if (state is RegisterSuccess) {
-          ctx.go(RoutePaths.success, extra: 'transport');
+          ctx.go(RoutePaths.success, extra: {'role': 'transport'});
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx)
               .showSnackBar(SnackBar(content: Text(state.message)));

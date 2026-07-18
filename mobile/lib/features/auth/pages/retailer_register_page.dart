@@ -90,7 +90,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
             'dto': state.dto,
           });
         } else if (state is RegisterSuccess) {
-          ctx.go(RoutePaths.success, extra: 'retailer');
+          ctx.go(RoutePaths.success, extra: {'role': 'retailer'});
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(content: Text(state.message)),

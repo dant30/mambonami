@@ -197,20 +197,4 @@ class _SuccessPageState extends State<SuccessPage>
     );
   }
 
-  /// Returns the correct dashboard path based on the user's role.
-  String _dashboardPath(String? role) {
-    switch (role) {
-      case 'farmer':
-        return RoutePaths.farmerDashboard;
-      case 'buyer':
-        return RoutePaths.buyerDashboard;
-      case 'transport':
-      case 'transport_provider':
-        return RoutePaths.transportProviderDashboard;
-      case 'retailer':
-        return RoutePaths.buyerDashboard; // Retailer uses buyer dashboard
-      default:
-        return RoutePaths.buyerDashboard;
-    }
-  }
 }

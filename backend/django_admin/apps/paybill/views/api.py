@@ -11,7 +11,11 @@ from drf_yasg.utils import swagger_auto_schema
 from apps.paybill.permissions import CanViewPayBillTransactions
 from apps.paybill.services.ipn_handler import IPNHandler
 from apps.paybill.services.reconciliation import get_estimated_float_balance
-from apps.paybill.serializers import IPNCallbackSerializer, PayBillTransactionSerializer
+from apps.paybill.serializers import (
+    IPNCallbackSerializer,
+    PayBillSimulationSerializer,
+    PayBillTransactionSerializer,
+)
 from apps.paybill.serializers.settlement_serializer import SettlementSerializer
 from apps.paybill.models import PayBillTransaction, PayBillSettlement
 
@@ -50,6 +54,40 @@ class IPNCallbackView(APIView):
         if forwarded:
             return forwarded.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR')
+
+class PayBillSimulationView(APIView):
+    """Local development endpoint to simulate a PayBill callback without hitting Safaricom."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = PayBillSimulationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'message': 'Invalid simulation payload'}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            'TransactionCode': serializer.validated_data['TransactionCode'],
+            'Amount': str(serializer.validated_data['Amount']),
+            'AccountNumber': serializer.validated_data['AccountNumber'],
+            'PhoneNumber': serializer.validated_data['PhoneNumber'],
+            'Time': serializer.validated_data['Time'],
+            'BillRefNumber': serializer.validated_data.get('BillRefNumber', ''),
+            'FirstName': serializer.validated_data.get('FirstName', ''),
+            'MiddleName': serializer.validated_data.get('MiddleName', ''),
+            'LastName': serializer.validated_data.get('LastName', ''),
+            'BusinessShortCode': serializer.validated_data.get('BusinessShortCode', ''),
+            'TransactionType': serializer.validated_data.get('TransactionType', ''),
+        }
+        result = IPNHandler.process_callback(payload)
+        return Response(
+            {
+                'success': result['success'],
+                'message': result['message'],
+                'order_id': result.get('order_id'),
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class PayBillTransactionListView(APIView):
     """

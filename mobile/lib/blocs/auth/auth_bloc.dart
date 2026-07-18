@@ -79,7 +79,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       
       final role = _stringValue(user, 'role');
       final phone = _stringValue(user, 'phone');
-      final username = _stringValue(user, 'username') ?? event.username;
 
       if (role == null || phone == null) {
         throw Exception('Invalid user data from registration: missing role or phone');

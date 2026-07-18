@@ -93,7 +93,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
             'dto': state.dto,
           });
         } else if (state is RegisterSuccess) {
-          ctx.go(RoutePaths.success, extra: 'farmer');
+          ctx.go(RoutePaths.success, extra: {'role': 'farmer'});
         } else if (state is AuthError) {
           ScaffoldMessenger.of(ctx)
               .showSnackBar(SnackBar(content: Text(state.message)));

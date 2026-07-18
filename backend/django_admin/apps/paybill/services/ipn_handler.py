@@ -66,17 +66,18 @@ class IPNHandler:
                     is_processed=False,
                     processing_attempts=0,
                 )
+                callback.save()
 
-            # Increment attempt count (if existing)
-            if callback.pk:
+            # Increment attempt count for existing callbacks only
+            if callback._state.adding:
+                callback.save()  # save to get pk, but we'll set order_id later
+            else:
                 callback.processing_attempts = F('processing_attempts') + 1
                 callback.save(update_fields=['processing_attempts'])
                 # Refresh the value to get the actual integer
                 callback.refresh_from_db(fields=['processing_attempts'])
-            else:
-                callback.save()  # save to get pk, but we'll set order_id later
 
-            # 3. Extract amount, account, order
+            # 4. Extract payment fields and validate account number against reservation
             try:
                 amount = Decimal(str(normalized.get('amount', '0')))
                 account_number = normalized.get('account_number', '')
@@ -86,7 +87,7 @@ class IPNHandler:
                 middle_name = normalized.get('middle_name', '')
                 last_name = normalized.get('last_name', '')
                 business_shortcode = normalized.get('business_shortcode', '')
-                transaction_type = normalized.get('transaction_type', '')
+                transaction_type = str(normalized.get('transaction_type', '') or '')[:20]
             except (InvalidOperation, ValueError, TypeError) as e:
                 logger.exception("Error extracting payment fields")
                 return {'success': False, 'message': 'Invalid payment data'}
@@ -94,7 +95,6 @@ class IPNHandler:
             if amount <= 0 or not account_number:
                 return {'success': False, 'message': 'Invalid amount or account number'}
 
-            # 4. Validate account number against reservation
             reservation = AccountNumberReservation.objects.filter(
                 account_number=account_number,
                 is_used=False,
@@ -245,12 +245,12 @@ class IPNHandler:
 
             # 10. Send notification to buyer (async)
             if order:
-                from apps.notifications.tasks import send_notification_task
                 from apps.notifications.models import Notification
+
                 notif = Notification.objects.create(
                     user=order.buyer,
                     channel='in_app',
-                    notification_type='payment',
+                    category='payment',
                     title='Payment Received',
                     body=f"Your payment of KES {amount} for Order #{order.id} has been received.",
                     metadata={
@@ -258,7 +258,11 @@ class IPNHandler:
                         'amount': str(amount),
                     }
                 )
-                send_notification_task.delay(notif.id)
+                try:
+                    from apps.notifications.tasks import send_notification_task
+                    send_notification_task.delay(notif.id)
+                except Exception as exc:
+                    logger.warning(f"Notification dispatch skipped: {exc}")
 
         # End of atomic transaction
         return {

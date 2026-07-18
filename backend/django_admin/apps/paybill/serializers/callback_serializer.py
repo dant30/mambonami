@@ -27,6 +27,20 @@ class IPNCallbackSerializer(serializers.Serializer):
         return value
 
 
+class PayBillSimulationSerializer(serializers.Serializer):
+    TransactionCode = serializers.CharField(max_length=50, required=True)
+    Amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+    AccountNumber = serializers.CharField(max_length=50, required=True)
+    PhoneNumber = serializers.CharField(max_length=15, required=True)
+    Time = serializers.RegexField(regex=r'^\d{14}$', required=True)
+    BillRefNumber = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    FirstName = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    MiddleName = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    LastName = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    BusinessShortCode = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    TransactionType = serializers.CharField(max_length=20, required=False, allow_blank=True)
+
+
 class PayBillTransactionSerializer(serializers.ModelSerializer):
     matched_order_id = serializers.IntegerField(source='matched_order.id', read_only=True)
     order_uuid = serializers.UUIDField(source='matched_order.uuid', read_only=True)
