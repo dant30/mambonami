@@ -30,11 +30,14 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _idController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _coopController = TextEditingController();
   final _gpsController = TextEditingController();
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
+  // ignore: prefer_final_fields
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -43,6 +46,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _idController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     _coopController.dispose();
     _gpsController.dispose();
@@ -198,6 +202,19 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'john@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.mail_outlined, color: AppColors.textMuted, size: 18),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email is required';
+                    if (!v.contains('@')) return 'Enter a valid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
                   controller: _phoneController,
                   label: 'M-Pesa Number',
                   hint: '+254 7XX XXX XXX',
@@ -299,8 +316,9 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                     return CustomButton(
                       label: 'Create Account',
                       isLoading: state is AuthLoading,
+                      enabled: _acceptedTerms,
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() && _acceptedTerms) {
                           ctx.read<AuthBloc>().add(
                                 RegisterRequested(
                                   dto: {
@@ -308,6 +326,7 @@ class _FarmerRegisterPageState extends State<FarmerRegisterPage> {
                                     'username': _usernameController.text.trim(),
                                     'password': _passwordController.text.trim(),
                                     'phone': _phoneController.text.trim(),
+                                    'email': _emailController.text.trim(),
                                     'full_name':
                                         _fullNameController.text.trim(),
                                     'national_id': _idController.text.trim(),

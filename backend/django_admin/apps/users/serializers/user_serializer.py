@@ -3,6 +3,23 @@ import logging
 from django.db import IntegrityError, transaction
 from django.conf import settings
 from rest_framework import serializers
+
+
+def _normalize_vehicle_type(value):
+    if not value:
+        return ''
+    normalized = str(value).strip().lower()
+    if normalized in {'pickup', 'pickup truck', 'pick up'}:
+        return 'pickup'
+    if normalized in {'motorcycle', 'motor bike', 'bike'}:
+        return 'motorcycle'
+    if normalized in {'lorry', 'truck'}:
+        return 'lorry'
+    if normalized in {'van', 'mini van'}:
+        return 'van'
+    return normalized
+
+
 from django.contrib.auth.password_validation import validate_password
 from core.cache import RedisCache, cache_otp, delete_otp, get_otp
 from core.utils import generate_otp
@@ -66,11 +83,7 @@ class VerifyOTPSerializer(serializers.Serializer):
     cooperative = serializers.CharField(required=False, allow_blank=True)
 
     # Transport provider specific
-    vehicle_type = serializers.ChoiceField(
-        choices=TransportProviderProfile.VEHICLE_TYPES,
-        required=False,
-        allow_blank=True,
-    )
+    vehicle_type = serializers.CharField(required=False, allow_blank=True)
     license_plate = serializers.CharField(required=False, allow_blank=True)
     driver_license = serializers.CharField(required=False, allow_blank=True)
 
@@ -113,6 +126,13 @@ class VerifyOTPSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+
+        if attrs.get('role') == Role.TRANSPORT_PROVIDER:
+            normalized_vehicle_type = _normalize_vehicle_type(attrs.get('vehicle_type'))
+            allowed_types = {value for value, _ in TransportProviderProfile.VEHICLE_TYPES}
+            if normalized_vehicle_type not in allowed_types:
+                raise serializers.ValidationError({'vehicle_type': 'Invalid vehicle type.'})
+            attrs['vehicle_type'] = normalized_vehicle_type
 
         attempts_key = f'otp_attempts:{attrs["phone"]}'
         attempts = RedisCache.get(attempts_key) or 0
@@ -162,7 +182,7 @@ class VerifyOTPSerializer(serializers.Serializer):
         village = validated_data.pop('village', '')
         mpesa_number = validated_data.pop('mpesa_number', None)
         cooperative = validated_data.pop('cooperative', '')
-        vehicle_type = validated_data.pop('vehicle_type', '')
+        vehicle_type = _normalize_vehicle_type(validated_data.pop('vehicle_type', ''))
         license_plate = validated_data.pop('license_plate', '')
         driver_license = validated_data.pop('driver_license', '')
         bank_account = validated_data.pop('bank_account', '')

@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 
 from apps.users.models import Role, User
-from apps.users.serializers.user_serializer import UserDetailSerializer
+from apps.users.serializers.user_serializer import UserDetailSerializer, VerifyOTPSerializer
 from apps.users.views.api import CustomTokenObtainPairView
 from core.throttling import BurstThrottle
 
@@ -37,6 +37,27 @@ class ThrottlingFallbackTests(SimpleTestCase):
 
         with patch('rest_framework.throttling.SimpleRateThrottle.allow_request', side_effect=Exception('cache down')):
             self.assertTrue(throttle.allow_request(request, APIView()))
+
+
+class TransportVehicleTypeTests(TestCase):
+    @patch('apps.users.serializers.user_serializer.RedisCache.delete')
+    @patch('apps.users.serializers.user_serializer.RedisCache.set')
+    @patch('apps.users.serializers.user_serializer.RedisCache.get', return_value=0)
+    @patch('apps.users.serializers.user_serializer.get_otp', return_value='1234')
+    def test_transport_vehicle_type_accepts_display_label(self, _otp_mock, _get_mock, _set_mock, _delete_mock):
+        serializer = VerifyOTPSerializer(data={
+            'phone': '+254700000000',
+            'otp': '1234',
+            'username': 'transportuser',
+            'password': 'TestPass123!',
+            'confirm_password': 'TestPass123!',
+            'role': Role.TRANSPORT_PROVIDER,
+            'vehicle_type': 'Pickup',
+            'license_plate': 'KAA 123A',
+        })
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        self.assertEqual(serializer.validated_data['vehicle_type'], 'pickup')
 
 
 class LoginViewFallbackTests(TestCase):

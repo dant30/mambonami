@@ -24,12 +24,15 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _idController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _licenseNumberController = TextEditingController();
   String _selectedVehicle = 'Motorcycle';
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
+  // ignore: prefer_final_fields
+  bool _acceptedTerms = false;
 
   final List<Map<String, dynamic>> _vehicles = [
     {'label': 'Motorcycle', 'emoji': '🏍️'},
@@ -45,6 +48,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _idController.dispose();
     _licensePlateController.dispose();
     _licenseNumberController.dispose();
@@ -167,6 +171,19 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                       color: AppColors.textMuted, size: 18),
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Enter phone number' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'david@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.mail_outlined, color: AppColors.textMuted, size: 18),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email is required';
+                    if (!v.contains('@')) return 'Enter a valid email';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -298,14 +315,24 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  value: _acceptedTerms,
+                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                  title: const Text('I agree to the terms and conditions'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
                 const SizedBox(height: 24),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (ctx, state) {
                     return CustomButton(
                       label: 'Create Account',
                       isLoading: state is AuthLoading,
+                      enabled: _acceptedTerms,
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() && _acceptedTerms) {
                           ctx.read<AuthBloc>().add(
                                 RegisterRequested(
                                   dto: {
@@ -313,6 +340,7 @@ class _TransportRegisterPageState extends State<TransportRegisterPage> {
                                     'username': _usernameController.text.trim(),
                                     'password': _passwordController.text.trim(),
                                     'phone': _phoneController.text.trim(),
+                                    'email': _emailController.text.trim(),
                                     'full_name':
                                         _fullNameController.text.trim(),
                                     'national_id': _idController.text.trim(),

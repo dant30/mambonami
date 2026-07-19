@@ -34,6 +34,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
   final _instructionsController = TextEditingController();
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
+  // ignore: prefer_final_fields
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -262,6 +264,15 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                CheckboxListTile(
+                  value: _acceptedTerms,
+                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                  title: const Text('I agree to the terms and conditions'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+                const SizedBox(height: 16),
                 CustomTextField(
                   controller: _instructionsController,
                   label: 'Preferred Delivery Instructions',
@@ -273,8 +284,9 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                     return CustomButton(
                       label: 'Create Account',
                       isLoading: state is AuthLoading,
+                      enabled: _acceptedTerms,
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() && _acceptedTerms) {
                           ctx.read<AuthBloc>().add(
                             RegisterRequested(
                               dto: {

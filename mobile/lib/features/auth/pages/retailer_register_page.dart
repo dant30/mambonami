@@ -28,6 +28,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _ownerNameController = TextEditingController();
   final _businessPhoneController = TextEditingController();
@@ -37,6 +38,8 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
   String _selectedBusinessType = 'Grocery / Supermarket';
   bool _isPasswordHidden = true;
   bool _isConfirmPasswordHidden = true;
+  // ignore: prefer_final_fields
+  bool _acceptedTerms = false;
 
   final List<String> _businessTypes = [
     'Grocery / Supermarket',
@@ -51,6 +54,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _businessNameController.dispose();
     _ownerNameController.dispose();
     _businessPhoneController.dispose();
@@ -208,6 +212,23 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'owner@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(
+                    Icons.mail_outlined,
+                    color: AppColors.textMuted,
+                    size: 18,
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email is required';
+                    if (!v.contains('@')) return 'Enter a valid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
                   controller: _ownerNameController,
                   label: 'Owner Full Name',
                   hint: 'James Kamau',
@@ -309,6 +330,15 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                CheckboxListTile(
+                  value: _acceptedTerms,
+                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                  title: const Text('I agree to the terms and conditions'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+                const SizedBox(height: 16),
                 CustomTextField(
                   controller: _kraPinController,
                   label: 'KRA PIN (optional)',
@@ -320,8 +350,9 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                     return CustomButton(
                       label: 'Create Account',
                       isLoading: state is AuthLoading,
+                      enabled: _acceptedTerms,
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() && _acceptedTerms) {
                           ctx.read<AuthBloc>().add(
                                 RegisterRequested(
                                   dto: {
@@ -329,6 +360,7 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                                     'username': _usernameController.text.trim(),
                                     'password': _passwordController.text.trim(),
                                     'phone': _phoneController.text.trim(),
+                                    'email': _emailController.text.trim(),
                                     'business_name':
                                         _businessNameController.text.trim(),
                                     'owner_full_name':
