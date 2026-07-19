@@ -15,6 +15,7 @@ import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
+import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../widgets/category_chip_bar.dart';
@@ -57,14 +58,23 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
 
     // Active order from OrderBloc
     final orderState = context.watch<OrderBloc>().state;
-    final activeOrder = orderState is BuyerOrdersLoaded ? orderState.activeOrder : null;
+    final activeOrder =
+        orderState is BuyerOrdersLoaded ? orderState.activeOrder : null;
     final productState = context.watch<ProductBloc>().state;
-    final products = productState is ProductLoaded ? productState.products : <Product>[];
+    final products =
+        productState is ProductLoaded ? productState.products : <Product>[];
 
     final userLocation = (activeOrder?.deliveryCity.isNotEmpty ?? false)
         ? activeOrder!.deliveryCity
-        : (products.where((product) => product.location != null && product.location!.isNotEmpty).isNotEmpty
-            ? products.where((product) => product.location != null && product.location!.isNotEmpty).first.location!
+        : (products
+                .where((product) =>
+                    product.location != null && product.location!.isNotEmpty)
+                .isNotEmpty
+            ? products
+                .where((product) =>
+                    product.location != null && product.location!.isNotEmpty)
+                .first
+                .location!
             : 'Your preferred delivery location');
     final nearbyFarmers = buildNearbyFarmers(products);
     final featuredProducts = products.take(6).toList();
@@ -131,7 +141,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                             );
                           }
                           if (state is ProductLoaded) {
-                            return _buildProductGrid(context, products: featuredProducts);
+                            return _buildProductGrid(context,
+                                products: featuredProducts);
                           }
                           return const SizedBox.shrink();
                         },
@@ -162,9 +173,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }) {
     final theme = Theme.of(context);
     final userName = authState is AuthAuthenticated
-        ? authState.username ?? authState.phone
+        ? (authState.displayName ?? authState.username ?? authState.phone)
         : 'Guest';
-    final avatarLabel = userName.isNotEmpty ? userName[0].toUpperCase() : 'G';
+    final avatarUrl =
+        authState is AuthAuthenticated ? authState.avatarUrl : null;
+    final nameParts = userName.trim().split(RegExp(r'\s+'));
+    final firstName = nameParts.isNotEmpty ? nameParts.first : null;
+    final lastName = nameParts.length > 1 ? nameParts.last : null;
 
     return Container(
       color: Colors.white,
@@ -240,21 +255,18 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               // Avatar
               GestureDetector(
                 onTap: () => context.go(RoutePaths.profile),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Text(
-                      avatarLabel,
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                child: Avatar(
+                  imageUrl: avatarUrl,
+                  username: userName,
+                  firstName: firstName,
+                  lastName: lastName,
+                  size: 36,
+                  showBorder: false,
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                  textStyle: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -294,7 +306,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── Hero banner ─────────────────────────────────────────────────
-  Widget _buildHeroBanner(BuildContext context, {required List<Product> products}) {
+  Widget _buildHeroBanner(BuildContext context,
+      {required List<Product> products}) {
     final theme = Theme.of(context);
     final featuredProduct = products.isNotEmpty ? products.first : null;
     final bannerTitle = featuredProduct != null
@@ -383,12 +396,12 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   ),
                   child: const Text('Shop Now',
-                      style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700)),
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 ),
               ),
             ),
@@ -399,7 +412,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── Nearby farmers horizontal row ─────────────────────────────
-  Widget _buildNearbyFarmers(BuildContext context, {required List<Map<String, String>> farmers}) {
+  Widget _buildNearbyFarmers(BuildContext context,
+      {required List<Map<String, String>> farmers}) {
     final theme = Theme.of(context);
 
     return Column(
@@ -443,7 +457,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                             color: AppColors.light,
                             borderRadius: BorderRadius.circular(18),
                           ),
-                          child: const Icon(Icons.agriculture, color: AppColors.primary),
+                          child: const Icon(Icons.agriculture,
+                              color: AppColors.primary),
                         ),
                       ),
                     ),
@@ -474,7 +489,8 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   // ── Recommended products grid ──────────────────────────────────
-  Widget _buildProductGrid(BuildContext context, {required List<Product> products}) {
+  Widget _buildProductGrid(BuildContext context,
+      {required List<Product> products}) {
     if (products.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -525,8 +541,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     final distanceLabel = order.totalDistanceKm != null
         ? '${order.totalDistanceKm!.toStringAsFixed(1)} km away'
         : 'On the route';
-    final etaLabel = order.etaMinutes != null ? '${order.etaMinutes} min' : 'soon';
-    final completedSteps = order.isDelivered ? 5 : (order.status.toLowerCase().contains('picked') ? 4 : (order.status.toLowerCase().contains('assigned') ? 3 : 2));
+    final etaLabel =
+        order.etaMinutes != null ? '${order.etaMinutes} min' : 'soon';
+    final completedSteps = order.isDelivered
+        ? 5
+        : (order.status.toLowerCase().contains('picked')
+            ? 4
+            : (order.status.toLowerCase().contains('assigned') ? 3 : 2));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),

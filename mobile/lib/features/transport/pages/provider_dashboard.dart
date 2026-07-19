@@ -6,6 +6,7 @@ import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/app_screen.dart';
+import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../blocs/auth/auth_bloc.dart';
 import '../../../blocs/trip/trip_bloc.dart';
@@ -23,22 +24,38 @@ class ProviderDashboard extends StatelessWidget {
     final authState = context.watch<AuthBloc>().state;
     final tripState = context.watch<TripBloc>().state;
     String username = '';
+    String? avatarUrl;
     if (authState is AuthAuthenticated) {
-      username = authState.username ?? authState.phone;
+      username = authState.displayName ?? authState.username ?? authState.phone;
+      avatarUrl = authState.avatarUrl;
     }
 
     final trips = tripState is MyTripsLoaded ? tripState.trips : <Trip>[];
     String activeTripLabel = '';
     if (trips.isNotEmpty) {
-      final activeTrip = trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').isNotEmpty
-          ? trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').first
+      final activeTrip = trips
+              .where((trip) =>
+                  trip.status.toLowerCase() != 'delivered' &&
+                  trip.status.toLowerCase() != 'cancelled')
+              .isNotEmpty
+          ? trips
+              .where((trip) =>
+                  trip.status.toLowerCase() != 'delivered' &&
+                  trip.status.toLowerCase() != 'cancelled')
+              .first
           : null;
       if (activeTrip != null) {
-        activeTripLabel = 'You have an active trip in ${activeTrip.status}. Tap to continue.';
+        activeTripLabel =
+            'You have an active trip in ${activeTrip.status}. Tap to continue.';
       }
     }
-    final activeTrips = trips.where((trip) => trip.status.toLowerCase() != 'delivered' && trip.status.toLowerCase() != 'cancelled').length;
-    final earnings = trips.fold<double>(0.0, (sum, trip) => sum + (trip.agreedFee ?? 0.0));
+    final activeTrips = trips
+        .where((trip) =>
+            trip.status.toLowerCase() != 'delivered' &&
+            trip.status.toLowerCase() != 'cancelled')
+        .length;
+    final earnings =
+        trips.fold<double>(0.0, (sum, trip) => sum + (trip.agreedFee ?? 0.0));
     final statusLabel = activeTrips > 0 ? 'Active' : 'Ready';
 
     return Scaffold(
@@ -56,7 +73,37 @@ class ProviderDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GreetingHeader(name: username),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: GreetingHeader(
+                        name: username, subtitle: 'Ready for the next load')),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () => context.go(RoutePaths.profile),
+                  child: Avatar(
+                    imageUrl: avatarUrl,
+                    username: username,
+                    firstName: username.split(' ').firstWhere(
+                        (value) => value.isNotEmpty,
+                        orElse: () => ''),
+                    lastName: username.split(' ').length > 1
+                        ? username.split(' ').lastWhere(
+                            (value) => value.isNotEmpty,
+                            orElse: () => '')
+                        : null,
+                    size: 48,
+                    showBorder: false,
+                    backgroundColor:
+                        AppColors.providerAccent.withValues(alpha: 0.12),
+                    textStyle: const TextStyle(
+                        color: AppColors.providerAccent,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             if (activeTripLabel.isNotEmpty) ...[
               Container(
@@ -72,12 +119,16 @@ class ProviderDashboard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.route_outlined, color: AppColors.providerAccent),
+                    const Icon(Icons.route_outlined,
+                        color: AppColors.providerAccent),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         activeTripLabel,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                     TextButton(
@@ -111,7 +162,10 @@ class ProviderDashboard extends StatelessWidget {
             const SizedBox(height: 18),
             _buildQuickAccessCards(context),
             const SizedBox(height: 18),
-            _buildStatsSection(context, activeTrips: activeTrips, earnings: earnings, statusLabel: statusLabel),
+            _buildStatsSection(context,
+                activeTrips: activeTrips,
+                earnings: earnings,
+                statusLabel: statusLabel),
           ],
         ),
       ),
@@ -171,7 +225,10 @@ class ProviderDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context, {required int activeTrips, required double earnings, required String statusLabel}) {
+  Widget _buildStatsSection(BuildContext context,
+      {required int activeTrips,
+      required double earnings,
+      required String statusLabel}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

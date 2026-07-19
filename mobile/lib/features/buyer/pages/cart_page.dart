@@ -27,9 +27,9 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     final groups = _cartRepo.itemsGroupedByFarmer;
     final subtotal = _cartRepo.subtotal;
-    const deliveryFee = 150.0;
-    final platformFee = (subtotal * 0.05).roundToDouble();
-    final total = subtotal + deliveryFee + platformFee;
+    final deliveryFee = _cartRepo.deliveryFee;
+    final serviceFee = _cartRepo.serviceFee;
+    final total = _cartRepo.total;
 
     if (groups.isEmpty) {
       return Scaffold(
@@ -102,8 +102,7 @@ class _CartPageState extends State<CartPage> {
                             child: CartItemWidget(
                               item: item,
                               onQtyChanged: (qty) {
-                                _cartRepo.updateQuantity(
-                                    item.productId, qty);
+                                _cartRepo.updateQuantity(item.productId, qty);
                                 setState(() {});
                               },
                               onRemove: () {
@@ -134,38 +133,31 @@ class _CartPageState extends State<CartPage> {
                         ),
                   ),
                   const SizedBox(height: 12),
-                  _SummaryRow('Subtotal',
-                      'KES ${subtotal.toStringAsFixed(0)}'),
+                  _SummaryRow('Subtotal', 'KES ${subtotal.toStringAsFixed(0)}'),
                   const SizedBox(height: 6),
-                  _SummaryRow('Delivery fee',
-                      'KES ${deliveryFee.toStringAsFixed(0)}'),
+                  _SummaryRow(
+                      'Logistics fee', 'KES ${deliveryFee.toStringAsFixed(0)}'),
                   const SizedBox(height: 6),
-                  _SummaryRow('Platform fee',
-                      'KES ${platformFee.toStringAsFixed(0)}'),
+                  _SummaryRow('Escrow service fee',
+                      'KES ${serviceFee.toStringAsFixed(0)}'),
                   const Divider(
-                      height: 20,
-                      color: AppColors.light,
-                      thickness: 1.5),
+                      height: 20, color: AppColors.light, thickness: 1.5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Total',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.dark,
-                              )),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.dark,
+                                  )),
                       Text(
                         'KES ${total.toStringAsFixed(0)}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                ),
                       ),
                     ],
                   ),
@@ -191,7 +183,8 @@ class _CartPageState extends State<CartPage> {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
-                                ?.copyWith(fontWeight: FontWeight.w700,
+                                ?.copyWith(
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.dark)),
                         Text('Westlands, Nairobi',
                             style: Theme.of(context)
@@ -246,8 +239,8 @@ class _CartPageState extends State<CartPage> {
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text('$count items',
-                    style: const TextStyle(
-                        color: AppColors.muted, fontSize: 12)),
+                    style:
+                        const TextStyle(color: AppColors.muted, fontSize: 12)),
               ),
             ),
         ],
@@ -269,11 +262,8 @@ class _SummaryRow extends StatelessWidget {
                   .bodySmall
                   ?.copyWith(color: AppColors.muted)),
           Text(value,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(
-                      fontWeight: FontWeight.w600, color: AppColors.dark)),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600, color: AppColors.dark)),
         ],
       );
 }

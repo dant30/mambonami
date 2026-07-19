@@ -33,6 +33,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     return null;
   }
 
+  String? _avatarUrl(Map<String, dynamic> user) {
+    return _stringValue(user, 'avatar_url') ??
+        _stringValue(user, 'profile_image') ??
+        _stringValue(user, 'avatar');
+  }
+
+  String? _displayName(Map<String, dynamic> user, {String? fallback}) {
+    return _stringValue(user, 'display_name') ??
+        _stringValue(user, 'full_name') ??
+        _stringValue(user, 'username') ??
+        fallback;
+  }
+
   Future<void> _onRegisterInit(
       RegisterInitEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -76,12 +89,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         businessType: event.businessType,
         kraPin: event.kraPin,
       );
-      
+
       final role = _stringValue(user, 'role');
       final phone = _stringValue(user, 'phone');
 
       if (role == null || phone == null) {
-        throw Exception('Invalid user data from registration: missing role or phone');
+        throw Exception(
+            'Invalid user data from registration: missing role or phone');
       }
 
       emit(RegisterSuccess(role));
@@ -97,32 +111,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLoginRequested(
+      LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.login(event.phone, event.password);
       final role = _stringValue(user, 'role');
       final phone = _stringValue(user, 'phone') ?? event.phone;
       final username = _stringValue(user, 'username');
+      final avatarUrl = _avatarUrl(user);
+      final displayName = _displayName(user, fallback: username);
 
       if (role == null) {
         throw Exception('Invalid user data: missing role');
       }
 
-      emit(AuthAuthenticated(role, phone, username));
+      emit(AuthAuthenticated(role, phone, username, avatarUrl, displayName));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> _onOtpVerifyRequested(OtpVerifyRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onOtpVerifyRequested(
+      OtpVerifyRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       if (event.otp.length != 4) {
         throw Exception('Enter a valid 4-digit code');
       }
 
-      final phone = event.phone.isNotEmpty ? event.phone : (state is OtpSent ? (state as OtpSent).phone : null);
+      final phone = event.phone.isNotEmpty
+          ? event.phone
+          : (state is OtpSent ? (state as OtpSent).phone : null);
       final password = state is OtpSent ? (state as OtpSent).password : null;
       if (phone == null || phone.isEmpty) {
         throw Exception('Missing phone number for OTP verification');
@@ -137,18 +157,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final role = _stringValue(user, 'role');
       final resolvedPhone = _stringValue(user, 'phone') ?? phone;
       final username = _stringValue(user, 'username');
+      final avatarUrl = _avatarUrl(user);
+      final displayName = _displayName(user, fallback: username);
 
       if (role == null) {
         throw Exception('Invalid user data: missing role or phone');
       }
 
-      emit(AuthAuthenticated(role, resolvedPhone, username));
+      emit(AuthAuthenticated(
+          role, resolvedPhone, username, avatarUrl, displayName));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> _onRegisterRequested(RegisterRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onRegisterRequested(
+      RegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final role = event.dto['role']?.toString() ?? 'buyer';
@@ -202,14 +226,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Verify token by fetching profile from backend. If this succeeds,
       // token is valid; otherwise handle as unauthenticated.
       final profile = await authRepository.getProfile();
-      final role = _stringValue(profile, 'role') ?? await secureStorage.getUserRole();
-      final phone = _stringValue(profile, 'phone') ?? await secureStorage.getUserPhone();
+      final role =
+          _stringValue(profile, 'role') ?? await secureStorage.getUserRole();
+      final phone =
+          _stringValue(profile, 'phone') ?? await secureStorage.getUserPhone();
       final username = _stringValue(profile, 'username');
+      final avatarUrl = _avatarUrl(profile);
+      final displayName = _displayName(profile, fallback: username);
       if (role != null && phone != null) {
         // Ensure secure storage has the latest values
         await secureStorage.saveUserRole(role);
         await secureStorage.saveUserPhone(phone);
-        emit(AuthAuthenticated(role, phone, username));
+        emit(AuthAuthenticated(role, phone, username, avatarUrl, displayName));
         return;
       }
     } catch (e) {

@@ -45,16 +45,27 @@ class CartRepository {
     await _databaseHelper.clearTable(kCartItemTable);
   }
 
-  int get itemCount => items.value.fold(0, (count, item) => count + item.quantity.toInt());
-  double get totalQuantity => items.value.fold(0.0, (sum, item) => sum + item.quantity);
-  double get subtotal => items.value.fold(0.0, (sum, item) => sum + item.lineTotal);
-  double get totalWeightKg => items.value.fold(0.0, (sum, item) => sum + (item.product.weightPerUnit * item.quantity));
+  int get itemCount =>
+      items.value.fold(0, (count, item) => count + item.quantity.toInt());
+  double get totalQuantity =>
+      items.value.fold(0.0, (sum, item) => sum + item.quantity);
+  double get subtotal =>
+      items.value.fold(0.0, (sum, item) => sum + item.lineTotal);
+  double get deliveryFee =>
+      subtotal > 0 ? (subtotal * 0.08).clamp(120.0, 400.0) : 0.0;
+  double get serviceFee =>
+      subtotal > 0 ? (subtotal * 0.03).clamp(0.0, 600.0) : 0.0;
+  double get total => subtotal + deliveryFee + serviceFee;
+  double get totalWeightKg => items.value.fold(
+      0.0, (sum, item) => sum + (item.product.weightPerUnit * item.quantity));
 
   Future<void> addProduct(Product product, double quantity) async {
     if (quantity <= 0) return;
-    final existing = items.value.indexWhere((item) => item.product.id == product.id);
+    final existing =
+        items.value.indexWhere((item) => item.product.id == product.id);
     if (existing >= 0) {
-      final updated = items.value[existing].copyWith(quantity: items.value[existing].quantity + quantity);
+      final updated = items.value[existing]
+          .copyWith(quantity: items.value[existing].quantity + quantity);
       final updatedItems = List<CartItem>.from(items.value);
       updatedItems[existing] = updated;
       items.value = updatedItems;
@@ -72,7 +83,8 @@ class CartRepository {
       await removeProduct(productId);
       return;
     }
-    final existing = items.value.indexWhere((item) => item.product.id == productId);
+    final existing =
+        items.value.indexWhere((item) => item.product.id == productId);
     if (existing < 0) return;
     final updatedItems = List<CartItem>.from(items.value);
     final updated = updatedItems[existing].copyWith(quantity: quantity);
@@ -82,7 +94,8 @@ class CartRepository {
   }
 
   Future<void> removeProduct(int productId) async {
-    items.value = items.value.where((item) => item.product.id != productId).toList();
+    items.value =
+        items.value.where((item) => item.product.id != productId).toList();
     await _removeCartItem(productId);
   }
 
@@ -91,16 +104,23 @@ class CartRepository {
   Map<String, List<CartItem>> get itemsGroupedByFarmer {
     final groups = <String, List<CartItem>>{};
     for (final item in items.value) {
-      final key = item.product.farmerName.isNotEmpty ? item.product.farmerName : 'Unknown farmer';
+      final key = item.product.farmerName.isNotEmpty
+          ? item.product.farmerName
+          : 'Unknown farmer';
       groups.putIfAbsent(key, () => <CartItem>[]).add(item);
     }
     return groups;
   }
 
-  Future<void> addItem({required int productId, required double quantity, required int farmerId}) async {
-    final existing = items.value.indexWhere((item) => item.product.id == productId);
+  Future<void> addItem(
+      {required int productId,
+      required double quantity,
+      required int farmerId}) async {
+    final existing =
+        items.value.indexWhere((item) => item.product.id == productId);
     if (existing >= 0) {
-      await updateQuantity(productId, items.value[existing].quantity + quantity);
+      await updateQuantity(
+          productId, items.value[existing].quantity + quantity);
       return;
     }
     await Future<void>.value();

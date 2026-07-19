@@ -11,6 +11,7 @@ import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
+import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/custom_button.dart';
@@ -23,11 +24,15 @@ class RetailerDashboard extends StatelessWidget {
     final authState = context.watch<AuthBloc>().state;
     final orderState = context.watch<OrderBloc>().state;
     String username = '';
+    String? avatarUrl;
     if (authState is AuthAuthenticated) {
-      username = authState.username ?? authState.phone;
+      username = authState.displayName ?? authState.username ?? authState.phone;
+      avatarUrl = authState.avatarUrl;
     }
     final activeOrders = orderState is MyOrdersLoaded
-        ? orderState.orders.where((o) => o.status != 'delivered' && o.status != 'cancelled').length
+        ? orderState.orders
+            .where((o) => o.status != 'delivered' && o.status != 'cancelled')
+            .length
         : 0;
 
     return Scaffold(
@@ -45,7 +50,10 @@ class RetailerDashboard extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color(0xFF4C1D95).withValues(alpha: 0.05), AppColors.background],
+            colors: [
+              const Color(0xFF4C1D95).withValues(alpha: 0.05),
+              AppColors.background
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -55,7 +63,7 @@ class RetailerDashboard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context, username),
+              _buildHeader(context, username, avatarUrl),
               const SizedBox(height: 16),
               _buildPurchaseChart(context),
               const SizedBox(height: 16),
@@ -88,20 +96,31 @@ class RetailerDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String username) {
+  Widget _buildHeader(
+      BuildContext context, String username, String? avatarUrl) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.transportPurple.withValues(alpha: 0.15),
-                borderRadius: AppRadius.lg,
+            GestureDetector(
+              onTap: () => context.go(RoutePaths.profile),
+              child: Avatar(
+                imageUrl: avatarUrl,
+                username: username.isNotEmpty ? username : 'Retailer',
+                firstName:
+                    username.isNotEmpty ? username.split(' ').first : null,
+                lastName: username.split(' ').length > 1
+                    ? username.split(' ').last
+                    : null,
+                size: 48,
+                showBorder: false,
+                backgroundColor:
+                    AppColors.transportPurple.withValues(alpha: 0.15),
+                textStyle: const TextStyle(
+                    color: AppColors.transportPurple,
+                    fontWeight: FontWeight.w700),
               ),
-              child: const Icon(Icons.storefront, color: AppColors.transportPurple),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -114,7 +133,8 @@ class RetailerDashboard extends StatelessWidget {
                   ),
                   Text(
                     username.isNotEmpty ? username : 'Kamau Fresh Groceries',
-                    style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -142,14 +162,21 @@ class RetailerDashboard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Monthly Purchases', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                const Text('Monthly Purchases',
+                    style:
+                        TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.15),
                     borderRadius: AppRadius.sm,
                   ),
-                  child: const Text('▲ 8.1%', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: const Text('▲ 8.1%',
+                      style: TextStyle(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12)),
                 ),
               ],
             ),
@@ -160,14 +187,19 @@ class RetailerDashboard extends StatelessWidget {
                 BarChartData(
                   gridData: const FlGridData(show: false),
                   titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (val, _) {
-                          return Text('${data[val.toInt()][0]}', style: const TextStyle(fontSize: 10, color: AppColors.textMuted));
+                          return Text('${data[val.toInt()][0]}',
+                              style: const TextStyle(
+                                  fontSize: 10, color: AppColors.textMuted));
                         },
                         interval: 1,
                       ),
@@ -205,10 +237,15 @@ class RetailerDashboard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
-                  const Icon(Icons.shopping_cart_outlined, color: AppColors.transportPurple),
+                  const Icon(Icons.shopping_cart_outlined,
+                      color: AppColors.transportPurple),
                   const SizedBox(height: 4),
-                  Text('$activeOrders', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                  const Text('Active Orders', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                  Text('$activeOrders',
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.bold)),
+                  const Text('Active Orders',
+                      style:
+                          TextStyle(fontSize: 10, color: AppColors.textMuted)),
                 ],
               ),
             ),
@@ -223,8 +260,12 @@ class RetailerDashboard extends StatelessWidget {
                 children: [
                   Icon(Icons.store_outlined, color: AppColors.secondaryGreen),
                   SizedBox(height: 4),
-                  Text('24', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                  Text('Suppliers', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                  Text('24',
+                      style:
+                          TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  Text('Suppliers',
+                      style:
+                          TextStyle(fontSize: 10, color: AppColors.textMuted)),
                 ],
               ),
             ),
@@ -236,9 +277,30 @@ class RetailerDashboard extends StatelessWidget {
 
   Widget _buildReorderList(BuildContext context) {
     final items = <Map<String, dynamic>>[
-      {'name': 'Avocado', 'supplier': 'Kamau Farm', 'qty': '50 kg', 'price': 'KES 12,500', 'img': 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=50&h=50&fit=crop'},
-      {'name': 'Tomatoes', 'supplier': 'Wanjiku Farm', 'qty': '100 kg', 'price': 'KES 9,000', 'img': 'https://images.unsplash.com/photo-1546470427-e26264be0b07?w=50&h=50&fit=crop'},
-      {'name': 'Sukuma Wiki', 'supplier': 'Thika Farms', 'qty': '200 bunches', 'price': 'KES 4,000', 'img': 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=50&h=50&fit=crop'},
+      {
+        'name': 'Avocado',
+        'supplier': 'Kamau Farm',
+        'qty': '50 kg',
+        'price': 'KES 12,500',
+        'img':
+            'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=50&h=50&fit=crop'
+      },
+      {
+        'name': 'Tomatoes',
+        'supplier': 'Wanjiku Farm',
+        'qty': '100 kg',
+        'price': 'KES 9,000',
+        'img':
+            'https://images.unsplash.com/photo-1546470427-e26264be0b07?w=50&h=50&fit=crop'
+      },
+      {
+        'name': 'Sukuma Wiki',
+        'supplier': 'Thika Farms',
+        'qty': '200 bunches',
+        'price': 'KES 4,000',
+        'img':
+            'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=50&h=50&fit=crop'
+      },
     ];
 
     return Column(
@@ -251,16 +313,23 @@ class RetailerDashboard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: AppRadius.md,
-                  child: Image.network(item['img'] as String, width: 48, height: 48, fit: BoxFit.cover),
+                  child: Image.network(item['img'] as String,
+                      width: 48, height: 48, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      Text('${item['supplier']} · ${item['qty']}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                      Text(item['price'] as String, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                      Text(item['name'] as String,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text('${item['supplier']} · ${item['qty']}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textMuted)),
+                      Text(item['price'] as String,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryGreen)),
                     ],
                   ),
                 ),
@@ -280,8 +349,22 @@ class RetailerDashboard extends StatelessWidget {
 
   Widget _buildActiveOrders(BuildContext context) {
     final orders = <Map<String, dynamic>>[
-      {'id': 'ORD-4821', 'farmer': 'Kamau Farm', 'item': 'Avocado 50kg', 'amount': 'KES 12,500', 'status': 'Picked Up', 'color': AppColors.secondaryGreen},
-      {'id': 'ORD-4819', 'farmer': 'Wanjiku Farm', 'item': 'Tomatoes 100kg', 'amount': 'KES 9,000', 'status': 'Farmer Ready', 'color': AppColors.warning},
+      {
+        'id': 'ORD-4821',
+        'farmer': 'Kamau Farm',
+        'item': 'Avocado 50kg',
+        'amount': 'KES 12,500',
+        'status': 'Picked Up',
+        'color': AppColors.secondaryGreen
+      },
+      {
+        'id': 'ORD-4819',
+        'farmer': 'Wanjiku Farm',
+        'item': 'Tomatoes 100kg',
+        'amount': 'KES 9,000',
+        'status': 'Farmer Ready',
+        'color': AppColors.warning
+      },
     ];
 
     return Column(
@@ -299,21 +382,34 @@ class RetailerDashboard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(order['id']!, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          Text(order['id']!,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700)),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: (order['color'] as Color).withValues(alpha: 0.15),
+                              color: (order['color'] as Color)
+                                  .withValues(alpha: 0.15),
                               borderRadius: AppRadius.sm,
                             ),
-                            child: Text(order['status']!, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: order['color'] as Color)),
+                            child: Text(order['status']!,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: order['color'] as Color)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text('${order['farmer']} · ${order['item']}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                      Text('${order['farmer']} · ${order['item']}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textMuted)),
                       const SizedBox(height: 4),
-                      Text(order['amount']!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                      Text(order['amount']!,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryGreen)),
                     ],
                   ),
                 ),

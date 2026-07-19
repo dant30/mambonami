@@ -12,6 +12,7 @@ import '../../config/route_paths.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_gradients.dart';
 import '../utils/form_validators.dart';
+import '../widgets/avatar.dart';
 
 // ── Internal menu item definition ─────────────────────────────
 class _DrawerItem {
@@ -39,17 +40,23 @@ class AppDrawer extends StatelessWidget {
     String phone = '';
     String role = '';
     String username = '';
+    String? avatarUrl;
+    String? displayNameValue;
     if (authState is AuthAuthenticated) {
       phone = authState.phone;
       role = authState.role;
       username = authState.username ?? '';
+      avatarUrl = authState.avatarUrl;
+      displayNameValue = authState.displayName;
     }
 
-    final formattedPhone = phone.isNotEmpty ? FormValidators.formatPhone(phone) : '';
-    final displayName = username.isNotEmpty
-        ? username
+    final formattedPhone =
+        phone.isNotEmpty ? FormValidators.formatPhone(phone) : '';
+    final displayName = (displayNameValue ?? username).trim().isNotEmpty
+        ? (displayNameValue ?? username)
         : (formattedPhone.isNotEmpty ? formattedPhone : 'Guest');
-    final displayPhone = formattedPhone.isNotEmpty ? formattedPhone : 'Not signed in';
+    final displayPhone =
+        formattedPhone.isNotEmpty ? formattedPhone : 'Not signed in';
     final roleLabel = AppRole.displayLabel(role);
     final homeRoute = AppRole.homePathFor(role);
 
@@ -59,14 +66,16 @@ class AppDrawer extends StatelessWidget {
 
     bool isRouteSelected(String route) {
       final normalizedLocation = currentLocation.split('?').first;
-      return normalizedLocation == route || normalizedLocation.startsWith('$route/');
+      return normalizedLocation == route ||
+          normalizedLocation.startsWith('$route/');
     }
 
     // ── Badge counts ──────────────────────────────────────────
     final notifState = context.watch<NotificationBloc>().state;
     int unreadNotifications = 0;
     if (notifState is NotificationLoaded) {
-      unreadNotifications = notifState.notifications.where((n) => n.isUnread).length;
+      unreadNotifications =
+          notifState.notifications.where((n) => n.isUnread).length;
     }
 
     final orderState = context.watch<OrderBloc>().state;
@@ -145,6 +154,67 @@ class AppDrawer extends StatelessWidget {
       ),
     ];
 
+    final roleSpecificItems = <_DrawerItem>[
+      if (role == AppRole.farmer) ...[
+        const _DrawerItem(
+          icon: Icons.agriculture_rounded,
+          title: 'Cooperative Yield Register',
+          route: RoutePaths.farmerProducts,
+          allowedRoles: AppRole.farmerRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.inventory_2_rounded,
+          title: 'Harvest & Inventory',
+          route: RoutePaths.farmerProducts,
+          allowedRoles: AppRole.farmerRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.assignment_turned_in_rounded,
+          title: 'Pickup Queue',
+          route: RoutePaths.farmerOrderRequests,
+          allowedRoles: AppRole.farmerRoles,
+        ),
+      ] else if (role == AppRole.transportProvider) ...[
+        const _DrawerItem(
+          icon: Icons.local_shipping_rounded,
+          title: 'Available Load Trips',
+          route: RoutePaths.availableOrders,
+          allowedRoles: AppRole.transportProviderRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.route_rounded,
+          title: 'Route Dispatch',
+          route: RoutePaths.myTrips,
+          allowedRoles: AppRole.transportProviderRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.file_present_rounded,
+          title: 'Trip Documents',
+          route: RoutePaths.transportEarnings,
+          allowedRoles: AppRole.transportProviderRoles,
+        ),
+      ] else if (role == AppRole.buyer || role == AppRole.retailer) ...[
+        const _DrawerItem(
+          icon: Icons.favorite_outline_rounded,
+          title: 'Favourite Farmers',
+          route: RoutePaths.products,
+          allowedRoles: AppRole.buyerRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.inventory_2_rounded,
+          title: 'Bulk Orders',
+          route: RoutePaths.orders,
+          allowedRoles: AppRole.buyerRoles,
+        ),
+        const _DrawerItem(
+          icon: Icons.local_shipping_rounded,
+          title: 'Delivery Tracking',
+          route: RoutePaths.orders,
+          allowedRoles: AppRole.buyerRoles,
+        ),
+      ],
+    ];
+
     final secondaryItems = <_DrawerItem>[
       const _DrawerItem(
         icon: Icons.person_outline_rounded,
@@ -206,16 +276,24 @@ class AppDrawer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 32,
+                  Avatar(
+                    imageUrl: avatarUrl,
+                    username: displayName,
+                    firstName: displayName.split(' ').firstWhere(
+                        (value) => value.isNotEmpty,
+                        orElse: () => ''),
+                    lastName: displayName.split(' ').length > 1
+                        ? displayName.split(' ').lastWhere(
+                            (value) => value.isNotEmpty,
+                            orElse: () => '')
+                        : null,
+                    size: 64,
+                    showBorder: false,
                     backgroundColor: Colors.white24,
-                    child: Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -237,7 +315,8 @@ class AppDrawer extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white24,
                       borderRadius: BorderRadius.circular(99),
@@ -283,8 +362,10 @@ class AppDrawer extends StatelessWidget {
                       trailing: badge > 0 ? buildTrailingBadge(badge) : null,
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.primary,
-                      selectedTileColor:
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                      selectedTileColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.08),
                       iconColor: selected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -308,6 +389,114 @@ class AppDrawer extends StatelessWidget {
                     );
                   }),
 
+                  if (roleSpecificItems.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: Text(
+                        'Role tools',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.4,
+                                ),
+                      ),
+                    ),
+                    ...roleSpecificItems
+                        .where((item) =>
+                            item.allowedRoles.isEmpty ||
+                            item.allowedRoles.contains(role))
+                        .map((item) {
+                      final bool selected = isRouteSelected(item.route);
+                      return ListTile(
+                        leading: Icon(item.icon),
+                        title: Text(item.title),
+                        selected: selected,
+                        selectedColor: Theme.of(context).colorScheme.primary,
+                        selectedTileColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.08),
+                        iconColor: selected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                        textColor: selected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: selected
+                              ? BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                )
+                              : BorderSide.none,
+                        ),
+                        dense: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go(item.route);
+                        },
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                  ],
+
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Text(
+                      'Legal & Trust',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                          ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.description_outlined),
+                    title: const Text('Terms of Service'),
+                    dense: true,
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Terms of Service'),
+                        content: const Text(
+                          'By using Mambonami, you agree to use the platform responsibly, keep your account information accurate, and follow local agricultural and logistics regulations.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: const Text('Privacy Policy'),
+                    dense: true,
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Privacy Policy'),
+                        content: const Text(
+                          'We use your profile and delivery details to provide a safer marketplace experience, process payments, and improve service reliability.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   const Divider(height: 24, indent: 8, endIndent: 8),
 
                   // Secondary items
@@ -322,8 +511,10 @@ class AppDrawer extends StatelessWidget {
                       title: Text(item.title),
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.primary,
-                      selectedTileColor:
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                      selectedTileColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.08),
                       iconColor: selected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -351,7 +542,8 @@ class AppDrawer extends StatelessWidget {
 
                   // Logout item
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+                    leading: const Icon(Icons.logout_rounded,
+                        color: AppColors.error),
                     title: const Text(
                       'Log Out',
                       style: TextStyle(

@@ -12,6 +12,7 @@ import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
+import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../data/models/order.dart';
@@ -27,11 +28,14 @@ class FarmerDashboard extends StatelessWidget {
     final productState = context.watch<ProductBloc>().state;
 
     String username = 'Farmer';
+    String? avatarUrl;
     if (authState is AuthAuthenticated) {
-      username = authState.username ?? authState.phone;
+      username = authState.displayName ?? authState.username ?? authState.phone;
+      avatarUrl = authState.avatarUrl;
     }
 
-    final productList = productState is ProductLoaded ? productState.products : <Product>[];
+    final productList =
+        productState is ProductLoaded ? productState.products : <Product>[];
     final pendingOrders = orderState is FarmerSubOrdersLoaded
         ? orderState.subOrders.where((o) => o.isPending).length
         : 0;
@@ -43,14 +47,20 @@ class FarmerDashboard extends StatelessWidget {
         : 0;
     final productCount = productList.length;
     final averageRating = productList.isNotEmpty
-        ? productList.map((product) => product.averageRating).reduce((a, b) => a + b) / productList.length
+        ? productList
+                .map((product) => product.averageRating)
+                .reduce((a, b) => a + b) /
+            productList.length
         : 0.0;
     final recentSubOrders = orderState is FarmerSubOrdersLoaded
         ? orderState.subOrders.take(3).toList()
         : <SubOrder>[];
     String locationLabel = 'Your farm';
     if (productList.isNotEmpty) {
-      final matches = productList.where((product) => product.location != null && product.location!.isNotEmpty).toList();
+      final matches = productList
+          .where((product) =>
+              product.location != null && product.location!.isNotEmpty)
+          .toList();
       if (matches.isNotEmpty) {
         locationLabel = matches.first.location!;
       }
@@ -87,18 +97,27 @@ class FarmerDashboard extends StatelessWidget {
                       children: [
                         const Text(
                           'Good morning 🌅',
-                          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500),
                         ),
                         Text(
                           username,
-                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 12, color: Colors.white70),
+                            const Icon(Icons.location_on,
+                                size: 12, color: Colors.white70),
                             const SizedBox(width: 4),
-                            Text(locationLabel, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text(locationLabel,
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 12)),
                           ],
                         ),
                       ],
@@ -107,11 +126,29 @@ class FarmerDashboard extends StatelessWidget {
                       children: [
                         IconButton(
                           onPressed: () => context.go(RoutePaths.notifications),
-                          icon: const Icon(Icons.notifications_none, color: Colors.white),
+                          icon: const Icon(Icons.notifications_none,
+                              color: Colors.white),
                         ),
-                        const CircleAvatar(
-                          radius: 18,
-                          backgroundImage: NetworkImage('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=40&h=40&fit=crop'),
+                        GestureDetector(
+                          onTap: () => context.go(RoutePaths.profile),
+                          child: Avatar(
+                            imageUrl: avatarUrl,
+                            username: username,
+                            firstName: username.split(' ').firstWhere(
+                                (value) => value.isNotEmpty,
+                                orElse: () => ''),
+                            lastName: username.split(' ').length > 1
+                                ? username.split(' ').lastWhere(
+                                    (value) => value.isNotEmpty,
+                                    orElse: () => '')
+                                : null,
+                            size: 36,
+                            showBorder: false,
+                            backgroundColor: Colors.white24,
+                            textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ],
                     ),
@@ -121,9 +158,15 @@ class FarmerDashboard extends StatelessWidget {
                 const Wrap(
                   spacing: 12,
                   children: [
-                    Chip(label: Text('24°C'), avatar: Icon(Icons.thermostat, size: 14)),
-                    Chip(label: Text('68%'), avatar: Icon(Icons.water_drop, size: 14)),
-                    Chip(label: Text('12 km/h'), avatar: Icon(Icons.air, size: 14)),
+                    Chip(
+                        label: Text('24°C'),
+                        avatar: Icon(Icons.thermostat, size: 14)),
+                    Chip(
+                        label: Text('68%'),
+                        avatar: Icon(Icons.water_drop, size: 14)),
+                    Chip(
+                        label: Text('12 km/h'),
+                        avatar: Icon(Icons.air, size: 14)),
                     Chip(label: Text('☀️ Clear')),
                   ],
                 ),
@@ -147,20 +190,30 @@ class FarmerDashboard extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Total Earnings (MTD)', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                                const Text('Total Earnings (MTD)',
+                                    style: TextStyle(
+                                        fontSize: 12, color: AppColors.muted)),
                                 Text(
                                   'KES ${totalRevenue.toStringAsFixed(0)}',
-                                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withValues(alpha: 0.15),
+                                color:
+                                    AppColors.success.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Text('▲ 18.3%', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                              child: const Text('▲ 18.3%',
+                                  style: TextStyle(
+                                      color: AppColors.success,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12)),
                             ),
                           ],
                         ),
@@ -174,7 +227,10 @@ class FarmerDashboard extends StatelessWidget {
                           child: Center(
                             child: Text(
                               'Earnings trend unavailable in this build',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     color: AppColors.muted,
                                   ),
                             ),
@@ -254,7 +310,8 @@ class FarmerDashboard extends StatelessWidget {
                   SectionHeader(
                     title: 'Recent Orders',
                     trailing: TextButton(
-                      onPressed: () => context.go(RoutePaths.farmerOrderRequests),
+                      onPressed: () =>
+                          context.go(RoutePaths.farmerOrderRequests),
                       child: const Text('View all'),
                     ),
                   ),
@@ -265,21 +322,28 @@ class FarmerDashboard extends StatelessWidget {
                       child: ListTile(
                         leading: Icon(Icons.shopping_bag_outlined),
                         title: Text('No recent orders'),
-                        subtitle: Text('New orders will appear here as they come in.'),
+                        subtitle: Text(
+                            'New orders will appear here as they come in.'),
                       ),
                     )
                   else
                     ...recentSubOrders.map((subOrder) {
-                      final title = subOrder.items.isNotEmpty ? subOrder.items.first.productName : 'Fresh produce';
-                      final subtitle = subOrder.items.isNotEmpty ? '${subOrder.items.length} item${subOrder.items.length == 1 ? '' : 's'} • ${subOrder.status}' : subOrder.status;
+                      final title = subOrder.items.isNotEmpty
+                          ? subOrder.items.first.productName
+                          : 'Fresh produce';
+                      final subtitle = subOrder.items.isNotEmpty
+                          ? '${subOrder.items.length} item${subOrder.items.length == 1 ? '' : 's'} • ${subOrder.status}'
+                          : subOrder.status;
                       return CustomCard(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: const Icon(Icons.shopping_bag_outlined),
                           title: Text(title),
                           subtitle: Text(subtitle),
-                          trailing: Text('KES ${subOrder.subtotal.toStringAsFixed(0)}'),
-                          onTap: () => context.go(RoutePaths.farmerOrderRequests),
+                          trailing: Text(
+                              'KES ${subOrder.subtotal.toStringAsFixed(0)}'),
+                          onTap: () =>
+                              context.go(RoutePaths.farmerOrderRequests),
                         ),
                       );
                     }),
@@ -295,13 +359,18 @@ class FarmerDashboard extends StatelessWidget {
                   if (productList.isEmpty)
                     const CustomCard(
                       padding: EdgeInsets.all(12),
-                      child: Text('Add your first product to start filling your inventory view.'),
+                      child: Text(
+                          'Add your first product to start filling your inventory view.'),
                     )
                   else
                     ...productList.take(3).map((product) {
-                      final quantityLabel = '${product.availableQuantity.toStringAsFixed(0)} ${product.unit.isNotEmpty ? product.unit : 'units'}';
+                      final quantityLabel =
+                          '${product.availableQuantity.toStringAsFixed(0)} ${product.unit.isNotEmpty ? product.unit : 'units'}';
                       final progress = product.availableQuantity > 0
-                          ? (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0)
+                          ? (product.availableQuantity /
+                                  (product.availableQuantity +
+                                      product.reservedQuantity))
+                              .clamp(0.0, 1.0)
                           : 0.0;
                       return _InventoryTile(
                         name: product.name,
@@ -358,13 +427,21 @@ class _StatCard extends StatelessWidget {
               if (badge != null)
                 Text(
                   badge!,
-                  style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10),
+                  style: const TextStyle(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10),
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.primary)),
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary)),
+          Text(label,
+              style: const TextStyle(fontSize: 10, color: AppColors.muted)),
         ],
       ),
     );
@@ -396,13 +473,16 @@ class _ActionButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)],
+              boxShadow: [
+                BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)
+              ],
             ),
             child: Icon(icon, color: Colors.white, size: 22),
           ),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+        Text(label,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -430,7 +510,9 @@ class _InventoryTile extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.light,
-            backgroundImage: imageUrl != null && imageUrl!.isNotEmpty ? NetworkImage(imageUrl!) : null,
+            backgroundImage: imageUrl != null && imageUrl!.isNotEmpty
+                ? NetworkImage(imageUrl!)
+                : null,
             child: imageUrl == null || imageUrl!.isEmpty
                 ? const Icon(Icons.agriculture, color: AppColors.primary)
                 : null,
@@ -443,15 +525,19 @@ class _InventoryTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(quantity, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+                    Text(name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(quantity,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.muted)),
                   ],
                 ),
                 const SizedBox(height: 4),
                 LinearProgressIndicator(
                   value: progress,
                   backgroundColor: AppColors.light,
-                  valueColor: AlwaysStoppedAnimation(progress < 0.5 ? AppColors.warning : AppColors.secondary),
+                  valueColor: AlwaysStoppedAnimation(
+                      progress < 0.5 ? AppColors.warning : AppColors.secondary),
                 ),
               ],
             ),
