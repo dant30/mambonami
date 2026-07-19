@@ -69,6 +69,24 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
     }
   }
 
+  Future<void> _showTermsDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Terms and Conditions'),
+        content: const Text(
+          'By creating an account, you agree to use the app responsibly, provide accurate information, and comply with all applicable terms and platform policies.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -264,13 +282,42 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                CheckboxListTile(
-                  value: _acceptedTerms,
-                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
-                  title: const Text('I agree to the terms and conditions'),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+                    borderRadius: AppRadius.lg,
+                    border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _acceptedTerms,
+                        onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Wrap(
+                            children: [
+                              const Text('I agree to the '),
+                              TextButton(
+                                onPressed: _showTermsDialog,
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Terms and Conditions'),
+                              ),
+                              const Text('.'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
