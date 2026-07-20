@@ -53,6 +53,8 @@ class RoutePaths {
   static const profile = '/profile';
   static const settings = '/settings';
   static const support = '/support';
+  static const termsAndConditions = '/terms-and-conditions';
+  static const privacyPolicy = '/privacy-policy';
   static const orderTracking = '/order/:uuid';
   static String orderTrackingPath(String uuid) => '/order/$uuid';
   static String orderConfirmationPath(String uuid) => '/checkout/confirmation/$uuid';

@@ -69,22 +69,8 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
     }
   }
 
-  Future<void> _showTermsDialog() async {
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Terms and Conditions'),
-        content: const Text(
-          'By creating an account, you agree to use the app responsibly, provide accurate information, and comply with all applicable terms and platform policies.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+  void _openLegalPage(String path) {
+    context.push(path);
   }
 
   @override
@@ -303,13 +289,23 @@ class _BuyerRegisterPageState extends State<BuyerRegisterPage> {
                             children: [
                               const Text('I agree to the '),
                               TextButton(
-                                onPressed: _showTermsDialog,
+                                onPressed: () => _openLegalPage(RoutePaths.termsAndConditions),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: const Text('Terms and Conditions'),
+                              ),
+                              const Text(' and '),
+                              TextButton(
+                                onPressed: () => _openLegalPage(RoutePaths.privacyPolicy),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Privacy Policy'),
                               ),
                               const Text('.'),
                             ],

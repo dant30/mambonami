@@ -46,6 +46,8 @@ import '../features/farmer/pages/earnings_page.dart';
 import '../features/common/profile_page.dart';
 import '../features/common/settings_page.dart' as settings_page;
 import '../features/common/support_page.dart' as support_page;
+import '../features/common/terms_and_conditions_page.dart';
+import '../features/common/privacy_policy_page.dart';
 import '../blocs/auth/auth_bloc.dart';
 import 'role_routes.dart';
 
@@ -364,6 +366,14 @@ class AppRouter {
           allowedRoles: AppRole.operationalRoles,
           child: support_page.SupportPage(),
         ),
+      ),
+      GoRoute(
+        path: RoutePaths.termsAndConditions,
+        builder: (_, __) => const TermsAndConditionsPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.privacyPolicy,
+        builder: (_, __) => const PrivacyPolicyPage(),
       ),
       GoRoute(
         path: RoutePaths.orderTracking,

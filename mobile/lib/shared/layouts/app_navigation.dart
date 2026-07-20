@@ -22,17 +22,21 @@ class AppBottomNavigationBar extends StatelessWidget {
         normalizedLocation.startsWith('${RoutePaths.transportProviderDashboard}/')) {
       return 0;
     }
-    if (normalizedLocation == RoutePaths.notifications ||
-        normalizedLocation.startsWith('${RoutePaths.notifications}/')) {
+    if (normalizedLocation == RoutePaths.products ||
+        normalizedLocation.startsWith('${RoutePaths.products}/') ||
+        normalizedLocation == RoutePaths.productCatalog ||
+        normalizedLocation.startsWith('${RoutePaths.productCatalog}/')) {
       return 1;
     }
-    if (normalizedLocation == RoutePaths.support ||
-        normalizedLocation.startsWith('${RoutePaths.support}/')) {
+    if (normalizedLocation == RoutePaths.orders ||
+        normalizedLocation.startsWith('${RoutePaths.orders}/') ||
+        normalizedLocation == RoutePaths.orderHistory ||
+        normalizedLocation.startsWith('${RoutePaths.orderHistory}/')) {
       return 2;
     }
     if (normalizedLocation == RoutePaths.profile ||
         normalizedLocation.startsWith('${RoutePaths.profile}/')) {
-      return 3;
+      return 4;
     }
     return 0;
   }
@@ -53,12 +57,51 @@ class AppBottomNavigationBar extends StatelessWidget {
         context.go(homeRoute);
         break;
       case 1:
-        context.go(RoutePaths.notifications);
+        if (authState is AuthAuthenticated) {
+          switch (authState.role) {
+            case 'farmer':
+              context.go(RoutePaths.farmerProducts);
+              break;
+            case 'transport_provider':
+              context.go(RoutePaths.myTrips);
+              break;
+            default:
+              context.go(RoutePaths.productCatalog);
+              break;
+          }
+        }
         break;
       case 2:
-        context.go(RoutePaths.support);
+        if (authState is AuthAuthenticated) {
+          switch (authState.role) {
+            case 'farmer':
+              context.go(RoutePaths.farmerOrderRequests);
+              break;
+            case 'transport_provider':
+              context.go(RoutePaths.availableOrders);
+              break;
+            default:
+              context.go(RoutePaths.orderHistory);
+              break;
+          }
+        }
         break;
       case 3:
+        if (authState is AuthAuthenticated) {
+          switch (authState.role) {
+            case 'farmer':
+              context.go(RoutePaths.farmerEarnings);
+              break;
+            case 'transport_provider':
+              context.go(RoutePaths.transportEarnings);
+              break;
+            default:
+              context.go(RoutePaths.support);
+              break;
+          }
+        }
+        break;
+      case 4:
         context.go(RoutePaths.profile);
         break;
     }

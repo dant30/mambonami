@@ -330,13 +330,52 @@ class _RetailerRegisterPageState extends State<RetailerRegisterPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                CheckboxListTile(
-                  value: _acceptedTerms,
-                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
-                  title: const Text('I agree to the terms and conditions'),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+                    borderRadius: AppRadius.lg,
+                    border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _acceptedTerms,
+                        onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Wrap(
+                            children: [
+                              const Text('I agree to the '),
+                              TextButton(
+                                onPressed: () => context.push(RoutePaths.termsAndConditions),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Terms and Conditions'),
+                              ),
+                              const Text(' and '),
+                              TextButton(
+                                onPressed: () => context.push(RoutePaths.privacyPolicy),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Privacy Policy'),
+                              ),
+                              const Text('.'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(

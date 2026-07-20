@@ -23,7 +23,7 @@ class MambonamisBottomNav extends StatelessWidget {
           const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
           const BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Products'),
           const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
-          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Analytics'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Earnings'),
           const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ];
       case UserRole.buyer:
@@ -37,9 +37,9 @@ class MambonamisBottomNav extends StatelessWidget {
       case UserRole.transport:
         return [
           const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-          const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Orders'),
-          const BottomNavigationBarItem(icon: Icon(Icons.navigation_rounded), label: 'Map'),
-          const BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
+          const BottomNavigationBarItem(icon: Icon(Icons.assignment_rounded), label: 'Trips'),
+          const BottomNavigationBarItem(icon: Icon(Icons.navigation_rounded), label: 'Orders'),
+          const BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Earnings'),
           const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ];
       case UserRole.retailer:
