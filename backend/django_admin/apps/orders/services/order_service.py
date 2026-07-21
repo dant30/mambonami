@@ -10,6 +10,65 @@ from apps.logistics.services.geolocation import haversine
 from apps.logistics.services.fee_calculator import estimate_fee as calculate_delivery_fee_estimate
 from apps.orders.models.promo import PromoCode
 
+
+def calculate_order_fee_breakdown(cart_data: dict) -> dict:
+    grouped = cart_data.get('grouped_products', {})
+    subtotal = Decimal('0')
+    total_weight_kg = Decimal('0')
+
+    for products_with_qty in grouped.values():
+        for item in products_with_qty:
+            product = item['product']
+            quantity = item['quantity']
+            subtotal += product.price_per_unit * quantity
+            total_weight_kg += getattr(product, 'weight_per_unit', Decimal('0')) * quantity
+
+    delivery_distance = Decimal('10')
+    try:
+        from apps.logistics.services.matching import get_pickup_location
+        from apps.orders.models import Order
+
+        order = Order(buyer=None)
+        pickup_location = get_pickup_location(order)
+        delivery_lat = cart_data.get('delivery_lat')
+        delivery_lng = cart_data.get('delivery_lng')
+        if pickup_location and delivery_lat is not None and delivery_lng is not None:
+            delivery_distance = Decimal(str(haversine(
+                pickup_location[0], pickup_location[1],
+                float(delivery_lat), float(delivery_lng)
+            )))
+    except Exception:
+        delivery_distance = Decimal('10')
+
+    delivery_fee = calculate_delivery_fee_estimate(
+        distance_km=float(delivery_distance),
+        total_weight_kg=float(total_weight_kg)
+    )
+    platform_commission = subtotal * Decimal('0.08')
+    total_amount = subtotal + delivery_fee
+    discount_amount = Decimal('0')
+
+    promo_obj = cart_data.get('_promo_code', None)
+    if promo_obj:
+        if promo_obj.discount_type == 'fixed':
+            discount_amount = promo_obj.discount_value
+        elif promo_obj.discount_type == 'percent':
+            discount_amount = (total_amount * promo_obj.discount_value) / Decimal('100')
+            if promo_obj.max_discount_amount and discount_amount > promo_obj.max_discount_amount:
+                discount_amount = promo_obj.max_discount_amount
+        if discount_amount > total_amount:
+            discount_amount = total_amount
+        total_amount -= discount_amount
+
+    return {
+        'subtotal': subtotal,
+        'delivery_fee': delivery_fee,
+        'platform_commission': platform_commission,
+        'discount_amount': discount_amount,
+        'total_amount': total_amount,
+    }
+
+
 @transaction.atomic
 def create_order_from_cart(buyer, cart_data: dict) -> Order:
     """
@@ -70,6 +129,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     total_delivery_fee = Decimal('0')
     total_platform_commission = Decimal('0')
     total_weight_kg = Decimal('0')
+    subtotal = Decimal('0')
 
     # 3. Create sub‑orders and items
     for farmer_id, products_with_qty in grouped.items():
@@ -107,6 +167,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         OrderItem.objects.bulk_create(items_list)
 
         total_order_amount += sub_total
+        subtotal += sub_total
         total_platform_commission += commission
 
     # 4. Calculate delivery fee
@@ -132,21 +193,16 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     # 5. Apply promo code discount if valid
     discount_amount = Decimal('0')
     if promo_obj:
-        # Calculate discount based on type
         if promo_obj.discount_type == 'fixed':
             discount_amount = promo_obj.discount_value
         elif promo_obj.discount_type == 'percent':
             discount_amount = (total_order_amount * promo_obj.discount_value) / Decimal('100')
-            # Apply max discount cap if set
             if promo_obj.max_discount_amount and discount_amount > promo_obj.max_discount_amount:
                 discount_amount = promo_obj.max_discount_amount
-        # Ensure discount doesn't exceed order total
         if discount_amount > total_order_amount:
             discount_amount = total_order_amount
-        # Update order discount and total
         order.discount_amount = discount_amount
         total_order_amount -= discount_amount
-        # Increment promo usage
         promo_obj.times_used += 1
         promo_obj.save(update_fields=['times_used'])
 
@@ -158,6 +214,31 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     order.save(update_fields=[
         'total_amount', 'delivery_fee', 'platform_commission',
         'total_weight_kg', 'discount_amount'
+    ])
+
+    breakdown = calculate_order_fee_breakdown({
+        'grouped_products': grouped,
+        'delivery_lat': delivery_lat,
+        'delivery_lng': delivery_lng,
+        '_promo_code': promo_obj,
+    })
+    if breakdown['subtotal'] != subtotal:
+        subtotal = breakdown['subtotal']
+    if breakdown['delivery_fee'] != total_delivery_fee:
+        total_delivery_fee = breakdown['delivery_fee']
+    if breakdown['platform_commission'] != total_platform_commission:
+        total_platform_commission = breakdown['platform_commission']
+    if breakdown['discount_amount'] != discount_amount:
+        discount_amount = breakdown['discount_amount']
+    if breakdown['total_amount'] != total_order_amount:
+        total_order_amount = breakdown['total_amount']
+
+    order.total_amount = total_order_amount
+    order.delivery_fee = total_delivery_fee
+    order.platform_commission = total_platform_commission
+    order.discount_amount = discount_amount
+    order.save(update_fields=[
+        'total_amount', 'delivery_fee', 'platform_commission', 'discount_amount'
     ])
 
     return order

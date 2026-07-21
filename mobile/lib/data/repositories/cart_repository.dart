@@ -49,15 +49,39 @@ class CartRepository {
       items.value.fold(0, (count, item) => count + item.quantity.toInt());
   double get totalQuantity =>
       items.value.fold(0.0, (sum, item) => sum + item.quantity);
-  double get subtotal =>
-      items.value.fold(0.0, (sum, item) => sum + item.lineTotal);
-  double get deliveryFee =>
-      subtotal > 0 ? (subtotal * 0.08).clamp(120.0, 400.0) : 0.0;
-  double get serviceFee =>
-      subtotal > 0 ? (subtotal * 0.03).clamp(0.0, 600.0) : 0.0;
-  double get total => subtotal + deliveryFee + serviceFee;
+  double _backendSubtotal = 0.0;
+  double _backendDeliveryFee = 0.0;
+  double _backendServiceFee = 0.0;
+  double _backendTotal = 0.0;
+
+  bool get hasBackendFeeBreakdown =>
+      _backendTotal > 0 || _backendDeliveryFee > 0 || _backendServiceFee > 0;
+
+  double get subtotal => hasBackendFeeBreakdown
+      ? _backendSubtotal
+      : items.value.fold(0.0, (sum, item) => sum + item.lineTotal);
+  double get deliveryFee => hasBackendFeeBreakdown
+      ? _backendDeliveryFee
+      : (subtotal > 0 ? (subtotal * 0.08).clamp(120.0, 400.0) : 0.0);
+  double get serviceFee => hasBackendFeeBreakdown
+      ? _backendServiceFee
+      : (subtotal > 0 ? (subtotal * 0.03).clamp(0.0, 600.0) : 0.0);
+  double get total => hasBackendFeeBreakdown
+      ? _backendTotal
+      : subtotal + deliveryFee + serviceFee;
   double get totalWeightKg => items.value.fold(
       0.0, (sum, item) => sum + (item.product.weightPerUnit * item.quantity));
+
+  void setBackendFeeBreakdown(
+      {required double subtotal,
+      required double deliveryFee,
+      required double serviceFee,
+      required double total}) {
+    _backendSubtotal = subtotal;
+    _backendDeliveryFee = deliveryFee;
+    _backendServiceFee = serviceFee;
+    _backendTotal = total;
+  }
 
   Future<void> addProduct(Product product, double quantity) async {
     if (quantity <= 0) return;
@@ -130,6 +154,10 @@ class CartRepository {
 
   Future<void> clear() async {
     items.value = [];
+    _backendSubtotal = 0.0;
+    _backendDeliveryFee = 0.0;
+    _backendServiceFee = 0.0;
+    _backendTotal = 0.0;
     await _clearCartStorage();
   }
 }

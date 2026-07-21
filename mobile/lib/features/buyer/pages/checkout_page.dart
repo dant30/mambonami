@@ -34,9 +34,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _creating = false;
   bool _confirming = false;
 
-  double get _subtotal => _cartRepo.subtotal;
-  double get _deliveryFee => 150.0;
-  double get _platformFee => (_subtotal * 0.05).roundToDouble();
+  double _subtotal = 0.0;
+  double _deliveryFee = 0.0;
+  double _platformFee = 0.0;
   double get _total => _subtotal + _deliveryFee + _platformFee;
 
   @override
@@ -64,7 +64,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
       final order = await _orderRepo.createOrder(request);
       final orderUuid = order['uuid']?.toString() ?? '';
       final orderId = order['id']?.toString() ?? orderUuid;
+      final subtotal = double.tryParse(order['subtotal']?.toString() ?? '') ?? _cartRepo.subtotal;
+      final deliveryFee = double.tryParse(order['delivery_fee']?.toString() ?? '') ?? 0.0;
+      final platformFee = double.tryParse(order['platform_commission']?.toString() ?? '') ?? 0.0;
+      final total = double.tryParse(order['total_amount']?.toString() ?? '') ?? (subtotal + deliveryFee + platformFee);
+      _cartRepo.setBackendFeeBreakdown(
+        subtotal: subtotal,
+        deliveryFee: deliveryFee,
+        serviceFee: platformFee,
+        total: total,
+      );
       setState(() {
+        _subtotal = subtotal;
+        _deliveryFee = deliveryFee;
+        _platformFee = platformFee;
         _orderId = orderId;
         _paybillAccount = orderUuid.isEmpty ? 'ORD-XXXXXXXX' : 'ORD-${orderUuid.substring(0, 8).toUpperCase()}';
         _creating = false;
@@ -222,7 +235,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 _Row('Delivery fee',
                                     'KES ${_deliveryFee.toStringAsFixed(0)}'),
                                 const SizedBox(height: 5),
-                                _Row('Platform fee',
+                                _Row('Escrow service fee',
                                     'KES ${_platformFee.toStringAsFixed(0)}'),
                                 const Divider(
                                     height: 20, color: AppColors.light),

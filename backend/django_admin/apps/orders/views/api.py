@@ -11,6 +11,15 @@ from apps.orders.permissions import IsBuyer, IsFarmerForSubOrder, IsTransportPro
 from core.cache import cache_otp, get_otp
 from core.utils import generate_otp
 
+
+def _get_farmer_profile_or_none(user):
+    if not getattr(user, 'is_authenticated', False):
+        return None
+    if getattr(user, 'role', None) != 'farmer':
+        return None
+    return getattr(user, 'farmer_profile', None)
+
+
 class CartCreateOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBuyer]
 
@@ -19,9 +28,15 @@ class CartCreateOrderView(APIView):
         serializer.is_valid(raise_exception=True)
         order = create_order_from_cart(request.user, serializer.validated_data)
         return Response({
+            'id': order.id,
+            'uuid': order.uuid,
             'order_uuid': order.uuid,
             'account_number': order.account_number,
-            'total_amount': order.total_amount,
+            'subtotal': float(order.total_amount - order.delivery_fee),
+            'delivery_fee': float(order.delivery_fee),
+            'platform_commission': float(order.platform_commission),
+            'total_amount': float(order.total_amount),
+            'discount_amount': float(order.discount_amount),
             'paybill_number': '123456',
             'instructions': f"Pay KES {order.total_amount} to PayBill 123456, Account {order.account_number}"
         }, status=status.HTTP_201_CREATED)
@@ -39,7 +54,10 @@ class OrderDetailView(generics.RetrieveAPIView):
         if user.role == 'buyer':
             return Order.objects.filter(buyer=user)
         if user.role == 'farmer':
-            return Order.objects.filter(sub_orders__farmer=user.farmer_profile)
+            farmer_profile = _get_farmer_profile_or_none(user)
+            if not farmer_profile:
+                return Order.objects.none()
+            return Order.objects.filter(sub_orders__farmer=farmer_profile)
         if user.role == 'transport_provider':
             return Order.objects.filter(assigned_provider=user.transport_profile)
         return Order.objects.none()
@@ -55,7 +73,10 @@ class OrderListView(generics.ListAPIView):
         if user.role == 'buyer':
             return Order.objects.filter(buyer=user)
         if user.role == 'farmer':
-            return Order.objects.filter(sub_orders__farmer=user.farmer_profile).distinct()
+            farmer_profile = _get_farmer_profile_or_none(user)
+            if not farmer_profile:
+                return Order.objects.none()
+            return Order.objects.filter(sub_orders__farmer=farmer_profile).distinct()
         if user.role == 'transport_provider':
             return Order.objects.filter(assigned_provider=user.transport_profile)
         return Order.objects.none()
@@ -80,7 +101,10 @@ class FarmerSubOrdersView(generics.ListAPIView):
         user = self.request.user
         if user.role != 'farmer':
             return SubOrder.objects.none()
-        return SubOrder.objects.filter(farmer=user.farmer_profile)
+        farmer_profile = _get_farmer_profile_or_none(user)
+        if not farmer_profile:
+            return SubOrder.objects.none()
+        return SubOrder.objects.filter(farmer=farmer_profile)
 
 class FarmerSubOrderDetailView(generics.RetrieveAPIView):
     queryset = SubOrder.objects.all()
