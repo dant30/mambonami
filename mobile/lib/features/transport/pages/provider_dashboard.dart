@@ -4,12 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../blocs/auth/auth_bloc.dart';
-import '../../../blocs/trip/trip_bloc.dart';
+import '../../../blocs/order/order_bloc.dart' as order_bloc;
+import '../../../blocs/trip/trip_bloc.dart' as trip_bloc;
 import '../../../config/route_paths.dart';
 import '../../../data/models/payout_summary.dart';
 import '../../../data/models/trip.dart';
+import '../../../data/models/order.dart';
 import '../../../data/repositories/payout_repository.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
@@ -34,7 +37,8 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
   @override
   void initState() {
     super.initState();
-    context.read<TripBloc>().add(FetchMyTripsEvent());
+    context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchMyTripsEvent());
+    context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchAvailableOrdersEvent());
     _loadPayoutSummary();
   }
 
@@ -57,7 +61,8 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final tripState = context.watch<TripBloc>().state;
+    final tripState = context.watch<trip_bloc.TripBloc>().state;
+    final orderState = context.watch<order_bloc.OrderBloc>().state;
 
     String username = '';
     String? avatarUrl;
@@ -75,7 +80,8 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
       completedDeliveries = authState.completedDeliveries ?? 0;
     }
 
-    final trips = tripState is MyTripsLoaded ? tripState.trips : <Trip>[];
+    final trips = tripState is trip_bloc.MyTripsLoaded ? tripState.trips : <Trip>[];
+    final availableOrders = tripState is trip_bloc.AvailableOrdersLoaded ? tripState.orders : <Trip>[];
     final activeTrip = _findActiveTrip(trips);
     final activeTrips = _activeTripsCount(trips);
     final completedTrips = trips.where((trip) => trip.completedAt != null).length;
@@ -90,6 +96,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
               DateTime.now().subtract(const Duration(days: 1)),
             ))
         .fold<double>(0.0, (sum, trip) => sum + (trip.agreedFee ?? 0.0) + (trip.waitingSurcharge ?? 0.0));
+
     final payoutSummary = _payoutSummary;
     final summaryToday = payoutSummary?.todayPayoutAmount ?? todayEarnings;
     final summaryCompletedCount = payoutSummary?.completedPayoutCount ?? completedTrips;
@@ -107,12 +114,22 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             ? 'Amazing work today! You\'ve earned KES ${todayEarnings.toStringAsFixed(0)}.'
             : 'Ready to earn today? New deliveries are available.');
 
+    // Get order details for the active trip (if any)
+    Order? activeOrder;
+    if (activeTrip != null && orderState is order_bloc.OrderDetailLoaded) {
+      activeOrder = orderState.order;
+    }
+
+    // Mock weather (replace with real API later)
+    final weather = '☀ 27° Sunny';
+
     return Scaffold(
       drawer: const AppDrawer(),
       body: AppScreen(
         child: RefreshIndicator(
           onRefresh: () async {
-            context.read<TripBloc>().add(FetchMyTripsEvent());
+            context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchMyTripsEvent());
+            context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchAvailableOrdersEvent());
             await _loadPayoutSummary();
           },
           color: AppColors.providerAccent,
@@ -121,6 +138,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── Header ─────────────────────────────────────────────
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -174,9 +192,9 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                         imageUrl: avatarUrl,
                         username: username,
                         firstName: username.split(' ').firstWhere(
-                          (value) => value.isNotEmpty,
-                          orElse: () => '',
-                        ),
+                              (value) => value.isNotEmpty,
+                              orElse: () => '',
+                            ),
                         lastName: username.split(' ').length > 1
                             ? username.split(' ').lastWhere(
                                 (value) => value.isNotEmpty,
@@ -195,7 +213,9 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                if (vehicleType != null) ...[
+
+                // ── Vehicle Card ──────────────────────────────────────
+                if (vehicleType != null)
                   _buildVehicleCard(
                     context,
                     vehicleType,
@@ -203,19 +223,46 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                     rating,
                     completedDeliveries,
                   ),
-                  const SizedBox(height: 12),
-                ],
+                const SizedBox(height: 12),
+
+                // ── Active Trip Banner (enhanced) ────────────────────
                 if (activeTrip != null)
-                  _buildActiveTripBanner(context, activeTrip)
+                  _buildEnhancedActiveTripBanner(context, activeTrip, activeOrder)
                 else if (!_isOnline)
                   _buildOfflineBanner(context),
                 const SizedBox(height: 12),
+
+                // ── Live Map Preview ──────────────────────────────────
                 if (activeTrip != null) ...[
                   _buildLiveMapPreview(context, activeTrip),
                   const SizedBox(height: 12),
                 ],
-                _buildHeroCard(context, activeTrips, summaryToday),
+
+                // ── Hero Card (dynamic) ──────────────────────────────
+                _buildDynamicHeroCard(
+                  context,
+                  activeTrips: activeTrips,
+                  todayEarnings: summaryToday,
+                  username: username,
+                  isOnline: _isOnline,
+                  availableOrdersCount: availableOrders.length,
+                ),
                 const SizedBox(height: 18),
+
+                // ── Delivery Request Card (first available) ──────────
+                if (availableOrders.isNotEmpty && activeTrip == null)
+                  _buildDeliveryRequestCard(
+                    context,
+                    trip: availableOrders.first,
+                    onAccept: () {
+                      context.read<trip_bloc.TripBloc>().add(trip_bloc.AssignOrderEvent(availableOrders.first.uuid));
+                    },
+                    onDecline: () {
+                      context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchAvailableOrdersEvent());
+                    },
+                  ),
+
+                // ── Earnings Analytics ───────────────────────────────
                 _buildEarningsAnalyticsStrip(
                   context,
                   todayEarnings: summaryToday,
@@ -225,23 +272,43 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                   payoutError: summaryErrorText,
                 ),
                 const SizedBox(height: 18),
-                _buildQuickAccessCards(context),
+
+                // ── Quick Access (revamped) ──────────────────────────
+                _buildQuickAccessCards(context, activeTrip != null),
                 const SizedBox(height: 18),
+
+                // ── Stats Section ─────────────────────────────────────
                 _buildStatsSection(
                   context,
                   activeTrips: activeTrips,
                   earnings: earnings,
                   todayEarnings: todayEarnings,
                   statusLabel: statusLabel,
+                  weather: weather,
                 ),
               ],
             ),
           ),
         ),
       ),
+      floatingActionButton: activeTrip != null
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                // Open navigation or call customer
+                _openNavigation(activeTrip);
+              },
+              icon: const Icon(Icons.navigation_rounded),
+              label: Text(activeTrip.status.toLowerCase() == 'picked_up'
+                  ? 'Navigate to Delivery'
+                  : 'Navigate to Pickup'),
+              backgroundColor: AppColors.providerAccent,
+            )
+          : null,
       bottomNavigationBar: const AppBottomNavigationBar(),
     );
   }
+
+  // ── Helper methods ──────────────────────────────────────────────────────
 
   Trip? _findActiveTrip(List<Trip> trips) {
     for (final trip in trips) {
@@ -262,6 +329,23 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
         )
         .length;
   }
+
+  Future<void> _openNavigation(Trip trip) async {
+    final origin = '${trip.pickupLat},${trip.pickupLng}';
+    final destination = '${trip.deliveryLat},${trip.deliveryLng}';
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&travelmode=driving',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open navigation.')),
+      );
+    }
+  }
+
+  // ─── Widget builders ────────────────────────────────────────────────────
 
   Widget _buildVehicleCard(
     BuildContext context,
@@ -347,7 +431,9 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     );
   }
 
-  Widget _buildActiveTripBanner(BuildContext context, Trip trip) {
+  Widget _buildEnhancedActiveTripBanner(BuildContext context, Trip trip, Order? order) {
+    final farmerName = order?.subOrders.isNotEmpty == true ? order!.subOrders.first.farmerName : null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -397,44 +483,42 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             ],
           ),
           const SizedBox(height: 8),
+          // Farmer & produce
           Row(
             children: [
-              const Icon(
-                Icons.location_on_rounded,
-                size: 14,
-                color: AppColors.providerAccent,
-              ),
+              const Icon(Icons.person_outline_rounded, size: 14, color: AppColors.dark),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  'Pickup location',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  farmerName ?? 'Farmer',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
           ),
           Row(
             children: [
-              const Icon(
-                Icons.location_on_rounded,
-                size: 14,
-                color: AppColors.error,
-              ),
+              const Icon(Icons.produce_rounded, size: 14, color: AppColors.dark),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  'Delivery location',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  order?.itemsSummary ?? 'Produce',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          // Customer & amount
+          Row(
+            children: [
+              const Icon(Icons.home_rounded, size: 14, color: AppColors.dark),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  order?.buyerName ?? 'Customer',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -442,26 +526,23 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(
-                Icons.timer_outlined,
-                size: 14,
-                color: AppColors.warning,
+              const Icon(Icons.attach_money_rounded, size: 14, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Text(
+                'KES ${trip.agreedFee?.toStringAsFixed(0) ?? '0'}',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.primary),
               ),
+              const Spacer(),
+              const Icon(Icons.timer_outlined, size: 14, color: AppColors.warning),
               const SizedBox(width: 4),
               Text(
                 'ETA ${trip.etaMinutes ?? '—'} min · ${trip.distanceKm?.toStringAsFixed(1) ?? '—'} km',
                 style: const TextStyle(fontSize: 12, color: AppColors.muted),
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.push(RoutePaths.tripDetailPath(trip.uuid)),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                ),
-                child: const Text(
-                  'View →',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () => context.push(RoutePaths.tripDetailPath(trip.uuid)),
+                child: const Icon(Icons.arrow_forward_rounded, color: AppColors.providerAccent),
               ),
             ],
           ),
@@ -585,6 +666,313 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     );
   }
 
+  Widget _buildDynamicHeroCard(
+    BuildContext context, {
+    required int activeTrips,
+    required double todayEarnings,
+    required String username,
+    required bool isOnline,
+    required int availableOrdersCount,
+  }) {
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'Good Morning' : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: AppGradients.logistics,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$greeting, $username',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isOnline ? AppColors.success.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            isOnline ? '● Online' : '● Offline',
+                            style: TextStyle(
+                              color: isOnline ? AppColors.success : Colors.grey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (availableOrdersCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '$availableOrdersCount new',
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Online toggle
+              Row(
+                children: [
+                  const Icon(
+                    Icons.circle_rounded,
+                    size: 10,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => setState(() => _isOnline = !_isOnline),
+                    child: Container(
+                      width: 48,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: _isOnline
+                            ? AppColors.success
+                            : Colors.grey.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: AnimatedAlign(
+                        duration: const Duration(milliseconds: 200),
+                        alignment: _isOnline ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.all(3),
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroActionTile(
+                  label: 'Available',
+                  icon: Icons.inventory_2_outlined,
+                  onTap: () => context.push(RoutePaths.availableOrders),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroActionTile(
+                  label: 'My Trips',
+                  icon: Icons.route_outlined,
+                  onTap: () => context.push(RoutePaths.myTrips),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroActionTile(
+                  label: 'Earnings',
+                  icon: Icons.attach_money_rounded,
+                  onTap: () => context.push(RoutePaths.transportEarnings),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.today_rounded, size: 13, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Today: KES ${todayEarnings.toStringAsFixed(0)}',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
+                    const SizedBox(width: 4),
+                    const Text(
+                      '4.9 ★',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryRequestCard(BuildContext context, {required Trip trip, required VoidCallback onAccept, required VoidCallback onDecline}) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+          ),
+        ],
+        border: Border.all(color: AppColors.providerAccent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'NEW DELIVERY',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'KES ${trip.agreedFee?.toStringAsFixed(0) ?? '0'}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.person_outline, size: 14, color: AppColors.dark),
+              const SizedBox(width: 4),
+              Text('Farmer', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+              const Spacer(),
+              const Icon(Icons.location_on_rounded, size: 14, color: AppColors.error),
+              const SizedBox(width: 4),
+              Text(
+                trip.pickupAddress ?? 'Farm',
+                style: theme.textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.person, size: 14, color: AppColors.dark),
+              const SizedBox(width: 4),
+              Text('Customer', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+              const Spacer(),
+              const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Text(
+                trip.deliveryAddress ?? 'Customer',
+                style: theme.textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${trip.distanceKm?.toStringAsFixed(1) ?? '—'} km · ETA ${trip.etaMinutes ?? '—'} min',
+            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onDecline,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Decline'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onAccept,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.providerAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Accept'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEarningsAnalyticsStrip(
     BuildContext context, {
     required double todayEarnings,
@@ -670,185 +1058,20 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     );
   }
 
-  Widget _buildHeroCard(
-    BuildContext context,
-    int activeTrips,
-    double todayEarnings,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: AppGradients.logistics,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Delivery Control',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      activeTrips > 0
-                          ? '${activeTrips} trip${activeTrips == 1 ? '' : 's'} in motion'
-                          : 'Ready to accept new orders',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.circle_rounded,
-                    size: 10,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () => setState(() => _isOnline = !_isOnline),
-                    child: Container(
-                      width: 48,
-                      height: 26,
-                      decoration: BoxDecoration(
-                        color: _isOnline
-                            ? AppColors.success
-                            : Colors.grey.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: AnimatedAlign(
-                        duration: const Duration(milliseconds: 200),
-                        alignment:
-                            _isOnline ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.all(3),
-                          width: 20,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _HeroActionTile(
-                  label: 'Available',
-                  icon: Icons.inventory_2_outlined,
-                  onTap: () => context.push(RoutePaths.availableOrders),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroActionTile(
-                  label: 'My Trips',
-                  icon: Icons.route_outlined,
-                  onTap: () => context.push(RoutePaths.myTrips),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroActionTile(
-                  label: 'Earnings',
-                  icon: Icons.attach_money_rounded,
-                  onTap: () => context.push(RoutePaths.transportEarnings),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.today_rounded,
-                      size: 13,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Today: KES ${todayEarnings.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      size: 13,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      '4.9 ★',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildQuickAccessCards(BuildContext context, bool hasActiveTrip) {
+    final items = [
+      {'label': 'Deliveries', 'icon': Icons.local_shipping_outlined, 'route': RoutePaths.myTrips, 'color': AppColors.providerAccent},
+      {'label': 'Wallet', 'icon': Icons.wallet_rounded, 'route': RoutePaths.transportEarnings, 'color': AppColors.farmerAccent},
+      {'label': 'Vehicle', 'icon': Icons.directions_car_rounded, 'route': RoutePaths.profile, 'color': AppColors.buyerAccent},
+      {'label': 'Support', 'icon': Icons.help_outline_rounded, 'route': RoutePaths.support, 'color': AppColors.supportAccent},
+    ];
 
-  Widget _buildQuickAccessCards(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Quick Access',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-            color: AppColors.dark,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.dark),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -858,32 +1081,14 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           childAspectRatio: 0.9,
-          children: [
-            _QuickActionTile(
-              label: 'Available',
-              icon: Icons.inventory_2_outlined,
-              accentColor: AppColors.providerAccent,
-              onTap: () => context.push(RoutePaths.availableOrders),
-            ),
-            _QuickActionTile(
-              label: 'Trips',
-              icon: Icons.route_outlined,
-              accentColor: AppColors.buyerAccent,
-              onTap: () => context.push(RoutePaths.myTrips),
-            ),
-            _QuickActionTile(
-              label: 'Earnings',
-              icon: Icons.attach_money_rounded,
-              accentColor: AppColors.farmerAccent,
-              onTap: () => context.push(RoutePaths.transportEarnings),
-            ),
-            _QuickActionTile(
-              label: 'Wallet',
-              icon: Icons.wallet_rounded,
-              accentColor: AppColors.supportAccent,
-              onTap: () => context.push(RoutePaths.transportEarnings),
-            ),
-          ],
+          children: items.map((item) {
+            return _QuickActionTile(
+              label: item['label'] as String,
+              icon: item['icon'] as IconData,
+              accentColor: item['color'] as Color,
+              onTap: () => context.push(item['route'] as String),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -895,17 +1100,14 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     required double earnings,
     required double todayEarnings,
     required String statusLabel,
+    required String weather,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "Today's Overview",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-            color: AppColors.dark,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.dark),
         ),
         const SizedBox(height: 12),
         Row(
@@ -935,21 +1137,36 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             ),
           ],
         ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceHighLight,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.wb_sunny_rounded, color: AppColors.warning, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                weather,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.dark),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
+// ─── Reusable sub‑widgets (same as before, but kept) ────────────────────
+
 class _HeroActionTile extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-
-  const _HeroActionTile({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
+  const _HeroActionTile({required this.label, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -968,11 +1185,7 @@ class _HeroActionTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
           ],
@@ -987,13 +1200,7 @@ class _AnalyticsTile extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color accentColor;
-
-  const _AnalyticsTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.accentColor,
-  });
+  const _AnalyticsTile({required this.label, required this.value, required this.icon, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
@@ -1003,10 +1210,7 @@ class _AnalyticsTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -1024,21 +1228,13 @@ class _AnalyticsTile extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: AppColors.dark,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.dark),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.muted,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 10, color: AppColors.muted, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -1051,13 +1247,7 @@ class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final Color accentColor;
   final VoidCallback onTap;
-
-  const _QuickActionTile({
-    required this.label,
-    required this.icon,
-    required this.accentColor,
-    required this.onTap,
-  });
+  const _QuickActionTile({required this.label, required this.icon, required this.accentColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1068,10 +1258,7 @@ class _QuickActionTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-            ),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
           ],
         ),
         child: Column(
@@ -1089,11 +1276,7 @@ class _QuickActionTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppColors.dark,
-              ),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.dark),
               textAlign: TextAlign.center,
             ),
           ],
@@ -1107,12 +1290,7 @@ class _StatTile extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-
-  const _StatTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+  const _StatTile({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -1122,10 +1300,7 @@ class _StatTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -1135,21 +1310,13 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: AppColors.dark,
-            ),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.dark),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 9,
-              color: AppColors.muted,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 9, color: AppColors.muted, fontWeight: FontWeight.w600),
           ),
         ],
       ),
