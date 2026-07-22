@@ -35,7 +35,7 @@ class CartCreateOrderView(APIView):
             'subtotal': float(order.total_amount - order.delivery_fee),
             'delivery_fee': float(order.delivery_fee),
             'platform_commission': float(order.platform_commission),
-            'total_amount': float(order.total_amount),
+            'total_amount': order.total_amount,
             'discount_amount': float(order.discount_amount),
             'paybill_number': '123456',
             'instructions': f"Pay KES {order.total_amount} to PayBill 123456, Account {order.account_number}"
