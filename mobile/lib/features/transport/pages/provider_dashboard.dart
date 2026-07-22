@@ -340,7 +340,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open navigation.')),
+        SnackBar(content: Text('Unable to open navigation.')),
       );
     }
   }
@@ -498,7 +498,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
           ),
           Row(
             children: [
-              const Icon(Icons.produce_rounded, size: 14, color: AppColors.dark),
+              const Icon(Icons.local_grocery_store_rounded, size: 14, color: AppColors.dark),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -856,6 +856,9 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
 
   Widget _buildDeliveryRequestCard(BuildContext context, {required Trip trip, required VoidCallback onAccept, required VoidCallback onDecline}) {
     final theme = Theme.of(context);
+    final pickupLabel = trip.pickupLat != null && trip.pickupLng != null ? 'Pickup point' : 'Farm';
+    final deliveryLabel = trip.deliveryLat != null && trip.deliveryLng != null ? 'Delivery point' : 'Customer';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -911,7 +914,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
               const Icon(Icons.location_on_rounded, size: 14, color: AppColors.error),
               const SizedBox(width: 4),
               Text(
-                trip.pickupAddress ?? 'Farm',
+                pickupLabel,
                 style: theme.textTheme.bodySmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -928,7 +931,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
               const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
-                trip.deliveryAddress ?? 'Customer',
+                deliveryLabel,
                 style: theme.textTheme.bodySmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
