@@ -53,6 +53,7 @@ class RoutePaths {
   static const profile = '/profile';
   static const settings = '/settings';
   static const support = '/support';
+  static const wishlist = '/wishlist';
   static const termsAndConditions = '/terms-and-conditions';
   static const privacyPolicy = '/privacy-policy';
   static const orderTracking = '/order/:uuid';

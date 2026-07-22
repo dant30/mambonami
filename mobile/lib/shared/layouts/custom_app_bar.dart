@@ -50,8 +50,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: leading ??
-          ((showBackButton &&
-                  (Navigator.of(context).canPop() ||
+            ((showBackButton &&
+              (context.canPop() ||
                       fallbackOnPressed != null ||
                       fallbackRoute != null))
               ? IconButton(
@@ -63,8 +63,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
+                    if (context.canPop()) {
+                      context.pop();
                       return;
                     }
                     if (fallbackOnPressed != null) {

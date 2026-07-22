@@ -5,6 +5,8 @@ from .views import api
 urlpatterns = [
     # Public
     path('categories/', api.ProductCategoryListView.as_view(), name='product-categories'),
+    path('wishlist/', api.WishlistListView.as_view(), name='wishlist-list'),
+    path('wishlist/<uuid:uuid>/', api.WishlistItemView.as_view(), name='wishlist-item'),
     path('', api.ProductListView.as_view(), name='product-list'),
     path('<uuid:uuid>/', api.ProductDetailView.as_view(), name='product-detail'),
 

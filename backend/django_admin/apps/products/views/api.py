@@ -2,10 +2,13 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.views import APIView
+from django.db import models
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
-from ..models import Product, ProductCategory
-from ..serializers import ProductSerializer, ProductCreateUpdateSerializer, ProductCategorySerializer
+from ..models import Product, ProductCategory, WishlistItem
+from ..serializers import ProductSerializer, ProductCreateUpdateSerializer, ProductCategorySerializer, WishlistItemSerializer
 from ..services import list_active_products, create_product, update_product, delete_product
 from apps.users.permissions import IsFarmer, IsAdmin
 
@@ -56,6 +59,47 @@ class ProductDetailView(generics.RetrieveAPIView):
             except ValueError:
                 pass
         return context
+
+
+class WishlistListView(generics.ListAPIView):
+    serializer_class = WishlistItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return WishlistItem.objects.filter(buyer=self.request.user).select_related(
+            'product', 'product__farmer', 'product__category'
+        )
+
+
+class WishlistItemView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, uuid):
+        product = get_object_or_404(Product, uuid=uuid, is_active=True)
+        item, created = WishlistItem.objects.get_or_create(
+            buyer=request.user,
+            product=product,
+        )
+        if created:
+            Product.objects.filter(pk=product.pk).update(
+                wishlist_count=product.wishlist_count + 1
+            )
+        return Response(
+            WishlistItemSerializer(item, context={'request': request}).data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request, uuid):
+        item = WishlistItem.objects.filter(
+            buyer=request.user,
+            product__uuid=uuid,
+        ).first()
+        if item:
+            item.delete()
+            Product.objects.filter(uuid=uuid, wishlist_count__gt=0).update(
+                wishlist_count=models.F('wishlist_count') - 1
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class FarmerProductListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsFarmer]

@@ -28,6 +28,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   ProductBloc({required this.productRepository}) : super(ProductInitial()) {
     on<FetchProductsEvent>(_onFetchProducts);
     on<FetchProductDetailEvent>(_onFetchProductDetail);
+    on<FetchWishlistEvent>(_onFetchWishlist);
     on<CreateProductEvent>(_onCreateProduct);
     on<UpdateProductEvent>(_onUpdateProduct);
     on<DeleteProductEvent>(_onDeleteProduct);
@@ -80,6 +81,21 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
+  Future<void> _onFetchWishlist(FetchWishlistEvent event, Emitter<ProductState> emit) async {
+    emit(ProductLoading());
+    try {
+      final products = await productRepository.getWishlist();
+      for (final product in products) {
+        if (!_FavoriteTracker.isFavorite(product)) {
+          _FavoriteTracker.toggle(product);
+        }
+      }
+      emit(ProductLoaded(_syncFavorites(products)));
+    } catch (e) {
+      emit(ProductError(e.toString()));
+    }
+  }
+
   Future<void> _onCreateProduct(CreateProductEvent event, Emitter<ProductState> emit) async {
     emit(ProductLoading());
     try {
@@ -114,9 +130,23 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     _FavoriteTracker.toggle(event.product);
     final updatedProduct = event.product.copyWith(isFavorite: _FavoriteTracker.isFavorite(event.product));
 
+    try {
+      if (updatedProduct.isFavorite) {
+        await productRepository.addToWishlist(updatedProduct.uuid);
+      } else {
+        await productRepository.removeFromWishlist(updatedProduct.uuid);
+      }
+    } catch (_) {
+      _FavoriteTracker.toggle(event.product);
+    }
+
+    final resolvedProduct = event.product.copyWith(
+      isFavorite: _FavoriteTracker.isFavorite(event.product),
+    );
+
     if (state is ProductLoaded) {
       final currentProducts = (state as ProductLoaded).products.map((product) {
-        return product.uuid == updatedProduct.uuid ? updatedProduct : product;
+        return product.uuid == resolvedProduct.uuid ? resolvedProduct : product;
       }).toList();
       emit(ProductLoaded(currentProducts));
       return;
@@ -124,8 +154,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     if (state is ProductDetailLoaded) {
       final currentDetail = (state as ProductDetailLoaded).product;
-      if (currentDetail.uuid == updatedProduct.uuid) {
-        emit(ProductDetailLoaded(updatedProduct));
+      if (currentDetail.uuid == resolvedProduct.uuid) {
+        emit(ProductDetailLoaded(resolvedProduct));
       }
     }
   }

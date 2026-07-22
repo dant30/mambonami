@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from decimal import Decimal
 from datetime import date
-from ..models import Product, ProductCategory
+from ..models import Product, ProductCategory, WishlistItem
 from core.utils import calculate_distance
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -116,3 +116,11 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 {"reserved_quantity": "Reserved quantity cannot exceed available quantity."}
             )
         return attrs
+
+
+class WishlistItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = WishlistItem
+        fields = ('id', 'product', 'created_at')

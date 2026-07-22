@@ -3,6 +3,7 @@
 
 # ~/apps/mambonami/scripts/deploy.sh
 # sudo journalctl -u gunicorn -f
+# sudo journalctl -u fastapi -f
 
 set -e
 

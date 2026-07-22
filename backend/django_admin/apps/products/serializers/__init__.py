@@ -3,10 +3,12 @@ from .product_serializer import (
     ProductCategorySerializer,
     ProductSerializer,
     ProductCreateUpdateSerializer,
+    WishlistItemSerializer,
 )
 
 __all__ = [
     'ProductCategorySerializer',
     'ProductSerializer',
     'ProductCreateUpdateSerializer',
+    'WishlistItemSerializer',
 ]

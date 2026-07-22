@@ -60,3 +60,7 @@ class SortProductsEvent extends ProductEvent {
   const SortProductsEvent({required this.sortBy});
   @override List<Object> get props => [sortBy];
 }
+
+class FetchWishlistEvent extends ProductEvent {
+  const FetchWishlistEvent();
+}

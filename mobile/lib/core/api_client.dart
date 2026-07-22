@@ -17,7 +17,7 @@ class ApiClient {
       connectTimeout: kApiConnectTimeout,
       receiveTimeout: kApiReceiveTimeout,
       sendTimeout: kApiReceiveTimeout,  // Add send timeout
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Accept': 'application/json'},
     ));
     _addInterceptors();
   }

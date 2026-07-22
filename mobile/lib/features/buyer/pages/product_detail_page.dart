@@ -30,6 +30,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _isFavourite = false;
   bool _addingToCart = false;
 
+  @override
+  void initState() {
+    super.initState();
+    final initialProduct = widget.initialProduct;
+    if (initialProduct != null) {
+      _isFavourite = ProductBloc.isFavorite(initialProduct);
+    }
+  }
+
   Product? get _product {
     final state = context.read<ProductBloc>().state;
     if (widget.initialProduct != null) {
@@ -74,7 +83,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            onPressed: () => context.pop(),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go(RoutePaths.productCatalog),
             icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           ),
         ),
@@ -97,7 +108,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             leading: Padding(
               padding: const EdgeInsets.all(8),
               child: GestureDetector(
-                onTap: () => context.pop(),
+                onTap: () => context.canPop()
+                  ? context.pop()
+                  : context.go(RoutePaths.productCatalog),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.black26,
@@ -113,7 +126,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 padding: const EdgeInsets.all(8),
                 child: GestureDetector(
                   onTap: () =>
-                      setState(() => _isFavourite = !_isFavourite),
+                      setState(() {
+                      _isFavourite = !_isFavourite;
+                      context
+                        .read<ProductBloc>()
+                        .add(ToggleFavoriteEvent(product));
+                      }),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.black26,

@@ -29,6 +29,7 @@ import '../features/notifications/pages/notifications_page.dart';
 import '../features/buyer/pages/order_tracking_page.dart';
 import '../features/buyer/pages/order_history_page.dart';
 import '../features/buyer/pages/product_catalog_page.dart';
+import '../features/buyer/pages/wishlist_page.dart';
 import '../features/buyer/pages/product_detail_page.dart';
 import '../features/buyer/pages/cart_page.dart';
 import '../features/buyer/pages/checkout_page.dart';
@@ -284,6 +285,13 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.buyerRoles,
           child: ProductCatalogPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.wishlist,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: AppRole.buyerRoles,
+          child: WishlistPage(),
         ),
       ),
       GoRoute(
@@ -545,6 +553,7 @@ class AppRouter {
         RoutePaths.profile,
         RoutePaths.settings,
         RoutePaths.support,
+        RoutePaths.wishlist,
       };
 
       if (path == RoutePaths.splash) return AppRole.homePathFor(role);

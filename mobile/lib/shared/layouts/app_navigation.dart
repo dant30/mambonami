@@ -33,6 +33,10 @@ class AppBottomNavigationBar extends StatelessWidget {
         normalizedLocation.startsWith('${RoutePaths.orderHistory}/')) {
       return 2;
     }
+    if (normalizedLocation == RoutePaths.wishlist ||
+        normalizedLocation.startsWith('${RoutePaths.wishlist}/')) {
+      return 3;
+    }
     if (normalizedLocation == RoutePaths.profile ||
         normalizedLocation.startsWith('${RoutePaths.profile}/')) {
       return 4;
@@ -104,7 +108,7 @@ class AppBottomNavigationBar extends StatelessWidget {
               context.go(RoutePaths.transportEarnings);
               break;
             default:
-              context.go(RoutePaths.support);
+              context.go(RoutePaths.wishlist);
               break;
           }
         }

@@ -93,10 +93,44 @@ class ProductRepository {
     }
   }
 
+  Future<List<Product>> getWishlist() async {
+    try {
+      final response = await _apiClient.dio.get('/api/products/wishlist/');
+      final items = normalizeList<Map<String, dynamic>>(response.data);
+      return items
+          .map((item) => normalizeMap(item['product']))
+          .where((product) => product.isNotEmpty)
+          .map(Product.fromJson)
+          .toList();
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> addToWishlist(String uuid) async {
+    try {
+      await _apiClient.dio.post('/api/products/wishlist/$uuid/');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> removeFromWishlist(String uuid) async {
+    try {
+      await _apiClient.dio.delete('/api/products/wishlist/$uuid/');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<Product> createProduct(Map<String, dynamic> data) async {
     try {
       final payload = _buildFormData(data);
-      final response = await _apiClient.dio.post('/api/products/farmer/products/', data: payload);
+      final response = await _apiClient.dio.post(
+        '/api/products/farmer/products/',
+        data: payload,
+        options: Options(contentType: Headers.multipartFormDataContentType),
+      );
       if (response.statusCode == 201) {
         final product = Product.fromJson(normalizeMap(response.data));
         try {
@@ -113,7 +147,11 @@ class ProductRepository {
   Future<Product> updateProduct(String uuid, Map<String, dynamic> data) async {
     try {
       final payload = _buildFormData(data);
-      final response = await _apiClient.dio.patch('/api/products/farmer/products/$uuid/', data: payload);
+      final response = await _apiClient.dio.patch(
+        '/api/products/farmer/products/$uuid/',
+        data: payload,
+        options: Options(contentType: Headers.multipartFormDataContentType),
+      );
       if (response.statusCode == 200) {
         final product = Product.fromJson(normalizeMap(response.data));
         try {
@@ -165,6 +203,10 @@ class ProductRepository {
     if (error is DioException) {
       final data = normalizeMap(error.response?.data);
       if (data['detail'] != null) return stringValue(data['detail']);
+      final validationErrors = data.entries
+          .map((entry) => '${entry.key}: ${stringValue(entry.value)}')
+          .join('\n');
+      if (validationErrors.isNotEmpty) return validationErrors;
       return 'Network error: ${error.message}';
     }
     return error.toString();

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../blocs/product/product_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../widgets/category_chip_bar.dart';
@@ -78,7 +79,9 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => context.pop(),
+                        onPressed: () => context.canPop()
+                            ? context.pop()
+                            : context.go(RoutePaths.buyerDashboard),
                         icon: Container(
                           width: 40,
                           height: 40,

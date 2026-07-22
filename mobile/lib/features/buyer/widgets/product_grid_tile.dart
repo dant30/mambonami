@@ -2,9 +2,11 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/cart_repository.dart';
@@ -20,6 +22,20 @@ class ProductGridTile extends StatefulWidget {
 
 class _ProductGridTileState extends State<ProductGridTile> {
   bool _isFavourite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavourite = ProductBloc.isFavorite(widget.product);
+  }
+
+  @override
+  void didUpdateWidget(covariant ProductGridTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.product.uuid != widget.product.uuid) {
+      _isFavourite = ProductBloc.isFavorite(widget.product);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +105,12 @@ class _ProductGridTileState extends State<ProductGridTile> {
                     top: 8,
                     right: 8,
                     child: GestureDetector(
-                      onTap: () =>
-                          setState(() => _isFavourite = !_isFavourite),
+                      onTap: () {
+                        setState(() => _isFavourite = !_isFavourite);
+                        context
+                            .read<ProductBloc>()
+                            .add(ToggleFavoriteEvent(p));
+                      },
                       child: Container(
                         width: 30,
                         height: 30,

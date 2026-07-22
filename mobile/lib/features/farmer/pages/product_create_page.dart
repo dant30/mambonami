@@ -41,7 +41,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   ProductCategory? _selectedCategory;
   String _selectedUnit = 'kg';
 
-  final List<String> _units = ['kg', 'bunch', 'piece', 'litre', 'tray', 'bag'];
+  final List<String> _units = ['kg', 'bunch', 'piece', 'litre', 'tray'];
 
   @override
   void initState() {
