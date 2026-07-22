@@ -112,8 +112,8 @@ class _ProductListPageState extends State<ProductListPage> {
       drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToCreate,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Product'),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add Product', style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primary,
       ),
       body: BlocConsumer<ProductBloc, ProductState>(

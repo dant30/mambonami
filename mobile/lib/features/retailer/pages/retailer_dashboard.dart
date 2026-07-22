@@ -118,7 +118,7 @@ class RetailerDashboard extends StatelessWidget {
                 name: username.isNotEmpty ? username : 'Retailer',
                 subtitle: 'Ready to restock and manage orders',
                 padding: const EdgeInsets.symmetric(vertical: 0),
-                textStyle: const TextStyle(
+                nameStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.dark,

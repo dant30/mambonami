@@ -64,7 +64,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(RoutePaths.buyerDashboard);
+            }
+          },
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
         ),
         title: Text(

@@ -3,9 +3,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../blocs/order/order_bloc.dart';
+import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
@@ -301,7 +303,13 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(RoutePaths.farmerDashboard);
+                  }
+                },
               ),
               const Text(
                 'Earnings & Wallet',
@@ -404,7 +412,13 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        if (Navigator.of(context).canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(RoutePaths.farmerDashboard);
+                        }
+                      },
                     ),
                     const Text(
                       'Earnings & Wallet',
