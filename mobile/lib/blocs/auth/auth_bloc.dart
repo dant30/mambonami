@@ -46,6 +46,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         fallback;
   }
 
+  String? _vehicleType(Map<String, dynamic> user) {
+    return _stringValue(user, 'vehicle_type') ??
+        _stringValue(user, 'vehicleType');
+  }
+
+  String? _licensePlate(Map<String, dynamic> user) {
+    return _stringValue(user, 'license_plate') ??
+        _stringValue(user, 'licensePlate');
+  }
+
+  double? _providerRating(Map<String, dynamic> user) {
+    final value = user['provider_rating'] ?? user['providerRating'];
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  int? _completedDeliveries(Map<String, dynamic> user) {
+    final value = user['completed_deliveries'] ?? user['completedDeliveries'];
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
   Future<void> _onRegisterInit(
       RegisterInitEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -121,12 +145,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final username = _stringValue(user, 'username');
       final avatarUrl = _avatarUrl(user);
       final displayName = _displayName(user, fallback: username);
+      final vehicleType = _vehicleType(user);
+      final licensePlate = _licensePlate(user);
+      final providerRating = _providerRating(user);
+      final completedDeliveries = _completedDeliveries(user);
 
       if (role == null) {
         throw Exception('Invalid user data: missing role');
       }
 
-      emit(AuthAuthenticated(role, phone, username, avatarUrl, displayName));
+      emit(AuthAuthenticated(
+        role,
+        phone,
+        username,
+        avatarUrl,
+        displayName,
+        vehicleType,
+        licensePlate,
+        providerRating,
+        completedDeliveries,
+      ));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -159,13 +197,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final username = _stringValue(user, 'username');
       final avatarUrl = _avatarUrl(user);
       final displayName = _displayName(user, fallback: username);
+      final vehicleType = _vehicleType(user);
+      final licensePlate = _licensePlate(user);
+      final providerRating = _providerRating(user);
+      final completedDeliveries = _completedDeliveries(user);
 
       if (role == null) {
         throw Exception('Invalid user data: missing role or phone');
       }
 
       emit(AuthAuthenticated(
-          role, resolvedPhone, username, avatarUrl, displayName));
+        role,
+        resolvedPhone,
+        username,
+        avatarUrl,
+        displayName,
+        vehicleType,
+        licensePlate,
+        providerRating,
+        completedDeliveries,
+      ));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -233,11 +284,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final username = _stringValue(profile, 'username');
       final avatarUrl = _avatarUrl(profile);
       final displayName = _displayName(profile, fallback: username);
+      final vehicleType = _vehicleType(profile);
+      final licensePlate = _licensePlate(profile);
+      final providerRating = _providerRating(profile);
+      final completedDeliveries = _completedDeliveries(profile);
       if (role != null && phone != null) {
         // Ensure secure storage has the latest values
         await secureStorage.saveUserRole(role);
         await secureStorage.saveUserPhone(phone);
-        emit(AuthAuthenticated(role, phone, username, avatarUrl, displayName));
+        emit(AuthAuthenticated(
+          role,
+          phone,
+          username,
+          avatarUrl,
+          displayName,
+          vehicleType,
+          licensePlate,
+          providerRating,
+          completedDeliveries,
+        ));
         return;
       }
     } catch (e) {

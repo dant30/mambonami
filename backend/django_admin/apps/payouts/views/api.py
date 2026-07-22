@@ -1,13 +1,17 @@
 ﻿# backend/django_admin/apps/payouts/views/api.py
+from decimal import Decimal
+from django.db.models import Sum, Q
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
+from apps.users.permissions import IsAdmin, IsTransportProvider
 from ..models import Payout
 from ..serializers import PayoutSerializer
 from ..services.payout_service import handle_b2c_callback
-from apps.users.permissions import IsAdmin
 
 class PayoutListView(generics.ListAPIView):
     """Admin-only: view all payouts."""
@@ -21,6 +25,40 @@ class PayoutDetailView(generics.RetrieveAPIView):
     serializer_class = PayoutSerializer
     queryset = Payout.objects.all()
     lookup_field = 'uuid'
+
+
+class TransportPayoutSummaryView(APIView):
+    """Return authenticated provider payout totals for the dashboard analytics strip."""
+    permission_classes = [IsTransportProvider]
+
+    def get(self, request):
+        payouts = Payout.objects.filter(
+            recipient_user=request.user,
+            recipient_type='transport_provider',
+        )
+
+        total = payouts.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        completed = payouts.filter(status='completed')
+        pending = payouts.filter(~Q(status='completed'))
+
+        completed_total = completed.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        pending_total = pending.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        today_start = timezone.localdate()
+        today_total = payouts.filter(
+            created_at__date=today_start,
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        latest_paid_at = payouts.filter(status='completed', paid_at__isnull=False).order_by('-paid_at').first()
+
+        return Response({
+            'total_payout_amount': float(total),
+            'completed_payout_amount': float(completed_total),
+            'pending_payout_amount': float(pending_total),
+            'today_payout_amount': float(today_total),
+            'completed_payout_count': completed.count(),
+            'pending_payout_count': pending.count(),
+            'latest_paid_at': latest_paid_at.paid_at.isoformat() if latest_paid_at else None,
+        }, status=status.HTTP_200_OK)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class B2CResultCallbackView(APIView):

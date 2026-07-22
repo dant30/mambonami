@@ -51,12 +51,35 @@ class AuthAuthenticated extends AuthState {
   final String? username;
   final String? avatarUrl;
   final String? displayName;
+  final String? vehicleType;
+  final String? licensePlate;
+  final double? providerRating;
+  final int? completedDeliveries;
 
-  const AuthAuthenticated(this.role, this.phone,
-      [this.username, this.avatarUrl, this.displayName]);
+  const AuthAuthenticated(
+    this.role,
+    this.phone, [
+    this.username,
+    this.avatarUrl,
+    this.displayName,
+    this.vehicleType,
+    this.licensePlate,
+    this.providerRating,
+    this.completedDeliveries,
+  ]);
 
   @override
-  List<Object?> get props => [role, phone, username, avatarUrl, displayName];
+  List<Object?> get props => [
+        role,
+        phone,
+        username,
+        avatarUrl,
+        displayName,
+        vehicleType,
+        licensePlate,
+        providerRating,
+        completedDeliveries,
+      ];
 }
 
 class AuthUnauthenticated extends AuthState {}

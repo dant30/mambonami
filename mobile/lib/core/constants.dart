@@ -44,6 +44,7 @@ const String kTripGenerateOtpEndpoint = '/api/logistics/trips/';
 const String kTripVerifyOtpEndpoint = '/api/logistics/trips/';
 const String kTripLocationEndpoint = '/api/logistics/my-trips/';
 const String kTripMediaEndpoint = '/api/logistics/my-trips/';
+const String kTransportPayoutSummaryEndpoint = '/api/payouts/summary/';
 
 // Notification constants
 const String kNotificationChannelId = 'mambonami_channel';
