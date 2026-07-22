@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/layouts/app_drawer.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/widgets/avatar.dart';
@@ -59,15 +58,6 @@ class ProviderDashboard extends StatelessWidget {
     final statusLabel = activeTrips > 0 ? 'Active' : 'Ready';
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Transport Provider',
-        showNotificationAction: true,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(ctx).openDrawer()),
-        ),
-      ),
       drawer: const AppDrawer(),
       body: AppScreen(
         child: Column(

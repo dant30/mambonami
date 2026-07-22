@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
-import '../../blocs/notification/notification_bloc.dart';
 import '../../config/route_paths.dart';
 import '../../config/role_routes.dart';
 import 'bottom_nav_bar.dart';
@@ -47,6 +46,15 @@ class AppBottomNavigationBar extends StatelessWidget {
     if (authState is AuthAuthenticated) {
       homeRoute = AppRole.homePathFor(authState.role);
     }
+
+    if (index == 4) {
+      final scaffold = Scaffold.maybeOf(context);
+      if (scaffold != null && scaffold.hasDrawer) {
+        scaffold.openDrawer();
+      }
+      return;
+    }
+
     if (index == 0) {
       context.go(homeRoute);
       return;
@@ -111,14 +119,6 @@ class AppBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final routeInfo = GoRouter.of(context).routeInformationProvider.value;
     final location = routeInfo.uri.toString();
-
-    // Watch notification state to get unread count
-    final notifState = context.watch<NotificationBloc>().state;
-    int unreadNotifications = 0;
-    if (notifState is NotificationLoaded) {
-      unreadNotifications =
-          notifState.notifications.where((n) => n.isUnread).length;
-    }
 
     final authState = context.read<AuthBloc>().state;
     final currentRole = authState is AuthAuthenticated

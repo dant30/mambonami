@@ -8,12 +8,12 @@ import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/greeting_header.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
@@ -55,6 +55,7 @@ class FarmerDashboard extends StatelessWidget {
     final recentSubOrders = orderState is FarmerSubOrdersLoaded
         ? orderState.subOrders.take(3).toList()
         : <SubOrder>[];
+    final notificationCount = pendingOrders + (productCount > 0 ? 1 : 0);
     String locationLabel = 'Your farm';
     if (productList.isNotEmpty) {
       final matches = productList
@@ -67,21 +68,11 @@ class FarmerDashboard extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Farmer Dashboard',
-        showNotificationAction: true,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
       drawer: const AppDrawer(),
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
             decoration: const BoxDecoration(
               gradient: AppGradients.hero,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -90,84 +81,99 @@ class FarmerDashboard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Good morning 🌅',
-                          style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500),
+                    Expanded(
+                      child: GreetingHeader(
+                        name: username,
+                        subtitle: locationLabel,
+                        showDate: true,
+                        padding: const EdgeInsets.symmetric(vertical: 0),
+                        nameStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
                         ),
-                        Text(
-                          username,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
+                        subtitleStyle: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on,
-                                size: 12, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(locationLabel,
-                                style: const TextStyle(
-                                    color: Colors.white70, fontSize: 12)),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                    Row(
+                    const SizedBox(width: 12),
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
                         IconButton(
                           onPressed: () => context.go(RoutePaths.notifications),
-                          icon: const Icon(Icons.notifications_none,
-                              color: Colors.white),
-                        ),
-                        GestureDetector(
-                          onTap: () => context.go(RoutePaths.profile),
-                          child: Avatar(
-                            imageUrl: avatarUrl,
-                            username: username,
-                            firstName: username.split(' ').firstWhere(
-                                (value) => value.isNotEmpty,
-                                orElse: () => ''),
-                            lastName: username.split(' ').length > 1
-                                ? username.split(' ').lastWhere(
-                                    (value) => value.isNotEmpty,
-                                    orElse: () => '')
-                                : null,
-                            size: 36,
-                            showBorder: false,
-                            backgroundColor: Colors.white24,
-                            textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700),
+                          icon: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 26,
                           ),
                         ),
+                        if (notificationCount > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                '$notificationCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
                       ],
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => context.go(RoutePaths.profile),
+                      child: Avatar(
+                        imageUrl: avatarUrl,
+                        username: username,
+                        firstName: username.split(' ').firstWhere(
+                            (value) => value.isNotEmpty,
+                            orElse: () => ''),
+                        lastName: username.split(' ').length > 1
+                            ? username.split(' ').lastWhere(
+                                (value) => value.isNotEmpty,
+                                orElse: () => '')
+                            : null,
+                        size: 44,
+                        showBorder: true,
+                        backgroundColor: Colors.white24,
+                        textStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Wrap(
-                  spacing: 12,
-                  children: [
-                    Chip(
-                        label: Text('24°C'),
-                        avatar: Icon(Icons.thermostat, size: 14)),
-                    Chip(
-                        label: Text('68%'),
-                        avatar: Icon(Icons.water_drop, size: 14)),
-                    Chip(
-                        label: Text('12 km/h'),
-                        avatar: Icon(Icons.air, size: 14)),
-                    Chip(label: Text('☀️ Clear')),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: const [
+                    _WeatherPill(label: '24°C', icon: Icons.thermostat),
+                    _WeatherPill(label: '68%', icon: Icons.water_drop),
+                    _WeatherPill(label: '12 km/h', icon: Icons.air),
+                    _WeatherPill(label: '☀️ Clear', icon: null),
                   ],
                 ),
               ],
@@ -219,21 +225,53 @@ class FarmerDashboard extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Container(
-                          height: 56,
+                          height: 64,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceHighLight,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Center(
-                            child: Text(
-                              'Earnings trend unavailable in this build',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppColors.muted,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Mini chart coming soon',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Insights will appear here as the dashboard grows',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: const Text(
+                                  'Coming Soon',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
                                   ),
-                            ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -250,6 +288,7 @@ class FarmerDashboard extends StatelessWidget {
                       _StatCard(
                         label: 'Pending Orders',
                         value: pendingOrders.toString(),
+                        insight: pendingOrders > 0 ? '+$pendingOrders since yesterday' : 'No new orders',
                         icon: Icons.pending_actions_outlined,
                         badge: pendingOrders > 0 ? '$pendingOrders new' : null,
                         color: AppColors.primary,
@@ -257,18 +296,21 @@ class FarmerDashboard extends StatelessWidget {
                       _StatCard(
                         label: 'Ready Pickup',
                         value: readyPickupCount.toString(),
+                        insight: readyPickupCount > 0 ? '+$readyPickupCount packed' : 'All clear',
                         icon: Icons.check_circle_outline,
                         color: AppColors.success,
                       ),
                       _StatCard(
                         label: 'Listings',
                         value: productCount.toString(),
+                        insight: productCount > 0 ? '+$productCount active' : 'Add your first listing',
                         icon: Icons.inventory_2_outlined,
                         color: AppColors.secondary,
                       ),
                       _StatCard(
                         label: 'Avg Rating',
                         value: '${averageRating.toStringAsFixed(1)} ★',
+                        insight: averageRating >= 4.5 ? 'Top-rated' : 'Growing reputation',
                         icon: Icons.star,
                         color: AppColors.gold,
                       ),
@@ -393,6 +435,7 @@ class FarmerDashboard extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
+  final String insight;
   final IconData icon;
   final Color color;
   final String? badge;
@@ -400,6 +443,7 @@ class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
+    required this.insight,
     required this.icon,
     required this.color,
     this.badge,
@@ -442,6 +486,15 @@ class _StatCard extends StatelessWidget {
                   color: AppColors.primary)),
           Text(label,
               style: const TextStyle(fontSize: 10, color: AppColors.muted)),
+          const SizedBox(height: 2),
+          Text(
+            insight,
+            style: const TextStyle(
+              fontSize: 9,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -463,27 +516,78 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)
-              ],
+    return SizedBox(
+      width: 72,
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 24),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WeatherPill extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+
+  const _WeatherPill({required this.label, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: Colors.white, size: 14),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -530,6 +634,24 @@ class _InventoryTile extends StatelessWidget {
                     Text(quantity,
                         style: const TextStyle(
                             fontSize: 12, color: AppColors.muted)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Stock Level',
+                      style: TextStyle(fontSize: 11, color: AppColors.muted),
+                    ),
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),

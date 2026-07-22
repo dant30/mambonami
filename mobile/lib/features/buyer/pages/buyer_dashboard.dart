@@ -12,6 +12,7 @@ import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
+import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
@@ -81,6 +82,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: Column(
           children: [

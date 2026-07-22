@@ -8,11 +8,11 @@ import '../../../blocs/order/order_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
-import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_radius.dart';
 import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/greeting_header.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/custom_button.dart';
 
@@ -36,16 +36,6 @@ class RetailerDashboard extends StatelessWidget {
         : 0;
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Retailer Dashboard',
-        showNotificationAction: true,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
       drawer: const AppDrawer(),
       body: Container(
         decoration: BoxDecoration(
@@ -124,19 +114,19 @@ class RetailerDashboard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Retailer Dashboard',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    username.isNotEmpty ? username : 'Kamau Fresh Groceries',
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.textMuted),
-                  ),
-                ],
+              child: GreetingHeader(
+                name: username.isNotEmpty ? username : 'Retailer',
+                subtitle: 'Ready to restock and manage orders',
+                padding: const EdgeInsets.symmetric(vertical: 0),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.dark,
+                ),
+                subtitleStyle: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
               ),
             ),
           ],
