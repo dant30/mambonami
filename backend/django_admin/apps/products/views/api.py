@@ -17,6 +17,16 @@ class ProductCategoryListView(generics.ListAPIView):
     serializer_class = ProductCategorySerializer
     permission_classes = [permissions.AllowAny]
 
+
+class ProductUnitListView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response([
+            {'code': code, 'name': name}
+            for code, name in Product.UNIT_CHOICES
+        ])
+
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]

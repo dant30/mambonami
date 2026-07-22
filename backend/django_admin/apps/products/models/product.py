@@ -14,6 +14,9 @@ class Product(BaseModel):
         ('litre', 'Litre'),
         ('tray', 'Tray'),
         ('bunch', 'Bunch'),
+        ('bag', 'Bag'),
+        ('crate', 'Crate'),
+        ('box', 'Box'),
     ]
     
     farmer = models.ForeignKey('users.FarmerProfile', on_delete=models.CASCADE, related_name='products')

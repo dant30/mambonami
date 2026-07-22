@@ -41,12 +41,13 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   ProductCategory? _selectedCategory;
   String _selectedUnit = 'kg';
 
-  final List<String> _units = ['kg', 'bunch', 'piece', 'litre', 'tray'];
+  List<String> _units = const ['kg', 'piece', 'litre', 'tray', 'bunch', 'bag', 'crate', 'box'];
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadUnits();
   }
 
   @override
@@ -71,6 +72,19 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
         _categories = [];
         _isLoadingCategories = false;
       });
+    }
+  }
+
+  Future<void> _loadUnits() async {
+    try {
+      final units = await GetIt.instance<ProductRepository>().getProductUnits();
+      if (!mounted || units.isEmpty) return;
+      setState(() {
+        _units = units;
+        if (!_units.contains(_selectedUnit)) _selectedUnit = _units.first;
+      });
+    } catch (_) {
+      // Keep the backend-compatible fallback when the units request is unavailable.
     }
   }
 

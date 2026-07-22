@@ -20,6 +20,9 @@ import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../widgets/category_chip_bar.dart';
+import '../widgets/buyer_hero_carousel.dart';
+import '../widgets/flash_deals_section.dart';
+import '../widgets/market_insights_strip.dart';
 import '../widgets/product_grid_tile.dart';
 
 class BuyerDashboard extends StatefulWidget {
@@ -38,6 +41,14 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     'Grains',
     'Dairy',
     'Roots',
+  ];
+  final List<IconData?> _categoryIcons = const [
+    Icons.grid_view_rounded,
+    Icons.eco_rounded,
+    Icons.apple_rounded,
+    Icons.grain_rounded,
+    null,
+    null,
   ];
 
   @override
@@ -105,8 +116,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Hero banner
-                      _buildHeroBanner(context, products: products),
+                      BuyerHeroCarousel(
+                        products: products,
+                        onShopNow: () => context.go(RoutePaths.productCatalog),
+                      ),
                       const SizedBox(height: 16),
 
                       // Category chips
@@ -114,6 +127,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: CategoryChipBar(
                           categories: _categories,
+                          icons: _categoryIcons,
                           selected: _selectedCategoryIndex,
                           onSelected: (i) {
                             setState(() => _selectedCategoryIndex = i);
@@ -127,6 +141,12 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
 
                       // Nearby farmers
                       _buildNearbyFarmers(context, farmers: nearbyFarmers),
+                      const SizedBox(height: 20),
+
+                      FlashDealsSection(products: products),
+                      const SizedBox(height: 20),
+
+                      MarketInsightsStrip(products: products),
                       const SizedBox(height: 20),
 
                       // Recommended products grid
@@ -198,9 +218,10 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Delivery to',
+                        '${_greeting()}, ${firstName ?? 'there'}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.muted,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Row(
@@ -307,116 +328,28 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     );
   }
 
-  // ── Hero banner ─────────────────────────────────────────────────
-  Widget _buildHeroBanner(BuildContext context,
-      {required List<Product> products}) {
-    final theme = Theme.of(context);
-    final featuredProduct = products.isNotEmpty ? products.first : null;
-    final bannerTitle = featuredProduct != null
-        ? 'Fresh from ${featuredProduct.farmerName}'
-        : 'Fresh from the Farm';
-    final bannerSubtitle = featuredProduct != null
-        ? '${featuredProduct.name} is now available'
-        : 'Up to 30% off today';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            CachedNetworkImage(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=160&fit=crop&auto=format',
-              height: 148,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => Container(
-                height: 148,
-                color: AppColors.light,
-                child: const Center(
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: AppColors.muted),
-                ),
-              ),
-            ),
-            // Green gradient overlay
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.88),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.6],
-                  ),
-                ),
-              ),
-            ),
-            // Text content
-            Positioned(
-              left: 20,
-              top: 0,
-              bottom: 0,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Fresh picks',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      )),
-                  const SizedBox(height: 4),
-                  Text(
-                    bannerTitle,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(bannerSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      )),
-                ],
-              ),
-            ),
-            // Shop Now button
-            Positioned(
-              right: 16,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () => context.go(RoutePaths.productCatalog),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  ),
-                  child: const Text('Shop Now',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
   }
 
   // ── Nearby farmers horizontal row ─────────────────────────────
   Widget _buildNearbyFarmers(BuildContext context,
       {required List<Map<String, String>> farmers}) {
     final theme = Theme.of(context);
+
+    if (farmers.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          'Nearby farmers will appear here as soon as fresh listings arrive.',
+          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,38 +582,32 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
 
   // ── 5‑step progress indicator ──────────────────────────────────
   Widget _buildStepProgress(int completed) {
-    const steps = ['Placed', 'Confirmed', 'Pickup', 'On way', 'Done'];
+    const steps = [
+      (Icons.receipt_long_rounded, 'Placed'),
+      (Icons.inventory_2_rounded, 'Packed'),
+      (Icons.local_shipping_rounded, 'On route'),
+      (Icons.location_on_rounded, 'Nearby'),
+      (Icons.home_rounded, 'Done'),
+    ];
     final safeCompleted = completed.clamp(0, steps.length);
     return Row(
       children: List.generate(steps.length, (i) {
         final done = i < completed;
-        return Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: done ? AppColors.primary : AppColors.light,
-                  shape: BoxShape.circle,
-                ),
-                child: done
-                    ? const Icon(Icons.check_rounded,
-                        size: 11, color: Colors.white)
-                    : null,
-              ),
-              if (i < steps.length - 1)
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    color: i < safeCompleted - 1
-                        ? AppColors.primary
-                        : AppColors.light,
-                  ),
-                ),
-            ],
-          ),
-        );
+        return Expanded(child: Row(children: [
+          Column(children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 27,
+              height: 27,
+              decoration: BoxDecoration(color: done ? AppColors.primary : AppColors.light, shape: BoxShape.circle),
+              child: Icon(steps[i].$1, size: 14, color: done ? Colors.white : AppColors.muted),
+            ),
+            const SizedBox(height: 4),
+            Text(steps[i].$2, style: const TextStyle(fontSize: 8, color: AppColors.muted, fontWeight: FontWeight.w600)),
+          ]),
+          if (i < steps.length - 1)
+            Expanded(child: Container(height: 2, margin: const EdgeInsets.only(bottom: 18), color: i < safeCompleted - 1 ? AppColors.primary : AppColors.light)),
+        ]));
       }),
     );
   }

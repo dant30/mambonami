@@ -93,6 +93,18 @@ class ProductRepository {
     }
   }
 
+  Future<List<String>> getProductUnits() async {
+    try {
+      final response = await _apiClient.dio.get('/api/products/units/');
+      return normalizeList<Map<String, dynamic>>(response.data)
+          .map((unit) => stringValue(unit['code']))
+          .where((unit) => unit.isNotEmpty)
+          .toList();
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<List<Product>> getWishlist() async {
     try {
       final response = await _apiClient.dio.get('/api/products/wishlist/');
