@@ -37,9 +37,7 @@ class FarmerProductCard extends StatelessWidget {
         : (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0);
 
     // Expiry warning (simplified)
-    final daysUntilExpiry = product.expiryDate != null
-        ? product.expiryDate!.difference(DateTime.now()).inDays
-        : null;
+    final daysUntilExpiry = product.expiryDate?.difference(DateTime.now()).inDays;
     final expiryStatus = daysUntilExpiry != null
         ? (daysUntilExpiry <= 0 ? 'Expired' : (daysUntilExpiry <= 3 ? 'Expiring Soon' : null))
         : null;
@@ -151,9 +149,9 @@ class FarmerProductCard extends StatelessWidget {
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.fireplace, size: 12, color: Colors.white),
                         SizedBox(width: 4),
                         Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
@@ -301,7 +299,7 @@ class FarmerProductCard extends StatelessWidget {
                             child: Row(
                               children: [
                                 Icon(product.isActive ? Icons.pause : Icons.play_arrow, size: 16),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(product.isActive ? 'Deactivate' : 'Activate'),
                               ],
                             ),

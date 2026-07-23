@@ -1,7 +1,5 @@
 // mobile/lib/features/transport/widgets/hero_card.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 

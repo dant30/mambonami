@@ -15,7 +15,6 @@ import '../../data/repositories/auth_repository.dart';
 import '../../shared/layouts/app_navigation.dart';
 import '../../shared/themes/app_colors.dart';
 import '../../shared/themes/app_gradients.dart';
-import '../../shared/themes/app_radius.dart';
 import '../../shared/utils/form_validators.dart';
 import '../../shared/widgets/avatar.dart';
 import '../../shared/widgets/custom_button.dart';
@@ -32,8 +31,6 @@ import 'widgets/buyer_profile_content.dart';
 import 'widgets/retailer_profile_content.dart';
 import 'widgets/profile_menu_item.dart';
 import 'widgets/profile_stat_tile.dart';
-import 'widgets/profile_verification_item.dart';
-import 'widgets/profile_edit_form.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

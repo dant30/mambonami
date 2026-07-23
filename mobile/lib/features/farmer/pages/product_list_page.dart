@@ -149,7 +149,7 @@ class _ProductListPageState extends State<ProductListPage> {
           final extension = imageUrl.split('?').first.split('.').last.toLowerCase();
           final fileName = '${product.uuid}_${DateTime.now().millisecondsSinceEpoch}.${extension.isNotEmpty && extension.length <= 5 ? extension : 'jpg'}';
           imageFile = File('${Directory.systemTemp.path}/$fileName');
-          await imageFile!.writeAsBytes(response.bodyBytes);
+          await imageFile.writeAsBytes(response.bodyBytes);
         }
       } catch (_) {
         imageFile = null;
