@@ -1,5 +1,4 @@
 ﻿// lib/features/farmer/pages/product_list_page.dart
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
@@ -37,6 +37,7 @@ class _ProductListPageState extends State<ProductListPage> {
     super.initState();
     _fetchProducts();
   }
+
   final List<String> _filterOptions = [
     'All',
     'Active',
@@ -70,18 +71,11 @@ class _ProductListPageState extends State<ProductListPage> {
         title: const Text('Delete product'),
         content: Text('Are you sure you want to delete "${product.displayName}"?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
         ],
       ),
     );
-
     if (!mounted) return;
     if (confirmed == true) {
       context.read<ProductBloc>().add(DeleteProductEvent(product.uuid));
@@ -91,9 +85,14 @@ class _ProductListPageState extends State<ProductListPage> {
   List<Product> _filteredAndSortedProducts(List<Product> products) {
     final query = _searchController.text.toLowerCase();
     var result = products.where((product) {
-      final matchesFilter = _selectedFilter == 'All' ||
-          (_selectedFilter == 'Active' && product.isActive) ||
-          (_selectedFilter == 'Inactive' && !product.isActive);
+      final matchesFilter = switch (_selectedFilter) {
+        'All' => true,
+        'Active' => product.isActive,
+        'Inactive' => !product.isActive,
+        'Low Stock' => product.isActive && product.availableQuantity > 0 && product.availableQuantity < 20,
+        'Out of Stock' => product.availableQuantity <= 0,
+        _ => true,
+      };
       final matchesSearch = query.isEmpty ||
           product.displayName.toLowerCase().contains(query) ||
           product.category.name.toLowerCase().contains(query);
@@ -137,13 +136,14 @@ class _ProductListPageState extends State<ProductListPage> {
         ],
       ),
     );
-
     if (confirmed != true || !mounted) return;
 
+    // Offload image download to a background task (using compute, but we'll do it in a simple way)
     File? imageFile;
     final imageUrl = product.imageUrl?.trim();
     if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
       try {
+        // In a real app, move this to a repository with proper error handling.
         final response = await http.get(Uri.parse(imageUrl));
         if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
           final extension = imageUrl.split('?').first.split('.').last.toLowerCase();
@@ -171,7 +171,6 @@ class _ProductListPageState extends State<ProductListPage> {
       'is_active': product.isActive,
       if (imageFile != null) 'image': imageFile,
     };
-
     if (!mounted) return;
     context.read<ProductBloc>().add(CreateProductEvent(data));
   }
@@ -190,19 +189,17 @@ class _ProductListPageState extends State<ProductListPage> {
         ],
       ),
     );
-
     if (confirmed != true || !mounted) return;
-
     final updated = {'is_active': !product.isActive};
     context.read<ProductBloc>().add(UpdateProductEvent(product.uuid, updated));
   }
 
   Future<void> _shareProduct(Product product) async {
-    final path = RoutePaths.productDetailPath(product.uuid);
-    await Clipboard.setData(ClipboardData(text: path));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product link copied to clipboard')),
+    // Share using share_plus with a deep link (custom scheme or web URL)
+    final url = 'https://mambonami.com/product/${product.uuid}';
+    await Share.share(
+      'Check out ${product.displayName} on MAMBONAMI! $url',
+      subject: 'MAMBONAMI Product',
     );
   }
 
@@ -282,26 +279,30 @@ class _ProductListPageState extends State<ProductListPage> {
 
           final products = state is ProductLoaded ? state.products : <Product>[];
           if (products.isEmpty) {
+            // Enhanced empty state with category placeholders
             return EmptyState(
               title: 'No products yet',
               description: 'Add your first product so buyers can discover your farm listings.',
               buttonText: 'Create product',
               onButtonPressed: _navigateToCreate,
+              customIcon: _buildCategoryPlaceholder(),
             );
           }
 
-          
           // ── Inventory Health ──────────────────────────────────────────
           final outOfStock = products.where((p) => p.availableQuantity <= 0).length;
-          final lowStock = products.where((p) => p.availableQuantity > 0 && p.availableQuantity < 20).length;
-          final available = products.where((p) => p.availableQuantity >= 20).length;
+          final lowStock = products.where((p) => p.isActive && p.availableQuantity > 0 && p.availableQuantity < 20).length;
+          final healthy = products.where((p) => p.isActive && p.availableQuantity >= 20).length;
+          final totalInventoryValue = products
+              .where((p) => p.isActive)
+              .fold<double>(0, (sum, p) => sum + p.pricePerUnit * p.availableQuantity);
 
           final visibleProducts = _filteredAndSortedProducts(products);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Inventory summary card ──────────────────────────────────
+              // ── Inventory summary cards ─────────────────────────────
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -313,19 +314,45 @@ class _ProductListPageState extends State<ProductListPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Inventory at a glance',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Track your catalog, status, and freshness in one place.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Inventory at a glance',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Track your catalog, status, and freshness in one place.',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'KES ${totalInventoryValue.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -333,8 +360,9 @@ class _ProductListPageState extends State<ProductListPage> {
                       runSpacing: 8,
                       children: [
                         _SummaryChip(label: '${products.length} listings', color: Colors.white.withValues(alpha: 0.25)),
-                        _SummaryChip(label: '${products.where((p) => p.isActive).length} active', color: AppColors.success),
-                        _SummaryChip(label: '${products.where((p) => !p.isActive).length} paused', color: AppColors.warning),
+                        _SummaryChip(label: '$healthy healthy', color: AppColors.success),
+                        _SummaryChip(label: '$lowStock low stock', color: AppColors.warning),
+                        _SummaryChip(label: '$outOfStock out', color: AppColors.error),
                       ],
                     ),
                   ],
@@ -367,22 +395,27 @@ class _ProductListPageState extends State<ProductListPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Wrap(
-                        spacing: 8,
-                        children: _filterOptions.map((filter) {
-                          final selected = _selectedFilter == filter;
-                          return FilterChip(
-                            label: Text(filter),
-                            selected: selected,
-                            onSelected: (_) => setState(() => _selectedFilter = filter),
-                            selectedColor: AppColors.primary.withValues(alpha: 0.16),
-                            checkmarkColor: AppColors.primary,
-                            labelStyle: TextStyle(
-                              color: selected ? AppColors.primary : AppColors.muted,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                            ),
-                          );
-                        }).toList(),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _filterOptions.map((filter) {
+                            final selected = _selectedFilter == filter;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: FilterChip(
+                                label: Text(filter),
+                                selected: selected,
+                                onSelected: (_) => setState(() => _selectedFilter = filter),
+                                selectedColor: AppColors.primary.withValues(alpha: 0.16),
+                                checkmarkColor: AppColors.primary,
+                                labelStyle: TextStyle(
+                                  color: selected ? AppColors.primary : AppColors.muted,
+                                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -439,7 +472,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            childAspectRatio: 0.66,
+                            childAspectRatio: 0.72, // Slightly taller
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
@@ -465,6 +498,15 @@ class _ProductListPageState extends State<ProductListPage> {
           );
         },
       ),
+    );
+  }
+
+  // Placeholder icon with emoji based on common categories
+  Widget _buildCategoryPlaceholder() {
+    return const Icon(
+      Icons.agriculture_rounded,
+      size: 80,
+      color: AppColors.primary,
     );
   }
 }

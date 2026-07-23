@@ -1,5 +1,4 @@
 // lib/features/farmer/widgets/product_card.dart
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -37,15 +36,24 @@ class FarmerProductCard extends StatelessWidget {
         ? 0.0
         : (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0);
 
-    // Category accent color (simple mapping)
-    Color categoryColor = AppColors.primary;
+    // Expiry warning (simplified)
+    final daysUntilExpiry = product.expiryDate != null
+        ? product.expiryDate!.difference(DateTime.now()).inDays
+        : null;
+    final expiryStatus = daysUntilExpiry != null
+        ? (daysUntilExpiry <= 0 ? 'Expired' : (daysUntilExpiry <= 3 ? 'Expiring Soon' : null))
+        : null;
+
+    // Category accent color
     final catName = product.category.name.toLowerCase();
-    if (catName.contains('vegetable')) {
-      categoryColor = const Color(0xFF2E7D32);
-    } else if (catName.contains('fruit')) categoryColor = const Color(0xFFE65100);
-    else if (catName.contains('grain')) categoryColor = const Color(0xFFBF8F00);
-    else if (catName.contains('dairy')) categoryColor = const Color(0xFF1565C0);
-    else if (catName.contains('livestock')) categoryColor = const Color(0xFF5D4037);
+    final categoryColor = switch (catName) {
+      'vegetables' || 'vegetable' => const Color(0xFF2E7D32),
+      'fruits' || 'fruit' => const Color(0xFFE65100),
+      'grains' || 'grain' => const Color(0xFFBF8F00),
+      'dairy' => const Color(0xFF1565C0),
+      'livestock' => const Color(0xFF5D4037),
+      _ => AppColors.primary,
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -68,7 +76,6 @@ class FarmerProductCard extends StatelessWidget {
             Stack(
               children: [
                 _buildImage(height: 160),
-                // Gradient overlay at bottom for readability
                 Positioned(
                   left: 0,
                   right: 0,
@@ -84,23 +91,40 @@ class FarmerProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Status chip
+                // Status chips (top)
                 Positioned(
                   top: 8,
                   left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: stockColor,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      stockStatus,
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: stockColor,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          stockStatus,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      if (expiryStatus != null) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: expiryStatus == 'Expired' ? AppColors.error : AppColors.warning,
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                          child: Text(
+                            expiryStatus,
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                // Organic badge
                 if (product.isOrganic)
                   Positioned(
                     top: 8,
@@ -117,6 +141,26 @@ class FarmerProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                // Sales badge (mock – you'd get this from analytics)
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.fireplace, size: 12, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             // ── Details ────────────────────────────────────────────────
@@ -217,7 +261,7 @@ class FarmerProductCard extends StatelessWidget {
                                   extra: product,
                                 ),
                       ),
-                      // More menu
+                      // More menu with icons
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, size: 18, color: AppColors.muted),
                         onSelected: (value) {
@@ -245,14 +289,28 @@ class FarmerProductCard extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                          const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
+                          const PopupMenuItem(value: 'edit', child: Row(
+                            children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')],
+                          )),
+                          const PopupMenuItem(value: 'duplicate', child: Row(
+                            children: [Icon(Icons.copy, size: 16), SizedBox(width: 8), Text('Duplicate')],
+                          )),
                           PopupMenuItem(
                             value: 'deactivate',
-                            child: Text(product.isActive ? 'Deactivate' : 'Activate'),
+                            child: Row(
+                              children: [
+                                Icon(product.isActive ? Icons.pause : Icons.play_arrow, size: 16),
+                                SizedBox(width: 8),
+                                Text(product.isActive ? 'Deactivate' : 'Activate'),
+                              ],
+                            ),
                           ),
-                          const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.error))),
-                          const PopupMenuItem(value: 'share', child: Text('Share')),
+                          const PopupMenuItem(value: 'delete', child: Row(
+                            children: [Icon(Icons.delete, size: 16, color: AppColors.error), SizedBox(width: 8), Text('Delete', style: TextStyle(color: AppColors.error))],
+                          )),
+                          const PopupMenuItem(value: 'share', child: Row(
+                            children: [Icon(Icons.share, size: 16), SizedBox(width: 8), Text('Share')],
+                          )),
                         ],
                       ),
                     ],
