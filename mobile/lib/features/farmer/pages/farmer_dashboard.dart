@@ -56,6 +56,27 @@ class FarmerDashboard extends StatelessWidget {
         ? orderState.subOrders.take(3).toList()
         : <SubOrder>[];
     final notificationCount = pendingOrders + (productCount > 0 ? 1 : 0);
+
+    // ── Inventory health ──────────────────────────────────────────────────
+    final outOfStock = productList.where((p) => p.availableQuantity <= 0).length;
+    final lowStock = productList.where((p) => p.availableQuantity > 0 && p.availableQuantity < 20).length;
+    final available = productList.where((p) => p.availableQuantity >= 20).length;
+
+    // ── Dynamic greeting subtitle ───────────────────────────────────────
+    String greetingSubtitle;
+    if (pendingOrders > 0) {
+      greetingSubtitle = 'You have $pendingOrders new order${pendingOrders == 1 ? '' : 's'} waiting.';
+    } else if (productCount == 0) {
+      greetingSubtitle = 'Add your first product to start selling.';
+    } else if (lowStock > 0) {
+      greetingSubtitle = '$lowStock product${lowStock == 1 ? '' : 's'} are running low on stock.';
+    } else {
+      final hour = DateTime.now().hour;
+      if (hour < 12) greetingSubtitle = 'Good morning! Ready to harvest today?';
+      else if (hour < 17) greetingSubtitle = 'Keep your farm growing this afternoon.';
+      else greetingSubtitle = "Let's wrap up today's farm work.";
+    }
+
     String locationLabel = 'Your farm';
     if (productList.isNotEmpty) {
       final matches = productList

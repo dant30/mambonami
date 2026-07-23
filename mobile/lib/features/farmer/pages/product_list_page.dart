@@ -26,12 +26,28 @@ class ProductListPage extends StatefulWidget {
 class _ProductListPageState extends State<ProductListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
+  String _sortBy = 'Newest';
 
   @override
   void initState() {
     super.initState();
     _fetchProducts();
   }
+  final List<String> _filterOptions = [
+    'All',
+    'Active',
+    'Inactive',
+    'Low Stock',
+    'Out of Stock',
+  ];
+
+  final List<String> _sortOptions = [
+    'Newest',
+    'Oldest',
+    'Price: Low to High',
+    'Price: High to Low',
+    'Highest Rated',
+  ];
 
   @override
   void dispose() {
@@ -68,9 +84,9 @@ class _ProductListPageState extends State<ProductListPage> {
     }
   }
 
-  List<Product> _filteredProducts(List<Product> products) {
+  List<Product> _filteredAndSortedProducts(List<Product> products) {
     final query = _searchController.text.toLowerCase();
-    return products.where((product) {
+    var result = products.where((product) {
       final matchesFilter = _selectedFilter == 'All' ||
           (_selectedFilter == 'Active' && product.isActive) ||
           (_selectedFilter == 'Inactive' && !product.isActive);
@@ -79,6 +95,26 @@ class _ProductListPageState extends State<ProductListPage> {
           product.category.name.toLowerCase().contains(query);
       return matchesFilter && matchesSearch;
     }).toList();
+
+    // Sort
+    switch (_sortBy) {
+      case 'Newest':
+        result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case 'Oldest':
+        result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case 'Price: Low to High':
+        result.sort((a, b) => a.pricePerUnit.compareTo(b.pricePerUnit));
+        break;
+      case 'Price: High to Low':
+        result.sort((a, b) => b.pricePerUnit.compareTo(a.pricePerUnit));
+        break;
+      case 'Highest Rated':
+        result.sort((a, b) => b.averageRating.compareTo(a.averageRating));
+        break;
+    }
+    return result;
   }
 
   void _navigateToCreate() {
@@ -169,7 +205,13 @@ class _ProductListPageState extends State<ProductListPage> {
             );
           }
 
-          final visibleProducts = _filteredProducts(products);
+          
+          // ── Inventory Health ──────────────────────────────────────────
+          final outOfStock = products.where((p) => p.availableQuantity <= 0).length;
+          final lowStock = products.where((p) => p.availableQuantity > 0 && p.availableQuantity < 20).length;
+          final available = products.where((p) => p.availableQuantity >= 20).length;
+
+          final visibleProducts = _filteredAndSortedProducts(products);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,25 +276,46 @@ class _ProductListPageState extends State<ProductListPage> {
               ),
               const SizedBox(height: 10),
 
-              // ── Filter chips ────────────────────────────────────────────
+              // ── Filter chips + Sort menu ─────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: 8,
-                  children: ['All', 'Active', 'Inactive'].map((filter) {
-                    final selected = _selectedFilter == filter;
-                    return FilterChip(
-                      label: Text(filter),
-                      selected: selected,
-                      onSelected: (_) => setState(() => _selectedFilter = filter),
-                      selectedColor: AppColors.primary.withValues(alpha: 0.16),
-                      checkmarkColor: AppColors.primary,
-                      labelStyle: TextStyle(
-                        color: selected ? AppColors.primary : AppColors.muted,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        children: _filterOptions.map((filter) {
+                          final selected = _selectedFilter == filter;
+                          return FilterChip(
+                            label: Text(filter),
+                            selected: selected,
+                            onSelected: (_) => setState(() => _selectedFilter = filter),
+                            selectedColor: AppColors.primary.withValues(alpha: 0.16),
+                            checkmarkColor: AppColors.primary,
+                            labelStyle: TextStyle(
+                              color: selected ? AppColors.primary : AppColors.muted,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.sort_rounded),
+                      onSelected: (value) => setState(() => _sortBy = value),
+                      itemBuilder: (context) => _sortOptions.map((option) => PopupMenuItem(
+                        value: option,
+                        child: Row(
+                          children: [
+                            if (_sortBy == option) const Icon(Icons.check, color: AppColors.primary, size: 18),
+                            const SizedBox(width: 8),
+                            Text(option),
+                          ],
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
               ),
               const SizedBox(height: 10),
