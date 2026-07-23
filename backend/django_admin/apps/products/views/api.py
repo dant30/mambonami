@@ -1,16 +1,33 @@
 ﻿# backend/django_admin/apps/products/views/api.py
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.views import APIView
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.users.models import FarmerProfile
+from apps.users.permissions import IsAdmin, IsFarmer
+
 from ..models import Product, ProductCategory, WishlistItem
-from ..serializers import ProductSerializer, ProductCreateUpdateSerializer, ProductCategorySerializer, WishlistItemSerializer
-from ..services import list_active_products, create_product, update_product, delete_product
-from apps.users.permissions import IsFarmer, IsAdmin
+from ..serializers import (ProductCategorySerializer, ProductCreateUpdateSerializer,
+                           ProductSerializer, WishlistItemSerializer)
+from ..services import create_product, delete_product, list_active_products, update_product
+
+
+def _get_farmer_profile_for_user(user):
+    if not getattr(user, 'is_authenticated', False):
+        return None
+    if getattr(user, 'role', None) != 'farmer':
+        return None
+    try:
+        return user.farmer_profile
+    except (AttributeError, ObjectDoesNotExist):
+        return None
 
 class ProductCategoryListView(generics.ListAPIView):
     queryset = ProductCategory.objects.filter(is_active=True)
@@ -126,11 +143,20 @@ class FarmerProductListCreateView(generics.ListCreateAPIView):
         return context
 
     def get_queryset(self):
-        farmer_profile = self.request.user.farmer_profile
+        farmer_profile = _get_farmer_profile_for_user(self.request.user)
+        if not farmer_profile:
+            return Product.objects.none()
         return Product.objects.filter(farmer=farmer_profile)
 
     def perform_create(self, serializer):
-        farmer_profile = self.request.user.farmer_profile
+        farmer_profile = _get_farmer_profile_for_user(self.request.user)
+        if not farmer_profile:
+            farmer_profile, _ = FarmerProfile.objects.get_or_create(
+                user=self.request.user,
+                defaults={'mpesa_number': self.request.user.phone},
+            )
+        if not farmer_profile:
+            raise ValidationError({'detail': 'Farmer profile is not available for this account.'})
         create_product(farmer_profile, serializer.validated_data)
 
 class FarmerProductUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
@@ -139,7 +165,10 @@ class FarmerProductUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'uuid'
 
     def get_queryset(self):
-        return Product.objects.filter(farmer=self.request.user.farmer_profile)
+        farmer_profile = _get_farmer_profile_for_user(self.request.user)
+        if not farmer_profile:
+            return Product.objects.none()
+        return Product.objects.filter(farmer=farmer_profile)
 
     def perform_update(self, serializer):
         product = self.get_object()
