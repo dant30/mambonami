@@ -1,5 +1,4 @@
-﻿// mobile/lib/features/farmer/pages/order_requests_page.dart
-
+﻿// lib/features/farmer/pages/order_requests_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,10 +10,10 @@ import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
-import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../widgets/order_request_card.dart';
 
 class OrderRequestsPage extends StatefulWidget {
   const OrderRequestsPage({super.key});
@@ -69,7 +68,7 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
           }
           if (state is SubOrderConfirmed || state is SubOrderDeclined) {
             CustomSnackbar.showSuccess(context, 'Order updated successfully!');
-            _refresh(); // reload list after action
+            _refresh();
           }
         },
         builder: (context, state) {
@@ -96,7 +95,6 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
             final readyOrders = subOrders.where((o) => o.status == 'ready').toList();
             final allOrders = subOrders;
 
-            // Counts for summary chips
             final pendingCount = newOrders.length;
             final confirmedCount = confirmedOrders.length;
             final readyCount = readyOrders.length;
@@ -165,10 +163,26 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _OrderList(orders: newOrders, onTap: _openDetail),
-                        _OrderList(orders: confirmedOrders, onTap: _openDetail),
-                        _OrderList(orders: readyOrders, onTap: _openDetail),
-                        _OrderList(orders: allOrders, onTap: _openDetail),
+                        _buildOrderList(
+                          context,
+                          orders: newOrders,
+                          emptyMessage: 'No new requests.\nRelax while orders come in.',
+                        ),
+                        _buildOrderList(
+                          context,
+                          orders: confirmedOrders,
+                          emptyMessage: 'No confirmed orders waiting.\nAll good.',
+                        ),
+                        _buildOrderList(
+                          context,
+                          orders: readyOrders,
+                          emptyMessage: 'No orders ready for pickup.',
+                        ),
+                        _buildOrderList(
+                          context,
+                          orders: allOrders,
+                          emptyMessage: 'No orders at all.\nList products to get started.',
+                        ),
                       ],
                     ),
                   ),
@@ -204,44 +218,9 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
       ),
     );
   }
-}
 
-// ── Summary chip ──────────────────────────────────────────────────────────────
-class _SummaryChip extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _SummaryChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Order list (used per tab) ────────────────────────────────────────────────
-class _OrderList extends StatelessWidget {
-  final List<SubOrder> orders;
-  final void Function(SubOrder) onTap;
-
-  const _OrderList({required this.orders, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildOrderList(BuildContext context,
+      {required List<SubOrder> orders, required String emptyMessage}) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -250,7 +229,8 @@ class _OrderList extends StatelessWidget {
             const Icon(Icons.inbox_outlined, color: AppColors.muted, size: 48),
             const SizedBox(height: 12),
             Text(
-              'No orders in this category',
+              emptyMessage,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.muted,
                   ),
@@ -265,158 +245,49 @@ class _OrderList extends StatelessWidget {
       itemCount: orders.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, i) {
-        final o = orders[i];
-
-        // Determine status color
-        final statusColor = o.isPending
-            ? AppColors.warning
-            : o.status == 'confirmed'
-                ? AppColors.secondary
-                : AppColors.primary;
-
-        return CustomCard(
-          onTap: () => onTap(o),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: ID, buyer, time, status badge
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '#${o.id}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            color: AppColors.dark,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${o.farmerName} · ${o.confirmedAt != null ? 'Confirmed' : 'Just now'}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      o.status.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Order summary
-              Row(
-                children: [
-                  const Icon(
-                    Icons.inventory_2_outlined,
-                    size: 14,
-                    color: AppColors.muted,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      o.items.map((item) => '${item.productName} × ${item.quantity}').join(', '),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.muted,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'KES ${o.subtotal.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Action buttons for pending orders
-              if (o.isPending) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                        ),
-                        onPressed: () {
-                          context.read<OrderBloc>().add(
-                                ConfirmSubOrderEvent(o.id),
-                              );
-                        },
-                        child: const Text(
-                          'Confirm',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        ),
-                      ),
-                      onPressed: () {
-                        context.read<OrderBloc>().add(
-                              DeclineSubOrderEvent(o.id),
-                            );
-                      },
-                      child: const Text(
-                        'Decline',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
+        final subOrder = orders[i];
+        return OrderRequestCard(
+          subOrder: subOrder,
+          onConfirm: subOrder.isPending
+              ? () {
+                  context.read<OrderBloc>().add(ConfirmSubOrderEvent(subOrder.id));
+                }
+              : null,
+          onDecline: subOrder.isPending
+              ? () {
+                  context.read<OrderBloc>().add(DeclineSubOrderEvent(subOrder.id));
+                }
+              : null,
+          onTap: () => _openDetail(subOrder),
         );
       },
+    );
+  }
+}
+
+// ── Summary chip ──────────────────────────────────────────────────────────────
+class _SummaryChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _SummaryChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.16),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
