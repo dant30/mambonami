@@ -285,7 +285,7 @@ class _ProductListPageState extends State<ProductListPage> {
               description: 'Add your first product so buyers can discover your farm listings.',
               buttonText: 'Create product',
               onButtonPressed: _navigateToCreate,
-              customIcon: _buildCategoryPlaceholder(),
+              icon: Icons.agriculture_rounded,
             );
           }
 
