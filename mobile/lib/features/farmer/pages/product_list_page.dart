@@ -1,6 +1,7 @@
 ﻿// lib/features/farmer/pages/product_list_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -119,6 +120,39 @@ class _ProductListPageState extends State<ProductListPage> {
 
   void _navigateToCreate() {
     context.go(RoutePaths.farmerProductCreate);
+  }
+
+  Future<void> _duplicateProduct(Product product) async {
+    final copyName = '${product.name} (copy)';
+    final data = <String, dynamic>{
+      'category': product.category.id,
+      'name': copyName,
+      'variety': product.variety,
+      'price_per_unit': product.pricePerUnit,
+      'available_quantity': product.availableQuantity,
+      'unit': product.unit,
+      'harvest_date': product.harvestDate.toIso8601String().split('T').first,
+      'shelf_life_days': product.shelfLifeDays,
+      'is_organic': product.isOrganic,
+      'description': product.description,
+      'is_active': product.isActive,
+    };
+
+    context.read<ProductBloc>().add(CreateProductEvent(data));
+  }
+
+  void _toggleActive(Product product) {
+    final updated = {'is_active': !product.isActive};
+    context.read<ProductBloc>().add(UpdateProductEvent(product.uuid, updated));
+  }
+
+  Future<void> _shareProduct(Product product) async {
+    final path = RoutePaths.productDetailPath(product.uuid);
+    await Clipboard.setData(ClipboardData(text: path));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Product link copied to clipboard')),
+    );
   }
 
   @override
@@ -368,6 +402,9 @@ class _ProductListPageState extends State<ProductListPage> {
                                 extra: product,
                               ),
                               onDelete: () => _confirmDelete(product),
+                              onDuplicate: () => _duplicateProduct(product),
+                              onDeactivate: () => _toggleActive(product),
+                              onShare: () => _shareProduct(product),
                             );
                           },
                         ),
