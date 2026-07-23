@@ -296,11 +296,10 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                   statusLabel: statusLabel,
                   weather: weather,
                 ),
-              ],
+                ],
             ),
           ),
         ),
-      ),
       floatingActionButton: activeTrip != null
           ? FloatingActionButton.extended(
               onPressed: () => _openNavigation(activeTrip),
