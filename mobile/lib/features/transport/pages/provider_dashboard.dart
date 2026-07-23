@@ -133,6 +133,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     return Scaffold(
       drawer: const AppDrawer(),
       body: AppScreen(
+        scrollable: false,
         child: RefreshIndicator(
           onRefresh: () async {
             context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchMyTripsEvent());
@@ -140,11 +141,10 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             await _loadPayoutSummary();
           },
           color: AppColors.providerAccent,
-          child: SingleChildScrollView(
+          child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
                 // ── Header ─────────────────────────────────────────────
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
