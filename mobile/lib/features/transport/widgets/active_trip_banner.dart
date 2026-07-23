@@ -26,10 +26,10 @@ class ActiveTripBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.providerAccent.withOpacity(0.2),
+        color: AppColors.providerAccent.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.providerAccent.withOpacity(0.4),
+          color: AppColors.providerAccent.withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -56,7 +56,7 @@ class ActiveTripBanner extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.providerAccent.withOpacity(0.15),
+                  color: AppColors.providerAccent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

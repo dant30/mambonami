@@ -67,7 +67,7 @@ class EarningsAnalyticsStrip extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.providerAccent.withOpacity(0.1),
+            color: AppColors.providerAccent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
@@ -119,7 +119,7 @@ class _AnalyticsTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -129,7 +129,7 @@ class _AnalyticsTile extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.12),
+              color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: accentColor, size: 16),

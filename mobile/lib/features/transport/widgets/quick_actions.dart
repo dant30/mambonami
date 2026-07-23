@@ -69,7 +69,7 @@ class _QuickActionTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
           ],
         ),
         child: Column(
@@ -79,7 +79,7 @@ class _QuickActionTile extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.1),
+                color: accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: accentColor, size: 18),

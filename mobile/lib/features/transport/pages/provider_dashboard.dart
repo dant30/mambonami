@@ -128,7 +128,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     }
 
     // Mock weather (replace with real API later)
-    final weather = '☀ 27° Sunny';
+    const weather = '☀ 27° Sunny';
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -224,7 +224,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                 // ── Vehicle Card ──────────────────────────────────────
                 if (vehicleType != null)
                   VehicleCard(
-                    vehicleType: vehicleType!,
+                    vehicleType: vehicleType,
                     licensePlate: licensePlate,
                     rating: rating,
                     completedDeliveries: completedDeliveries,

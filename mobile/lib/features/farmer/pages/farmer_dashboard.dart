@@ -72,8 +72,9 @@ class FarmerDashboard extends StatelessWidget {
       greetingSubtitle = '$lowStock product${lowStock == 1 ? '' : 's'} are running low on stock.';
     } else {
       final hour = DateTime.now().hour;
-      if (hour < 12) greetingSubtitle = 'Good morning! Ready to harvest today?';
-      else if (hour < 17) greetingSubtitle = 'Keep your farm growing this afternoon.';
+      if (hour < 12) {
+        greetingSubtitle = 'Good morning! Ready to harvest today?';
+      } else if (hour < 17) greetingSubtitle = 'Keep your farm growing this afternoon.';
       else greetingSubtitle = "Let's wrap up today's farm work.";
     }
 
@@ -187,10 +188,10 @@ class FarmerDashboard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Wrap(
+                const Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: const [
+                  children: [
                     _WeatherPill(label: '24°C', icon: Icons.thermostat),
                     _WeatherPill(label: '68%', icon: Icons.water_drop),
                     _WeatherPill(label: '12 km/h', icon: Icons.air),

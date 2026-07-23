@@ -603,17 +603,17 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_role == 'farmer') {
       final farm = _roleProfile ?? {};
       items = [
-        _VerificationItem(label: 'Phone Number', verified: true),
-        _VerificationItem(label: 'National ID', verified: true),
+        const _VerificationItem(label: 'Phone Number', verified: true),
+        const _VerificationItem(label: 'National ID', verified: true),
         _VerificationItem(label: 'Cooperative Endorsement', verified: farm['coop_verified'] == true),
         _VerificationItem(label: 'Farm GPS Location', verified: farm['farm_gps'] != null && farm['farm_gps'].isNotEmpty),
-        _VerificationItem(label: 'Bank Account', verified: false),
+        const _VerificationItem(label: 'Bank Account', verified: false),
       ];
     } else if (_role == 'transport_provider') {
       final transport = _roleProfile ?? {};
       items = [
-        _VerificationItem(label: 'Phone Number', verified: true),
-        _VerificationItem(label: 'National ID', verified: true),
+        const _VerificationItem(label: 'Phone Number', verified: true),
+        const _VerificationItem(label: 'National ID', verified: true),
         _VerificationItem(label: 'Vehicle Registration', verified: transport['license_plate'] != null && transport['license_plate'].isNotEmpty),
         _VerificationItem(label: 'Driver License', verified: transport['driver_license'] != null && transport['driver_license'].isNotEmpty),
         _VerificationItem(label: 'Deposit Paid', verified: transport['deposit_paid'] == true),

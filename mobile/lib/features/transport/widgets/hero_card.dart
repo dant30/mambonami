@@ -64,7 +64,7 @@ class HeroCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isOnline ? AppColors.success.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                            color: isOnline ? AppColors.success.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -81,7 +81,7 @@ class HeroCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.2),
+                              color: AppColors.gold.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -113,7 +113,7 @@ class HeroCard extends StatelessWidget {
                       width: 48,
                       height: 26,
                       decoration: BoxDecoration(
-                        color: isOnline ? AppColors.success : Colors.grey.withOpacity(0.5),
+                        color: isOnline ? AppColors.success : Colors.grey.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(13),
                       ),
                       child: AnimatedAlign(
@@ -169,7 +169,7 @@ class HeroCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -188,15 +188,15 @@ class HeroCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
-                    const SizedBox(width: 4),
-                    const Text(
+                    Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
+                    SizedBox(width: 4),
+                    Text(
                       '4.9 ★',
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
@@ -229,7 +229,7 @@ class _HeroActionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(

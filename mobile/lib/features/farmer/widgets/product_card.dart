@@ -40,8 +40,9 @@ class FarmerProductCard extends StatelessWidget {
     // Category accent color (simple mapping)
     Color categoryColor = AppColors.primary;
     final catName = product.category.name.toLowerCase();
-    if (catName.contains('vegetable')) categoryColor = const Color(0xFF2E7D32);
-    else if (catName.contains('fruit')) categoryColor = const Color(0xFFE65100);
+    if (catName.contains('vegetable')) {
+      categoryColor = const Color(0xFF2E7D32);
+    } else if (catName.contains('fruit')) categoryColor = const Color(0xFFE65100);
     else if (catName.contains('grain')) categoryColor = const Color(0xFFBF8F00);
     else if (catName.contains('dairy')) categoryColor = const Color(0xFF1565C0);
     else if (catName.contains('livestock')) categoryColor = const Color(0xFF5D4037);
@@ -146,7 +147,7 @@ class FarmerProductCard extends StatelessWidget {
                       const Icon(Icons.star_rounded, size: 12, color: AppColors.gold),
                       const SizedBox(width: 2),
                       Text(
-                        '${product.averageRating.toStringAsFixed(1)}',
+                        product.averageRating.toStringAsFixed(1),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
                       ),
                     ],
