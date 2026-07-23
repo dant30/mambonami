@@ -1,9 +1,12 @@
 ﻿// lib/features/farmer/pages/product_list_page.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
@@ -123,6 +126,36 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   Future<void> _duplicateProduct(Product product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Duplicate product'),
+        content: Text('Create a copy of "${product.displayName}" and keep the current stock and image details?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Duplicate')),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    File? imageFile;
+    final imageUrl = product.imageUrl?.trim();
+    if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
+      try {
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+          final extension = imageUrl.split('?').first.split('.').last.toLowerCase();
+          final fileName = '${product.uuid}_${DateTime.now().millisecondsSinceEpoch}.${extension.isNotEmpty && extension.length <= 5 ? extension : 'jpg'}';
+          imageFile = File('${Directory.systemTemp.path}/$fileName');
+          await imageFile!.writeAsBytes(response.bodyBytes);
+        }
+      } catch (_) {
+        imageFile = null;
+      }
+    }
+
     final copyName = '${product.name} (copy)';
     final data = <String, dynamic>{
       'category': product.category.id,
@@ -136,12 +169,30 @@ class _ProductListPageState extends State<ProductListPage> {
       'is_organic': product.isOrganic,
       'description': product.description,
       'is_active': product.isActive,
+      if (imageFile != null) 'image': imageFile,
     };
 
+    if (!mounted) return;
     context.read<ProductBloc>().add(CreateProductEvent(data));
   }
 
-  void _toggleActive(Product product) {
+  Future<void> _toggleActive(Product product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(product.isActive ? 'Deactivate product' : 'Activate product'),
+        content: Text(product.isActive
+            ? 'Pause "${product.displayName}" so it stops appearing as active?'
+            : 'Re-activate "${product.displayName}" for buyers to see it again?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: Text(product.isActive ? 'Deactivate' : 'Activate')),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
     final updated = {'is_active': !product.isActive};
     context.read<ProductBloc>().add(UpdateProductEvent(product.uuid, updated));
   }

@@ -222,6 +222,14 @@ class FarmerProductCard extends StatelessWidget {
                         icon: const Icon(Icons.more_vert, size: 18, color: AppColors.muted),
                         onSelected: (value) {
                           switch (value) {
+                            case 'edit':
+                              (onEdit ??
+                                      () => context.go(
+                                            RoutePaths.farmerProductEditPath(product.uuid),
+                                            extra: product,
+                                          ))
+                                  .call();
+                              break;
                             case 'duplicate':
                               onDuplicate?.call();
                               break;
@@ -237,6 +245,7 @@ class FarmerProductCard extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'edit', child: Text('Edit')),
                           const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
                           PopupMenuItem(
                             value: 'deactivate',
