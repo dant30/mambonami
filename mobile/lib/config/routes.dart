@@ -44,7 +44,7 @@ import '../features/farmer/pages/product_edit_page.dart';
 import '../features/farmer/pages/order_requests_page.dart';
 import '../features/farmer/pages/order_detail_page.dart';
 import '../features/farmer/pages/earnings_page.dart';
-import '../features/common/profile_page.dart';
+import '../features/profile/profile_page.dart';
 import '../features/common/settings_page.dart' as settings_page;
 import '../features/common/support_page.dart' as support_page;
 import '../features/common/terms_and_conditions_page.dart';
