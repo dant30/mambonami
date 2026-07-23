@@ -29,12 +29,16 @@ class ProductCreatePage extends StatefulWidget {
 class _ProductCreatePageState extends State<ProductCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _varietyController = TextEditingController();
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _shelfLifeController = TextEditingController(text: '3');
+  final _harvestDateController = TextEditingController();
 
   DateTime _harvestDate = DateTime.now();
   bool _isActive = true;
+  bool _isOrganic = false;
   File? _selectedImage;
   bool _isLoadingCategories = true;
   List<ProductCategory> _categories = [];
@@ -46,6 +50,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   @override
   void initState() {
     super.initState();
+    _refreshHarvestDateText();
     _loadCategories();
     _loadUnits();
   }
@@ -53,9 +58,12 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _varietyController.dispose();
     _priceController.dispose();
     _quantityController.dispose();
     _descriptionController.dispose();
+    _shelfLifeController.dispose();
+    _harvestDateController.dispose();
     super.dispose();
   }
 
@@ -96,6 +104,10 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     });
   }
 
+  void _refreshHarvestDateText() {
+    _harvestDateController.text = _harvestDate.toLocal().toString().split(' ').first;
+  }
+
   Future<void> _selectHarvestDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -106,6 +118,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     if (picked != null) {
       setState(() {
         _harvestDate = picked;
+        _refreshHarvestDateText();
       });
     }
   }
@@ -129,13 +142,19 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
       return;
     }
 
+    final shelfLife = int.tryParse(_shelfLifeController.text.trim()) ?? 3;
+    final variety = _varietyController.text.trim();
+
     final productData = <String, dynamic>{
       'category': _selectedCategory!.id,
       'name': _nameController.text.trim(),
+      'variety': variety.isEmpty ? null : variety,
       'price_per_unit': price,
       'available_quantity': quantity,
       'unit': _selectedUnit,
       'harvest_date': _harvestDate.toIso8601String().split('T').first,
+      'shelf_life_days': shelfLife,
+      'is_organic': _isOrganic,
       'description': _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
@@ -247,6 +266,14 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                 ),
                 const SizedBox(height: 16),
 
+                // ── Variety ─────────────────────────────────────────────
+                CustomTextField(
+                  controller: _varietyController,
+                  label: 'Variety (optional)',
+                  hint: 'e.g. Ngowe, Roma, Cherry',
+                ),
+                const SizedBox(height: 16),
+
                 // ── Category dropdown ──────────────────────────────────
                 if (_isLoadingCategories)
                   const LinearProgressIndicator()
@@ -352,13 +379,61 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                   onTap: _selectHarvestDate,
                   child: AbsorbPointer(
                     child: TextFormField(
+                      controller: _harvestDateController,
+                      readOnly: true,
                       decoration: InputDecoration(
                         labelText: 'Harvest Date',
-                        hintText: _harvestDate.toLocal().toString().split(' ').first,
+                        hintText: 'Select the harvest date',
                         suffixIcon: const Icon(Icons.calendar_month),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Shelf life & organic ───────────────────────────────
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _shelfLifeController,
+                        label: 'Shelf Life (days)',
+                        hint: '3',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _isOrganic,
+                              onChanged: (value) => setState(() => _isOrganic = value ?? false),
+                              activeColor: AppColors.primary,
+                            ),
+                            const Expanded(
+                              child: Text('Organic', style: TextStyle(fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 

@@ -45,15 +45,28 @@ class FarmerProductCard extends StatelessWidget {
         ? _buildGridContent(context, statusColor, statusLabel)
         : _buildListContent(context, statusColor, statusLabel);
 
-    return CustomCard(
-      child: InkWell(
-        onTap: onTap ??
-            () => context.go(
-                  RoutePaths.farmerProductEditPath(product.uuid),
-                  extra: product,
-                ),
-        borderRadius: BorderRadius.circular(16),
-        child: content,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap ??
+              () => context.go(
+                    RoutePaths.farmerProductEditPath(product.uuid),
+                    extra: product,
+                  ),
+          child: content,
+        ),
       ),
     );
   }
@@ -76,37 +89,51 @@ class FarmerProductCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                product.displayName,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      product.displayName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.dark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  _buildStatusBadge(statusColor, statusLabel),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
-                'Ksh ${product.pricePerUnit.toStringAsFixed(2)} / ${product.unit}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.farmerAccent,
-                  fontWeight: FontWeight.w900,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              // Status badge
-              _buildStatusBadge(statusColor, statusLabel),
-              const SizedBox(height: 4),
-              // Quantity
-              Text(
-                '${product.availableQuantity.toStringAsFixed(0)} ${product.unit} avail',
-                style: theme.textTheme.bodySmall,
+                '${product.category.name} · ${product.availableQuantity.toStringAsFixed(0)} ${product.unit}',
+                style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
-              // Edit/Delete buttons
+              Text(
+                'KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.star_rounded, size: 12, color: AppColors.gold),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${product.averageRating.toStringAsFixed(1)}',
+                    style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               _buildActionButtons(context),
             ],
           ),
@@ -138,6 +165,7 @@ class FarmerProductCard extends StatelessWidget {
                   product.displayName,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
+                    color: AppColors.dark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -155,8 +183,8 @@ class FarmerProductCard extends StatelessWidget {
                 Text(
                   'KES ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppColors.farmerAccent,
-                    fontWeight: FontWeight.w900,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
                 ),
