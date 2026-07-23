@@ -1,7 +1,10 @@
 # backend/fastapi_app/api/v1/endpoints/proxy.py
-from fastapi import APIRouter, Request, Response, Depends, HTTPException
-import httpx
+import json
 import logging
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+
 from core.config import settings
 from core.dependencies import get_http_client
 
@@ -31,19 +34,15 @@ async def proxy_request(
     content_type = headers.get("content-type", "")
     json_body = None
     body = None
-    stream_body = False
 
-    if content_type.startswith("application/json"):
-        body = await request.body()
-    elif content_type.startswith("multipart/form-data") or content_type.startswith("application/octet-stream"):
-        stream_body = True
+    if content_type.startswith("multipart/form-data") or content_type.startswith("application/octet-stream"):
         headers.pop("content-length", None)
-    else:
-        body = await request.body()
+
+    body = await request.body()
 
     if content_type.startswith("application/json") and body:
         try:
-            json_body = await request.json()
+            json_body = json.loads(body.decode("utf-8"))
         except Exception:
             json_body = None
 
@@ -57,14 +56,12 @@ async def proxy_request(
         logger.debug(f"Proxy headers: content-type={headers.get('content-type')}, accept={headers.get('accept')}")
 
     try:
-        request_content = request.stream() if stream_body else (body if body else None)
-
         response = await http_client.request(
             method=request.method,
             url=target_url,
             headers=headers,
             json=json_body if json_body is not None else None,
-            content=None if json_body is not None else request_content,
+            content=None if json_body is not None else body,
             params=request.query_params,
             follow_redirects=False,
         )
