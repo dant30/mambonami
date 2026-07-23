@@ -164,11 +164,12 @@ class FarmerProductCard extends StatelessWidget {
               ],
             ),
             // ── Details ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Category and rating
                   Row(
                     children: [
@@ -315,7 +316,8 @@ class FarmerProductCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
