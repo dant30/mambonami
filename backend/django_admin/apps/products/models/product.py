@@ -1,8 +1,12 @@
 ﻿# backend/django_admin/apps/products/models/product.py
-from django.db import models
-from django.core.validators import MinValueValidator
+from decimal import Decimal
 from datetime import timedelta
+
+from django.core.validators import MinValueValidator
+from django.db import models
+
 from shared.db_models.base import BaseModel
+
 from .category import ProductCategory
 
 class Product(BaseModel):
@@ -35,18 +39,18 @@ class Product(BaseModel):
         blank=True,
         help_text="e.g., Roma, Cherry, Heirloom, Ngowe, Apple mango"
     )
-    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
-    available_quantity = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    available_quantity = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     min_stock_level = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal('0'))],
         help_text="Minimum quantity threshold before low-stock alerts are raised"
     )
     reserved_quantity = models.DecimalField(
         max_digits=12, decimal_places=2, default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal('0'))],
         help_text="Quantity reserved by buyers (in orders/carts)"
     )
     unit = models.CharField(
@@ -56,7 +60,7 @@ class Product(BaseModel):
     )
     weight_per_unit = models.DecimalField(
         max_digits=8, decimal_places=2, default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal('0'))],
         help_text="Weight in kg for one unit (e.g., 0.5 for half kg, 2.0 for 2kg sack)"
     )
     harvest_date = models.DateField(help_text="Date when product was harvested/packed")
