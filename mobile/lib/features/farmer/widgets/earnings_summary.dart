@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// mobile/lib/features/farmer/widgets/earnings_summary.dart
+import 'package:flutter/material.dart';
 
 class EarningsSummary extends StatelessWidget {
   final double totalRevenue;

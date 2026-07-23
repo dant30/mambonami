@@ -1,5 +1,4 @@
 ﻿// lib/features/farmer/pages/earnings_page.dart
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +16,7 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../widgets/earnings_summary.dart';
 
 class FarmerEarningsPage extends StatefulWidget {
   const FarmerEarningsPage({super.key});
@@ -26,6 +26,9 @@ class FarmerEarningsPage extends StatefulWidget {
 }
 
 class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
+  // Period selection for chart
+  String _selectedPeriod = 'This Week';
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,10 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
             // ── Derived data ──────────────────────────────────────────
             final totalRevenue = subOrders
                 .fold<double>(0.0, (sum, order) => sum + order.subtotal);
+            final totalOrders = subOrders.length;
+            final confirmedOrders = subOrders.where((o) => o.status == 'confirmed').length;
+            final readyOrders = subOrders.where((o) => o.status == 'ready').length;
+            final pendingOrders = subOrders.where((o) => o.status == 'pending').length;
 
             final currentWeekRevenue = _calculateRevenue(subOrders, _isInCurrentWeek);
             final currentMonthRevenue = _calculateRevenue(subOrders, _isInCurrentMonth);
@@ -83,104 +90,120 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Weekly chart
+                          // ─── Earnings Summary ──────────────────────
+                          EarningsSummary(
+                            totalRevenue: totalRevenue,
+                            totalOrders: totalOrders,
+                            confirmedOrders: confirmedOrders,
+                            readyOrders: readyOrders,
+                            pendingOrders: pendingOrders,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // ─── Weekly Chart ──────────────────────────
                           CustomCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'Weekly Earnings',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.dark,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.success.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        '▲ ${_calculateChange(subOrders)}%',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.success,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Weekly Earnings',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.dark,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  height: 120,
-                                  child: LineChart(
-                                    LineChartData(
-                                      gridData: const FlGridData(show: false),
-                                      borderData: FlBorderData(show: false),
-                                      titlesData: FlTitlesData(
-                                        bottomTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: true,
-                                            getTitlesWidget: (value, _) {
-                                              final index = value.toInt();
-                                              if (index >= 0 && index < dayLabels.length) {
-                                                return Text(
-                                                  dayLabels[index],
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: AppColors.muted,
-                                                  ),
-                                                );
-                                              }
-                                              return const Text('');
-                                            },
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.success.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '▲ ${_calculateChange(subOrders)}%',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.success,
                                           ),
                                         ),
-                                        leftTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false),
-                                        ),
-                                        topTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false),
-                                        ),
-                                        rightTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false),
-                                        ),
                                       ),
-                                      lineBarsData: [
-                                        LineChartBarData(
-                                          spots: weekData
-                                              .asMap()
-                                              .entries
-                                              .map((e) => FlSpot(e.key.toDouble(), e.value))
-                                              .toList(),
-                                          isCurved: true,
-                                          color: AppColors.primary,
-                                          barWidth: 2.5,
-                                          dotData: const FlDotData(show: false),
-                                          belowBarData: BarAreaData(
-                                            show: true,
-                                            color: AppColors.primary.withValues(alpha: 0.08),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    height: 120,
+                                    child: LineChart(
+                                      LineChartData(
+                                        gridData: const FlGridData(show: false),
+                                        borderData: FlBorderData(show: false),
+                                        titlesData: FlTitlesData(
+                                          bottomTitles: AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: true,
+                                              getTitlesWidget: (value, _) {
+                                                final index = value.toInt();
+                                                if (index >= 0 && index < dayLabels.length) {
+                                                  return Text(
+                                                    dayLabels[index],
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: AppColors.muted,
+                                                    ),
+                                                  );
+                                                }
+                                                return const Text('');
+                                              },
+                                            ),
+                                          ),
+                                          leftTitles: const AxisTitles(
+                                            sideTitles: SideTitles(showTitles: false),
+                                          ),
+                                          topTitles: const AxisTitles(
+                                            sideTitles: SideTitles(showTitles: false),
+                                          ),
+                                          rightTitles: const AxisTitles(
+                                            sideTitles: SideTitles(showTitles: false),
                                           ),
                                         ),
-                                      ],
+                                        lineBarsData: [
+                                          LineChartBarData(
+                                            spots: weekData
+                                                .asMap()
+                                                .entries
+                                                .map((e) => FlSpot(e.key.toDouble(), e.value))
+                                                .toList(),
+                                            isCurved: true,
+                                            color: AppColors.primary,
+                                            barWidth: 2.5,
+                                            dotData: const FlDotData(show: false),
+                                            belowBarData: BarAreaData(
+                                              show: true,
+                                              color: AppColors.primary.withOpacity(0.08),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  // Period selector (simple chip row)
+                                  _buildPeriodChips(),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
 
-                          // Stat row
+                          // ─── Month-to-Month Comparison ────────────
                           Row(
                             children: [
                               Expanded(
@@ -202,7 +225,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Recent payouts
+                          // ─── Recent Payouts ────────────────────────
                           const SectionHeader(title: 'Recent Payouts'),
                           if (recentPayouts.isEmpty)
                             const Padding(
@@ -218,53 +241,49 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                             ...recentPayouts.map((order) => Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: CustomCard(
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.light,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: const Icon(
-                                            Icons.payments_rounded,
-                                            color: AppColors.primary,
-                                            size: 20,
-                                          ),
+                                    child: ListTile(
+                                      leading: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.light,
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'KES ${order.subtotal.toStringAsFixed(0)}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 14,
-                                                  color: AppColors.dark,
-                                                ),
-                                              ),
-                                              Text(
-                                                _formatOrderDate(order),
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppColors.muted,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                        child: const Icon(
+                                          Icons.payments_rounded,
+                                          color: AppColors.primary,
+                                          size: 20,
                                         ),
-                                        Text(
-                                          'Order #${order.id}',
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: AppColors.muted,
-                                          ),
+                                      ),
+                                      title: Text(
+                                        'KES ${order.subtotal.toStringAsFixed(0)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 14,
+                                          color: AppColors.dark,
                                         ),
-                                      ],
+                                      ),
+                                      subtitle: Text(
+                                        _formatOrderDate(order),
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.muted,
+                                        ),
+                                      ),
+                                      trailing: Text(
+                                        'Order #${order.id}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.muted,
+                                        ),
+                                      ),
+                                      onTap: () {
+                                        // Navigate to order detail
+                                        context.go(
+                                          RoutePaths.farmerOrderRequestDetailPath(order.id),
+                                          extra: order,
+                                        );
+                                      },
                                     ),
                                   ),
                                 )),
@@ -326,7 +345,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -435,7 +454,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Column(
@@ -470,6 +489,39 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // ─── Period Chips ────────────────────────────────────────────────
+  Widget _buildPeriodChips() {
+    final periods = ['This Week', 'This Month', 'Last Month'];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: periods.map((period) {
+        final selected = period == _selectedPeriod;
+        return GestureDetector(
+          onTap: () {
+            setState(() => _selectedPeriod = period);
+            // In a real app, you'd refetch data based on the period
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary : AppColors.light,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              period,
+              style: TextStyle(
+                color: selected ? Colors.white : AppColors.muted,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
