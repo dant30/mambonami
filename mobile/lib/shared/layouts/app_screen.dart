@@ -1,3 +1,4 @@
+// mobile/lib/shared/layouts/app_screen.dart
 import 'package:flutter/material.dart';
 
 import '../themes/app_theme_extension.dart';
