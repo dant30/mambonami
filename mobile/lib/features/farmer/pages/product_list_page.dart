@@ -197,9 +197,11 @@ class _ProductListPageState extends State<ProductListPage> {
   Future<void> _shareProduct(Product product) async {
     // Share using share_plus with a deep link (custom scheme or web URL)
     final url = 'https://mambonami.com/product/${product.uuid}';
-    await Share.share(
-      'Check out ${product.displayName} on MAMBONAMI! $url',
-      subject: 'MAMBONAMI Product',
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'Check out ${product.displayName} on MAMBONAMI! $url',
+        subject: 'MAMBONAMI Product',
+      ),
     );
   }
 

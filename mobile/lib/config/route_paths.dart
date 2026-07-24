@@ -19,6 +19,7 @@ class RoutePaths {
   static const orderHistory = '/buyer/orders';
   static const farmerDashboard = '/farmer';
   static const transportProviderDashboard = '/transport_provider';
+  static const transportVehicle = '/transport_provider/vehicle';
   static const availableOrders = '/transport_provider/available-orders';
   static const myTrips = '/transport_provider/my-trips';
   static const tripDetail = '/transport_provider/trip/:uuid';

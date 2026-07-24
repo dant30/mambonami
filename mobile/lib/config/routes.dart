@@ -19,6 +19,7 @@ import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
 import '../features/transport/pages/provider_dashboard.dart';
+import '../features/transport/pages/vehicle_page.dart';
 import '../features/transport/pages/available_orders_page.dart';
 import '../features/transport/pages/my_trips_page.dart';
 import '../features/transport/pages/trip_detail_page.dart';
@@ -250,6 +251,13 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.transportProviderRoles,
           child: ProviderDashboard(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.transportVehicle,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: AppRole.transportProviderRoles,
+          child: TransportVehiclePage(),
         ),
       ),
       GoRoute(
@@ -535,6 +543,7 @@ class AppRouter {
         RoutePaths.buyerDashboard,
         RoutePaths.farmerDashboard,
         RoutePaths.transportProviderDashboard,
+        RoutePaths.transportVehicle,
         RoutePaths.availableOrders,
         RoutePaths.myTrips,
         RoutePaths.transportEarnings,

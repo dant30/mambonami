@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/models/trip.dart';
+import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/earnings_widgets.dart';
@@ -27,8 +28,11 @@ class _TransportEarningsPageState extends State<TransportEarningsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          const CustomAppBar(title: 'Earnings', showNotificationAction: true),
+      appBar: const CustomAppBar(
+        title: 'Earnings',
+        showNotificationAction: true,
+        fallbackRoute: RoutePaths.transportProviderDashboard,
+      ),
       body: BlocBuilder<TripBloc, TripState>(
         builder: (context, state) {
           if (state is TripLoading || state is TripInitial) {

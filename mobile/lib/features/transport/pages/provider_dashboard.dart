@@ -15,15 +15,12 @@ import '../../../data/models/order.dart';
 import '../../../data/repositories/payout_repository.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
-import '../../../shared/layouts/app_screen.dart';
 import '../../../shared/themes/app_colors.dart';
-import '../../../shared/widgets/avatar.dart';
-import '../../../shared/widgets/greeting_header.dart';
 import '../widgets/vehicle_card.dart';
 import '../widgets/active_trip_banner.dart';
 import '../widgets/offline_banner.dart';
 import '../widgets/map_preview.dart';
-import '../widgets/hero_card.dart';
+import '../widgets/hero_section.dart'; // renamed
 import '../widgets/delivery_request_card.dart';
 import '../widgets/earnings_strip.dart';
 import '../widgets/quick_actions.dart';
@@ -121,7 +118,6 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             ? 'Amazing work today! You\'ve earned KES ${todayEarnings.toStringAsFixed(0)}.'
             : 'Ready to earn today? New deliveries are available.');
 
-    // Get order details for the active trip (if any)
     Order? activeOrder;
     if (activeTrip != null && orderState is order_bloc.OrderDetailLoaded) {
       activeOrder = orderState.order;
@@ -132,174 +128,104 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
 
     return Scaffold(
       drawer: const AppDrawer(),
-      body: AppScreen(
-        scrollable: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchMyTripsEvent());
-            context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchAvailableOrdersEvent());
-            await _loadPayoutSummary();
-          },
-          color: AppColors.providerAccent,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 24),
-            children: [
-                // ── Header ─────────────────────────────────────────────
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: GreetingHeader(
-                        name: username,
-                        subtitle: greetingSubtitle,
-                        showDate: true,
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        nameStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        subtitleStyle: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Stack(
-                      children: [
-                        IconButton(
-                          onPressed: () => context.go(RoutePaths.notifications),
-                          icon: const Icon(
-                            Icons.notifications_outlined,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.gold,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => context.go(RoutePaths.profile),
-                      child: Avatar(
-                        imageUrl: avatarUrl,
-                        username: username,
-                        firstName: username.split(' ').firstWhere(
-                              (value) => value.isNotEmpty,
-                              orElse: () => '',
-                            ),
-                        lastName: username.split(' ').length > 1
-                            ? username.split(' ').lastWhere(
-                                (value) => value.isNotEmpty,
-                                orElse: () => '',
-                              )
-                            : null,
-                        size: 44,
-                        showBorder: true,
-                        backgroundColor: Colors.white24,
-                        textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+      body: Column(
+        children: [
+          // ─── New HeroSection replaces the old header + HeroCard ──
+          HeroSection(
+            username: username,
+            subtitle: greetingSubtitle,
+            isOnline: _isOnline,
+            activeTrips: activeTrips,
+            availableOrdersCount: availableOrders.length,
+            todayEarnings: summaryToday,
+            avatarUrl: avatarUrl,
+            weather: weather,
+            onToggleOnline: () => setState(() => _isOnline = !_isOnline),
+            onAvailable: () => context.push(RoutePaths.availableOrders),
+            onMyTrips: () => context.push(RoutePaths.myTrips),
+            onEarnings: () => context.push(RoutePaths.transportEarnings),
+          ),
 
-                // ── Vehicle Card ──────────────────────────────────────
-                if (vehicleType != null)
-                  VehicleCard(
-                    vehicleType: vehicleType,
-                    licensePlate: licensePlate,
-                    rating: rating,
-                    completedDeliveries: completedDeliveries,
-                  ),
-                const SizedBox(height: 12),
-
-                // ── Active Trip Banner ──────────────────────────────
-                if (activeTrip != null)
-                  ActiveTripBanner(trip: activeTrip, order: activeOrder)
-                else if (!_isOnline)
-                  const OfflineBanner(),
-                const SizedBox(height: 12),
-
-                // ── Live Map Preview ────────────────────────────────
-                if (activeTrip != null) ...[
-                  LiveMapPreview(trip: activeTrip),
+          // ─── Scrollable body ──────────────────────────────────────
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchMyTripsEvent());
+                context.read<trip_bloc.TripBloc>().add(trip_bloc.FetchAvailableOrdersEvent());
+                await _loadPayoutSummary();
+              },
+              color: AppColors.providerAccent,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                children: [
+                  // ── Vehicle Card ──────────────────────────────────
+                  if (vehicleType != null)
+                    VehicleCard(
+                      vehicleType: vehicleType,
+                      licensePlate: licensePlate,
+                      rating: rating,
+                      completedDeliveries: completedDeliveries,
+                    ),
                   const SizedBox(height: 12),
-                ],
 
-                // ── Hero Card ────────────────────────────────────────
-                HeroCard(
-                  activeTrips: activeTrips,
-                  todayEarnings: summaryToday,
-                  username: username,
-                  isOnline: _isOnline,
-                  availableOrdersCount: availableOrders.length,
-                  onToggleOnline: () => setState(() => _isOnline = !_isOnline),
-                  onAvailable: () => context.push(RoutePaths.availableOrders),
-                  onMyTrips: () => context.push(RoutePaths.myTrips),
-                  onEarnings: () => context.push(RoutePaths.transportEarnings),
-                ),
-                const SizedBox(height: 18),
+                  // ── Active Trip Banner ──────────────────────────
+                  if (activeTrip != null)
+                    ActiveTripBanner(trip: activeTrip, order: activeOrder)
+                  else if (!_isOnline)
+                    const OfflineBanner(),
+                  const SizedBox(height: 12),
 
-                // ── Delivery Request Card ────────────────────────────
-                if (availableOrders.isNotEmpty && activeTrip == null)
-                  DeliveryRequestCard(
-                    trip: availableOrders.first,
-                    onAccept: () {
-                      context.read<trip_bloc.TripBloc>().add(
-                            trip_bloc.AssignOrderEvent(availableOrders.first.uuid),
-                          );
-                    },
-                    onDecline: () {
-                      context.read<trip_bloc.TripBloc>().add(
-                            trip_bloc.FetchAvailableOrdersEvent(),
-                          );
-                    },
+                  // ── Live Map Preview ────────────────────────────
+                  if (activeTrip != null) ...[
+                    LiveMapPreview(trip: activeTrip),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // ── Delivery Request Card ────────────────────────
+                  if (availableOrders.isNotEmpty && activeTrip == null)
+                    DeliveryRequestCard(
+                      trip: availableOrders.first,
+                      onAccept: () {
+                        context.read<trip_bloc.TripBloc>().add(
+                              trip_bloc.AssignOrderEvent(availableOrders.first.uuid),
+                            );
+                      },
+                      onDecline: () {
+                        context.read<trip_bloc.TripBloc>().add(
+                              trip_bloc.FetchAvailableOrdersEvent(),
+                            );
+                      },
+                    ),
+
+                  // ── Earnings Analytics ──────────────────────────
+                  EarningsAnalyticsStrip(
+                    todayEarnings: summaryToday,
+                    completedTrips: summaryCompletedCount,
+                    pendingPayout: summaryPendingPayout,
+                    earnings: summaryTotalRevenue,
+                    payoutError: summaryErrorText,
                   ),
+                  const SizedBox(height: 18),
 
-                // ── Earnings Analytics ──────────────────────────────
-                EarningsAnalyticsStrip(
-                  todayEarnings: summaryToday,
-                  completedTrips: summaryCompletedCount,
-                  pendingPayout: summaryPendingPayout,
-                  earnings: summaryTotalRevenue,
-                  payoutError: summaryErrorText,
-                ),
-                const SizedBox(height: 18),
+                  // ── Quick Access ─────────────────────────────────
+                  QuickActions(hasActiveTrip: activeTrip != null),
+                  const SizedBox(height: 18),
 
-                // ── Quick Access ─────────────────────────────────────
-                QuickActions(hasActiveTrip: activeTrip != null),
-                const SizedBox(height: 18),
-
-                // ── Stats Section ────────────────────────────────────
-                StatsSection(
-                  activeTrips: activeTrips,
-                  earnings: earnings,
-                  todayEarnings: todayEarnings,
-                  statusLabel: statusLabel,
-                  weather: weather,
-                ),
+                  // ── Stats Section ────────────────────────────────
+                  StatsSection(
+                    activeTrips: activeTrips,
+                    earnings: earnings,
+                    todayEarnings: todayEarnings,
+                    statusLabel: statusLabel,
+                    weather: weather,
+                  ),
                 ],
+              ),
             ),
           ),
-        ),
+        ],
+      ),
       floatingActionButton: activeTrip != null
           ? FloatingActionButton.extended(
               onPressed: () => _openNavigation(activeTrip),

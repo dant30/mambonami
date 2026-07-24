@@ -14,7 +14,7 @@ class QuickActions extends StatelessWidget {
     final items = [
       {'label': 'Deliveries', 'icon': Icons.local_shipping_outlined, 'route': RoutePaths.myTrips, 'color': AppColors.providerAccent},
       {'label': 'Wallet', 'icon': Icons.wallet_rounded, 'route': RoutePaths.transportEarnings, 'color': AppColors.farmerAccent},
-      {'label': 'Vehicle', 'icon': Icons.directions_car_rounded, 'route': RoutePaths.profile, 'color': AppColors.buyerAccent},
+      {'label': 'Vehicle', 'icon': Icons.directions_car_rounded, 'route': RoutePaths.transportVehicle, 'color': AppColors.buyerAccent},
       {'label': 'Support', 'icon': Icons.help_outline_rounded, 'route': RoutePaths.support, 'color': AppColors.supportAccent},
     ];
 
@@ -65,32 +65,33 @@ class _QuickActionTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: accentColor,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
+            BoxShadow(color: accentColor.withValues(alpha: 0.25), blurRadius: 10),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: accentColor, size: 18),
+              child: Icon(icon, color: Colors.white, size: 18),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               label,
               style: const TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
