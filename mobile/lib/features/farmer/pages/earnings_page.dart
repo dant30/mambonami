@@ -124,7 +124,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.success.withOpacity(0.12),
+                                          color: AppColors.success.withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
@@ -187,7 +187,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                                             dotData: const FlDotData(show: false),
                                             belowBarData: BarAreaData(
                                               show: true,
-                                              color: AppColors.primary.withOpacity(0.08),
+                                              color: AppColors.primary.withValues(alpha: 0.08),
                                             ),
                                           ),
                                         ],
@@ -345,7 +345,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -454,7 +454,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Column(

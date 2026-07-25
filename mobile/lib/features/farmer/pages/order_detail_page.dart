@@ -219,7 +219,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.2),
+                                  color: statusColor.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -386,12 +386,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         ),
                       )
                     else if (isReady)
-                      Card(
+                      const Card(
                         color: AppColors.light,
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(16),
                           child: Row(
-                            children: const [
+                            children: [
                               Icon(Icons.check_circle, color: AppColors.success),
                               SizedBox(width: 8),
                               Text(
