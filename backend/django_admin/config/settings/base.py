@@ -37,17 +37,17 @@ INSTALLED_APPS = [
     'django_celery_results',
 
     # Local apps
-    'apps.users',
-    'apps.products',
-    'apps.orders',
-    'apps.payments',
-    'apps.paybill',
-    'apps.payouts',
-    'apps.logistics',
-    'apps.disputes',
-    'apps.notifications',
-    'apps.audit',
-    'apps.analytics',
+    'apps.users.apps.UsersConfig',
+    'apps.products.apps.ProductsConfig',
+    'apps.orders.apps.OrdersConfig',
+    'apps.payments.apps.PaymentsConfig',
+    'apps.paybill.apps.PaybillConfig',
+    'apps.payouts.apps.PayoutsConfig',
+    'apps.logistics.apps.LogisticsConfig',
+    'apps.disputes.apps.DisputesConfig',
+    'apps.notifications.apps.NotificationsConfig',
+    'apps.audit.apps.AuditConfig',
+    'apps.analytics.apps.AnalyticsConfig',
 ]
 
 MIDDLEWARE = [

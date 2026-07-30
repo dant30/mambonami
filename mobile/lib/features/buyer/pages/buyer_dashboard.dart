@@ -475,9 +475,9 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     final statusLabel = order.statusLabel;
     final distanceLabel = order.totalDistanceKm != null
         ? '${order.totalDistanceKm!.toStringAsFixed(1)} km away'
-        : 'On the route';
+        : 'On route';
     final etaLabel =
-        order.etaMinutes != null ? '${order.etaMinutes} min' : 'soon';
+        order.etaMinutes != null ? '${order.etaMinutes} min' : 'Soon';
     final completedSteps = order.isDelivered
         ? 5
         : (order.status.toLowerCase().contains('picked')
@@ -489,87 +489,163 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Your Active Order'),
+          const SectionHeader(
+            title: 'Your Active Order',
+            subtitle: 'Track progress and get delivery updates in real time.',
+          ),
           const SizedBox(height: 8),
           CustomCard(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.zero,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Order #${order.uuid.substring(0, 8).toUpperCase()}',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.dark,
-                      ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                  decoration: const BoxDecoration(
+                    gradient: AppGradients.hero,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(18),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.delivery_dining_rounded,
+                            color: Colors.white, size: 24),
                       ),
-                      child: Text(
-                        statusLabel,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondary,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Order #${order.uuid.substring(0, 8).toUpperCase()}',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              statusLabel,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                // Progress steps
-                _buildStepProgress(completedSteps),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.navigation_rounded,
-                        size: 14, color: AppColors.secondary),
-                    const SizedBox(width: 4),
-                    Text.rich(
-                      TextSpan(
-                        style: theme.textTheme.bodySmall,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const TextSpan(text: 'Driver is '),
-                          TextSpan(
-                            text: distanceLabel,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.dark),
-                          ),
-                          const TextSpan(text: ' · ETA '),
-                          TextSpan(
-                            text: etaLabel,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.dark),
-                          ),
+                          _buildStatDot(AppColors.primary, 'ETA', etaLabel),
+                          const SizedBox(width: 12),
+                          _buildStatDot(AppColors.secondary, 'Distance', distanceLabel),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildStepProgress(completedSteps),
+                      const SizedBox(height: 16),
+                      Text.rich(
+                        TextSpan(
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.muted,
+                          ),
+                          children: [
+                            const TextSpan(text: 'Your delivery is '),
+                            TextSpan(
+                              text: distanceLabel,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.dark,
+                              ),
+                            ),
+                            const TextSpan(text: ' · ETA '),
+                            TextSpan(
+                              text: etaLabel,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.dark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: () =>
+                              context.go(RoutePaths.orderTrackingPath(order.uuid)),
+                          style: TextButton.styleFrom(
+                            backgroundColor: AppColors.light,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: const Text('View full tracking',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              )),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () =>
-                        context.go(RoutePaths.orderTrackingPath(order.uuid)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColors.light,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: const Text('View Full Tracking →',
-                        style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatDot(Color color, String label, String value) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.dark,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],

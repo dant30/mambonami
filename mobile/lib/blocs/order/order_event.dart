@@ -22,14 +22,14 @@ class FetchOrderDetailEvent extends OrderEvent {
 
 class FetchBuyerOrdersEvent extends OrderEvent {}
 class FetchOrderDetailsEvent extends OrderEvent {
-  final String orderId;
-  const FetchOrderDetailsEvent({required this.orderId});
-  @override List<Object> get props => [orderId];
+  final String orderUuid;
+  const FetchOrderDetailsEvent({required this.orderUuid});
+  @override List<Object> get props => [orderUuid];
 }
 class ConfirmPaymentEvent extends OrderEvent {
-  final String orderId;
-  const ConfirmPaymentEvent({required this.orderId});
-  @override List<Object> get props => [orderId];
+  final String orderUuid;
+  const ConfirmPaymentEvent({required this.orderUuid});
+  @override List<Object> get props => [orderUuid];
 }
 
 // Farmer events

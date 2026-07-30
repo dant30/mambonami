@@ -108,90 +108,133 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 itemBuilder: (context, i) {
                   final o = state.orders[i];
                   final color = _statusColor(o.status);
-                  return GestureDetector(
-                    onTap: () =>
-                        context.go(RoutePaths.orderTrackingPath(o.uuid)),
-                    child: CustomCard(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                  return CustomCard(
+                    onTap: () => context.go(RoutePaths.orderTrackingPath(o.uuid)),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ORD-${o.uuid.substring(0, 8).toUpperCase()}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.dark,
+                                      ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  o.createdAtLabel,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: AppColors.muted),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                _statusLabel(o.status),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: color,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          o.itemsSummary,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: AppColors.muted),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Row(
                                 children: [
-                                  Text(
-                                    'ORD-${o.uuid.substring(0, 8).toUpperCase()}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.dark,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    o.createdAtLabel,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: AppColors.muted),
+                                  Icon(Icons.location_on_rounded,
+                                      size: 14, color: AppColors.muted),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      o.deliveryCity.isNotEmpty
+                                          ? o.deliveryCity
+                                          : 'Delivery address',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(color: AppColors.muted),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
-                              // Status badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.12),
-                                  borderRadius:
-                                      BorderRadius.circular(99),
-                                ),
-                                child: Text(
-                                  _statusLabel(o.status),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: color,
+                            ),
+                            Text(
+                              'KES ${o.total.toStringAsFixed(0)}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
                                   ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => context
+                                    .go(RoutePaths.orderTrackingPath(o.uuid)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: BorderSide(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.2)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(14)),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12),
                                 ),
+                                child: const Text('Track order',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700)),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            o.itemsSummary,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: AppColors.muted),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'KES ${o.total.toStringAsFixed(0)}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primary,
-                                    ),
-                              ),
-                              if (o.status == 'delivered')
-                                OutlinedButton(
+                            ),
+                            if (o.status == 'delivered') ...[
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton(
                                   onPressed: () {},
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.primary,
@@ -199,20 +242,21 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                         color: AppColors.primary),
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(12)),
+                                            BorderRadius.circular(14)),
                                     padding:
                                         const EdgeInsets.symmetric(
-                                            horizontal: 14, vertical: 4),
+                                            vertical: 12),
                                   ),
                                   child: const Text('Reorder',
                                       style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700)),
                                 ),
-                            ],
-                          ),
-                        ],
-                      ),
+                              ),
+                            ]
+                          ],
+                        )
+                      ],
                     ),
                   );
                 },

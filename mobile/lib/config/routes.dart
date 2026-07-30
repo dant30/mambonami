@@ -18,6 +18,9 @@ import '../features/auth/pages/transport_register_page.dart';
 import '../features/auth/pages/forgot_password_page.dart';
 import '../features/buyer/pages/buyer_dashboard.dart';
 import '../features/farmer/pages/farmer_dashboard.dart';
+import '../features/retailer/pages/retailer_dashboard.dart';
+import '../features/retailer/pages/retailer_suppliers_page.dart';
+import '../features/retailer/pages/retailer_reports_page.dart';
 import '../features/transport/pages/provider_dashboard.dart';
 import '../features/transport/pages/vehicle_page.dart';
 import '../features/transport/pages/available_orders_page.dart';
@@ -172,6 +175,13 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.retailerDashboard,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: [AppRole.retailer],
+          child: RetailerDashboard(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.farmerDashboard,
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.farmerRoles,
@@ -221,6 +231,20 @@ class AppRouter {
         builder: (_, __) => const AuthGuard(
           allowedRoles: AppRole.farmerRoles,
           child: FarmerEarningsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.retailerSuppliers,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: [AppRole.retailer],
+          child: RetailerSuppliersPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.retailerReports,
+        builder: (_, __) => const AuthGuard(
+          allowedRoles: [AppRole.retailer],
+          child: RetailerReportsPage(),
         ),
       ),
       GoRoute(
@@ -551,6 +575,9 @@ class AppRouter {
         RoutePaths.farmerProductCreate,
         RoutePaths.farmerOrderRequests,
         RoutePaths.farmerEarnings,
+        RoutePaths.retailerDashboard,
+        RoutePaths.retailerSuppliers,
+        RoutePaths.retailerReports,
         RoutePaths.notifications,
         RoutePaths.orderHistory,
         RoutePaths.orders,

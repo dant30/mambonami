@@ -5,7 +5,7 @@ class PaymentsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.payments'
     label = 'payments'
+    verbose_name = 'Payments'
 
     def ready(self):
-        # No signals to import yet
-        pass
+        import apps.payments.signals

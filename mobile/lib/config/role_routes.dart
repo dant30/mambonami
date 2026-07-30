@@ -26,8 +26,9 @@ class AppRole {
   static String homePathFor(String? role) {
     switch (role) {
       case buyer:
-      case retailer:
         return RoutePaths.buyerDashboard;
+      case retailer:
+        return RoutePaths.retailerDashboard;
       case farmer:
         return RoutePaths.farmerDashboard;
       case transportProvider:

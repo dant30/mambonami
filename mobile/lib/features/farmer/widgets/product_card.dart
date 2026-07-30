@@ -44,14 +44,20 @@ class FarmerProductCard extends StatelessWidget {
 
     // Category accent color
     final catName = product.category.name.toLowerCase();
-    final categoryColor = switch (catName) {
-      'vegetables' || 'vegetable' => const Color(0xFF2E7D32),
-      'fruits' || 'fruit' => const Color(0xFFE65100),
-      'grains' || 'grain' => const Color(0xFFBF8F00),
-      'dairy' => const Color(0xFF1565C0),
-      'livestock' => const Color(0xFF5D4037),
-      _ => AppColors.primary,
-    };
+    final Color categoryColor;
+    if (catName == 'vegetables' || catName == 'vegetable') {
+      categoryColor = const Color(0xFF2E7D32);
+    } else if (catName == 'fruits' || catName == 'fruit') {
+      categoryColor = const Color(0xFFE65100);
+    } else if (catName == 'grains' || catName == 'grain') {
+      categoryColor = const Color(0xFFBF8F00);
+    } else if (catName == 'dairy') {
+      categoryColor = const Color(0xFF1565C0);
+    } else if (catName == 'livestock') {
+      categoryColor = const Color(0xFF5D4037);
+    } else {
+      categoryColor = AppColors.primary;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -73,7 +79,7 @@ class FarmerProductCard extends StatelessWidget {
             // ── Image ──────────────────────────────────────────────────
             Stack(
               children: [
-                _buildImage(height: 160),
+                _buildImage(height: 140),
                 Positioned(
                   left: 0,
                   right: 0,
@@ -162,10 +168,9 @@ class FarmerProductCard extends StatelessWidget {
               ],
             ),
             // ── Details ────────────────────────────────────────────────
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                   // Category and rating
@@ -314,7 +319,6 @@ class FarmerProductCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  ],
                 ),
               ),
             ),

@@ -88,6 +88,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     final availableOrders = tripState is trip_bloc.AvailableOrdersLoaded ? tripState.orders : <Trip>[];
     final activeTrip = _findActiveTrip(trips);
     final activeTrips = _activeTripsCount(trips);
+    final availableOrdersCount = availableOrders.length;
     final completedTrips = trips.where((trip) => trip.completedAt != null).length;
     final pendingTrips = trips.where((trip) => trip.completedAt == null && trip.status.toLowerCase() != 'cancelled').length;
     final earnings = trips.fold<double>(
@@ -138,6 +139,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
             activeTrips: activeTrips,
             availableOrdersCount: availableOrders.length,
             todayEarnings: summaryToday,
+            rating: rating,
             avatarUrl: avatarUrl,
             weather: weather,
             onToggleOnline: () => setState(() => _isOnline = !_isOnline),
@@ -217,6 +219,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                     activeTrips: activeTrips,
                     earnings: earnings,
                     todayEarnings: todayEarnings,
+                    availableOrdersCount: availableOrdersCount,
                     statusLabel: statusLabel,
                     weather: weather,
                   ),

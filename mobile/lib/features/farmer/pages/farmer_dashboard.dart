@@ -7,7 +7,6 @@ import '../../../blocs/order/order_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
-import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
@@ -15,6 +14,7 @@ import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../../../shared/widgets/role_dashboard_widgets.dart';
 import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
 
@@ -207,6 +207,64 @@ class FarmerDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  RoleHeroCard(
+                    title: 'Farm operations',
+                    subtitle: greetingSubtitle,
+                    icon: Icons.agriculture_rounded,
+                    gradient: const LinearGradient(
+                      colors: [AppColors.farmerAccent, AppColors.goldAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    actions: [
+                      HeroActionButton(
+                        label: 'Products',
+                        icon: Icons.inventory_2_rounded,
+                        onTap: () => context.go(RoutePaths.farmerProducts),
+                      ),
+                      HeroActionButton(
+                        label: 'Orders',
+                        icon: Icons.shopping_bag_rounded,
+                        onTap: () => context.go(RoutePaths.farmerOrderRequests),
+                      ),
+                      HeroActionButton(
+                        label: 'Earnings',
+                        icon: Icons.attach_money_rounded,
+                        onTap: () => context.go(RoutePaths.farmerEarnings),
+                      ),
+                      HeroActionButton(
+                        label: 'Add item',
+                        icon: Icons.add_rounded,
+                        onTap: () => context.go(RoutePaths.farmerProductCreate),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DashboardStatStrip(
+                    stats: [
+                      DashboardStat(
+                        label: 'Pending',
+                        value: '$pendingOrders',
+                        icon: Icons.pending_actions_rounded,
+                      ),
+                      DashboardStat(
+                        label: 'Ready',
+                        value: '$readyPickupCount',
+                        icon: Icons.storefront_rounded,
+                      ),
+                      DashboardStat(
+                        label: 'In stock',
+                        value: '$available',
+                        icon: Icons.inventory_2_rounded,
+                      ),
+                      DashboardStat(
+                        label: 'Rating',
+                        value: averageRating.toStringAsFixed(1),
+                        icon: Icons.star_rounded,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   CustomCard(
                     padding: const EdgeInsets.all(16),
                     child: Column(

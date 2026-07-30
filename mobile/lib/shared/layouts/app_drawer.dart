@@ -212,6 +212,20 @@ class AppDrawer extends StatelessWidget {
           route: RoutePaths.orders,
           allowedRoles: AppRole.buyerRoles,
         ),
+        if (role == AppRole.retailer) ...[
+          const _DrawerItem(
+            icon: Icons.store_rounded,
+            title: 'Suppliers',
+            route: RoutePaths.retailerSuppliers,
+            allowedRoles: [AppRole.retailer],
+          ),
+          const _DrawerItem(
+            icon: Icons.bar_chart_rounded,
+            title: 'Sales Reports',
+            route: RoutePaths.retailerReports,
+            allowedRoles: [AppRole.retailer],
+          ),
+        ],
       ],
     ];
 

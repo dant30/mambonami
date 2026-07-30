@@ -24,12 +24,74 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   @override
   void initState() {
     super.initState();
-    final orderId = widget.orderId ?? widget.orderUuid;
-    if (orderId != null) {
+    final orderUuid = widget.orderUuid ?? widget.orderId;
+    if (orderUuid != null) {
       context
           .read<OrderBloc>()
-          .add(FetchOrderDetailsEvent(orderId: orderId));
+          .add(FetchOrderDetailsEvent(orderUuid: orderUuid));
     }
+  }
+
+  List<OrderStatusEvent> _buildTimelineEvents(Order order) {
+    if (order.timeline.isNotEmpty) {
+      return List.generate(order.timeline.length, (index) {
+        final step = order.timeline[index];
+        final isLast = index == order.timeline.length - 1;
+        return OrderStatusEvent(
+          title: step,
+          description: isLast ? 'Current order status' : null,
+          timestamp: null,
+          isCompleted: order.isDelivered ? true : !isLast,
+          isActive: !order.isDelivered && isLast,
+        );
+      });
+    }
+
+    return const [
+      OrderStatusEvent(
+        title: 'Order Placed',
+        description: 'Order received and recorded',
+        timestamp: '10:32 AM',
+        isCompleted: true,
+      ),
+      OrderStatusEvent(
+        title: 'Payment Received',
+        description: 'Funds secured in escrow',
+        timestamp: '10:33 AM',
+        isCompleted: true,
+      ),
+      OrderStatusEvent(
+        title: 'Farmer Accepted',
+        description: 'John Kamau confirmed your order',
+        timestamp: '10:45 AM',
+        isCompleted: true,
+      ),
+      OrderStatusEvent(
+        title: 'Order Ready',
+        description: 'Produce packed for pickup',
+        timestamp: '11:20 AM',
+        isCompleted: true,
+      ),
+      OrderStatusEvent(
+        title: 'Transport Assigned',
+        description: 'David O. accepted trip',
+        timestamp: '11:35 AM',
+        isCompleted: true,
+      ),
+      OrderStatusEvent(
+        title: 'On the Way',
+        description: '1.2 km away · ETA 8 minutes',
+        timestamp: '11:52 AM',
+        isCompleted: true,
+        isActive: true,
+      ),
+      OrderStatusEvent(
+        title: 'Delivered',
+        description: 'Awaiting delivery confirmation',
+        timestamp: '—',
+        isCompleted: false,
+      ),
+    ];
   }
 
   @override
@@ -118,7 +180,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                           ElevatedButton(
                             onPressed: () => context.read<OrderBloc>().add(
                                 FetchOrderDetailsEvent(
-                                    orderId: widget.orderId ?? widget.orderUuid ?? '')),
+                                    orderUuid: widget.orderUuid ?? widget.orderId ?? '')),
                             child: const Text('Retry'),
                           ),
                         ],
@@ -131,7 +193,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     onRefresh: () async => context
                         .read<OrderBloc>()
                         .add(FetchOrderDetailsEvent(
-                            orderId: widget.orderId ?? widget.orderUuid ?? '')),
+                            orderUuid: widget.orderUuid ?? widget.orderId ?? '')),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -139,20 +201,36 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         children: [
                           // Map + driver card
                           DeliveryTrackingCard(
-                            driverName: 'David Ochieng',
-                            vehicleLabel: 'Motorcycle · KAB 123A',
-                            distanceKm: 1.2,
-                            etaMinutes: 8,
-                            rating: 4.8,
-                            driverImageUrl:
-                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop',
-                            mapImageUrl:
-                                'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=380&h=140&fit=crop',
-                            onCallDriver: () {},
+                            driverName: state is OrderDetailLoaded
+                                ? (state.order.assignedProviderName ?? 'Your delivery partner')
+                                : 'Your delivery partner',
+                            vehicleLabel: state is OrderDetailLoaded
+                                ? (state.order.providerVehicle ?? 'Assigned transport')
+                                : 'Assigned transport',
+                            distanceKm: state is OrderDetailLoaded
+                                ? (state.order.totalDistanceKm ?? 0.0)
+                                : 1.2,
+                            etaMinutes: state is OrderDetailLoaded
+                                ? (state.order.etaMinutes ?? 0)
+                                : 8,
+                            rating: state is OrderDetailLoaded
+                                ? (state.order.providerRating ?? 4.8)
+                                : 4.8,
+                            driverImageUrl: state is OrderDetailLoaded
+                                ? state.order.providerPhotoUrl
+                                : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop',
+                            mapImageUrl: state is OrderDetailLoaded
+                                ? null
+                                : 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=380&h=140&fit=crop',
+                            onCallDriver: state is OrderDetailLoaded && state.order.providerPhone != null
+                                ? () {
+                                    // TODO: add driver call action
+                                  }
+                                : null,
                           ),
                           const SizedBox(height: 16),
 
-                          // 7-step timeline
+                          // Order timeline
                           CustomCard(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -169,58 +247,61 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                                       ),
                                 ),
                                 const SizedBox(height: 16),
-                                const OrderStatusTimeline(
-                                  events: [
-                                    OrderStatusEvent(
-                                      title: 'Order Placed',
-                                      description:
-                                          'Order received and recorded',
-                                      timestamp: '10:32 AM',
-                                      isCompleted: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'Payment Received',
-                                      description:
-                                          'Funds secured in escrow',
-                                      timestamp: '10:33 AM',
-                                      isCompleted: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'Farmer Accepted',
-                                      description:
-                                          'John Kamau confirmed your order',
-                                      timestamp: '10:45 AM',
-                                      isCompleted: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'Order Ready',
-                                      description:
-                                          'Produce packed for pickup',
-                                      timestamp: '11:20 AM',
-                                      isCompleted: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'Transport Assigned',
-                                      description: 'David O. accepted trip',
-                                      timestamp: '11:35 AM',
-                                      isCompleted: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'On the Way',
-                                      description:
-                                          '1.2 km away · ETA 8 minutes',
-                                      timestamp: '11:52 AM',
-                                      isCompleted: true,
-                                      isActive: true,
-                                    ),
-                                    OrderStatusEvent(
-                                      title: 'Delivered',
-                                      description:
-                                          'Awaiting delivery confirmation',
-                                      timestamp: '—',
-                                      isCompleted: false,
-                                    ),
-                                  ],
+                                OrderStatusTimeline(
+                                  events: state is OrderDetailLoaded
+                                      ? _buildTimelineEvents(state.order)
+                                      : const [
+                                          OrderStatusEvent(
+                                            title: 'Order Placed',
+                                            description:
+                                                'Order received and recorded',
+                                            timestamp: '10:32 AM',
+                                            isCompleted: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'Payment Received',
+                                            description:
+                                                'Funds secured in escrow',
+                                            timestamp: '10:33 AM',
+                                            isCompleted: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'Farmer Accepted',
+                                            description:
+                                                'John Kamau confirmed your order',
+                                            timestamp: '10:45 AM',
+                                            isCompleted: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'Order Ready',
+                                            description:
+                                                'Produce packed for pickup',
+                                            timestamp: '11:20 AM',
+                                            isCompleted: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'Transport Assigned',
+                                            description:
+                                                'David O. accepted trip',
+                                            timestamp: '11:35 AM',
+                                            isCompleted: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'On the Way',
+                                            description:
+                                                '1.2 km away · ETA 8 minutes',
+                                            timestamp: '11:52 AM',
+                                            isCompleted: true,
+                                            isActive: true,
+                                          ),
+                                          OrderStatusEvent(
+                                            title: 'Delivered',
+                                            description:
+                                                'Awaiting delivery confirmation',
+                                            timestamp: '—',
+                                            isCompleted: false,
+                                          ),
+                                        ],
                                 ),
                               ],
                             ),

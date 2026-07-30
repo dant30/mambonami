@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/custom_app_bar.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 
@@ -143,6 +144,91 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
               ),
               const SizedBox(height: 24),
 
+              CustomCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        gradient: AppGradients.hero,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.check_circle_outline,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Order status',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Your order is now confirmed and ready to track.',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              _OrderStatusDot(label: 'Placed', completed: true),
+                              SizedBox(width: 10),
+                              _OrderStatusDot(label: 'Paid', completed: true),
+                              SizedBox(width: 10),
+                              _OrderStatusDot(label: 'Packed', completed: false),
+                              SizedBox(width: 10),
+                              _OrderStatusDot(label: 'Out for delivery', completed: false),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'We’ll update you as soon as the delivery partner is en route. You can tap Track Order to see the full route.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.muted,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // ─── Info Text ─────────────────────────────────────────────
               Text(
                 'You can track the delivery and view order status in the Orders section.',
@@ -183,6 +269,43 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OrderStatusDot extends StatelessWidget {
+  final String label;
+  final bool completed;
+
+  const _OrderStatusDot({required this.label, required this.completed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: completed ? AppColors.primary : AppColors.light,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: completed ? AppColors.dark : AppColors.muted,
+                    fontWeight: completed ? FontWeight.w700 : FontWeight.w600,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

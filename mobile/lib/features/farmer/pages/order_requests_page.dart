@@ -248,6 +248,7 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
         final subOrder = orders[i];
         return OrderRequestCard(
           subOrder: subOrder,
+          onTap: () => _openDetail(subOrder),
           onConfirm: subOrder.isPending
               ? () {
                   context.read<OrderBloc>().add(ConfirmSubOrderEvent(subOrder.id));
@@ -258,7 +259,6 @@ class _OrderRequestsPageState extends State<OrderRequestsPage>
                   context.read<OrderBloc>().add(DeclineSubOrderEvent(subOrder.id));
                 }
               : null,
-          onTap: () => _openDetail(subOrder),
         );
       },
     );

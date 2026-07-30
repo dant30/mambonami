@@ -306,8 +306,8 @@ class _ProductListPageState extends State<ProductListPage> {
               // ── Inventory summary cards ─────────────────────────────
               Container(
                 width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: AppGradients.hero,
                   borderRadius: BorderRadius.circular(20),
@@ -328,7 +328,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 3),
                               Text(
                                 'Track your catalog, status, and freshness in one place.',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -388,7 +388,7 @@ class _ProductListPageState extends State<ProductListPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
 
               // ── Filter chips + Sort menu ─────────────────────────────
               Padding(
@@ -437,7 +437,7 @@ class _ProductListPageState extends State<ProductListPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               // ── Section header with add button ─────────────────────────
               Padding(
@@ -473,7 +473,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            childAspectRatio: 0.60,
+                            childAspectRatio: 0.80,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),

@@ -99,15 +99,23 @@ class OrderRequestCard extends StatelessWidget {
     final statusColor = _statusColor();
     final isPending = subOrder.isPending;
 
-    return CustomCard(
+    final itemCount = subOrder.items.length;
+    final totalQuantity = subOrder.items.fold<double>(0, (sum, item) => sum + item.quantity);
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(width: 4, color: statusColor)),
+      ),
+      child: CustomCard(
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.all(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header: Order #, buyer, time, status badge
             Row(
               children: [
@@ -160,6 +168,59 @@ class OrderRequestCard extends StatelessWidget {
             Text(
               _timeAgo(),
               style: theme.textTheme.labelSmall?.copyWith(color: AppColors.muted),
+            ),
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$itemCount item${itemCount == 1 ? '' : 's'}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'KES ${subOrder.subtotal.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.secondary),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.muted.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${totalQuantity.toStringAsFixed(0)} qty',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted),
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    _statusLabel(),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
 

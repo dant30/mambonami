@@ -12,10 +12,10 @@ class QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      {'label': 'Deliveries', 'icon': Icons.local_shipping_outlined, 'route': RoutePaths.myTrips, 'color': AppColors.providerAccent},
-      {'label': 'Wallet', 'icon': Icons.wallet_rounded, 'route': RoutePaths.transportEarnings, 'color': AppColors.farmerAccent},
-      {'label': 'Vehicle', 'icon': Icons.directions_car_rounded, 'route': RoutePaths.transportVehicle, 'color': AppColors.buyerAccent},
-      {'label': 'Support', 'icon': Icons.help_outline_rounded, 'route': RoutePaths.support, 'color': AppColors.supportAccent},
+      {'label': 'Available', 'icon': Icons.inventory_2_outlined, 'route': RoutePaths.availableOrders, 'color': AppColors.providerAccent},
+      {'label': 'Trips', 'icon': Icons.local_shipping_outlined, 'route': RoutePaths.myTrips, 'color': AppColors.primaryDark},
+      {'label': 'Wallet', 'icon': Icons.attach_money_rounded, 'route': RoutePaths.transportEarnings, 'color': AppColors.gold},
+      {'label': 'Vehicle', 'icon': Icons.directions_car_rounded, 'route': RoutePaths.transportVehicle, 'color': AppColors.secondary},
     ];
 
     return Column(

@@ -54,7 +54,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   Future<void> _onFetchOrderDetails(FetchOrderDetailsEvent event, Emitter<OrderState> emit) async {
     emit(OrderLoading());
     try {
-      final order = await orderRepository.fetchOrderDetail(event.orderId);
+      final order = await orderRepository.fetchOrderDetail(event.orderUuid);
       emit(OrderDetailLoaded(order));
     } catch (e) {
       emit(OrderError(e.toString()));
@@ -65,7 +65,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     emit(OrderLoading());
     try {
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      emit(OrderCreated({'order_id': event.orderId}));
+      emit(OrderCreated({'order_uuid': event.orderUuid}));
     } catch (e) {
       emit(OrderError(e.toString()));
     }

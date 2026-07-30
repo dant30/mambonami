@@ -6,6 +6,7 @@ class StatsSection extends StatelessWidget {
   final int activeTrips;
   final double earnings;
   final double todayEarnings;
+  final int availableOrdersCount;
   final String statusLabel;
   final String weather;
 
@@ -14,6 +15,7 @@ class StatsSection extends StatelessWidget {
     required this.activeTrips,
     required this.earnings,
     required this.todayEarnings,
+    required this.availableOrdersCount,
     required this.statusLabel,
     required this.weather,
   });
@@ -24,34 +26,37 @@ class StatsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Today's Overview",
+          "Provider KPIs",
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.dark),
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
           children: [
-            Expanded(
-              child: _StatTile(
-                label: 'Trips',
-                value: activeTrips.toString(),
-                icon: Icons.route_outlined,
-              ),
+            _StatTile(
+              label: 'Trips',
+              value: activeTrips.toString(),
+              icon: Icons.route_outlined,
+              width: MediaQuery.of(context).size.width / 2 - 26,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _StatTile(
-                label: 'Today',
-                value: 'KES ${todayEarnings.toStringAsFixed(0)}',
-                icon: Icons.today_rounded,
-              ),
+            _StatTile(
+              label: 'Today',
+              value: 'KES ${todayEarnings.toStringAsFixed(0)}',
+              icon: Icons.today_rounded,
+              width: MediaQuery.of(context).size.width / 2 - 26,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _StatTile(
-                label: 'Status',
-                value: statusLabel,
-                icon: Icons.verified_outlined,
-              ),
+            _StatTile(
+              label: 'Available',
+              value: availableOrdersCount.toString(),
+              icon: Icons.inventory_2_outlined,
+              width: MediaQuery.of(context).size.width / 2 - 26,
+            ),
+            _StatTile(
+              label: 'Status',
+              value: statusLabel,
+              icon: Icons.verified_outlined,
+              width: MediaQuery.of(context).size.width / 2 - 26,
             ),
           ],
         ),

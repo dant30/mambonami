@@ -15,7 +15,6 @@ import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/custom_snackbar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
-import '../../../shared/widgets/section_header.dart';
 
 class OrderDetailPage extends StatefulWidget {
   final int subOrderId;
@@ -242,6 +241,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          if (subOrder.readyAt != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Ready by ${DateFormat('EEE, MMM d • h:mm a').format(subOrder.readyAt!)}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

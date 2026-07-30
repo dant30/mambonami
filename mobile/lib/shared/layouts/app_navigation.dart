@@ -14,9 +14,11 @@ class AppBottomNavigationBar extends StatelessWidget {
   int _selectedIndex(String location) {
     final normalizedLocation = location.split('?').first;
     if (normalizedLocation == RoutePaths.buyerDashboard ||
+        normalizedLocation == RoutePaths.retailerDashboard ||
         normalizedLocation == RoutePaths.farmerDashboard ||
         normalizedLocation == RoutePaths.transportProviderDashboard ||
         normalizedLocation.startsWith('${RoutePaths.buyerDashboard}/') ||
+        normalizedLocation.startsWith('${RoutePaths.retailerDashboard}/') ||
         normalizedLocation.startsWith('${RoutePaths.farmerDashboard}/') ||
         normalizedLocation.startsWith('${RoutePaths.transportProviderDashboard}/')) {
       return 0;
@@ -24,17 +26,33 @@ class AppBottomNavigationBar extends StatelessWidget {
     if (normalizedLocation == RoutePaths.products ||
         normalizedLocation.startsWith('${RoutePaths.products}/') ||
         normalizedLocation == RoutePaths.productCatalog ||
-        normalizedLocation.startsWith('${RoutePaths.productCatalog}/')) {
+        normalizedLocation.startsWith('${RoutePaths.productCatalog}/') ||
+        normalizedLocation == RoutePaths.farmerProducts ||
+        normalizedLocation.startsWith('${RoutePaths.farmerProducts}/') ||
+        normalizedLocation == RoutePaths.myTrips ||
+        normalizedLocation.startsWith('${RoutePaths.myTrips}/') ||
+        normalizedLocation == RoutePaths.retailerSuppliers ||
+        normalizedLocation.startsWith('${RoutePaths.retailerSuppliers}/')) {
       return 1;
     }
     if (normalizedLocation == RoutePaths.orders ||
         normalizedLocation.startsWith('${RoutePaths.orders}/') ||
         normalizedLocation == RoutePaths.orderHistory ||
-        normalizedLocation.startsWith('${RoutePaths.orderHistory}/')) {
+        normalizedLocation.startsWith('${RoutePaths.orderHistory}/') ||
+        normalizedLocation == RoutePaths.farmerOrderRequests ||
+        normalizedLocation.startsWith('${RoutePaths.farmerOrderRequests}/') ||
+        normalizedLocation == RoutePaths.availableOrders ||
+        normalizedLocation.startsWith('${RoutePaths.availableOrders}/')) {
       return 2;
     }
     if (normalizedLocation == RoutePaths.wishlist ||
-        normalizedLocation.startsWith('${RoutePaths.wishlist}/')) {
+        normalizedLocation.startsWith('${RoutePaths.wishlist}/') ||
+        normalizedLocation == RoutePaths.farmerEarnings ||
+        normalizedLocation.startsWith('${RoutePaths.farmerEarnings}/') ||
+        normalizedLocation == RoutePaths.transportEarnings ||
+        normalizedLocation.startsWith('${RoutePaths.transportEarnings}/') ||
+        normalizedLocation == RoutePaths.retailerReports ||
+        normalizedLocation.startsWith('${RoutePaths.retailerReports}/')) {
       return 3;
     }
     if (normalizedLocation == RoutePaths.profile ||
@@ -77,6 +95,9 @@ class AppBottomNavigationBar extends StatelessWidget {
             case 'transport_provider':
               context.go(RoutePaths.myTrips);
               break;
+            case 'retailer':
+              context.go(RoutePaths.retailerSuppliers);
+              break;
             default:
               context.go(RoutePaths.productCatalog);
               break;
@@ -106,6 +127,9 @@ class AppBottomNavigationBar extends StatelessWidget {
               break;
             case 'transport_provider':
               context.go(RoutePaths.transportEarnings);
+              break;
+            case 'retailer':
+              context.go(RoutePaths.retailerReports);
               break;
             default:
               context.go(RoutePaths.wishlist);

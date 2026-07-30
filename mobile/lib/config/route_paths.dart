@@ -15,8 +15,11 @@ class RoutePaths {
   static const forgotPassword = '/forgot-password';
 
   static const buyerDashboard = '/buyer';
+  static const retailerDashboard = '/retailer';
   static const productCatalog = '/buyer/catalog';
   static const orderHistory = '/buyer/orders';
+  static const retailerSuppliers = '/retailer/suppliers';
+  static const retailerReports = '/retailer/reports';
   static const farmerDashboard = '/farmer';
   static const transportProviderDashboard = '/transport_provider';
   static const transportVehicle = '/transport_provider/vehicle';

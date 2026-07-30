@@ -15,6 +15,7 @@ class HeroSection extends StatelessWidget {
   final int activeTrips;
   final int availableOrdersCount;
   final double todayEarnings;
+  final double rating;
   final String? avatarUrl;
   final String? weather;
 
@@ -31,6 +32,7 @@ class HeroSection extends StatelessWidget {
     required this.activeTrips,
     required this.availableOrdersCount,
     required this.todayEarnings,
+    required this.rating,
     required this.onToggleOnline,
     required this.onAvailable,
     required this.onMyTrips,
@@ -232,14 +234,14 @@ class HeroSection extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
-                    SizedBox(width: 4),
+                    const Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
+                    const SizedBox(width: 4),
                     Text(
-                      '4.9 ★',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      '${rating.toStringAsFixed(1)} ★',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ],
                 ),

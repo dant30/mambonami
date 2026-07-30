@@ -29,7 +29,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _cartRepo = GetIt.I<CartRepository>();
   final _orderRepo = GetIt.I<OrderRepository>();
 
-  String? _orderId;
+  String? _orderUuid;
+  String? _paybillNumber;
   String? _paybillAccount;
   bool _creating = false;
   bool _confirming = false;
@@ -62,8 +63,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
         scheduledTimeWindow: 'Today',
       );
       final order = await _orderRepo.createOrder(request);
-      final orderUuid = order['uuid']?.toString() ?? '';
-      final orderId = order['id']?.toString() ?? orderUuid;
+      final orderUuid = order['uuid']?.toString() ??
+          order['order_uuid']?.toString() ??
+          order['orderUuid']?.toString() ??
+          '';
+      final paybillNumber = order['paybill_number']?.toString() ??
+          order['paybillNumber']?.toString() ??
+          '123456';
       final subtotal = double.tryParse(order['subtotal']?.toString() ?? '') ?? _cartRepo.subtotal;
       final deliveryFee = double.tryParse(order['delivery_fee']?.toString() ?? '') ?? 0.0;
       final platformFee = double.tryParse(order['platform_commission']?.toString() ?? '') ?? 0.0;
@@ -78,7 +84,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         _subtotal = subtotal;
         _deliveryFee = deliveryFee;
         _platformFee = platformFee;
-        _orderId = orderId;
+        _orderUuid = orderUuid.isEmpty ? order['id']?.toString() : orderUuid;
+        _paybillNumber = paybillNumber;
         _paybillAccount = orderUuid.isEmpty ? 'ORD-XXXXXXXX' : 'ORD-${orderUuid.substring(0, 8).toUpperCase()}';
         _creating = false;
       });
@@ -91,16 +98,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Future<void> _confirmPayment() async {
-    if (_orderId == null) return;
+    if (_orderUuid == null) return;
     setState(() => _confirming = true);
     try {
       // Poll for payment confirmation or allow manual confirmation
       context
           .read<OrderBloc>()
-          .add(ConfirmPaymentEvent(orderId: _orderId!));
+          .add(ConfirmPaymentEvent(orderUuid: _orderUuid!));
       _cartRepo.clear();
       if (mounted) {
-        context.go(RoutePaths.orderTrackingPath(_orderId!));
+        context.go(RoutePaths.orderTrackingPath(_orderUuid!));
       }
     } catch (e) {
       if (mounted) {
@@ -171,14 +178,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         children: [
                           // M-Pesa instructions
                           PaybillInstructionsCard(
-                            paybillNumber: '123456',
+                            paybillNumber: _paybillNumber ?? '123456',
                             accountNumber: _paybillAccount ?? 'ORD-XXXXXXXX',
                             amount: _total,
                           ),
                           const SizedBox(height: 16),
 
                           // Payment expiry countdown
-                          if (_orderId != null)
+                          if (_orderUuid != null)
                             CustomCard(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
@@ -309,7 +316,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: CustomButton(
                 label: 'I Have Paid — Confirm',
                 isLoading: _confirming,
-                onPressed: _orderId != null ? _confirmPayment : null,
+                onPressed: _orderUuid != null ? _confirmPayment : null,
               ),
             ),
           ],
