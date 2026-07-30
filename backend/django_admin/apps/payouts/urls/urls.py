@@ -2,6 +2,8 @@
 from django.urls import path
 from ..views import api
 
+app_name = 'payouts'
+
 urlpatterns = [
     path('', api.PayoutListView.as_view(), name='payout-list'),
     path('summary/', api.TransportPayoutSummaryView.as_view(), name='transport-payout-summary'),

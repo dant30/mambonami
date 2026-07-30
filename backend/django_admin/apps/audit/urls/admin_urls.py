@@ -1,5 +1,7 @@
 from django.urls import path
 
+app_name = 'admin_audit'
+
 from ..views.api import AuditLogDetailView, AuditLogListView
 
 urlpatterns = [

@@ -1,6 +1,8 @@
 ﻿# backend/django_admin/apps/paybill/urls.py
 from django.urls import path
-from apps.paybill.views import api
+from .views import api
+
+app_name = 'paybill'
 
 urlpatterns = [
     path('mpesa/callback/', api.IPNCallbackView.as_view(), name='mpesa_callback'),

@@ -10,7 +10,6 @@ class SubOrderInline(admin.TabularInline):
     model = SubOrder
     extra = 0
     readonly_fields = ('farmer', 'status', 'subtotal', 'confirmed_at', 'ready_at')
-    inlines = [OrderItemInline]
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

@@ -1,5 +1,7 @@
 from django.urls import path
 
+app_name = 'admin_payouts'
+
 from ..views.api import PayoutDetailView, PayoutListView
 
 urlpatterns = [

@@ -15,6 +15,8 @@ from ..views.api import (
     TrustScoreDetailView,
 )
 
+app_name = 'users'
+
 urlpatterns = [
     # Authentication
     path('register/init/', RegisterInitView.as_view(), name='register-init'),

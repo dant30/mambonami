@@ -138,7 +138,7 @@ class TransportProviderProfileAdmin(admin.ModelAdmin):
 
     def reset_rates_to_defaults(self, request, queryset):
         """Reset provider rates to vehicle type defaults."""
-        from apps.logistics.services.fee_calculator import get_default_rates_for_vehicle_type
+        from ..logistics.services.fee_calculator import get_default_rates_for_vehicle_type
 
         for provider in queryset:
             defaults = get_default_rates_for_vehicle_type(provider.vehicle_type)

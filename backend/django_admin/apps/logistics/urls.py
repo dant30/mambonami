@@ -2,6 +2,8 @@
 from django.urls import path
 from .views import api
 
+app_name = 'logistics'
+
 urlpatterns = [
     # Provider flows (with detailed status transitions)
     path('orders/available/', api.AvailableOrdersView.as_view(), name='available-orders'),

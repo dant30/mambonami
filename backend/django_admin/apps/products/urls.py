@@ -2,6 +2,8 @@
 from django.urls import path
 from .views import api
 
+app_name = 'products'
+
 urlpatterns = [
     # Public
     path('categories/', api.ProductCategoryListView.as_view(), name='product-categories'),

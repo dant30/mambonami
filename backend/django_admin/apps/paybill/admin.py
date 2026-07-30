@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from apps.paybill.models import (
+from .models import (
     PayBillTransaction,
     MpesaCallback,
     FloatAdjustment,

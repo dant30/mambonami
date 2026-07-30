@@ -1,5 +1,7 @@
 from django.urls import path
 
+app_name = 'admin_disputes'
+
 from ..views.api import DisputeDetailView, DisputeListView, DisputeResolveView
 
 urlpatterns = [
