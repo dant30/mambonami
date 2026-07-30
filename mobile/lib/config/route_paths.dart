@@ -55,6 +55,7 @@ class RoutePaths {
   static const orderConfirmation = '/checkout/confirmation/:uuid';
   static const dispute = '/dispute';
   static const profile = '/profile';
+  static const verificationDocuments = '/profile/verification';
   static const settings = '/settings';
   static const support = '/support';
   static const wishlist = '/wishlist';

@@ -54,7 +54,7 @@ class TripRepository {
 
   Future<Trip> markPickup(String uuid, TripPickupDto data) async {
     try {
-      final endpoint = '$kMyTripsEndpoint$uuid/pickup/';
+      final endpoint = '$kTripPickupEndpoint$uuid/pickup/';
       if (data.photoPath != null) {
         final form = FormData();
         final payload = data.toJson();
@@ -81,7 +81,7 @@ class TripRepository {
 
   Future<Trip> markDelivery(String uuid, TripDeliveryDto data) async {
     try {
-      final endpoint = '$kMyTripsEndpoint$uuid/arrive-delivery/';
+      final endpoint = '$kTripArriveDeliveryEndpoint$uuid/arrive-delivery/';
       if (data.photoPath != null) {
         final form = FormData();
         final payload = data.toJson();

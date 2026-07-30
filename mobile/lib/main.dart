@@ -26,6 +26,8 @@ import 'data/repositories/trip_repository.dart';
 import 'data/repositories/payout_repository.dart';
 import 'data/repositories/notification_repository.dart';
 import 'data/repositories/dispute_repository.dart';
+import 'data/repositories/verification_repository.dart';
+import 'data/repositories/paybill_repository.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/locale/locale_cubit.dart';
 import 'blocs/product/product_bloc.dart';
@@ -112,6 +114,12 @@ Future<void> setupDependencies(bool firebaseAvailable, AppRouter appRouter) asyn
   }
   if (!getIt.isRegistered<NotificationRepository>()) {
     getIt.registerSingleton<NotificationRepository>(NotificationRepository());
+  }
+  if (!getIt.isRegistered<VerificationRepository>()) {
+    getIt.registerSingleton<VerificationRepository>(VerificationRepository());
+  }
+  if (!getIt.isRegistered<PaybillRepository>()) {
+    getIt.registerSingleton<PaybillRepository>(PaybillRepository());
   }
   if (!getIt.isRegistered<DisputeRepository>()) {
     getIt.registerSingleton<DisputeRepository>(DisputeRepository());

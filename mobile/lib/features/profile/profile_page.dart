@@ -12,6 +12,7 @@ import '../../config/route_paths.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/verification_repository.dart';
 import '../../shared/layouts/app_navigation.dart';
 import '../../shared/themes/app_colors.dart';
 import '../../shared/themes/app_gradients.dart';
@@ -87,6 +88,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _roleProfile; // farmer_profile, transport_profile, etc.
 
   final AuthRepository _authRepository = GetIt.I<AuthRepository>();
+  final VerificationRepository _verificationRepository = GetIt.I<VerificationRepository>();
+  double? _trustScoreProfile;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
@@ -168,7 +171,22 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       CustomSnackbar.showError(context, 'Failed to load profile: ${e.toString()}');
     } finally {
+      // Attempt to load trust score separately
+      _loadTrustScore();
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadTrustScore() async {
+    try {
+      final scoreMap = await _verificationRepository.getTrustScore();
+      final scoreVal = scoreMap['score'] ?? scoreMap['trust_score'] ?? scoreMap['value'];
+      double? val;
+      if (scoreVal is num) val = scoreVal.toDouble();
+      else val = double.tryParse(scoreVal?.toString() ?? '');
+      setState(() { _trustScoreProfile = val; });
+    } catch (_) {
+      // ignore
     }
   }
 
@@ -546,6 +564,19 @@ class _ProfilePageState extends State<ProfilePage> {
               style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700),
             ),
           ),
+          const SizedBox(height: 8),
+          // Trust score badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _trustScoreProfile != null ? 'Trust ${_trustScoreProfile!.toStringAsFixed(2)}' : 'Trust —',
+              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+          ),
         ],
       ),
     );
@@ -650,7 +681,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   )
                 else
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () => context.go(RoutePaths.verificationDocuments, extra: _mapLabelToType(v.label)),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.warning,
                       padding: EdgeInsets.zero,
@@ -665,6 +696,18 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+
+  String _mapLabelToType(String label) {
+    final l = label.toLowerCase();
+    if (l.contains('national')) return 'national_id';
+    if (l.contains('cooperative')) return 'cooperative_endorsement';
+    if (l.contains('driver')) return 'driver_license';
+    if (l.contains('vehicle')) return 'vehicle_registration';
+    if (l.contains('bank')) return 'bank_account';
+    if (l.contains('gps')) return 'farm_gps';
+    if (l.contains('address')) return 'address';
+    return 'other';
   }
 
   // ─── Menu items ─────────────────────────────────────────────────────────

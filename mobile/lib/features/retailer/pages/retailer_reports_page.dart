@@ -70,7 +70,7 @@ class RetailerReportsPage extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

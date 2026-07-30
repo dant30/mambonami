@@ -50,6 +50,22 @@ const String kTransportPayoutSummaryEndpoint = '/api/payouts/summary/';
 const String kNotificationChannelId = 'mambonami_channel';
 const String kNotificationChannelName = 'MAMBONAMI Notifications';
 
+// Notification API endpoints
+const String kNotificationPreferencesEndpoint = '/api/notifications/preferences/';
+const String kNotificationPreferenceDetailEndpoint = '/api/notifications/preferences/';
+
+// User verification endpoints
+const String kVerificationDocumentsEndpoint = '/api/users/verification/documents/';
+const String kVerificationDocumentDetailEndpoint = '/api/users/verification/documents/';
+const String kTrustScoreEndpoint = '/api/users/verification/trust-score/';
+
+// PayBill endpoints (backend callbacks / admin endpoints)
+const String kPaybillMpesaCallbackEndpoint = '/api/paybill/mpesa/callback/';
+const String kPaybillSimulateEndpoint = '/api/paybill/simulate/';
+const String kPaybillTransactionsEndpoint = '/api/paybill/transactions/';
+const String kPaybillSettlementsEndpoint = '/api/paybill/settlements/';
+const String kPaybillFloatBalanceEndpoint = '/api/paybill/float-balance/';
+
 // Timeouts
 const Duration kApiConnectTimeout = Duration(seconds: 30);
 const Duration kApiReceiveTimeout = Duration(seconds: 30);

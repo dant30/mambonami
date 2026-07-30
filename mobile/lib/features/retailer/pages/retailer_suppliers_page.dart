@@ -94,7 +94,7 @@ class RetailerSuppliersPage extends StatelessWidget {
                   onTap: () => context.go(RoutePaths.retailerReports),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

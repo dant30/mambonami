@@ -53,6 +53,7 @@ import '../features/common/settings_page.dart' as settings_page;
 import '../features/common/support_page.dart' as support_page;
 import '../features/common/terms_and_conditions_page.dart';
 import '../features/common/privacy_policy_page.dart';
+import '../features/profile/verification_documents_page.dart';
 import '../blocs/auth/auth_bloc.dart';
 import 'role_routes.dart';
 
@@ -392,6 +393,18 @@ class AppRouter {
           allowedRoles: AppRole.operationalRoles,
           child: ProfilePage(),
         ),
+      ),
+      GoRoute(
+        path: RoutePaths.verificationDocuments,
+        builder: (context, state) {
+          final extra = state.extra;
+          String? initialType;
+          if (extra is String) initialType = extra;
+          return AuthGuard(
+            allowedRoles: AppRole.operationalRoles,
+            child: VerificationDocumentsPage(initialType: initialType),
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.settings,

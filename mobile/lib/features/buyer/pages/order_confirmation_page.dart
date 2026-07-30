@@ -202,8 +202,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               _OrderStatusDot(label: 'Placed', completed: true),
                               SizedBox(width: 10),
                               _OrderStatusDot(label: 'Paid', completed: true),

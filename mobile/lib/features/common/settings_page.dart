@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../data/repositories/notification_repository.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../blocs/locale/locale_cubit.dart';
@@ -35,6 +38,8 @@ class _SettingsPageState extends State<SettingsPage> {
   String _notificationPermission = 'Unknown';
   bool _loading = true;
   bool _locationEnabled = true;
+  int? _pushPrefId;
+  int? _orderUpdatesPrefId;
 
   @override
   void initState() {
@@ -65,6 +70,31 @@ class _SettingsPageState extends State<SettingsPage> {
       _locationEnabled = locationEnabled;
       _loading = false;
     });
+
+    // Try to fetch server-side notification preferences and reconcile
+    try {
+      final repo = GetIt.instance<NotificationRepository>();
+      final prefs = await repo.getPreferences();
+      for (final p in prefs) {
+        final key = p['key']?.toString();
+        final rawEnabled = p['enabled'];
+        final enabled = rawEnabled == null
+            ? null
+            : (rawEnabled is bool
+                ? rawEnabled
+                : (rawEnabled.toString() == '1' || rawEnabled.toString().toLowerCase() == 'true'));
+        final id = p['id'] is int ? p['id'] as int : int.tryParse(p['id']?.toString() ?? '');
+        if (key == 'push_notifications' && enabled != null) {
+          _notificationsEnabled = enabled;
+          _pushPrefId = id;
+        }
+        if (key == 'order_updates' && enabled != null) {
+          _orderUpdatesEnabled = enabled;
+          _orderUpdatesPrefId = id;
+        }
+      }
+      if (mounted) setState(() {});
+    } catch (_) {}
   }
 
   Future<void> _saveNotifications(bool enabled) async {
@@ -75,6 +105,18 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       enabled ? 'Notifications enabled' : 'Notifications disabled',
     );
+    // Sync preference to backend (best-effort)
+    try {
+      final repo = GetIt.instance<NotificationRepository>();
+      if (_pushPrefId != null) {
+        await repo.updatePreference(_pushPrefId!, {'enabled': enabled});
+      } else {
+        final created = await repo.createPreference({'key': 'push_notifications', 'enabled': enabled});
+        _pushPrefId = created['id'] is int ? created['id'] as int : int.tryParse(created['id']?.toString() ?? '');
+      }
+    } catch (e) {
+      if (mounted) CustomSnackbar.showError(context, 'Failed to sync notification preference');
+    }
   }
 
   Future<void> _requestNotificationPermission() async {
@@ -105,6 +147,18 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       enabled ? 'Order updates enabled' : 'Order updates disabled',
     );
+    // Sync preference to backend (best-effort)
+    try {
+      final repo = GetIt.instance<NotificationRepository>();
+      if (_orderUpdatesPrefId != null) {
+        await repo.updatePreference(_orderUpdatesPrefId!, {'enabled': enabled});
+      } else {
+        final created = await repo.createPreference({'key': 'order_updates', 'enabled': enabled});
+        _orderUpdatesPrefId = created['id'] is int ? created['id'] as int : int.tryParse(created['id']?.toString() ?? '');
+      }
+    } catch (e) {
+      if (mounted) CustomSnackbar.showError(context, 'Failed to sync order updates preference');
+    }
   }
 
   void _showLanguageDialog() {

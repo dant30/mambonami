@@ -176,7 +176,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             Expanded(
                               child: Row(
                                 children: [
-                                  Icon(Icons.location_on_rounded,
+                                  const Icon(Icons.location_on_rounded,
                                       size: 14, color: AppColors.muted),
                                   const SizedBox(width: 4),
                                   Expanded(
