@@ -237,6 +237,18 @@ class AppDrawer extends StatelessWidget {
         allowedRoles: [],
       ),
       const _DrawerItem(
+        icon: Icons.description_outlined,
+        title: 'Terms & Conditions',
+        route: RoutePaths.termsAndConditions,
+        allowedRoles: [],
+      ),
+      const _DrawerItem(
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy Policy',
+        route: RoutePaths.privacyPolicy,
+        allowedRoles: [],
+      ),
+      const _DrawerItem(
         icon: Icons.settings_outlined,
         title: 'Settings',
         route: RoutePaths.settings,

@@ -1,4 +1,5 @@
 // lib/features/auth/pages/welcome_page.dart
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -252,12 +253,25 @@ class WelcomePage extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: 'Terms & Privacy Policy',
+                          text: 'Terms',
                           style: TextStyle(
                             fontSize: 10,
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => context.push(RoutePaths.termsAndConditions),
+                        ),
+                        const TextSpan(text: ' & '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => context.push(RoutePaths.privacyPolicy),
                         ),
                       ],
                     ),

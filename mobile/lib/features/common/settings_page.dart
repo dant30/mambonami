@@ -332,17 +332,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: Icons.privacy_tip_outlined,
                     title: 'Privacy Policy',
                     subtitle: 'Read our privacy policy',
-                    onTap: () {
-                      CustomSnackbar.showInfo(context, 'Privacy policy coming soon');
-                    },
+                    onTap: () => context.push(RoutePaths.privacyPolicy),
                   ),
                   _buildLegalTile(
                     icon: Icons.description_outlined,
                     title: 'Terms of Service',
                     subtitle: 'View terms and conditions',
-                    onTap: () {
-                      CustomSnackbar.showInfo(context, 'Terms of service coming soon');
-                    },
+                    onTap: () => context.push(RoutePaths.termsAndConditions),
                   ),
                   _buildLegalTile(
                     icon: Icons.delete_outline,
