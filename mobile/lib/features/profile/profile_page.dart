@@ -565,17 +565,51 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 8),
-          // Trust score badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _trustScoreProfile != null ? 'Trust ${_trustScoreProfile!.toStringAsFixed(2)}' : 'Trust —',
-              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _trustScoreProfile != null && _trustScoreProfile! >= 70
+                      ? AppColors.success.withValues(alpha: 0.22)
+                      : AppColors.gold.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _trustScoreProfile != null
+                      ? 'Trust ${_formatTrustScore(_trustScoreProfile!)}'
+                      : 'Trust —',
+                  style: TextStyle(
+                    color: _trustScoreProfile != null && _trustScoreProfile! >= 70
+                        ? AppColors.success
+                        : AppColors.gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () => context.go(
+                  RoutePaths.verificationDocuments,
+                  extra: {'type': 'national_id', 'direct': true},
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white24,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                icon: const Icon(Icons.upload_file, size: 16),
+                label: const Text(
+                  'Upload National ID',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -708,6 +742,13 @@ class _ProfilePageState extends State<ProfilePage> {
     if (l.contains('gps')) return 'farm_gps';
     if (l.contains('address')) return 'address';
     return 'other';
+  }
+
+  String _formatTrustScore(double score) {
+    if (score <= 1) {
+      return '${(score * 100).toStringAsFixed(0)}%';
+    }
+    return '${score.toStringAsFixed(0)}%';
   }
 
   // ─── Menu items ─────────────────────────────────────────────────────────

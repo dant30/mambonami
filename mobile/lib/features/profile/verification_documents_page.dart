@@ -13,7 +13,8 @@ import '../../data/dtos/verification_dto.dart';
 
 class VerificationDocumentsPage extends StatefulWidget {
   final String? initialType;
-  const VerificationDocumentsPage({super.key, this.initialType});
+  final bool directUpload;
+  const VerificationDocumentsPage({super.key, this.initialType, this.directUpload = false});
 
   @override
   State<VerificationDocumentsPage> createState() => _VerificationDocumentsPageState();
@@ -31,7 +32,10 @@ class _VerificationDocumentsPageState extends State<VerificationDocumentsPage> {
     _load();
     // If the page was opened with an initialType, auto-open upload dialog
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && widget.initialType != null) {
+      if (!mounted) return;
+      if (widget.initialType != null && widget.directUpload) {
+        _uploadDocument(widget.initialType!);
+      } else if (widget.initialType != null) {
         _showUploadDialog(preselected: widget.initialType);
       }
     });

@@ -399,10 +399,19 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra;
           String? initialType;
-          if (extra is String) initialType = extra;
+          bool directUpload = false;
+          if (extra is String) {
+            initialType = extra;
+          } else if (extra is Map) {
+            initialType = extra['type']?.toString();
+            directUpload = extra['direct'] == true || extra['directUpload'] == true;
+          }
           return AuthGuard(
             allowedRoles: AppRole.operationalRoles,
-            child: VerificationDocumentsPage(initialType: initialType),
+            child: VerificationDocumentsPage(
+              initialType: initialType,
+              directUpload: directUpload,
+            ),
           );
         },
       ),

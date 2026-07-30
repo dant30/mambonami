@@ -28,6 +28,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
   bool _isLoading = true;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -60,6 +61,13 @@ class _MapPickerPageState extends State<MapPickerPage> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -142,90 +150,180 @@ class _MapPickerPageState extends State<MapPickerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Location')),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: Text('Select Location'),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
-          if (!_isLoading)
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator())
+          else
             GoogleMap(
               onMapCreated: _onMapCreated,
-              initialCameraPosition:
-                  CameraPosition(target: _selectedLocation, zoom: 15),
+              initialCameraPosition: CameraPosition(target: _selectedLocation, zoom: 15),
               onCameraMove: _onCameraMove,
               myLocationEnabled: true,
-              myLocationButtonEnabled: true,
-              zoomControlsEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              compassEnabled: true,
             ),
           Center(
-            child: Icon(Icons.location_pin, size: 40, color: Colors.red[700]),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
             child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black26)],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search address or place...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _isSearching
-                          ? const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            )
-                          : IconButton(
-                              icon: const Icon(Icons.send_rounded),
-                              onPressed: () => _searchAddress(_searchController.text),
-                            ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onSubmitted: _searchAddress,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _goToCurrentLocation,
-                          icon: const Icon(Icons.my_location_rounded),
-                          label: const Text('Use current location'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: CustomButton(
-                          onPressed: _confirmLocation,
-                          label: 'Confirm',
-                          icon: const Icon(Icons.check),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _selectedAddress,
-                    style: const TextStyle(fontSize: 14),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.9),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 12,
+                    spreadRadius: 1,
                   ),
                 ],
+              ),
+              child: Icon(Icons.location_pin, size: 40, color: Colors.red[700]),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 64,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.96),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.12),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search_rounded, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Search address or place...',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                        hintStyle: textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                      ),
+                      onSubmitted: _searchAddress,
+                      textInputAction: TextInputAction.search,
+                    ),
+                  ),
+                  if (_isSearching)
+                    const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.send_rounded, size: 20),
+                      onPressed: () => _searchAddress(_searchController.text),
+                      tooltip: 'Search',
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withOpacity(0.96),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.14),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.location_on_rounded, color: theme.colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Selected location',
+                            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Ready',
+                            style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _selectedAddress.isEmpty ? 'Tap the map to adjust the pinpoint.' : _selectedAddress,
+                      style: textTheme.bodyMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _goToCurrentLocation,
+                            icon: const Icon(Icons.my_location_rounded, size: 18),
+                            label: const Text('Use current location'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: CustomButton(
+                            onPressed: _confirmLocation,
+                            label: 'Confirm',
+                            icon: const Icon(Icons.check, size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
