@@ -215,7 +215,7 @@ class _CartPageState extends State<CartPage> {
         color: Colors.white,
         child: CustomButton(
           label: 'Proceed to Payment — KES ${total.toStringAsFixed(0)}',
-          onPressed: () => context.go(RoutePaths.checkout),
+          onPressed: () => context.push(RoutePaths.checkout),
         ),
       ),
     );

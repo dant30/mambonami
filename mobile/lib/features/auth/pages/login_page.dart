@@ -211,7 +211,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           onPressed: isLoading
                               ? null
-                              : () => context.go(RoutePaths.forgotPassword),
+                              : () => context.push(RoutePaths.forgotPassword),
                           child: Text(
                             'Forgot password?',
                             style: TextStyle(
