@@ -130,6 +130,6 @@ extension ColorExtensions on Color {
   /// Accepts an `alpha` double in 0.0-1.0 and returns a color with that opacity.
   Color withValues({double? alpha}) {
     if (alpha == null) return this;
-    return withOpacity(alpha);
+    return withValues(alpha: alpha);
   }
 }

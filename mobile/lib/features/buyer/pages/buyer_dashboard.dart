@@ -268,7 +268,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       child: Container(
                         width: 8,
                         height: 8,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.error,
                           shape: BoxShape.circle,
                         ),
@@ -502,7 +502,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               children: [
                 Container(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: AppGradients.hero,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(18),

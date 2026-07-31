@@ -1,10 +1,8 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../core/constants.dart';
 import '../../shared/widgets/custom_snackbar.dart';
 import '../../shared/widgets/custom_image_picker.dart';
 import '../../data/repositories/verification_repository.dart';

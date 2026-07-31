@@ -40,7 +40,7 @@ class _MyTripsPageState extends State<MyTripsPage> {
           // ── Gradient header ─────────────────────────────────────
           Container(
             padding: const EdgeInsets.fromLTRB(8, 52, 20, 20),
-            decoration: BoxDecoration(gradient: AppGradients.hero),
+            decoration: const BoxDecoration(gradient: AppGradients.hero),
             child: Row(
               children: [
                 IconButton(

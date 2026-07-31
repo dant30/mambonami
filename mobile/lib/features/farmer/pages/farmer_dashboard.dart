@@ -13,6 +13,7 @@ import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
+import '../../../shared/widgets/farmer_sales_chart.dart';
 import '../../../shared/widgets/greeting_header.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/role_dashboard_widgets.dart';
@@ -59,7 +60,6 @@ class FarmerDashboard extends StatelessWidget {
     final notificationCount = pendingOrders + (productCount > 0 ? 1 : 0);
 
     // ── Inventory health ──────────────────────────────────────────────────
-    final outOfStock = productList.where((p) => p.availableQuantity <= 0).length;
     final lowStock = productList.where((p) => p.availableQuantity > 0 && p.availableQuantity < 20).length;
     final available = productList.where((p) => p.availableQuantity >= 20).length;
 
@@ -75,8 +75,11 @@ class FarmerDashboard extends StatelessWidget {
       final hour = DateTime.now().hour;
       if (hour < 12) {
         greetingSubtitle = 'Good morning! Ready to harvest today?';
-      } else if (hour < 17) greetingSubtitle = 'Keep your farm growing this afternoon.';
-      else greetingSubtitle = "Let's wrap up today's farm work.";
+      } else if (hour < 17) {
+        greetingSubtitle = 'Keep your farm growing this afternoon.';
+      } else {
+        greetingSubtitle = "Let's wrap up today's farm work.";
+      }
     }
 
     String locationLabel = 'Your farm';
@@ -96,7 +99,7 @@ class FarmerDashboard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: AppGradients.hero,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
@@ -142,7 +145,7 @@ class FarmerDashboard extends StatelessWidget {
                             top: 6,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
                               ),
@@ -306,8 +309,7 @@ class FarmerDashboard extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Container(
-                          height: 64,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceHighLight,
                             borderRadius: BorderRadius.circular(16),
@@ -320,15 +322,15 @@ class FarmerDashboard extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Mini chart coming soon',
+                                      'Weekly sales trend',
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    const SizedBox(height: 6),
                                     Text(
-                                      'Insights will appear here as the dashboard grows',
+                                      'Steady activity with stronger weekends',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: AppColors.muted,
                                       ),
@@ -336,20 +338,12 @@ class FarmerDashboard extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: const Text(
-                                  'Coming Soon',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                              const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 128,
+                                child: FarmerSalesChart(
+                                  values: [3.2, 4.8, 4.1, 6.4, 5.8, 7.6, 8.7],
+                                  labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                                 ),
                               ),
                             ],

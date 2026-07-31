@@ -138,7 +138,7 @@ class _SupportPageState extends State<SupportPage> {
             // ─── Gradient Header ────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(4, 0, 20, 16),
-              decoration: BoxDecoration(gradient: AppGradients.hero),
+              decoration: const BoxDecoration(gradient: AppGradients.hero),
               child: Row(
                 children: [
                   // Back button is already in CustomAppBar

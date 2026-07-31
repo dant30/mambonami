@@ -37,23 +37,23 @@ class FarmerProductCard extends StatelessWidget {
         : (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0);
 
     final menuItems = <PopupMenuEntry<String>>[
-      PopupMenuItem<String>(
+      const PopupMenuItem<String>(
         value: 'edit',
         child: Row(
           children: [
-            const Icon(Icons.edit, size: 16),
-            const SizedBox(width: 8),
-            const Text('Edit'),
+            Icon(Icons.edit, size: 16),
+            SizedBox(width: 8),
+            Text('Edit'),
           ],
         ),
       ),
-      PopupMenuItem<String>(
+      const PopupMenuItem<String>(
         value: 'duplicate',
         child: Row(
           children: [
-            const Icon(Icons.copy, size: 16),
-            const SizedBox(width: 8),
-            const Text('Duplicate'),
+            Icon(Icons.copy, size: 16),
+            SizedBox(width: 8),
+            Text('Duplicate'),
           ],
         ),
       ),
@@ -67,23 +67,23 @@ class FarmerProductCard extends StatelessWidget {
           ],
         ),
       ),
-      PopupMenuItem<String>(
+      const PopupMenuItem<String>(
         value: 'delete',
         child: Row(
           children: [
             Icon(Icons.delete, size: 16, color: AppColors.error),
-            const SizedBox(width: 8),
-            const Text('Delete', style: TextStyle(color: AppColors.error)),
+            SizedBox(width: 8),
+            Text('Delete', style: TextStyle(color: AppColors.error)),
           ],
         ),
       ),
-      PopupMenuItem<String>(
+      const PopupMenuItem<String>(
         value: 'share',
         child: Row(
           children: [
-            const Icon(Icons.share, size: 16),
-            const SizedBox(width: 8),
-            const Text('Share'),
+            Icon(Icons.share, size: 16),
+            SizedBox(width: 8),
+            Text('Share'),
           ],
         ),
       ),
@@ -208,12 +208,12 @@ class FarmerProductCard extends StatelessWidget {
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.fireplace, size: 12, color: Colors.white),
-                        const SizedBox(width: 4),
-                        const Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
+                        Icon(Icons.fireplace, size: 12, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -319,33 +319,46 @@ class FarmerProductCard extends StatelessWidget {
                                 ),
                       ),
                       // More menu with icons
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, size: 18, color: AppColors.muted),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'edit':
-                              (onEdit ??
-                                      () => context.go(
-                                            RoutePaths.farmerProductEditPath(product.uuid),
-                                            extra: product,
-                                          ))
-                                  .call();
-                              break;
-                            case 'duplicate':
-                              onDuplicate?.call();
-                              break;
-                            case 'deactivate':
-                              onDeactivate?.call();
-                              break;
-                            case 'delete':
-                              onDelete?.call();
-                              break;
-                            case 'share':
-                              onShare?.call();
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => menuItems,
+                      Material(
+                        color: Colors.transparent,
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          tooltip: 'More actions',
+                          icon: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.light,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.more_vert, size: 18, color: AppColors.muted),
+                          ),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                (onEdit ??
+                                        () => context.go(
+                                              RoutePaths.farmerProductEditPath(product.uuid),
+                                              extra: product,
+                                            ))
+                                    .call();
+                                break;
+                              case 'duplicate':
+                                onDuplicate?.call();
+                                break;
+                              case 'deactivate':
+                                onDeactivate?.call();
+                                break;
+                              case 'delete':
+                                onDelete?.call();
+                                break;
+                              case 'share':
+                                onShare?.call();
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => menuItems,
+                        ),
                       ),
                     ],
                   ),

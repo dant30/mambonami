@@ -33,6 +33,8 @@ enum DeepLinkType {
   profile,
   settings,
   support,
+  privacyPolicy,
+  verificationDocuments,
   transportAvailableOrders,
   transportMyTrips,
   transportEarnings,
@@ -89,6 +91,10 @@ class DeepLinkInfo {
         return RoutePaths.settings;
       case DeepLinkType.support:
         return RoutePaths.support;
+      case DeepLinkType.privacyPolicy:
+        return RoutePaths.privacyPolicy;
+      case DeepLinkType.verificationDocuments:
+        return RoutePaths.verificationDocuments;
       case DeepLinkType.transportAvailableOrders:
         return RoutePaths.availableOrders;
       case DeepLinkType.transportMyTrips:
@@ -308,6 +314,18 @@ class DeepLinkHandler {
     if (pathSegments.length == 1 && pathSegments[0] == 'support') {
       debugPrint('[DeepLinkHandler] Detected support');
       return DeepLinkInfo(type: DeepLinkType.support);
+    }
+    if (pathSegments.length == 1 && pathSegments[0] == 'privacy-policy') {
+      debugPrint('[DeepLinkHandler] Detected privacy policy');
+      return DeepLinkInfo(type: DeepLinkType.privacyPolicy);
+    }
+    if (pathSegments.length == 2 && pathSegments[0] == 'profile' && pathSegments[1] == 'verification') {
+      debugPrint('[DeepLinkHandler] Detected verification documents');
+      return DeepLinkInfo(type: DeepLinkType.verificationDocuments);
+    }
+    if (pathSegments.length == 1 && pathSegments[0] == '404') {
+      debugPrint('[DeepLinkHandler] Detected not-found route');
+      return DeepLinkInfo(type: DeepLinkType.unknown);
     }
 
     // Route dispute details: /disputes/uuid

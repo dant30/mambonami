@@ -473,7 +473,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 56, 20, 28),
-      decoration: BoxDecoration(gradient: AppGradients.hero),
+      decoration: const BoxDecoration(gradient: AppGradients.hero),
       child: Column(
         children: [
           Row(

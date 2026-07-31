@@ -104,7 +104,7 @@ class _SplashPageState extends State<SplashPage>
       listener: (context, state) => _finish(state),
       child: Scaffold(
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -173,7 +173,7 @@ class _SplashPageState extends State<SplashPage>
                               width: 112,
                               height: 112,
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: AppRadius.extraExtraLarge,
                                 boxShadow: [

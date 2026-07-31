@@ -355,7 +355,7 @@ class _DisputePageState extends State<DisputePage> with SingleTickerProviderStat
                         onTap: () => _removeImage(index),
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.black54,
                             shape: BoxShape.circle,
                           ),

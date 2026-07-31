@@ -104,7 +104,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           children: [
             // ── Gradient header ────────────────────────────────
             Container(
-              decoration: BoxDecoration(gradient: AppGradients.hero),
+              decoration: const BoxDecoration(gradient: AppGradients.hero),
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
