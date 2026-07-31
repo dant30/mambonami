@@ -57,10 +57,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryStreet: 'Westlands',
         deliveryCity: 'Nairobi',
         deliveryPostalCode: '00100',
+        deliveryLandmark: 'Near Westlands Roundabout',
         deliveryLat: -1.2672,
         deliveryLng: 36.8107,
-        scheduledDate: DateTime.now().toIso8601String(),
+        scheduledDate: DateTime.now().toIso8601String().split('T').first,
         scheduledTimeWindow: 'Today',
+        paymentMethod: 'paybill',
       );
       final order = await _orderRepo.createOrder(request);
       final orderUuid = order['uuid']?.toString() ??

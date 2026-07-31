@@ -59,28 +59,7 @@ class FarmerDashboard extends StatelessWidget {
         : <SubOrder>[];
     final notificationCount = pendingOrders + (productCount > 0 ? 1 : 0);
 
-    // ── Inventory health ──────────────────────────────────────────────────
-    final lowStock = productList.where((p) => p.availableQuantity > 0 && p.availableQuantity < 20).length;
     final available = productList.where((p) => p.availableQuantity >= 20).length;
-
-    // ── Dynamic greeting subtitle ───────────────────────────────────────
-    String greetingSubtitle;
-    if (pendingOrders > 0) {
-      greetingSubtitle = 'You have $pendingOrders new order${pendingOrders == 1 ? '' : 's'} waiting.';
-    } else if (productCount == 0) {
-      greetingSubtitle = 'Add your first product to start selling.';
-    } else if (lowStock > 0) {
-      greetingSubtitle = '$lowStock product${lowStock == 1 ? '' : 's'} are running low on stock.';
-    } else {
-      final hour = DateTime.now().hour;
-      if (hour < 12) {
-        greetingSubtitle = 'Good morning! Ready to harvest today?';
-      } else if (hour < 17) {
-        greetingSubtitle = 'Keep your farm growing this afternoon.';
-      } else {
-        greetingSubtitle = "Let's wrap up today's farm work.";
-      }
-    }
 
     String locationLabel = 'Your farm';
     if (productList.isNotEmpty) {
@@ -211,39 +190,6 @@ class FarmerDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RoleHeroCard(
-                    title: 'Farm operations',
-                    subtitle: greetingSubtitle,
-                    icon: Icons.agriculture_rounded,
-                    gradient: const LinearGradient(
-                      colors: [AppColors.farmerAccent, AppColors.goldAccent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    actions: [
-                      HeroActionButton(
-                        label: 'Products',
-                        icon: Icons.inventory_2_rounded,
-                        onTap: () => context.go(RoutePaths.farmerProducts),
-                      ),
-                      HeroActionButton(
-                        label: 'Orders',
-                        icon: Icons.shopping_bag_rounded,
-                        onTap: () => context.go(RoutePaths.farmerOrderRequests),
-                      ),
-                      HeroActionButton(
-                        label: 'Earnings',
-                        icon: Icons.attach_money_rounded,
-                        onTap: () => context.go(RoutePaths.farmerEarnings),
-                      ),
-                      HeroActionButton(
-                        label: 'Add item',
-                        icon: Icons.add_rounded,
-                        onTap: () => context.go(RoutePaths.farmerProductCreate),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   DashboardStatStrip(
                     stats: [
                       DashboardStat(

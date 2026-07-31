@@ -120,7 +120,13 @@ class _VerificationDocumentsPageState extends State<VerificationDocumentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verification Documents')),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        ),
+        title: const Text('Verification Documents'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

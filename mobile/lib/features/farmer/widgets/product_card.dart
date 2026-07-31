@@ -305,62 +305,66 @@ class FarmerProductCard extends StatelessWidget {
                     ),
                   const SizedBox(height: 6),
                   // Actions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Edit button
-                      _ActionButton(
-                        icon: Icons.edit_outlined,
-                        color: AppColors.primary,
-                        onPressed: onEdit ??
-                            () => context.go(
-                                  RoutePaths.farmerProductEditPath(product.uuid),
-                                  extra: product,
-                                ),
-                      ),
-                      // More menu with icons
-                      Material(
-                        color: Colors.transparent,
-                        child: PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          tooltip: 'More actions',
-                          icon: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: AppColors.light,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.more_vert, size: 18, color: AppColors.muted),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _ActionButton(
+                            icon: Icons.edit_outlined,
+                            color: AppColors.primary,
+                            onPressed: onEdit ??
+                                () => context.go(
+                                      RoutePaths.farmerProductEditPath(product.uuid),
+                                      extra: product,
+                                    ),
                           ),
-                          onSelected: (value) {
-                            switch (value) {
-                              case 'edit':
-                                (onEdit ??
-                                        () => context.go(
-                                              RoutePaths.farmerProductEditPath(product.uuid),
-                                              extra: product,
-                                            ))
-                                    .call();
-                                break;
-                              case 'duplicate':
-                                onDuplicate?.call();
-                                break;
-                              case 'deactivate':
-                                onDeactivate?.call();
-                                break;
-                              case 'delete':
-                                onDelete?.call();
-                                break;
-                              case 'share':
-                                onShare?.call();
-                                break;
-                            }
-                          },
-                          itemBuilder: (context) => menuItems,
-                        ),
+                          Material(
+                            color: Colors.transparent,
+                            child: PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              tooltip: 'More actions',
+                              icon: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.light,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.more_vert, size: 22, color: AppColors.muted),
+                              ),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 'edit':
+                                    (onEdit ??
+                                            () => context.go(
+                                                  RoutePaths.farmerProductEditPath(product.uuid),
+                                                  extra: product,
+                                                ))
+                                        .call();
+                                    break;
+                                  case 'duplicate':
+                                    onDuplicate?.call();
+                                    break;
+                                  case 'deactivate':
+                                    onDeactivate?.call();
+                                    break;
+                                  case 'delete':
+                                    onDelete?.call();
+                                    break;
+                                  case 'share':
+                                    onShare?.call();
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => menuItems,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -413,13 +417,13 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 28,
-        height: 28,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 14, color: color),
+        child: Icon(icon, size: 18, color: color),
       ),
     );
   }

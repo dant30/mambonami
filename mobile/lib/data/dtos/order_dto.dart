@@ -29,19 +29,28 @@ class CreateOrderRequest {
     this.paymentMethod,
   });
 
-  Map<String, dynamic> toJson() => {
-    'items': items.map((e) => e.toJson()).toList(),
-    'delivery_address': deliveryAddress,
-    'delivery_street': deliveryStreet,
-    'delivery_city': deliveryCity,
-    'delivery_postal_code': deliveryPostalCode,
-    'delivery_landmark': deliveryLandmark,
-    'delivery_lat': deliveryLat,
-    'delivery_lng': deliveryLng,
-    'scheduled_date': scheduledDate,
-    'scheduled_time_window': scheduledTimeWindow,
-    'payment_method': paymentMethod,
-  };
+  Map<String, dynamic> toJson() {
+    final payload = <String, dynamic>{
+      'items': items.map((e) => e.toJson()).toList(),
+      'delivery_address': deliveryAddress,
+      'delivery_street': deliveryStreet,
+      'delivery_city': deliveryCity,
+      'delivery_postal_code': deliveryPostalCode,
+      'delivery_lat': deliveryLat,
+      'delivery_lng': deliveryLng,
+      'scheduled_date': scheduledDate,
+      'scheduled_time_window': scheduledTimeWindow,
+    };
+
+    if (deliveryLandmark != null && deliveryLandmark!.trim().isNotEmpty) {
+      payload['delivery_landmark'] = deliveryLandmark;
+    }
+    if (paymentMethod != null && paymentMethod!.trim().isNotEmpty) {
+      payload['payment_method'] = paymentMethod;
+    }
+
+    return payload;
+  }
 }
 
 // ============ CART ITEM DTO ============
