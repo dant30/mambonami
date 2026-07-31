@@ -15,6 +15,7 @@ import '../../../data/models/product.dart';
 import '../../../shared/layouts/app_drawer.dart';
 import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
+import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
@@ -267,7 +268,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                       child: Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.error,
                           shape: BoxShape.circle,
                         ),
@@ -501,7 +502,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               children: [
                 Container(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: AppGradients.hero,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(18),

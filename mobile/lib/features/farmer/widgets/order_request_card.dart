@@ -377,7 +377,8 @@ class OrderRequestCard extends StatelessWidget {
                   ),
                 ],
               ),
-            ] else ...[
+            ],
+            if (!isPending) ...[
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -389,8 +390,9 @@ class OrderRequestCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // Helper widgets for progress dots

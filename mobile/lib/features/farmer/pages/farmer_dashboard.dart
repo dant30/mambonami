@@ -7,6 +7,7 @@ import '../../../blocs/order/order_bloc.dart';
 import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/layouts/app_drawer.dart';
+import '../../../shared/layouts/app_navigation.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
 import '../../../shared/utils/dashboard_data_utils.dart';
@@ -95,7 +96,7 @@ class FarmerDashboard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: AppGradients.hero,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
@@ -141,7 +142,7 @@ class FarmerDashboard extends StatelessWidget {
                             top: 6,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
                               ),

@@ -183,11 +183,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withOpacity(0.9),
+                color: theme.colorScheme.surface.withValues(alpha: 0.9),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 12,
                     spreadRadius: 1,
                   ),
@@ -203,11 +203,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withOpacity(0.96),
+                color: theme.colorScheme.surface.withValues(alpha: 0.96),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
+                    color: Colors.black.withValues(alpha: 0.12),
                     blurRadius: 18,
                     offset: const Offset(0, 8),
                   ),
@@ -259,11 +259,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withOpacity(0.96),
+                  color: theme.colorScheme.surface.withValues(alpha: 0.96),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.14),
+                      color: Colors.black.withValues(alpha: 0.14),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),

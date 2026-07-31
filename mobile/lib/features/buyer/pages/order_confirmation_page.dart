@@ -151,7 +151,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage>
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: AppGradients.hero,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(18),

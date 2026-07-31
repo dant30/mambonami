@@ -314,7 +314,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
   Widget _buildHeader(double totalRevenue) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-      decoration: const BoxDecoration(gradient: AppGradients.hero),
+      decoration: BoxDecoration(gradient: AppGradients.hero),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -423,7 +423,7 @@ class _FarmerEarningsPageState extends State<FarmerEarningsPage> {
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-            decoration: const BoxDecoration(gradient: AppGradients.hero),
+            decoration: BoxDecoration(gradient: AppGradients.hero),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

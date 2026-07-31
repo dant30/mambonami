@@ -36,6 +36,59 @@ class FarmerProductCard extends StatelessWidget {
         ? 0.0
         : (product.availableQuantity / (product.availableQuantity + product.reservedQuantity)).clamp(0.0, 1.0);
 
+    final menuItems = <PopupMenuEntry<String>>[
+      PopupMenuItem<String>(
+        value: 'edit',
+        child: Row(
+          children: [
+            const Icon(Icons.edit, size: 16),
+            const SizedBox(width: 8),
+            const Text('Edit'),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'duplicate',
+        child: Row(
+          children: [
+            const Icon(Icons.copy, size: 16),
+            const SizedBox(width: 8),
+            const Text('Duplicate'),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'deactivate',
+        child: Row(
+          children: [
+            Icon(product.isActive ? Icons.pause : Icons.play_arrow, size: 16),
+            const SizedBox(width: 8),
+            Text(product.isActive ? 'Deactivate' : 'Activate'),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'delete',
+        child: Row(
+          children: [
+            Icon(Icons.delete, size: 16, color: AppColors.error),
+            const SizedBox(width: 8),
+            const Text('Delete', style: TextStyle(color: AppColors.error)),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'share',
+        child: Row(
+          children: [
+            const Icon(Icons.share, size: 16),
+            const SizedBox(width: 8),
+            const Text('Share'),
+          ],
+        ),
+      ),
+    ];
+
     // Expiry warning (simplified)
     final daysUntilExpiry = product.expiryDate?.difference(DateTime.now()).inDays;
     final expiryStatus = daysUntilExpiry != null
@@ -155,12 +208,12 @@ class FarmerProductCard extends StatelessWidget {
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.fireplace, size: 12, color: Colors.white),
-                        SizedBox(width: 4),
-                        Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
+                        const Icon(Icons.fireplace, size: 12, color: Colors.white),
+                        const SizedBox(width: 4),
+                        const Text('24 sold', style: TextStyle(color: Colors.white, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -171,8 +224,8 @@ class FarmerProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   // Category and rating
                   Row(
                     children: [
@@ -292,34 +345,11 @@ class FarmerProductCard extends StatelessWidget {
                               break;
                           }
                         },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'edit', child: Row(
-                            children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')],
-                          )),
-                          const PopupMenuItem(value: 'duplicate', child: Row(
-                            children: [Icon(Icons.copy, size: 16), SizedBox(width: 8), Text('Duplicate')],
-                          )),
-                          PopupMenuItem(
-                            value: 'deactivate',
-                            child: Row(
-                              children: [
-                                Icon(product.isActive ? Icons.pause : Icons.play_arrow, size: 16),
-                                const SizedBox(width: 8),
-                                Text(product.isActive ? 'Deactivate' : 'Activate'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(value: 'delete', child: Row(
-                            children: [Icon(Icons.delete, size: 16, color: AppColors.error), SizedBox(width: 8), Text('Delete', style: TextStyle(color: AppColors.error))],
-                          )),
-                          const PopupMenuItem(value: 'share', child: Row(
-                            children: [Icon(Icons.share, size: 16), SizedBox(width: 8), Text('Share')],
-                          )),
-                        ],
+                        itemBuilder: (context) => menuItems,
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ],

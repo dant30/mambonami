@@ -49,8 +49,11 @@ class _VerificationDocumentsPageState extends State<VerificationDocumentsPage> {
       setState(() {
         _docs = docs;
         final scoreVal = scoreMap['score'] ?? scoreMap['trust_score'] ?? scoreMap['value'];
-        if (scoreVal is num) _trustScore = scoreVal.toDouble();
-        else _trustScore = double.tryParse(scoreVal?.toString() ?? '0');
+        if (scoreVal is num) {
+          _trustScore = scoreVal.toDouble();
+        } else {
+          _trustScore = double.tryParse(scoreVal?.toString() ?? '0');
+        }
       });
     } catch (e) {
       CustomSnackbar.showError(context, 'Failed to load verification data');

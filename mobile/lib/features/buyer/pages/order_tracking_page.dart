@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../blocs/order/order_bloc.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/themes/app_gradients.dart';
+import '../../../data/models/order.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../widgets/delivery_tracking_card.dart';
 import '../widgets/order_status_timeline.dart';
@@ -103,7 +104,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           children: [
             // ── Gradient header ────────────────────────────────
             Container(
-              decoration: const BoxDecoration(gradient: AppGradients.hero),
+              decoration: BoxDecoration(gradient: AppGradients.hero),
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

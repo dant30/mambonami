@@ -182,8 +182,11 @@ class _ProfilePageState extends State<ProfilePage> {
       final scoreMap = await _verificationRepository.getTrustScore();
       final scoreVal = scoreMap['score'] ?? scoreMap['trust_score'] ?? scoreMap['value'];
       double? val;
-      if (scoreVal is num) val = scoreVal.toDouble();
-      else val = double.tryParse(scoreVal?.toString() ?? '');
+      if (scoreVal is num) {
+        val = scoreVal.toDouble();
+      } else {
+        val = double.tryParse(scoreVal?.toString() ?? '');
+      }
       setState(() { _trustScoreProfile = val; });
     } catch (_) {
       // ignore
@@ -470,7 +473,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 56, 20, 28),
-      decoration: const BoxDecoration(gradient: AppGradients.hero),
+      decoration: BoxDecoration(gradient: AppGradients.hero),
       child: Column(
         children: [
           Row(
