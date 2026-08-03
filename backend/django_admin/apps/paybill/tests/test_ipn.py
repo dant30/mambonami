@@ -64,3 +64,59 @@ class PayBillSimulationViewTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, 'paid_escrow')
         self.assertEqual(self.order.paybill_transaction_code, self.transaction_code)
+
+
+class C2BCallbackViewTests(TestCase):
+    def test_validation_callback_returns_success_response(self):
+        payload = {
+            'TransactionType': 'CustomerPayBillOnline',
+            'TransID': '1234567890',
+            'TransTime': '20240101120000',
+            'TransAmount': '1200.00',
+            'BusinessShortCode': '4749215',
+            'BillRefNumber': 'ORD-123',
+            'InvoiceNumber': '',
+            'OrgAccountBalance': '10000.00',
+            'ThirdPartyTransID': '',
+            'MSISDN': '254712345678',
+            'FirstName': 'Jane',
+            'MiddleName': '',
+            'LastName': 'Doe',
+        }
+
+        response = self.client.post(
+            reverse('paybill:c2b_validation'),
+            data=payload,
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'].split(';')[0], 'application/xml')
+        self.assertIn('<ResultCode>0</ResultCode>', response.content.decode())
+
+    def test_confirmation_callback_returns_success_response(self):
+        payload = {
+            'TransactionType': 'CustomerPayBillOnline',
+            'TransID': '1234567891',
+            'TransTime': '20240101120001',
+            'TransAmount': '1200.00',
+            'BusinessShortCode': '4749215',
+            'BillRefNumber': 'ORD-124',
+            'InvoiceNumber': '',
+            'OrgAccountBalance': '10000.00',
+            'ThirdPartyTransID': '',
+            'MSISDN': '254712345679',
+            'FirstName': 'Jane',
+            'MiddleName': '',
+            'LastName': 'Doe',
+        }
+
+        response = self.client.post(
+            reverse('paybill:c2b_confirmation'),
+            data=payload,
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'].split(';')[0], 'application/xml')
+        self.assertIn('<ResultCode>0</ResultCode>', response.content.decode())

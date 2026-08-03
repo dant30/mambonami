@@ -2,6 +2,9 @@
 # backend/django_admin/apps/paybill/views/api.py
 import logging
 from django.conf import settings
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -54,6 +57,40 @@ class IPNCallbackView(APIView):
         if forwarded:
             return forwarded.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR')
+
+@method_decorator(csrf_exempt, name='dispatch')
+class C2BValidationCallbackView(APIView):
+    """Handle M-Pesa C2B validation requests from Safaricom."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        response_xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Response>'
+            '<ResultCode>0</ResultCode>'
+            '<ResultDesc>Accepted</ResultDesc>'
+            '</Response>'
+        )
+        return HttpResponse(response_xml, content_type='application/xml')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class C2BConfirmationCallbackView(APIView):
+    """Handle M-Pesa C2B confirmation requests from Safaricom."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        response_xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Response>'
+            '<ResultCode>0</ResultCode>'
+            '<ResultDesc>Accepted</ResultDesc>'
+            '</Response>'
+        )
+        return HttpResponse(response_xml, content_type='application/xml')
+
 
 class PayBillSimulationView(APIView):
     """Local development endpoint to simulate a PayBill callback without hitting Safaricom."""
