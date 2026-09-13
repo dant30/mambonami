@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, FileCheck2, Navigation, Package, Plus, ShieldCheck, Truck, Users, X } from 'lucide-react'
+import { BarChart3, ClipboardList, FileCheck2, LogIn, LogOut, Navigation, Package, Plus, ShieldCheck, Truck, UserPlus, Users, X } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
@@ -25,7 +25,7 @@ export interface SidebarProps {
 }
 
 export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onClose }: SidebarProps) {
-	const { user } = useAuth()
+	const { user, isAuthenticated, logout } = useAuth()
 	const isAdmin = Boolean(user?.is_staff || user?.is_superuser)
 	const role = typeof user?.role === 'string' ? user.role : ''
 	const navigate = useNavigate()
@@ -33,7 +33,15 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 	// ✅✅ Dashboard path uses /app/{role} pattern
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
 
-	const marketplaceItems = role === 'buyer'
+	const marketplaceItems = !isAuthenticated
+		? [
+			{ path: '/home', label: 'Home', icon: ClipboardList },
+			{ path: '/products', label: 'Browse produce', icon: Package },
+			{ path: '/how-it-works', label: 'How it works', icon: Navigation },
+			{ path: '/about', label: 'About Mambonami', icon: Users },
+			{ path: '/support', label: 'Support', icon: ShieldCheck },
+		]
+		: role === 'buyer'
 		? [
 			{ path: dashboardPath, label: 'Dashboard', icon: ClipboardList },
 			{ path: '/app/buyer/products', label: 'Browse products', icon: Package },
@@ -70,7 +78,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 		<aside
 			className={
 				mobileDrawer
-					? 'flex w-full flex-col bg-primary-dark p-4 text-primary-foreground'
+					? 'flex h-full min-h-full w-full flex-col overflow-hidden bg-background p-4 text-foreground'
 					: 'sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-border bg-background px-3 py-5 md:flex'
 			}
 			aria-label={admin ? 'Admin navigation' : 'Marketplace navigation'}
@@ -82,7 +90,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 				</p>
 				<p className="mt-1 font-display text-lg font-bold text-primary-dark">MAMBONAMI</p>
 					</div>
-					{mobileDrawer && <button type="button" onClick={onClose} aria-label="Close navigation drawer" className="rounded-full p-2 text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"><X className="h-5 w-5" /></button>}
+					{mobileDrawer && <button type="button" onClick={onClose} aria-label="Close navigation drawer" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button>}
 			</div>
 
 			<nav className="sidebar-nav-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={admin ? 'Admin links' : 'Marketplace links'}>
@@ -105,7 +113,8 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 				))}
 			</nav>
 
-			{!admin && <button type="button" onClick={() => navigate(role === 'farmer' ? '/app/farmer/products/new' : role === 'retailer' ? '/app/retailer/products' : role === 'transport_provider' ? '/app/transport/jobs' : '/app/buyer/products')} className="mt-4 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-3 text-sm font-bold text-secondary-foreground transition hover:brightness-95"><Plus className="h-4 w-4" />{role === 'farmer' ? 'Add product' : role === 'retailer' ? 'Find products' : role === 'transport_provider' ? 'Find jobs' : 'Shop produce'}</button>}
+			{!admin && isAuthenticated && <button type="button" onClick={() => navigate(role === 'farmer' ? '/app/farmer/products/new' : role === 'retailer' ? '/app/retailer/products' : role === 'transport_provider' ? '/app/transport/jobs' : '/app/buyer/products')} className="mt-4 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-3 text-sm font-bold text-secondary-foreground transition hover:brightness-95"><Plus className="h-4 w-4" />{role === 'farmer' ? 'Add product' : role === 'retailer' ? 'Find products' : role === 'transport_provider' ? 'Find jobs' : 'Shop produce'}</button>}
+			{!admin && !isAuthenticated && <div className="mt-4 grid shrink-0 gap-2"><NavLink to="/login" onClick={onItemClick} className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-3 text-sm font-bold text-primary-dark hover:bg-muted"><LogIn className="h-4 w-4" />Log in</NavLink><NavLink to="/role-select" onClick={onItemClick} className="flex items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-3 text-sm font-bold text-secondary-foreground hover:brightness-95"><UserPlus className="h-4 w-4" />Get started</NavLink></div>}
 
 			{admin && (
 				<div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground">
@@ -116,8 +125,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 
 			{!admin && (
 				<div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground">
-					<Truck className="mb-2 h-5 w-5 text-primary" />
-					From farm gate to doorstep
+					{isAuthenticated ? <button type="button" onClick={() => { logout(); onItemClick?.(); navigate('/login') }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-muted px-3 py-3 font-bold text-destructive hover:bg-destructive/10"><LogOut className="h-4 w-4" />Log out</button> : <><Truck className="mb-2 h-5 w-5 text-primary" />From farm gate to doorstep</>}
 				</div>
 			)}
 		</aside>

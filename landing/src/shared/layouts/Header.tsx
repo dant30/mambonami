@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Heart, Leaf, LogIn, LogOut, Menu, ShoppingBasket, UserCircle, X } from 'lucide-react'
+import { Bell, ChevronDown, Heart, Leaf, LogOut, Menu, ShoppingBasket, UserCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
@@ -205,52 +205,13 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 					aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
 					aria-expanded={menuOpen}
 					aria-controls="mobile-navigation"
-					onClick={() => { if (isAuthenticated && onMenuToggle) { setMenuOpen(false); onMenuToggle() } else setMenuOpen((open) => !open) }}
+					onClick={() => { setMenuOpen((open) => !open); onMenuToggle?.() }}
 				>
 					{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
 				</button>
 			</div>
 
 			{/* ✅✅ Mobile menu */}
-			{menuOpen && !isAuthenticated && (
-				<div id="mobile-navigation" className="border-t border-border bg-background px-4 py-4 md:hidden">
-					<nav className="mx-auto flex max-w-7xl flex-col gap-3 text-sm font-semibold text-foreground" aria-label="Mobile navigation">
-						{isAuthenticated ? (
-							<>
-								<Link to={dashboardPath} onClick={closeMenu} className="text-primary">
-									Dashboard
-								</Link>
-								{role && <p className="pt-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground/70">Workspace: {role.replace('_', ' ')}</p>}
-								<button
-									type="button"
-									onClick={() => {
-										closeMenu()
-										signOut()
-									}}
-									className="flex w-fit items-center gap-2 text-left text-destructive"
-								>
-									<LogOut className="h-4 w-4" />
-									Sign out
-								</button>
-							</>
-						) : (
-							<>
-								<Link to="/home" onClick={closeMenu}>Home</Link>
-								<Link to="/products" onClick={closeMenu}>Products</Link>
-								<Link to="/wishlist" onClick={closeMenu} className="flex items-center gap-2"><Heart className="h-4 w-4" />Wishlist</Link>
-								<Link to="/cart" onClick={closeMenu} className="flex items-center gap-2"><ShoppingBasket className="h-4 w-4" />Cart</Link>
-								<Link to="/how-it-works" onClick={closeMenu}>How it works</Link>
-								<Link to="/about" onClick={closeMenu}>About</Link>
-								<Link to="/support" onClick={closeMenu}>Support</Link>
-								<Link to="/login" onClick={closeMenu} className="flex items-center gap-2 text-primary">
-									<LogIn className="h-4 w-4" />
-									Log in
-								</Link>
-							</>
-						)}
-					</nav>
-				</div>
-			)}
 		</header>
 	)
 }
