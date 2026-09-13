@@ -15,7 +15,7 @@ import { useIsMobile } from '../../core/hooks'
  * Retailer: Dashboard, Shop, Orders, Suppliers, Purchases | Search, Notifications, Profile
  * Transport: Dashboard, Jobs, Active, Vehicles | Availability, Notifications, Profile
  */
-export function Header() {
+export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 	const { isAuthenticated, user, logout } = useAuth()
 	const isMobile = useIsMobile()
 	const [menuOpen, setMenuOpen] = useState(false)
@@ -27,6 +27,7 @@ export function Header() {
 	// ✅✅ Dashboard path uses /app/{role} pattern
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
 	const profilePath = role === 'buyer' ? '/app/buyer/profile' : dashboardPath
+	const homePath = isAuthenticated ? dashboardPath : '/home'
 
 	const displayName = String(user?.first_name || user?.username || user?.phone || 'MAMBONAMI member')
 	const closeMenu = () => setMenuOpen(false)
@@ -50,7 +51,7 @@ export function Header() {
 		<header className="sticky top-0 z-50 border-b border-border bg-background shadow-[0_6px_22px_-14px_rgba(41,74,54,0.5)]">
 			<div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
 				{/* ✅✅ Logo always links to /home (public marketplace, not dashboard) */}
-				<Link to="/home" className="flex shrink-0 items-center gap-2.5" aria-label="MAMBONAMI home">
+				<Link to={homePath} className="flex shrink-0 items-center gap-2.5" aria-label="MAMBONAMI home">
 					<span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
 						<Leaf className="h-4 w-4" />
 					</span>
@@ -184,14 +185,14 @@ export function Header() {
 					aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
 					aria-expanded={menuOpen}
 					aria-controls="mobile-navigation"
-					onClick={() => setMenuOpen((open) => !open)}
+					onClick={() => { if (isAuthenticated && onMenuToggle) { setMenuOpen(false); onMenuToggle() } else setMenuOpen((open) => !open) }}
 				>
 					{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
 				</button>
 			</div>
 
 			{/* ✅✅ Mobile menu */}
-			{menuOpen && (
+			{menuOpen && !isAuthenticated && (
 				<div id="mobile-navigation" className="border-t border-border bg-background px-4 py-4 md:hidden">
 					<nav className="mx-auto flex max-w-7xl flex-col gap-3 text-sm font-semibold text-foreground" aria-label="Mobile navigation">
 						{isAuthenticated ? (
@@ -216,6 +217,8 @@ export function Header() {
 							<>
 								<Link to="/home" onClick={closeMenu}>Home</Link>
 								<Link to="/products" onClick={closeMenu}>Products</Link>
+								<Link to="/wishlist" onClick={closeMenu} className="flex items-center gap-2"><Heart className="h-4 w-4" />Wishlist</Link>
+								<Link to="/cart" onClick={closeMenu} className="flex items-center gap-2"><ShoppingBasket className="h-4 w-4" />Cart</Link>
 								<Link to="/how-it-works" onClick={closeMenu}>How it works</Link>
 								<Link to="/about" onClick={closeMenu}>About</Link>
 								<Link to="/support" onClick={closeMenu}>Support</Link>

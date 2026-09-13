@@ -9,15 +9,18 @@ import { Footer } from './Footer'
 import { Header } from './Header'
 import { MobileBottomNav } from './MobileBottomNav'
 import { Sidebar } from './Sidebar'
+import { useState } from 'react'
 
 export function MainLayout({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
 	const { isAuthenticated, user } = useAuth()
 	const isDesktop = useMediaQuery('(min-width: 768px)')
 	const isAdmin = admin || Boolean(user?.is_staff || user?.is_superuser)
+	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
-			<Header />
+			<Header onMenuToggle={() => setMobileSidebarOpen((open) => !open)} />
+			{isAuthenticated && !isDesktop && mobileSidebarOpen && <div className="fixed inset-0 z-[60] bg-primary-dark/40 backdrop-blur-[2px]" onClick={() => setMobileSidebarOpen(false)} aria-hidden="true"><div className="h-full w-[min(86vw,20rem)] animate-slide-in-left" onClick={(event) => event.stopPropagation()}><Sidebar admin={isAdmin} mobileDrawer onItemClick={() => setMobileSidebarOpen(false)} onClose={() => setMobileSidebarOpen(false)} /></div></div>}
 			<div className="flex min-h-[calc(100vh-4rem)] items-start">
 				{isAuthenticated && isDesktop && <Sidebar admin={isAdmin} />}
 				<div className="flex min-w-0 flex-1 flex-col">

@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingBasket, UserCircle } from 'lucide-react'
+import { Heart, Home, Package, ShoppingBasket, UserCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
@@ -46,7 +46,8 @@ export function MobileBottomNav() {
 			: [
 					{ label: 'Home', path: '/home', icon: Home },
 					{ label: 'Produce', path: '/products', icon: Package },
-					{ label: 'Log in', path: '/login', icon: UserCircle },
+					{ label: 'Wishlist', path: '/wishlist', icon: Heart },
+					{ label: 'Cart', path: '/cart', icon: ShoppingBasket },
 				]
 
 	return (

@@ -57,8 +57,17 @@
   }
 }
 
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .animate-slide-in-right {
   animation: slideInRight 0.28s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.28s ease-out forwards;
 }
 
 .animate-pulse-glow {

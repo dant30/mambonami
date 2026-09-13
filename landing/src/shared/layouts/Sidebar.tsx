@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, FileCheck2, Navigation, Package, ShieldCheck, Truck, Users } from 'lucide-react'
+import { BarChart3, ClipboardList, FileCheck2, Navigation, Package, ShieldCheck, Truck, Users, X } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
@@ -21,9 +21,10 @@ export interface SidebarProps {
 	admin?: boolean
 	mobileDrawer?: boolean
 	onItemClick?: () => void
+	onClose?: () => void
 }
 
-export function Sidebar({ admin = false, mobileDrawer = false, onItemClick }: SidebarProps) {
+export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onClose }: SidebarProps) {
 	const { user } = useAuth()
 	const isAdmin = Boolean(user?.is_staff || user?.is_superuser)
 	const role = typeof user?.role === 'string' ? user.role : ''
@@ -73,11 +74,14 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick }: Si
 			}
 			aria-label={admin ? 'Admin navigation' : 'Marketplace navigation'}
 		>
-			<div className="mb-5 border-b border-border px-3 pb-4">
+				<div className="mb-5 flex items-start justify-between border-b border-border px-3 pb-4">
+					<div>
 				<p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
 					{admin ? 'Operations' : 'Marketplace'}
 				</p>
 				<p className="mt-1 font-display text-lg font-bold text-primary-dark">MAMBONAMI</p>
+					</div>
+					{mobileDrawer && <button type="button" onClick={onClose} aria-label="Close navigation drawer" className="rounded-full p-2 text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"><X className="h-5 w-5" /></button>}
 			</div>
 
 			<nav className="space-y-1" aria-label={admin ? 'Admin links' : 'Marketplace links'}>
