@@ -10,6 +10,7 @@ urlpatterns = [
     path('units/', api.ProductUnitListView.as_view(), name='product-units'),
     path('wishlist/', api.WishlistListView.as_view(), name='wishlist-list'),
     path('wishlist/<uuid:uuid>/', api.WishlistItemView.as_view(), name='wishlist-item'),
+	path('<uuid:uuid>/reviews/', api.ProductReviewListCreateView.as_view(), name='product-reviews'),
     path('', api.ProductListView.as_view(), name='product-list'),
     path('<uuid:uuid>/', api.ProductDetailView.as_view(), name='product-detail'),
 

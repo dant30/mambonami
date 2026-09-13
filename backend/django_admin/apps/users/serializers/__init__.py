@@ -1,8 +1,12 @@
 ﻿from .user_serializer import (
     RegisterInitSerializer,
+    RegistrationStartSerializer,
+    RegistrationVerifySerializer,
+    RegistrationResendSerializer,
     VerifyOTPSerializer,
     PasswordResetInitSerializer,
     PasswordResetVerifySerializer,
+    PasswordResetCodeSerializer,
     ChangePasswordSerializer,
     UserDetailSerializer,
     LoginSerializer,
@@ -15,9 +19,13 @@ from .verification_serializer import (
 
 __all__ = [
     'RegisterInitSerializer',
+    'RegistrationStartSerializer',
+    'RegistrationVerifySerializer',
+    'RegistrationResendSerializer',
     'VerifyOTPSerializer',
     'PasswordResetInitSerializer',
     'PasswordResetVerifySerializer',
+    'PasswordResetCodeSerializer',
     'ChangePasswordSerializer',
     'UserDetailSerializer',
     'LoginSerializer',

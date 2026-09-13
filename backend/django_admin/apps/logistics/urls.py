@@ -8,6 +8,7 @@ urlpatterns = [
     # Provider flows (with detailed status transitions)
     path('orders/available/', api.AvailableOrdersView.as_view(), name='available-orders'),
     path('trips/<uuid:trip_uuid>/assign/', api.AssignToMeView.as_view(), name='assign-to-me'),
+    path('trips/<uuid:trip_uuid>/decline/', api.DeclineTripView.as_view(), name='decline-trip'),
     path('trips/<uuid:trip_uuid>/start-pickup-nav/', api.TripStartNavigationPickupView.as_view(), name='start-pickup-nav'),
     path('trips/<uuid:trip_uuid>/arrive-pickup/', api.TripArriveAtPickupView.as_view(), name='arrive-pickup'),
     path('trips/<uuid:trip_uuid>/pickup/', api.TripPickupView.as_view(), name='pickup'),

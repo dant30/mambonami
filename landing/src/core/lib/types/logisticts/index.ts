@@ -1,0 +1,15 @@
+export type {
+	Trip,
+	TripListResponse,
+	TripLocationPayload,
+	TripLocationPing,
+	TripMedia,
+	TripMediaUploadPayload,
+	TripOtpResponse,
+	TripOtpVerificationInput,
+	TripOtpVerificationResponse,
+	TripProviderDetail,
+	TripStatus,
+	TripStatusHistory,
+	TripStatusUpdateResponse,
+} from './logistics'

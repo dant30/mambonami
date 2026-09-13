@@ -143,6 +143,20 @@ class Trip(BaseModel):
             # Add vehicle make/model fields to TransportProviderProfile if needed
 
 
+class TripProviderDecline(BaseModel):
+    """Records a provider declining an offered trip without hiding it from others."""
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='provider_declines')
+    provider = models.ForeignKey('users.TransportProviderProfile', on_delete=models.CASCADE, related_name='trip_declines')
+    reason = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'trip_provider_declines'
+        constraints = [
+            models.UniqueConstraint(fields=['trip', 'provider'], name='unique_trip_provider_decline'),
+        ]
+
+
 class TripStatusHistory(BaseModel):
     """
     Immutable log of every status change for a trip.

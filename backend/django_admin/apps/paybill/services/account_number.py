@@ -31,3 +31,16 @@ def generate_account_number(prefix: str, related_object_id: int, related_object_
 def reserve_account_number(prefix: str, related_object_id: int, related_object_type: str) -> str:
     """Alias for generate_account_number, with stronger emphasis on reservation."""
     return generate_account_number(prefix, related_object_id, related_object_type)
+
+
+def generate_transport_deposit_account(provider_id: int) -> str:
+    """Reserve the PayBill reference used for a transport provider deposit."""
+    account_number = f'DEP-TRANSPORT-{provider_id}'
+    with transaction.atomic():
+        AccountNumberReservation.objects.get_or_create(
+            prefix='DEP',
+            related_object_id=provider_id,
+            related_object_type='TransportProviderProfile',
+            defaults={'account_number': account_number, 'is_used': False},
+        )
+    return account_number

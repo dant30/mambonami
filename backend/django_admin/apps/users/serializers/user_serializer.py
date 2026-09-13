@@ -1,7 +1,9 @@
 ﻿# backend/django_admin/apps/users/serializers/user_serializer.py
 import logging
+import json
 from django.db import IntegrityError, transaction
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import serializers
 
 
@@ -21,6 +23,7 @@ def _normalize_vehicle_type(value):
 
 
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.hashers import make_password
 from core.cache import RedisCache, cache_otp, delete_otp, get_otp
 from core.utils import generate_otp
 from core.validators import normalize_phone_number, validate_phone_number
@@ -35,6 +38,7 @@ from ..models import (
     BuyerProfile,
     RetailerProfile,
 )
+from ..models import PendingRegistration
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +62,128 @@ class RegisterInitSerializer(serializers.Serializer):
         return {'message': 'OTP sent'}
 
 
+class RegistrationStartSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=15)
+    role = serializers.ChoiceField(choices=Role.choices)
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+    full_name = serializers.CharField(required=False, allow_blank=True)
+    owner_full_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    delivery_address = serializers.CharField(required=False, allow_blank=True)
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    mpesa_number = serializers.CharField(required=False, allow_blank=True)
+    vehicle_type = serializers.CharField(required=False, allow_blank=True)
+    license_plate = serializers.CharField(required=False, allow_blank=True)
+    business_name = serializers.CharField(required=False, allow_blank=True)
+    business_address = serializers.CharField(required=False, allow_blank=True)
+    bank_account = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_phone(self, value):
+        phone = normalize_phone_number(value)
+        if User.objects.filter(phone=phone).exists():
+            raise serializers.ValidationError('User with this phone already exists.')
+        return phone
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+        return attrs
+
+    def save(self):
+        from core.cache import RedisCache
+        from core.utils import generate_otp
+        from apps.notifications.services.sms import send_otp_message
+
+        data = dict(self.validated_data)
+        password = data.pop('password')
+        data.pop('confirm_password', None)
+        phone = data['phone']
+        otp = generate_otp()
+        registration_data = json.loads(json.dumps(data, default=str))
+        pending = PendingRegistration.objects.create(
+            phone=phone,
+            role=data['role'],
+            registration_data=registration_data,
+            password_hash=make_password(password),
+            otp_hash=make_password(otp),
+            otp_expires_at=timezone.now() + timezone.timedelta(seconds=settings.OTP_EXPIRY_SECONDS),
+        )
+        result = send_otp_message(phone, otp)
+        if result.get('status') != 'success':
+            pending.delete()
+            raise serializers.ValidationError({'detail': result.get('error') or result.get('message') or 'Could not send OTP right now.'})
+        return {'registration_id': str(pending.registration_id), 'phone': phone, 'role': data['role'], 'expires_in': settings.OTP_EXPIRY_SECONDS, 'otp_sent': True}
+
+
+class RegistrationVerifySerializer(serializers.Serializer):
+    registration_id = serializers.UUIDField()
+    otp = serializers.CharField(min_length=6, max_length=6)
+
+    def validate(self, attrs):
+        pending = PendingRegistration.objects.filter(registration_id=attrs['registration_id'], status='pending').first()
+        if not pending:
+            raise serializers.ValidationError({'registration_id': 'Registration session is invalid or expired.'})
+        if pending.is_expired():
+            pending.status = 'expired'
+            pending.save(update_fields=['status', 'updated_at'])
+            raise serializers.ValidationError({'otp': 'This verification code has expired.'})
+        if pending.attempt_count >= settings.OTP_MAX_ATTEMPTS:
+            pending.status = 'blocked'
+            pending.save(update_fields=['status', 'updated_at'])
+            raise serializers.ValidationError({'otp': 'Too many attempts. Request a new code.'})
+        if not pending.check_otp(attrs['otp']):
+            pending.attempt_count += 1
+            pending.save(update_fields=['attempt_count', 'updated_at'])
+            raise serializers.ValidationError({'otp': 'Invalid verification code.'})
+        attrs['pending'] = pending
+        return attrs
+
+
+class RegistrationResendSerializer(serializers.Serializer):
+    registration_id = serializers.UUIDField()
+
+    def save(self):
+        from core.utils import generate_otp
+        from apps.notifications.services.sms import send_otp_message
+
+        pending = PendingRegistration.objects.filter(registration_id=self.validated_data['registration_id'], status='pending').first()
+        if not pending or pending.is_expired():
+            raise serializers.ValidationError({'registration_id': 'Registration session is expired.'})
+        if pending.resend_count >= 5:
+            raise serializers.ValidationError({'detail': 'Maximum resend limit reached.'})
+        otp = generate_otp()
+        pending.otp_hash = make_password(otp)
+        pending.otp_expires_at = timezone.now() + timezone.timedelta(seconds=settings.OTP_EXPIRY_SECONDS)
+        pending.resend_count += 1
+        pending.attempt_count = 0
+        pending.save(update_fields=['otp_hash', 'otp_expires_at', 'resend_count', 'attempt_count', 'updated_at'])
+        result = send_otp_message(pending.phone, otp)
+        if result.get('status') != 'success':
+            raise serializers.ValidationError({'detail': result.get('error') or result.get('message') or 'Could not send OTP right now.'})
+        return {'registration_id': str(pending.registration_id), 'phone': pending.phone, 'expires_in': settings.OTP_EXPIRY_SECONDS, 'otp_sent': True}
+
+
+class PasswordResetCodeSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=15)
+    otp = serializers.CharField(min_length=6, max_length=6)
+
+    def validate(self, attrs):
+        phone = normalize_phone_number(attrs['phone'])
+        if not User.objects.filter(phone=phone).exists():
+            raise serializers.ValidationError({'phone': 'User with this phone does not exist.'})
+        cached_otp = RedisCache.get(f'password_reset_otp:{phone}')
+        if not cached_otp or cached_otp != attrs['otp']:
+            raise serializers.ValidationError({'otp': 'Invalid or expired OTP.'})
+        attrs['phone'] = phone
+        return attrs
+
+
 class VerifyOTPSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
-    otp = serializers.CharField(max_length=4)
+    otp = serializers.CharField(min_length=6, max_length=6)
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
@@ -148,20 +271,6 @@ class VerifyOTPSerializer(serializers.Serializer):
             raise serializers.ValidationError({'otp': 'Invalid or expired OTP.'})
 
         RedisCache.delete(attempts_key)
-
-        role = attrs['role']
-        if role == Role.FARMER:
-            if not attrs.get('latitude') or not attrs.get('longitude') or not attrs.get('mpesa_number'):
-                raise serializers.ValidationError('GPS coordinates and M-Pesa number are required for farmers.')
-        elif role == Role.TRANSPORT_PROVIDER:
-            if not attrs.get('vehicle_type') or not attrs.get('license_plate'):
-                raise serializers.ValidationError('Vehicle type and license plate are required for transport providers.')
-        elif role == Role.BUYER:
-            if not attrs.get('delivery_address'):
-                raise serializers.ValidationError('Delivery address is required for buyers.')
-        elif role == Role.RETAILER:
-            if not attrs.get('business_name') or not attrs.get('owner_full_name'):
-                raise serializers.ValidationError('Business name and owner full name are required for retailers.')
 
         return attrs
 
@@ -262,6 +371,8 @@ class VerifyOTPSerializer(serializers.Serializer):
             transport_profile.deposit_paid = False
             transport_profile.is_approved = False
             transport_profile.save()
+            from apps.paybill.services.account_number import generate_transport_deposit_account
+            generate_transport_deposit_account(transport_profile.id)
 
         elif user.role == Role.BUYER:
             buyer_profile, _ = BuyerProfile.objects.get_or_create(user=user)
@@ -273,14 +384,21 @@ class VerifyOTPSerializer(serializers.Serializer):
 
         elif user.role == Role.RETAILER:
             retailer_profile, _ = RetailerProfile.objects.get_or_create(user=user)
-            retailer_profile.business_name = business_name
-            retailer_profile.owner_full_name = owner_full_name
-            retailer_profile.business_phone = business_phone
-            retailer_profile.business_email = business_email
-            retailer_profile.business_address = business_address
-            retailer_profile.business_type = business_type
-            retailer_profile.kra_pin = kra_pin
-            retailer_profile.business_registration_number = business_registration_number
+            retailer_profile.business_name = business_name or retailer_profile.business_name or ''
+            retailer_profile.owner_full_name = (
+                owner_full_name
+                or full_name
+                or retailer_profile.owner_full_name
+                or user.get_full_name()
+                or user.username
+                or user.phone
+            )
+            retailer_profile.business_phone = business_phone or retailer_profile.business_phone or user.phone
+            retailer_profile.business_email = business_email or retailer_profile.business_email or user.email or ''
+            retailer_profile.business_address = business_address or retailer_profile.business_address or ''
+            retailer_profile.business_type = business_type or retailer_profile.business_type or ''
+            retailer_profile.kra_pin = kra_pin or retailer_profile.kra_pin or ''
+            retailer_profile.business_registration_number = business_registration_number or retailer_profile.business_registration_number or ''
             if bank_account:
                 retailer_profile.bank_account = bank_account
             retailer_profile.save()
@@ -316,7 +434,7 @@ class PasswordResetInitSerializer(serializers.Serializer):
 
 class PasswordResetVerifySerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
-    otp = serializers.CharField(max_length=4)
+    otp = serializers.CharField(min_length=6, max_length=6)
     new_password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
 
@@ -383,13 +501,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
     full_name = serializers.CharField(read_only=True)
     display_name = serializers.CharField(read_only=True)
+    verification_status = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
-            'account_status', 'kyc_status', 'avatar', 'avatar_url',
+            'account_status', 'kyc_status', 'verification_status', 'avatar', 'avatar_url',
             'is_staff', 'is_superuser', 'date_joined', 'last_seen',
             'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
@@ -401,6 +520,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
         return None
+
+    def get_verification_status(self, obj):
+        return obj.kyc_status
 
     def get_farm_profile(self, obj):
         if hasattr(obj, 'farmer_profile'):
@@ -430,7 +552,12 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'vehicle_type': p.vehicle_type,
                 'capacity_kg': p.capacity_kg,
                 'license_plate': p.license_plate,
+                'driver_license': p.driver_license,
                 'deposit_paid': p.deposit_paid,
+                'deposit_amount': 500,
+                'deposit_account_number': f'DEP-TRANSPORT-{p.id}',
+                'paybill_number': getattr(settings, 'MPESA_PAYBILL_NUMBER', '123456'),
+                'deposit_transaction_id': p.deposit_transaction_id,
                 'is_approved': p.is_approved,
                 'rating': p.rating,
                 'total_deliveries': p.total_deliveries,
@@ -474,10 +601,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return None
 
     def _get_avatar_url(self, profile):
-        if profile.avatar:
+        avatar = getattr(profile, 'avatar', None)
+        if avatar:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(profile.avatar.url)
+                return request.build_absolute_uri(avatar.url)
         return None
 
 

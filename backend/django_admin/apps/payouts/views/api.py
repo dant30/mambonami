@@ -8,16 +8,29 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.permissions import IsAdmin, IsTransportProvider
+from apps.users.permissions import IsAdmin
 from ..models import Payout
+from ..permissions import CanViewPayouts
 from ..serializers import PayoutSerializer
 from ..services.payout_service import handle_b2c_callback
 
 class PayoutListView(generics.ListAPIView):
-    """Admin-only: view all payouts."""
-    permission_classes = [IsAdmin]
+    """Admins see all payouts; farmers and providers see their own payouts."""
+    permission_classes = [CanViewPayouts]
     serializer_class = PayoutSerializer
-    queryset = Payout.objects.all().order_by('-created_at')
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Payout.objects.all().order_by('-created_at')
+
+        recipient_type = 'farmer' if user.role == 'farmer' else 'transport_provider' if user.role == 'transport_provider' else None
+        if recipient_type is None:
+            return Payout.objects.none()
+        return Payout.objects.filter(
+            recipient_user=user,
+            recipient_type=recipient_type,
+        ).order_by('-created_at')
 
 class PayoutDetailView(generics.RetrieveAPIView):
     """Admin-only: view single payout."""
@@ -29,13 +42,14 @@ class PayoutDetailView(generics.RetrieveAPIView):
 
 class TransportPayoutSummaryView(APIView):
     """Return authenticated provider payout totals for the dashboard analytics strip."""
-    permission_classes = [IsTransportProvider]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        payouts = Payout.objects.filter(
-            recipient_user=request.user,
-            recipient_type='transport_provider',
-        )
+        recipient_type = 'farmer' if request.user.role == 'farmer' else 'transport_provider' if request.user.role == 'transport_provider' else None
+        if recipient_type is None:
+            return Response({'detail': 'Only farmers and transport providers can view payout summaries.'}, status=status.HTTP_403_FORBIDDEN)
+
+        payouts = Payout.objects.filter(recipient_user=request.user, recipient_type=recipient_type)
 
         total = payouts.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         completed = payouts.filter(status='completed')

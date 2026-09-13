@@ -1,0 +1,80 @@
+interface StorageStore {
+	get<T>(key: string): T | null
+	set<T>(key: string, value: T): void
+	remove(key: string): void
+	has(key: string): boolean
+	clear(): void
+}
+
+function createStorageStore(getStorage: () => Storage | null): StorageStore {
+	return {
+		get<T>(key: string) {
+			const storage = getStorage()
+			if (!storage) return null
+
+			try {
+				const value = storage.getItem(key)
+				if (value === null) return null
+
+				try {
+					return JSON.parse(value) as T
+				} catch {
+					return value as T
+				}
+			} catch {
+				return null
+			}
+		},
+
+		set<T>(key: string, value: T) {
+			const storage = getStorage()
+			if (!storage) return
+
+			try {
+				storage.setItem(key, JSON.stringify(value))
+			} catch {
+				return
+			}
+		},
+
+		remove(key) {
+			const storage = getStorage()
+			if (!storage) return
+
+			try {
+				storage.removeItem(key)
+			} catch {
+				return
+			}
+		},
+
+		has(key) {
+			const storage = getStorage()
+			if (!storage) return false
+
+			try {
+				return storage.getItem(key) !== null
+			} catch {
+				return false
+			}
+		},
+
+		clear() {
+			const storage = getStorage()
+			if (!storage) return
+
+			try {
+				storage.clear()
+			} catch {
+				return
+			}
+		},
+	}
+}
+
+export const sessionStorageStore = createStorageStore(() => {
+	if (typeof window === 'undefined') return null
+	return window.sessionStorage
+})
+
+export const sessionStore = sessionStorageStore

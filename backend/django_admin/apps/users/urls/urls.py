@@ -2,11 +2,16 @@
 from django.urls import path
 from ..views.api import (
     RegisterInitView,
+    RegistrationStartView,
+    RegistrationVerifyView,
+    RegistrationResendView,
     VerifyOTPView,
     PasswordResetInitView,
     PasswordResetVerifyView,
+    PasswordResetCodeView,
     PasswordChangeView,
     CustomTokenObtainPairView,
+    LogoutView,
     ProfileView,
     AvatarUploadView,
     VerificationDocumentListCreateView,
@@ -20,10 +25,15 @@ app_name = 'users'
 urlpatterns = [
     # Authentication
     path('register/init/', RegisterInitView.as_view(), name='register-init'),
+    path('registration/start/', RegistrationStartView.as_view(), name='registration-start'),
+    path('registration/verify/', RegistrationVerifyView.as_view(), name='registration-verify'),
+    path('registration/resend/', RegistrationResendView.as_view(), name='registration-resend'),
     path('register/verify/', VerifyOTPView.as_view(), name='register-verify'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('password-reset/init/', PasswordResetInitView.as_view(), name='password-reset-init'),
     path('password-reset/verify/', PasswordResetVerifyView.as_view(), name='password-reset-verify'),
+    path('password-reset/verify-code/', PasswordResetCodeView.as_view(), name='password-reset-verify-code'),
     path('password-change/', PasswordChangeView.as_view(), name='password-change'),
 
     # Profile

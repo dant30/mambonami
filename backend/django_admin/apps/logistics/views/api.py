@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from decimal import Decimal
 from django.db import transaction
-from ..models import Trip, TripMedia, TripLocationPing, TripStatus
+from ..models import Trip, TripMedia, TripLocationPing, TripProviderDecline, TripStatus
 from ..serializers import (
     TripSerializer, TripAssignSerializer, TripPickupSerializer,
     TripDeliverSerializer, OTPVerifySerializer, TripLocationPingSerializer,
@@ -29,10 +29,26 @@ class AvailableOrdersView(generics.ListAPIView):
     serializer_class = TripSerializer
 
     def get_queryset(self):
+        declined_ids = TripProviderDecline.objects.filter(
+            provider=self.request.user.transport_profile,
+        ).values('trip_id')
         return Trip.objects.filter(
             status=TripStatus.OFFERED,
-            provider__isnull=True
-        ).select_related('order', 'order__buyer')
+            provider__isnull=True,
+        ).exclude(id__in=declined_ids).select_related('order', 'order__buyer')
+
+
+class DeclineTripView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
+
+    def post(self, request, trip_uuid):
+        trip = get_object_or_404(Trip, uuid=trip_uuid, status=TripStatus.OFFERED, provider__isnull=True)
+        TripProviderDecline.objects.update_or_create(
+            trip=trip,
+            provider=request.user.transport_profile,
+            defaults={'reason': request.data.get('reason', '')},
+        )
+        return Response({'message': 'Job declined for this provider.'}, status=status.HTTP_200_OK)
 
 
 class AssignToMeView(generics.GenericAPIView):
@@ -321,6 +337,7 @@ class VerifyOTPView(generics.GenericAPIView):
     """
     permission_classes = [permissions.IsAuthenticated, IsBuyer]
     serializer_class = OTPVerifySerializer
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, trip_uuid):
         trip = get_object_or_404(
@@ -333,7 +350,19 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        if verify_otp(trip, serializer.validated_data['otp']):
+        if verify_otp(trip, serializer.validated_data['otp'], complete_delivery=False):
+            delivery_photo = serializer.validated_data['delivery_photo']
+            delivery_lat = serializer.validated_data.get('delivery_lat', trip.delivery_lat)
+            delivery_lng = serializer.validated_data.get('delivery_lng', trip.delivery_lng)
+            TripMedia.objects.create(
+                trip=trip,
+                media_type='delivery',
+                image=delivery_photo,
+                uploaded_by=request.user,
+                latitude=delivery_lat,
+                longitude=delivery_lng,
+                caption='Proof of delivery confirmed with buyer OTP',
+            )
             trip.status = TripStatus.DELIVERED
             trip.otp_verified_at = timezone.now()
             trip.completed_at = timezone.now()

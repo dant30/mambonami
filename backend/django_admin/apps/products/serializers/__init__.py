@@ -5,10 +5,12 @@ from .product_serializer import (
     ProductCreateUpdateSerializer,
     WishlistItemSerializer,
 )
+from .review_serializer import ProductReviewSerializer
 
 __all__ = [
     'ProductCategorySerializer',
     'ProductSerializer',
     'ProductCreateUpdateSerializer',
     'WishlistItemSerializer',
+    'ProductReviewSerializer',
 ]

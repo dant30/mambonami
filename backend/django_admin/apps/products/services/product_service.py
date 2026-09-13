@@ -1,5 +1,5 @@
 ﻿# backend/django_admin/apps/products/services/product_service.py
-from django.db import transaction
+from django.db import models, transaction
 from django.core.exceptions import PermissionDenied
 from ..models import Product
 from apps.users.models import FarmerProfile
@@ -9,17 +9,26 @@ def list_active_products(filters=None):
     """Return active products with optional filtering."""
     queryset = Product.objects.filter(is_active=True).select_related('farmer__user', 'category')
     if filters:
-        if category_code := filters.get('category_code'):
+        category_code = filters.get('category_code') or filters.get('category')
+        if category_code:
             queryset = queryset.filter(category__code=category_code)
         if farmer_id := filters.get('farmer_id'):
             queryset = queryset.filter(farmer_id=farmer_id)
-        if min_price := filters.get('min_price'):
+        if (min_price := filters.get('min_price')) not in (None, ''):
             queryset = queryset.filter(price_per_unit__gte=min_price)
-        if max_price := filters.get('max_price'):
+        if (max_price := filters.get('max_price')) not in (None, ''):
             queryset = queryset.filter(price_per_unit__lte=max_price)
-        # Optional: filter by rating
-        if min_rating := filters.get('min_rating'):
+        if (min_rating := filters.get('min_rating')) not in (None, ''):
             queryset = queryset.filter(rating__gte=min_rating)
+        if filters.get('in_stock') in (True, 'true', '1'):
+            queryset = queryset.filter(available_quantity__gt=0)
+        search = filters.get('search')
+        if search:
+            queryset = queryset.filter(
+                models.Q(name__icontains=search) |
+                models.Q(variety__icontains=search) |
+                models.Q(description__icontains=search)
+            )
     return queryset
 
 def create_product(farmer_profile: FarmerProfile, data: dict) -> Product:

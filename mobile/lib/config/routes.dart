@@ -50,7 +50,7 @@ import '../features/farmer/pages/order_detail_page.dart';
 import '../features/farmer/pages/earnings_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/common/settings_page.dart' as settings_page;
-import '../features/common/support_page.dart' as support_page;
+import '../features/support/pages/support_page.dart' as support_page;
 import '../features/common/terms_and_conditions_page.dart';
 import '../features/common/privacy_policy_page.dart';
 import '../features/profile/verification_documents_page.dart';

@@ -11,6 +11,7 @@ from .user import (
     AccountStatus,
     KycStatus,
 )
+from .registration import PendingRegistration
 
 __all__ = [
     'User',
@@ -23,4 +24,5 @@ __all__ = [
     'Role',
     'AccountStatus',
     'KycStatus',
+    'PendingRegistration',
 ]

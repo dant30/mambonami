@@ -1,0 +1,55 @@
+/* Shared marketplace utilities. */
+
+.bg-gradient-hero { background-image: var(--gradient-hero); }
+.bg-gradient-warm { background-image: var(--gradient-warm); }
+.shadow-soft { box-shadow: var(--shadow-soft); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-glow);
+}
+
+.glass,
+.glass-dark,
+.glass-card {
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.glass {
+  background: color-mix(in oklab, white 12%, transparent);
+  border: 1px solid color-mix(in oklab, white 22%, transparent);
+}
+
+.glass-dark {
+  background: color-mix(in oklab, black 28%, transparent);
+  border: 1px solid color-mix(in oklab, white 14%, transparent);
+}
+
+.glass-card {
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.text-gradient {
+  background: var(--gradient-hero);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+.surface-grid {
+  background-image: linear-gradient(to right, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+

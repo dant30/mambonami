@@ -36,5 +36,4 @@ django-storages>=1.14
 
 Pillow>=10.0.0
 
-# SMS
-africastalking>=2.0.2
+# SMS is sent through the OTS HTTP API via requests.

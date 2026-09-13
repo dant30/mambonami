@@ -1,0 +1,1 @@
+export { logisticsStore } from './logisticsStore'

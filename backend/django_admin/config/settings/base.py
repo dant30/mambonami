@@ -145,6 +145,7 @@ REST_FRAMEWORK = {
 
 # JWT Settings
 SIMPLE_JWT = {
+    'SIGNING_KEY': env('JWT_SECRET_KEY', default='django-insecure-jwt-key-change-me-to-32-bytes-minimum'),
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
@@ -256,7 +257,7 @@ PLATFORM_COMMISSION_PERCENT = 8  # 8%
 DELIVERY_PLATFORM_PERCENT = 20   # 20%
 
 # OTP settings
-OTP_LENGTH = 4
+OTP_LENGTH = 6
 OTP_EXPIRY_SECONDS = 300  # 5 minutes
 OTP_MAX_ATTEMPTS = 3
 
@@ -272,12 +273,6 @@ OTS_SENDER_ID = env('OTS_SENDER_ID', default='MAMBONAMI')
 OTS_SANDBOX = env.bool('OTS_SANDBOX', default=True)
 # Add debug flag to help diagnose SMS provider auth and routing during development
 OTS_DEBUG = env.bool('OTS_DEBUG', default=False)
-# Deprecated Africa's Talking settings
-# AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
-# AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
-# AFRICASTALKING_SENDER_ID = env('AFRICASTALKING_SENDER_ID', default='MAMBONAMI')
-# AFRICASTALKING_SANDBOX = env.bool('AFRICASTALKING_SANDBOX', default=True)
-
 WHATSAPP_API_URL = env('WHATSAPP_API_URL', default='')
 WHATSAPP_API_TOKEN = env('WHATSAPP_API_TOKEN', default='')
 

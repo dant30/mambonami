@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../common/map_picker_page.dart';
+import '../../../data/repositories/geocoding_repository.dart';
 
 import '../../../config/route_paths.dart';
 import '../../../data/repositories/cart_repository.dart';
@@ -22,6 +26,8 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   final _cartRepo = GetIt.I<CartRepository>();
+  String _deliveryAddress = 'Westlands, Nairobi';
+  LatLng? _deliveryLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +192,7 @@ class _CartPageState extends State<CartPage> {
                                 ?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.dark)),
-                        Text('Westlands, Nairobi',
+                        Text(_deliveryAddress,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -195,7 +201,24 @@ class _CartPageState extends State<CartPage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final geoRepo = GetIt.I<GeocodingRepository>();
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MapPickerPage(
+                            initialLocation: _deliveryLocation,
+                            initialAddress: _deliveryAddress,
+                            geocodingRepository: geoRepo,
+                          ),
+                        ),
+                      );
+                      if (result != null && mounted) {
+                        setState(() {
+                          _deliveryLocation = LatLng(result['lat'], result['lng']);
+                          _deliveryAddress = result['address'] ?? _deliveryAddress;
+                        });
+                      }
+                    },
                     child: const Text('Change',
                         style: TextStyle(
                             color: AppColors.secondary,
@@ -225,7 +248,13 @@ class _CartPageState extends State<CartPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go(RoutePaths.buyerDashboard);
+            }
+          },
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
         ),
         title: Text('My Cart',

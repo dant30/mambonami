@@ -1,0 +1,7 @@
+export { BuyerActiveOrder } from './BuyerActiveOrder'
+export { BuyerCategoryScroller } from './BuyerCategoryScroller'
+export { BuyerProductRecommendations } from './BuyerProductRecommendations'
+export { BuyerQuickStats } from './BuyerQuickStats'
+export { BuyerRecentOrders } from './BuyerRecentOrders'
+export { BuyerTrustFeatures } from './BuyerTrustFeatures'
+export { BuyerWishlistPreview } from './BuyerWishlistPreview'

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from apps.notifications.services.sms import AfricaTalkingSMS
+from apps.notifications.services.sms import OTSSMS
 
 
 class Command(BaseCommand):
@@ -10,6 +10,6 @@ class Command(BaseCommand):
         parser.add_argument('phone', type=str, help='Phone number to send test SMS to')
 
     def handle(self, *args, **options):
-        sms = AfricaTalkingSMS()
+        sms = OTSSMS()
         result = sms.send_sms(options['phone'], 'Test message from MAMBONAMI')
         self.stdout.write(f'Result: {result}')

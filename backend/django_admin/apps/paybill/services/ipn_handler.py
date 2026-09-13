@@ -105,6 +105,7 @@ class IPNHandler:
                 order = None
                 order_id = None
             else:
+                deposit_profile = None
                 # Try to resolve order from reservation (if it's an order type)
                 if reservation.prefix == 'ORD':
                     order_id = reservation.related_object_id
@@ -116,9 +117,19 @@ class IPNHandler:
                     except Order.DoesNotExist:
                         order = None
                         order_id = None
+                elif reservation.prefix == 'DEP':
+                    from apps.users.models import TransportProviderProfile
+                    deposit_profile = TransportProviderProfile.objects.select_for_update().filter(
+                        id=reservation.related_object_id,
+                    ).first()
+                    order = None
+                    order_id = None
                 else:
                     order = None
                     order_id = None
+
+            if not reservation:
+                deposit_profile = None
 
             # 5. Create or get PayBillTransaction (safely handle duplicates)
             txn_defaults = {
@@ -191,6 +202,18 @@ class IPNHandler:
                     reservation.is_used = True
                     reservation.used_at = now()
                     reservation.save(update_fields=['is_used', 'used_at'])
+
+            elif deposit_profile:
+                deposit_profile.deposit_paid = True
+                deposit_profile.deposit_transaction_id = transaction_code
+                deposit_profile.save(update_fields=['deposit_paid', 'deposit_transaction_id'])
+                paybill_txn.status = 'matched'
+                paybill_txn.notes = f'Transport provider deposit received for profile {deposit_profile.id}'
+                paybill_txn.save(update_fields=['status', 'notes'])
+                reservation.is_used = True
+                reservation.used_at = now()
+                reservation.save(update_fields=['is_used', 'used_at'])
+                logger.info(f'Transport provider deposit confirmed for profile {deposit_profile.id}')
 
             else:
                 # Orphaned transaction – keep status as 'orphaned'

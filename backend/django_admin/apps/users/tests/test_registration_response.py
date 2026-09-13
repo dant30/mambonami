@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 
 from apps.users.models import Role, User
-from apps.users.serializers.user_serializer import UserDetailSerializer, VerifyOTPSerializer
+from apps.users.serializers.user_serializer import RegistrationStartSerializer, UserDetailSerializer, VerifyOTPSerializer
 from apps.users.views.api import CustomTokenObtainPairView
 from core.throttling import BurstThrottle
 
@@ -43,11 +43,11 @@ class TransportVehicleTypeTests(TestCase):
     @patch('apps.users.serializers.user_serializer.RedisCache.delete')
     @patch('apps.users.serializers.user_serializer.RedisCache.set')
     @patch('apps.users.serializers.user_serializer.RedisCache.get', return_value=0)
-    @patch('apps.users.serializers.user_serializer.get_otp', return_value='1234')
+    @patch('apps.users.serializers.user_serializer.get_otp', return_value='123456')
     def test_transport_vehicle_type_accepts_display_label(self, _otp_mock, _get_mock, _set_mock, _delete_mock):
         serializer = VerifyOTPSerializer(data={
             'phone': '+254700000000',
-            'otp': '1234',
+            'otp': '123456',
             'username': 'transportuser',
             'password': 'TestPass123!',
             'confirm_password': 'TestPass123!',
@@ -58,6 +58,21 @@ class TransportVehicleTypeTests(TestCase):
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data['vehicle_type'], 'pickup')
+
+
+class RegistrationStartSerializerTests(TestCase):
+    def test_registration_start_accepts_minimal_account_details(self):
+        serializer = RegistrationStartSerializer(
+            data={
+                'phone': '+254700000000',
+                'role': Role.BUYER,
+                'username': 'newbuyer',
+                'password': 'TestPass123!',
+                'confirm_password': 'TestPass123!',
+            }
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
 
 
 class LoginViewFallbackTests(TestCase):

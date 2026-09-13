@@ -191,7 +191,10 @@ class TripDeliverSerializer(serializers.Serializer):
 
 
 class OTPVerifySerializer(serializers.Serializer):
-    otp = serializers.CharField(max_length=6)
+    otp = serializers.RegexField(regex=r'^\d{6}$', error_messages={'invalid': 'Enter the 6-digit delivery OTP.'})
+    delivery_photo = serializers.ImageField(required=True)
+    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
+    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, required=False)
 
 
 class TripLocationPingSerializer(serializers.Serializer):

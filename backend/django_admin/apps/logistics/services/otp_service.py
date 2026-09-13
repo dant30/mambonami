@@ -14,7 +14,7 @@ def generate_otp(trip: Trip) -> str:
     Generate a 6-digit OTP and set expiry (5 minutes).
     Hashes the OTP before storing (using Django's make_password).
     """
-    otp = str(random.randint(100000, 999999))
+    otp = f'{random.randint(0, 999999):06d}'
     
     # Use Django's password hashing for OTP
     from django.contrib.auth.hashers import make_password
@@ -29,10 +29,11 @@ def generate_otp(trip: Trip) -> str:
     return otp
 
 
-def verify_otp(trip: Trip, provided_otp: str) -> bool:
+def verify_otp(trip: Trip, provided_otp: str, complete_delivery: bool = True) -> bool:
     """
     Validate OTP using Django's check_password (hashed comparison).
-    Returns True if valid and marks trip as delivered.
+    Returns True if valid. By default, marks trip as delivered; callers that
+    must persist proof before completing delivery can defer that transition.
     
     Handles:
     - Expired OTP
@@ -71,7 +72,10 @@ def verify_otp(trip: Trip, provided_otp: str) -> bool:
         logger.info(f"OTP verification failed: incorrect OTP for trip {trip.id} (attempt {trip.otp_attempts}/3)")
         return False
     
-    # 5. OTP is valid → complete delivery
+    # 5. OTP is valid. The caller may defer completion until proof is stored.
+    if not complete_delivery:
+        return True
+
     trip.status = TripStatus.DELIVERED
     trip.completed_at = timezone.now()
     trip.otp_hash = ''  # Clear OTP after use (security)

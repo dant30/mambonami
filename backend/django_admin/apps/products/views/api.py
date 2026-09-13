@@ -13,9 +13,9 @@ from rest_framework.views import APIView
 from apps.users.models import FarmerProfile
 from apps.users.permissions import IsAdmin, IsFarmer
 
-from ..models import Product, ProductCategory, WishlistItem
+from ..models import Product, ProductCategory, ProductReview, WishlistItem
 from ..serializers import (ProductCategorySerializer, ProductCreateUpdateSerializer,
-                           ProductSerializer, WishlistItemSerializer)
+                           ProductReviewSerializer, ProductSerializer, WishlistItemSerializer)
 from ..services import create_product, delete_product, list_active_products, update_product
 
 
@@ -88,6 +88,24 @@ class ProductDetailView(generics.RetrieveAPIView):
         return context
 
 
+class ProductReviewListCreateView(generics.ListCreateAPIView):
+    serializer_class = ProductReviewSerializer
+
+    def get_product(self):
+        return get_object_or_404(Product, uuid=self.kwargs['uuid'], is_active=True)
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get_queryset(self):
+        return ProductReview.objects.filter(product=self.get_product()).select_related('buyer').order_by('-created_at')
+
+    def get_serializer_context(self):
+        return {**super().get_serializer_context(), 'product': self.get_product()}
+
+
 class WishlistListView(generics.ListAPIView):
     serializer_class = WishlistItemSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -95,7 +113,7 @@ class WishlistListView(generics.ListAPIView):
     def get_queryset(self):
         return WishlistItem.objects.filter(buyer=self.request.user).select_related(
             'product', 'product__farmer', 'product__category'
-        )
+        ).order_by('-created_at')
 
 
 class WishlistItemView(APIView):

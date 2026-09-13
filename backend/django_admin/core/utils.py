@@ -4,7 +4,7 @@ import string
 from decimal import Decimal
 from typing import Dict, Any
 
-def generate_otp(length: int = 4) -> str:
+def generate_otp(length: int = 6) -> str:
     """Generate a numeric OTP of given length."""
     return ''.join(random.choices(string.digits, k=length))
 

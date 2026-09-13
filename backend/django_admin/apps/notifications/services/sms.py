@@ -5,6 +5,8 @@ from typing import Iterable, Dict, Any
 from django.conf import settings
 from django.utils import timezone
 
+from apps.notifications.models import Notification
+
 logger = logging.getLogger(__name__)
 
 
@@ -287,12 +289,9 @@ class OTSSMS:
             return {'status': 'failed', 'error': str(exc)}
 
 
-AfricaTalkingSMS = OTSSMS
-
-
 def send_otp_message(phone: str, otp: str) -> dict:
     message = f'Your MAMBONAMI verification code is {otp}. It expires in 5 minutes.'
-    sms_service = AfricaTalkingSMS()
+    sms_service = OTSSMS()
     result = sms_service.send_sms(phone, message)
 
     if result.get('status') != 'success':

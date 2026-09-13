@@ -1,5 +1,5 @@
 from .email import EmailService
-from .sms import OTSSMS, AfricaTalkingSMS, send_otp_message
+from .sms import OTSSMS, send_otp_message
 
 try:
     from .push import PushNotificationService
@@ -20,6 +20,5 @@ __all__ = [
     'EmailService',
     'PushNotificationService',
     'OTSSMS',
-    'AfricaTalkingSMS',
     'send_otp_message',
 ]

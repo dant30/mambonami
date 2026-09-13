@@ -1,0 +1,11 @@
+import { ArrowRight, ClipboardList } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import type { Order } from '../../../core/lib'
+import { Skeleton } from '../../../shared/components/ui'
+
+function orderLabel(order: Order) { return order.account_number || `MN-${String(order.id || order.uuid.slice(0, 8)).toUpperCase()}` }
+
+export function FarmerOrderList({ orders, isLoading }: { orders: Order[]; isLoading?: boolean }) {
+	return <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"><div className="flex items-center justify-between border-b border-border p-5"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Recent orders</p><h2 className="mt-1 text-xl font-semibold text-primary-dark">Orders to fulfil</h2></div><Link to="/app/farmer/orders" className="text-sm font-bold text-primary">View all</Link></div>{isLoading ? <div className="space-y-3 p-5"><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></div> : orders.length === 0 ? <div className="p-8 text-center"><ClipboardList className="mx-auto h-8 w-8 text-primary" /><p className="mt-3 text-sm text-muted-foreground">No buyer orders need attention yet.</p></div> : <div>{orders.slice(0, 4).map((order) => <article key={order.uuid} className="border-b border-border p-5 last:border-0"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">#{orderLabel(order)}</p><h3 className="mt-2 font-semibold text-primary-dark">{order.buyer_name || 'Buyer'}</h3></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-primary">{String(order.status).replaceAll('_', ' ')}</span></div><div className="mt-3 flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><span>{order.item_summary || 'Products in this order'}</span><strong className="text-primary-dark">KSh {Number(order.total_amount ?? 0).toLocaleString()}</strong></div><Link to={`/app/farmer/orders/${order.uuid}`} className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">Review order <ArrowRight className="h-4 w-4" /></Link></article>)}</div>}</section>
+}

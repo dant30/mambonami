@@ -1,0 +1,93 @@
+import type { Dispute, DisputeResolutionInput } from '../disputes'
+import type { Order, OrderStatus } from '../orders'
+import type { Payout } from '../payouts'
+
+export type AdminRole = 'buyer' | 'farmer' | 'retailer' | 'transport_provider' | 'admin'
+
+export interface AdminUser {
+	id: number
+	phone: string
+	username?: string
+	first_name?: string
+	middle_name?: string
+	last_name?: string
+	full_name?: string
+	display_name?: string
+	role: AdminRole | string
+	email?: string
+	is_active: boolean
+	is_staff: boolean
+	is_superuser: boolean
+	is_phone_verified?: boolean
+	is_email_verified?: boolean
+	account_status?: string
+	kyc_status?: string
+	date_joined?: string
+	last_seen?: string | null
+}
+
+export interface AdminFarmer {
+	id: number
+	user: number
+	user_phone?: string
+	user_username?: string
+	latitude?: string | number | null
+	longitude?: string | number | null
+	farm_gps?: string
+	county?: string
+	sub_county?: string
+	ward?: string
+	village?: string
+	cooperative?: string
+	coop_verified?: boolean
+	total_sales?: string | number
+	rating?: number
+	rating_count?: number
+	total_orders?: number
+}
+
+export interface AdminTransportProvider {
+	id: number
+	user: number
+	user_phone?: string
+	user_username?: string
+	vehicle_type?: string
+	capacity_kg?: number
+	license_plate?: string
+	driver_license?: string
+	deposit_paid?: boolean
+	is_approved?: boolean
+	rating?: number
+	total_deliveries?: number
+	is_online?: boolean
+	available?: boolean
+}
+
+export interface AdminAuditLog {
+	id: number
+	uuid: string
+	action?: string
+	actor?: number | null
+	actor_phone?: string
+	resource_type?: string
+	resource_id?: string | number
+	description?: string
+	metadata?: Record<string, unknown>
+	created_at?: string
+}
+
+export interface AdminDashboardData {
+	orders: Order[]
+	users: AdminUser[]
+	farmers: AdminFarmer[]
+	transportProviders: AdminTransportProvider[]
+	disputes: Dispute[]
+	payouts: Payout[]
+	auditLogs: AdminAuditLog[]
+}
+
+export interface AdminOrderStatusUpdate {
+	status: OrderStatus
+}
+
+export type AdminDisputeResolution = DisputeResolutionInput

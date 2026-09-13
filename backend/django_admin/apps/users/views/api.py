@@ -1,10 +1,13 @@
 ﻿# backend/django_admin/apps/users/views/api.py
 import logging
 
+from django.conf import settings
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -14,9 +17,13 @@ from core.validators import normalize_phone_number
 from apps.users.permissions import IsAdmin
 from ..serializers import (
     RegisterInitSerializer,
+    RegistrationStartSerializer,
+    RegistrationVerifySerializer,
+    RegistrationResendSerializer,
     VerifyOTPSerializer,
     PasswordResetInitSerializer,
     PasswordResetVerifySerializer,
+    PasswordResetCodeSerializer,
     ChangePasswordSerializer,
     UserDetailSerializer,
     LoginSerializer,
@@ -50,8 +57,22 @@ def _build_safe_user_payload(user, request):
             'is_email_verified': getattr(user, 'is_email_verified', None),
             'account_status': getattr(user, 'account_status', None),
             'kyc_status': getattr(user, 'kyc_status', None),
+            'verification_status': getattr(user, 'kyc_status', None),
             'avatar_url': None,
         }
+
+
+def _attach_refresh_cookie(response, refresh_token):
+    response.set_cookie(
+        'refresh_token',
+        refresh_token,
+        max_age=7 * 24 * 60 * 60,
+        httponly=True,
+        secure=False,
+        samesite='Lax',
+        path='/api/token/',
+    )
+    return response
 
 
 # ────────────────────────────────────────────────────────────────
@@ -70,6 +91,54 @@ class RegisterInitView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
         return Response(result, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RegistrationStartView(generics.GenericAPIView):
+    serializer_class = RegistrationStartSerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.save(), status=status.HTTP_201_CREATED)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RegistrationVerifyView(generics.GenericAPIView):
+    serializer_class = RegistrationVerifySerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pending = serializer.validated_data['pending']
+        registration_data = dict(pending.registration_data)
+        registration_data.update({'otp': request.data.get('otp'), 'password': 'pending-registration-password', 'confirm_password': 'pending-registration-password'})
+        user = VerifyOTPSerializer().create(registration_data)
+        user.password = pending.password_hash
+        user.save(update_fields=['password'])
+        pending.status = 'verified'
+        pending.verified_at = timezone.now()
+        pending.save(update_fields=['status', 'verified_at', 'updated_at'])
+        delete_otp(pending.phone)
+        tokens = get_tokens_for_user(user)
+        response = Response({'access': tokens['access'], 'user': _build_safe_user_payload(user, request)}, status=status.HTTP_201_CREATED)
+        return _attach_refresh_cookie(response, tokens['refresh'])
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RegistrationResendView(generics.GenericAPIView):
+    serializer_class = RegistrationResendSerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.save(), status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -189,6 +258,18 @@ class PasswordResetVerifyView(generics.GenericAPIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class PasswordResetCodeView(generics.GenericAPIView):
+    serializer_class = PasswordResetCodeSerializer
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [BurstThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'valid': True}, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomTokenObtainPairView(generics.GenericAPIView):
     """Login with phone + password, returns JWT tokens + user data."""
     serializer_class = LoginSerializer
@@ -212,10 +293,72 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
 
         tokens = get_tokens_for_user(user)
         user_data = _build_safe_user_payload(user, request)
-        return Response(
-            {'tokens': tokens, 'user': user_data},
-            status=status.HTTP_200_OK
+        response = Response(
+            {'access': tokens['access'], 'user': user_data},
+            status=status.HTTP_200_OK,
         )
+        response.set_cookie(
+            'refresh_token',
+            tokens['refresh'],
+            max_age=7 * 24 * 60 * 60,
+            httponly=True,
+            secure=False,
+            samesite='Lax',
+            path='/api/token/',
+        )
+        return response
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CookieTokenRefreshView(APIView):
+    """Refresh access tokens from the HttpOnly cookie used by the web client."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        raw_refresh = request.COOKIES.get('refresh_token')
+        if not raw_refresh:
+            return Response({'detail': 'No active session.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            refresh = RefreshToken(raw_refresh)
+            access = str(refresh.access_token)
+            user = User.objects.get(pk=refresh['user_id'])
+        except (TokenError, User.DoesNotExist, KeyError):
+            response = Response({'detail': 'Refresh token is invalid or expired.'}, status=status.HTTP_401_UNAUTHORIZED)
+            response.delete_cookie('refresh_token', path='/api/token/')
+            return response
+
+        response = Response({'access': access, 'user': _build_safe_user_payload(user, request)}, status=status.HTTP_200_OK)
+        response.set_cookie(
+            'refresh_token',
+            raw_refresh,
+            max_age=7 * 24 * 60 * 60,
+            httponly=True,
+            secure=False,
+            samesite='Lax',
+            path='/api/token/',
+        )
+        return response
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(APIView):
+    """Invalidate the refresh token and clear the browser session cookie."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        raw_refresh = request.COOKIES.get('refresh_token')
+        if raw_refresh:
+            try:
+                RefreshToken(raw_refresh).blacklist()
+            except TokenError:
+                pass
+
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('refresh_token', path='/api/token/')
+        return response
 
 
 # ────────────────────────────────────────────────────────────────
@@ -241,7 +384,7 @@ class ProfileView(generics.RetrieveUpdateDestroyAPIView):
     """
     serializer_class = UserDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_object(self):
         return self.request.user
@@ -277,7 +420,8 @@ class ProfileView(generics.RetrieveUpdateDestroyAPIView):
             transport = user.transport_profile
             transport_fields = ['vehicle_type', 'capacity_kg', 'license_plate',
                               'driver_license', 'bank_account', 'base_rate_per_km',
-                              'waiting_grace_minutes', 'waiting_rate_per_min']
+                              'waiting_grace_minutes', 'waiting_rate_per_min',
+                              'is_online', 'available']
             for field in transport_fields:
                 if field in request.data:
                     setattr(transport, field, request.data[field])

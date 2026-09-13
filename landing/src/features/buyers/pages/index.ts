@@ -1,0 +1,8 @@
+export { BuyerDashboardPage } from './BuyerDashboardPage'
+export { BuyerCartPage } from './BuyerCartPage'
+export { BuyerOrderDetailPage } from './BuyerOrderDetailPage'
+export { BuyerOrdersPage } from './BuyerOrdersPage'
+export { BuyerProductsPage } from './BuyerProductsPage'
+export { BuyerProfilePage } from './BuyerProfilePage'
+export { BuyerSettingsPage } from './BuyerSettingsPage'
+export { BuyerWishlistPage } from './BuyerWishlistPage'

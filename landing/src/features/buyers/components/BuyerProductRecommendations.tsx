@@ -1,0 +1,10 @@
+import { ArrowRight, TrendingUp } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import type { Product } from '../../../core/lib'
+import { MarketplaceProductCard } from '../../home/components/MarketplaceProductCard'
+import { Skeleton } from '../../../shared/components/ui'
+
+export function BuyerProductRecommendations({ products, isLoading }: { products: Product[]; isLoading?: boolean }) {
+	return <section className="mt-8"><div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Marketplace</p><h2 className="mt-1 text-lg font-semibold text-primary-dark">Recommended for you</h2></div><Link to="/app/buyer/products" className="inline-flex items-center gap-1 text-sm font-bold text-primary">View all <ArrowRight className="h-4 w-4" /></Link></div><div className="mt-4">{isLoading ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="overflow-hidden rounded-2xl border border-border bg-card"><Skeleton className="aspect-square w-full" /><div className="space-y-3 p-4"><Skeleton className="h-5 w-2/3" /><Skeleton className="h-4 w-1/3" /></div></div>)}</div> : products.length > 0 ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{products.map((product) => <MarketplaceProductCard key={product.uuid} product={product} />)}</div> : <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center"><TrendingUp className="mx-auto h-7 w-7 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">Fresh recommendations will appear here.</p><Link to="/app/buyer/products" className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary">Browse produce <ArrowRight className="h-4 w-4" /></Link></div>}</div></section>
+}

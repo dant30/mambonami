@@ -1,0 +1,4 @@
+import { BarChart3, ClipboardList, Package, Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+export function FarmerQuickActions() { const actions = [{ label: 'Add product', href: '/app/farmer/products/new', icon: Plus }, { label: 'Manage products', href: '/app/farmer/products', icon: Package }, { label: 'View orders', href: '/app/farmer/orders', icon: ClipboardList }, { label: 'View earnings', href: '/app/farmer/earnings', icon: BarChart3 }]; return <section><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Quick actions</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{actions.map(({ label, href, icon: Icon }) => <Link key={label} to={href} className="flex min-h-20 items-center gap-3 rounded-2xl border border-border bg-card p-4 text-sm font-semibold text-primary-dark transition hover:border-primary/30 hover:bg-muted"><Icon className="h-5 w-5 shrink-0 text-primary" />{label}</Link>)}</div></section> }

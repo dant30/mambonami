@@ -1,4 +1,5 @@
 ﻿# backend/django_admin/apps/orders/views/api.py
+import logging
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,22 +25,27 @@ class CartCreateOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBuyer]
 
     def post(self, request):
+        logger = logging.getLogger(__name__)
         serializer = OrderCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = create_order_from_cart(request.user, serializer.validated_data)
-        return Response({
-            'id': order.id,
-            'uuid': order.uuid,
-            'order_uuid': order.uuid,
-            'account_number': order.account_number,
-            'subtotal': float(order.total_amount - order.delivery_fee),
-            'delivery_fee': float(order.delivery_fee),
-            'platform_commission': float(order.platform_commission),
-            'total_amount': order.total_amount,
-            'discount_amount': float(order.discount_amount),
-            'paybill_number': '123456',
-            'instructions': f"Pay KES {order.total_amount} to PayBill 123456, Account {order.account_number}"
-        }, status=status.HTTP_201_CREATED)
+        try:
+            serializer.is_valid(raise_exception=True)
+            order = create_order_from_cart(request.user, serializer.validated_data)
+            return Response({
+                'id': order.id,
+                'uuid': order.uuid,
+                'order_uuid': order.uuid,
+                'account_number': order.account_number,
+                'subtotal': float(order.total_amount - order.delivery_fee),
+                'delivery_fee': float(order.delivery_fee),
+                'platform_commission': float(order.platform_commission),
+                'total_amount': order.total_amount,
+                'discount_amount': float(order.discount_amount),
+                'paybill_number': '123456',
+                'instructions': f"Pay KES {order.total_amount} to PayBill 123456, Account {order.account_number}"
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.exception("Order create failed")
+            return Response({"error": "internal", "detail": str(e)}, status=500)
 
 class OrderDetailView(generics.RetrieveAPIView):
     queryset = Order.objects.all()
@@ -52,6 +58,8 @@ class OrderDetailView(generics.RetrieveAPIView):
         if user.is_staff:
             return Order.objects.all()
         if user.role == 'buyer':
+            return Order.objects.filter(buyer=user)
+        if user.role == 'retailer':
             return Order.objects.filter(buyer=user)
         if user.role == 'farmer':
             farmer_profile = _get_farmer_profile_or_none(user)
@@ -71,6 +79,8 @@ class OrderListView(generics.ListAPIView):
         if user.is_staff:
             return Order.objects.all()
         if user.role == 'buyer':
+            return Order.objects.filter(buyer=user)
+        if user.role == 'retailer':
             return Order.objects.filter(buyer=user)
         if user.role == 'farmer':
             farmer_profile = _get_farmer_profile_or_none(user)
