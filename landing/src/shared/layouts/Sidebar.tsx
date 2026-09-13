@@ -1,5 +1,5 @@
-import { BarChart3, ClipboardList, FileCheck2, Navigation, Package, ShieldCheck, Truck, Users, X } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { BarChart3, ClipboardList, FileCheck2, Navigation, Package, Plus, ShieldCheck, Truck, Users, X } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
 
@@ -28,6 +28,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 	const { user } = useAuth()
 	const isAdmin = Boolean(user?.is_staff || user?.is_superuser)
 	const role = typeof user?.role === 'string' ? user.role : ''
+	const navigate = useNavigate()
 
 	// ✅✅ Dashboard path uses /app/{role} pattern
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
@@ -60,7 +61,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 			: [
 			{ path: dashboardPath, label: 'Dashboard', icon: ClipboardList },
 			{ path: '/products', label: 'Browse produce', icon: Package },
-			{ path: '/profile', label: 'My profile', icon: Users },
+				{ path: dashboardPath, label: 'Workspace', icon: Users },
 		]
 
 	const items = admin ? adminItems : marketplaceItems
@@ -84,7 +85,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 					{mobileDrawer && <button type="button" onClick={onClose} aria-label="Close navigation drawer" className="rounded-full p-2 text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"><X className="h-5 w-5" /></button>}
 			</div>
 
-			<nav className="space-y-1" aria-label={admin ? 'Admin links' : 'Marketplace links'}>
+			<nav className="sidebar-nav-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={admin ? 'Admin links' : 'Marketplace links'}>
 				{items.map(({ path, label, icon: Icon }) => (
 					<NavLink
 						key={path}
@@ -103,6 +104,8 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 					</NavLink>
 				))}
 			</nav>
+
+			{!admin && <button type="button" onClick={() => navigate(role === 'farmer' ? '/app/farmer/products/new' : role === 'retailer' ? '/app/retailer/products' : role === 'transport_provider' ? '/app/transport/jobs' : '/app/buyer/products')} className="mt-4 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-3 text-sm font-bold text-secondary-foreground transition hover:brightness-95"><Plus className="h-4 w-4" />{role === 'farmer' ? 'Add product' : role === 'retailer' ? 'Find products' : role === 'transport_provider' ? 'Find jobs' : 'Shop produce'}</button>}
 
 			{admin && (
 				<div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground">

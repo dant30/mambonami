@@ -1,9 +1,10 @@
 import { Bell, ChevronDown, Heart, Leaf, LogIn, LogOut, Menu, ShoppingBasket, UserCircle, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
 import { useIsMobile } from '../../core/hooks'
+import { useNotifications } from '../../core/lib'
 
 /**
  * ✅✅ ROLE-SPECIFIC HEADERS:
@@ -20,6 +21,9 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 	const isMobile = useIsMobile()
 	const [menuOpen, setMenuOpen] = useState(false)
 	const [userMenuOpen, setUserMenuOpen] = useState(false)
+	const [notificationsOpen, setNotificationsOpen] = useState(false)
+	const notificationsRef = useRef<HTMLDivElement>(null)
+	const userMenuRef = useRef<HTMLDivElement>(null)
 	const navigate = useNavigate()
 	const isAdmin = Boolean(user?.is_staff || user?.is_superuser)
 	const role = typeof user?.role === 'string' ? user.role : ''
@@ -28,9 +32,21 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
 	const profilePath = role === 'buyer' ? '/app/buyer/profile' : dashboardPath
 	const homePath = isAuthenticated ? dashboardPath : '/home'
+	const { notifications } = useNotifications(isAuthenticated)
+	const unreadNotifications = notifications.filter((notification) => !notification.is_read)
 
 	const displayName = String(user?.first_name || user?.username || user?.phone || 'MAMBONAMI member')
 	const closeMenu = () => setMenuOpen(false)
+	useEffect(() => {
+		if (!notificationsOpen && !userMenuOpen) return
+		const closeOnOutsideClick = (event: MouseEvent) => {
+			const target = event.target as Node
+			if (notificationsOpen && !notificationsRef.current?.contains(target)) setNotificationsOpen(false)
+			if (userMenuOpen && !userMenuRef.current?.contains(target)) setUserMenuOpen(false)
+		}
+		document.addEventListener('mousedown', closeOnOutsideClick)
+		return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+	}, [notificationsOpen, userMenuOpen])
 	useEffect(() => {
 		const closeOnEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -119,10 +135,14 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 						// Authenticated actions
 						<>
 							{role === 'buyer' && <Link to="/app/buyer/cart" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart"><ShoppingBasket className="h-5 w-5" /></Link>}
-							<Link to="/notifications" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Notifications">
-								<Bell className="h-5 w-5" />
-							</Link>
-							<div className="relative">
+							<div ref={notificationsRef} className="relative">
+								<button type="button" onClick={() => setNotificationsOpen((open) => !open)} className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Notifications" aria-expanded={notificationsOpen}>
+									<Bell className="h-5 w-5" />
+									{unreadNotifications.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[9px] font-bold text-secondary-foreground">{unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}</span>}
+								</button>
+								{notificationsOpen && <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-card py-2 shadow-xl"><p className="border-b border-border bg-muted px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-primary-dark">Notifications</p>{unreadNotifications.length ? unreadNotifications.slice(0, 3).map((notification) => <Link key={notification.id} to={notification.action_url || '/'} onClick={() => setNotificationsOpen(false)} className="block border-b border-border px-4 py-3 hover:bg-muted"><p className="truncate text-xs font-bold text-primary-dark">{notification.title}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p></Link>) : <p className="p-4 text-center text-xs text-muted-foreground">No new notifications</p>}<Link to="/notifications" onClick={() => setNotificationsOpen(false)} className="block px-4 py-3 text-center text-xs font-bold text-primary hover:bg-muted">View all notifications</Link></div>}
+							</div>
+							<div ref={userMenuRef} className="relative">
 								<button
 									type="button"
 									onClick={() => setUserMenuOpen((open) => !open)}

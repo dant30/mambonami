@@ -4,13 +4,17 @@ import { listNotifications } from '../../services'
 import { notificationStore } from '../../stores'
 import type { Notification } from '../../types'
 
-export function useNotifications() {
+export function useNotifications(enabled = true) {
 	const cachedNotifications = notificationStore.getNotifications()
 	const [notifications, setNotifications] = useState<Notification[]>(cachedNotifications)
-	const [isLoading, setIsLoading] = useState(cachedNotifications.length === 0)
+	const [isLoading, setIsLoading] = useState(enabled && cachedNotifications.length === 0)
 	const [error, setError] = useState<unknown>(null)
 
 	useEffect(() => {
+		if (!enabled) {
+			setIsLoading(false)
+			return
+		}
 		let active = true
 		setIsLoading(true)
 		setError(null)
@@ -31,7 +35,7 @@ export function useNotifications() {
 		return () => {
 			active = false
 		}
-	}, [])
+	}, [enabled])
 
 	return { notifications, isLoading, error, isEmpty: !isLoading && notifications.length === 0 }
 }
