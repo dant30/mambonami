@@ -28,8 +28,8 @@ async def proxy_request(
     target_url = f"{base_url}/{normalized_path}"
     
     # Build headers, preserving all important ones from the request
+    # Keep the original Host header so Django's ALLOWED_HOSTS/CSRF checks see the public domain, not 127.0.0.1
     headers = dict(request.headers)
-    headers.pop("host", None)
 
     content_type = headers.get("content-type", "")
     json_body = None
