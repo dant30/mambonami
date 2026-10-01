@@ -3,7 +3,8 @@ export const siteName = "MAMBONAMI";
 export const defaultTitle = "MAMBONAMI | Farm-Fresh Produce Marketplace in Kenya";
 export const defaultDescription =
   "MAMBONAMI connects Kenyan farmers with retailers, restaurants, hotels, and households for fresh produce, fair prices, transparent sourcing, M-Pesa escrow, and reliable delivery.";
-export const defaultImage = `${siteUrl}/og-image.jpg`;
+// Falls back to a real shipped asset since no dedicated /og-image.jpg exists yet
+export const defaultImage = `${siteUrl}/assets/images/hero-farm.jpg`;
 
 type SeoOptions = {
   title?: string;
@@ -13,6 +14,9 @@ type SeoOptions = {
   type?: "website" | "article";
   noIndex?: boolean;
 };
+
+export type SeoMetaTag = { title: string } | { name: string; content: string } | { property: string; content: string };
+export type SeoLinkTag = { rel: string; href: string };
 
 export function absoluteUrl(path = "/") {
   return `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`;
@@ -25,7 +29,7 @@ export function seoMeta({
   image = defaultImage,
   type = "website",
   noIndex = false,
-}: SeoOptions = {}) {
+}: SeoOptions = {}): SeoMetaTag[] {
   const url = absoluteUrl(path);
 
   return [
@@ -53,7 +57,7 @@ export function seoMeta({
   ];
 }
 
-export function seoLinks(path = "/") {
+export function seoLinks(path = "/"): SeoLinkTag[] {
   return [{ rel: "canonical", href: absoluteUrl(path) }];
 }
 

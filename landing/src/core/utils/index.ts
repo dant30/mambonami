@@ -11,3 +11,16 @@ export { captureVideoFrame, requestCameraStream, stopCameraStream } from './came
 export type { CameraOptions } from './camera'
 export { getCurrentLocation, reverseGeocode } from './location'
 export type { Coordinates, GeocodeResult } from './location'
+export {
+	siteUrl,
+	siteName,
+	defaultTitle,
+	defaultDescription,
+	defaultImage,
+	absoluteUrl,
+	seoMeta,
+	seoLinks,
+	organizationJsonLd,
+	websiteJsonLd,
+	marketplaceJsonLd,
+} from './seo'

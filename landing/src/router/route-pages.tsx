@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 
+import { useSeo } from '../core/hooks'
 import { MainLayout } from '../shared/layouts'
 
 export function PublicLayout() {
@@ -7,6 +8,7 @@ export function PublicLayout() {
 }
 
 export function NotFound() {
+	useSeo({ title: 'Page Not Found | MAMBONAMI', path: '/404', noIndex: true })
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
 			<p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Page not found</p>
