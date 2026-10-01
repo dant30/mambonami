@@ -3,7 +3,7 @@ from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
 from .models import Order, SubOrder
-from apps.logistics.services.matching import find_nearest_provider_for_order
+from apps.logistics.services.matching import find_eligible_providers, assign_provider_to_order
 
 @shared_task
 def auto_cancel_unpaid_orders():
@@ -22,11 +22,10 @@ def match_transport_for_order(order_id):
     order = Order.objects.get(id=order_id)
     if not order.are_all_farmers_ready():
         return
-    provider = find_nearest_provider_for_order(order)
-    if provider:
-        order.assigned_provider = provider
-        order.status = 'transport_assigned'
-        order.save()
+    eligible = find_eligible_providers(order)
+    if eligible:
+        provider, _fee, _distance = eligible[0]
+        assign_provider_to_order(order, provider)
         # Notify provider
     else:
         # Retry after 2 minutes
