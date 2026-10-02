@@ -1,5 +1,5 @@
 import { apiClient } from '../../../api'
-import { ORDER_ENDPOINTS } from '../../../api/endpoints'
+import { ORDER_ENDPOINTS, PAYBILL_ENDPOINTS } from '../../../api/endpoints'
 import { orderStore } from '../../stores'
 import type {
 	CartItem,
@@ -10,6 +10,7 @@ import type {
 	Order,
 	OrderListResponse,
 	SubOrder,
+	StkPushResponse,
 } from '../../types'
 
 function normalizeOrders(response: OrderListResponse | Order[]): Order[] {
@@ -127,4 +128,11 @@ export function verifyDeliveryOtp(uuid: string, otp: string, photo: File): Promi
 	body.append('otp', otp)
 	body.append('photo', photo)
 	return apiClient.post<{ status: string }>(ORDER_ENDPOINTS.verifyOtp(uuid), body)
+}
+
+export function initiateOrderStkPush(orderUuid: string, phoneNumber: string): Promise<StkPushResponse> {
+	return apiClient.post<StkPushResponse>(PAYBILL_ENDPOINTS.stkPush, {
+		order_uuid: orderUuid,
+		phone_number: phoneNumber,
+	})
 }

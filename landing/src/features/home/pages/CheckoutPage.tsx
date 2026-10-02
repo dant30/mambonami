@@ -3,16 +3,17 @@ import { Link, Navigate } from 'react-router-dom'
 import { useState } from 'react'
 
 import { useAuth } from '../../../core/contexts/AuthContext'
-import { buildCreateOrderInputFromCart, createOrder, getCart, getCartSummary, getOrder } from '../../../core/lib'
+import { buildCreateOrderInputFromCart, createOrder, getCart, getCartSummary, getOrder, initiateOrderStkPush } from '../../../core/lib'
 import type { CreateOrderResponse, Order } from '../../../core/lib'
 import { MapPicker } from '../../../shared/components/ui'
+import { getErrorMessage } from '../../../core/utils'
 import type { Coordinates } from '../../../core/utils'
 
 function formatMoney(value: string | number) { return `KSh ${Number(value).toLocaleString()}` }
 function isPaid(status: Order['status'] | string | undefined) { return ['paid_escrow', 'transport_assigned', 'picked_up', 'delivered'].includes(String(status || '').toLowerCase()) }
 
 export function CheckoutPage() {
-	const { isAuthenticated } = useAuth()
+	const { isAuthenticated, user } = useAuth()
 	const items = getCart()
 	const summary = getCartSummary(items)
 	const [address, setAddress] = useState('')
@@ -38,6 +39,14 @@ export function CheckoutPage() {
 			const result = await createOrder(buildCreateOrderInputFromCart(items, { delivery_address: address, delivery_city: city, scheduled_time_window: timeWindow, delivery_lat: deliveryLocation.latitude, delivery_lng: deliveryLocation.longitude, payment_method: 'mpesa_paybill' }))
 			setPayment(result)
 			setPaymentOrder({ id: result.id, uuid: result.uuid, buyer: 0, total_amount: result.total_amount, delivery_fee: result.delivery_fee, platform_commission: result.platform_commission, discount_amount: result.discount_amount, status: 'placed', sub_orders: [], scheduled_date: new Date().toISOString().slice(0, 10), scheduled_time_window: timeWindow, created_at: new Date().toISOString() })
+			if (user?.phone) {
+				setNotice('Sending an M-Pesa prompt to your account phone...')
+				void initiateOrderStkPush(result.uuid, user.phone)
+					.then((stkResult) => setNotice(`${stkResult.message} Check your phone and enter your M-Pesa PIN. You can use the PayBill fallback below instead.`))
+					.catch((stkError: unknown) => setNotice(`${getErrorMessage(stkError, 'The M-Pesa prompt could not be sent.')} Use the PayBill fallback below.`))
+			} else {
+				setNotice('Your order is ready. Use the PayBill fallback below to pay.')
+			}
 		} catch { setError('We could not create your order. Your cart is still available so you can retry.') } finally { setIsSubmitting(false) }
 	}
 	const checkPayment = async () => {

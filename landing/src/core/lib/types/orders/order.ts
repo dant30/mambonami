@@ -117,3 +117,11 @@ export interface CreateOrderResponse {
 	paybill_number: string
 	instructions: string
 }
+
+export interface StkPushResponse {
+	status: 'pending'
+	message: string
+	checkout_request_id: string
+	account_number: string
+	amount: string
+}

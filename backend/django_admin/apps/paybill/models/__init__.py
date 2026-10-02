@@ -5,6 +5,7 @@ from .account_number import AccountNumberReservation
 from .float_adjustment import FloatAdjustment
 from .settlement import PayBillSettlement
 from .allocation import PaymentAllocation
+from .stk_push_request import StkPushRequest
 
 __all__ = [
     'PayBillTransaction',
@@ -13,4 +14,5 @@ __all__ = [
     'FloatAdjustment',
     'PayBillSettlement',
     'PaymentAllocation',
+    'StkPushRequest',
 ]

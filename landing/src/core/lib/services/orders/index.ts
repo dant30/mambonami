@@ -10,6 +10,7 @@ export {
 	getCartSummary,
 	getFarmerSubOrder,
 	getOrder,
+	initiateOrderStkPush,
 	listFarmerSubOrders,
 	listOrders,
 	markFarmerSubOrderReady,

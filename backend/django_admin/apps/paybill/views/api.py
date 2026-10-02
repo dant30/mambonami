@@ -21,8 +21,44 @@ from apps.paybill.serializers import (
 )
 from apps.paybill.serializers.settlement_serializer import SettlementSerializer
 from apps.paybill.models import PayBillTransaction, PayBillSettlement
+from apps.orders.models import Order
+from apps.orders.permissions import IsBuyer
+from apps.paybill.services.stk_push import StkPushError, initiate_order_stk_push, process_stk_callback
+from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
+
+
+class StkPushInitiationView(APIView):
+    permission_classes = [IsBuyer]
+
+    def post(self, request):
+        order_uuid = request.data.get('order_uuid')
+        phone_number = request.data.get('phone_number') or getattr(request.user, 'phone', '')
+        if not order_uuid:
+            return Response({'detail': 'order_uuid is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        order = get_object_or_404(Order, uuid=order_uuid, buyer=request.user)
+        try:
+            push_request = initiate_order_stk_push(order, phone_number)
+        except StkPushError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'status': push_request.status,
+            'message': push_request.result_description,
+            'checkout_request_id': push_request.checkout_request_id,
+            'account_number': order.account_number,
+            'amount': str(push_request.amount),
+        }, status=status.HTTP_200_OK)
+
+
+class StkPushCallbackView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        result = process_stk_callback(request.data)
+        status_code = 0 if result.get('success') else 1
+        return Response({'ResultCode': status_code, 'ResultDesc': result.get('message', 'Processed')})
 
 class IPNCallbackView(APIView):
     """

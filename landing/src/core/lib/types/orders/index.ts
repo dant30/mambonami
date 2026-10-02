@@ -10,4 +10,5 @@ export type {
 	OrderStatus,
 	SubOrder,
 	SubOrderStatus,
+	StkPushResponse,
 } from './order'

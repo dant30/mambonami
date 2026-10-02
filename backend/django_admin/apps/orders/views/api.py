@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/orders/views/api.py
 import logging
+from django.conf import settings
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -40,8 +41,8 @@ class CartCreateOrderView(APIView):
                 'platform_commission': float(order.platform_commission),
                 'total_amount': order.total_amount,
                 'discount_amount': float(order.discount_amount),
-                'paybill_number': '123456',
-                'instructions': f"Pay KES {order.total_amount} to PayBill 123456, Account {order.account_number}"
+                'paybill_number': settings.MPESA_PAYBILL_NUMBER,
+                'instructions': f"Pay KES {order.total_amount} to PayBill {settings.MPESA_PAYBILL_NUMBER}, Account {order.account_number}"
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.exception("Order create failed")

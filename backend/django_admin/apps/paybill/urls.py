@@ -5,6 +5,8 @@ from .views import api
 app_name = 'paybill'
 
 urlpatterns = [
+    path('stk-push/', api.StkPushInitiationView.as_view(), name='stk_push'),
+    path('stk-callback/', api.StkPushCallbackView.as_view(), name='stk_push_callback'),
     path('mpesa/callback/', api.IPNCallbackView.as_view(), name='mpesa_callback'),
     path('c2b/validation/', api.C2BValidationCallbackView.as_view(), name='c2b_validation'),
     path('c2b/confirmation/', api.C2BConfirmationCallbackView.as_view(), name='c2b_confirmation'),

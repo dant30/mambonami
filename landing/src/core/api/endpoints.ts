@@ -82,6 +82,7 @@ export const NOTIFICATION_ENDPOINTS = {
 } as const;
 
 export const PAYBILL_ENDPOINTS = {
+	stkPush: '/api/paybill/stk-push/',
 	simulate: '/api/paybill/simulate/',
 	transactions: '/api/paybill/transactions/',
 	settlements: '/api/paybill/settlements/',
