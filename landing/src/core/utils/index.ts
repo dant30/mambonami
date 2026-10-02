@@ -9,8 +9,8 @@ export type { NormalizedError } from './errorHandler'
 export { logError, logger } from './logger'
 export { captureVideoFrame, requestCameraStream, stopCameraStream } from './camera'
 export type { CameraOptions } from './camera'
-export { getCurrentLocation, reverseGeocode } from './location'
-export type { Coordinates, GeocodeResult } from './location'
+export { getCurrentLocation, isWithinKenya, reverseGeocode, roundCoordinate, searchPlaces } from './location'
+export type { Coordinates, GeocodeResult, SearchPlacesOptions } from './location'
 export {
 	siteUrl,
 	siteName,
@@ -18,9 +18,16 @@ export {
 	defaultDescription,
 	defaultImage,
 	absoluteUrl,
+	buildBreadcrumbJsonLd,
+	buildProductJsonLd,
+	buildTitle,
 	seoMeta,
 	seoLinks,
+	truncate,
 	organizationJsonLd,
 	websiteJsonLd,
 	marketplaceJsonLd,
 } from './seo'
+export type { ProductJsonLdInput, SeoLinkTag, SeoMetaTag } from './seo'
+export { resolveRouteSeo } from './routeSeo'
+export type { RouteSeoConfig } from './routeSeo'

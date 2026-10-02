@@ -3,8 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '../../../core/contexts/AuthContext'
+import { useSeo } from '../../../core/hooks'
 import { addToCart, addToWishlist, createProductReview, guestWishlistStore, listProductReviews, useProduct, useProducts } from '../../../core/lib'
 import type { ProductReview } from '../../../core/lib'
+import { buildBreadcrumbJsonLd, buildProductJsonLd } from '../../../core/utils/seo'
 import { MarketplaceProductGrid } from '../components/MarketplaceProductGrid'
 
 const fallbackImage = '/assets/images/produce.jpg'
@@ -14,6 +16,25 @@ export function ProductDetailPage() {
 	const { product, isLoading, error } = useProduct(id)
 	const { isAuthenticated } = useAuth()
 	const { products: relatedProducts } = useProducts({ page_size: 4, category: product?.category_detail?.code })
+	const productImage = product?.image_url || product?.image || fallbackImage
+	const productDescription = product?.description || `Buy ${product?.name ?? 'fresh produce'} direct from a Kenyan farmer on MAMBONAMI. Transparent pricing, secure M-Pesa payments and reliable delivery.`
+	const productJsonLd = product ? [
+		buildProductJsonLd({
+			name: product.name,
+			description: product.description,
+			image: productImage,
+			sku: product.sku,
+			path: `/product/${product.uuid}`,
+			price: product.price_per_unit,
+			inStock: Number(product.available_quantity) > 0,
+			category: product.category_detail?.name,
+			sellerName: product.farmer_name,
+			rating: product.rating,
+			reviewCount: product.review_count,
+		}),
+		buildBreadcrumbJsonLd([{ name: 'Home', path: '/home' }, { name: 'Produce', path: '/products' }, { name: product.name, path: `/product/${product.uuid}` }]),
+	] : undefined
+	useSeo({ title: product?.name ?? 'Fresh Produce', description: productDescription, path: `/product/${id}`, image: productImage, type: 'product', noIndex: Boolean(isLoading || error || !product), jsonLd: productJsonLd })
 	const [saved, setSaved] = useState(() => Boolean(id && guestWishlistStore.has(id)))
 	const [reviews, setReviews] = useState<ProductReview[]>([])
 	const [reviewError, setReviewError] = useState('')

@@ -6,7 +6,7 @@ type UseSeoOptions = {
 	description?: string
 	path?: string
 	image?: string
-	type?: 'website' | 'article'
+	type?: 'website' | 'article' | 'product'
 	noIndex?: boolean
 	jsonLd?: object | object[]
 }
@@ -24,6 +24,7 @@ function upsertMetaTag(selector: string, create: () => HTMLMetaElement) {
 /** Applies SEO meta/link/JSON-LD tags to document.head for this SPA route; cleans up on unmount. */
 export function useSeo(options: UseSeoOptions = {}) {
 	const { path, jsonLd } = options
+	const jsonLdContent = jsonLd ? JSON.stringify(jsonLd) : null
 
 	useEffect(() => {
 		const previousTitle = document.title
@@ -54,11 +55,11 @@ export function useSeo(options: UseSeoOptions = {}) {
 		})
 
 		let jsonLdScript: HTMLScriptElement | null = null
-		if (jsonLd) {
+		if (jsonLdContent) {
 			jsonLdScript = document.createElement('script')
 			jsonLdScript.type = 'application/ld+json'
 			jsonLdScript.setAttribute(MANAGED_ATTR, 'true')
-			jsonLdScript.textContent = JSON.stringify(jsonLd)
+			jsonLdScript.textContent = jsonLdContent
 			document.head.appendChild(jsonLdScript)
 		}
 
@@ -67,5 +68,5 @@ export function useSeo(options: UseSeoOptions = {}) {
 			jsonLdScript?.remove()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [options.title, options.description, path, options.image, options.type, options.noIndex, jsonLd])
+	}, [options.title, options.description, path, options.image, options.type, options.noIndex, jsonLdContent])
 }
