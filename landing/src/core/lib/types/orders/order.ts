@@ -38,6 +38,9 @@ export interface Order {
 	discount_amount: string | number
 	status: OrderStatus
 	account_number?: string
+	paybill_number?: string
+	stk_payment_status?: 'initiating' | 'pending' | 'succeeded' | 'failed' | null
+	stk_payment_message?: string
 	delivery_address?: string
 	delivery_street?: string
 	delivery_city?: string

@@ -151,6 +151,13 @@ def process_stk_callback(payload: dict) -> dict:
     if str(result_code) != '0':
         push_request.status = StkPushRequest.Status.FAILED
         push_request.save(update_fields=['callback_payload', 'result_code', 'result_description', 'status', 'updated_at'])
+        logger.warning(
+            'STK payment failed for order %s, checkout %s: result code %s (%s)',
+            push_request.order_id,
+            checkout_id,
+            result_code,
+            push_request.result_description,
+        )
         return {'success': True, 'message': 'Payment was not completed'}
 
     metadata_items = ((callback.get('CallbackMetadata') or {}).get('Item') or [])
@@ -190,4 +197,11 @@ def process_stk_callback(payload: dict) -> dict:
         push_request.result_description = str(result.get('message', 'Payment reconciliation failed.'))[:2000]
     push_request.callback_payload = payload
     push_request.save(update_fields=['callback_payload', 'status', 'result_description', 'updated_at'])
+    if not result.get('success'):
+        logger.error(
+            'STK receipt reconciliation failed for order %s, checkout %s: %s',
+            push_request.order_id,
+            checkout_id,
+            result.get('message', 'unknown reconciliation error'),
+        )
     return result

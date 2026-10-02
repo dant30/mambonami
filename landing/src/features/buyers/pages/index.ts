@@ -1,6 +1,6 @@
 export { BuyerDashboardPage } from './BuyerDashboardPage'
 export { BuyerCartPage } from './BuyerCartPage'
-export { BuyerOrderDetailPage } from './BuyerOrderDetailPage'
+export { BuyerOrderDetailPage } from './BuyerOrderDetailWorkspacePage'
 export { BuyerOrdersPage } from './BuyerOrdersPage'
 export { BuyerProductsPage } from './BuyerProductsPage'
 export { BuyerProfilePage } from './BuyerProfilePage'

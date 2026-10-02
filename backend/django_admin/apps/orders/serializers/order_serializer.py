@@ -1,6 +1,7 @@
 ﻿# backend/django_admin/apps/orders/serializers/order_serializer.py
 from rest_framework import serializers
 from decimal import Decimal
+from django.conf import settings
 from django.utils.timesince import timesince
 from apps.products.models import Product
 from apps.products.serializers import ProductSerializer
@@ -29,6 +30,9 @@ class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)
     buyer_phone = serializers.CharField(source='buyer.phone', read_only=True)
     buyer_name = serializers.CharField(source='buyer.display_name', read_only=True)
+    paybill_number = serializers.SerializerMethodField()
+    stk_payment_status = serializers.SerializerMethodField()
+    stk_payment_message = serializers.SerializerMethodField()
     time_ago = serializers.SerializerMethodField()
     item_summary = serializers.SerializerMethodField()
 
@@ -39,6 +43,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'total_amount', 'delivery_fee', 'platform_commission',
             'promo_code', 'discount_amount',
             'status', 'account_number', 'delivery_address',
+            'paybill_number', 'stk_payment_status', 'stk_payment_message',
             'delivery_street', 'delivery_city', 'delivery_postal_code', 'delivery_landmark',
             'delivery_lat', 'delivery_lng', 'total_weight_kg',
             'scheduled_date', 'scheduled_time_window', 'assigned_provider',
@@ -46,6 +51,20 @@ class OrderSerializer(serializers.ModelSerializer):
             'time_ago', 'item_summary',
         )
         read_only_fields = ('id', 'uuid', 'account_number', 'status', 'created_at', 'paid_at', 'delivered_at')
+
+    def get_paybill_number(self, obj):
+        return settings.MPESA_PAYBILL_NUMBER
+
+    def _latest_stk_request(self, obj):
+        return obj.stk_push_requests.order_by('-created_at').first()
+
+    def get_stk_payment_status(self, obj):
+        request = self._latest_stk_request(obj)
+        return request.status if request else None
+
+    def get_stk_payment_message(self, obj):
+        request = self._latest_stk_request(obj)
+        return request.result_description if request else ''
 
     def get_time_ago(self, obj):
         return timesince(obj.created_at)
