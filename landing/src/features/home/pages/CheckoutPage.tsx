@@ -31,9 +31,11 @@ export function CheckoutPage() {
 
 	const copy = async (value: string) => { try { await navigator.clipboard.writeText(value); setNotice('Copied to clipboard.') } catch { setNotice('Select and copy the payment reference manually.') } }
 	const submit = async (event: React.FormEvent) => {
-		event.preventDefault(); setError(''); setIsSubmitting(true)
+		event.preventDefault(); setError('')
+		if (!deliveryLocation) { setError('Choose your delivery point on the map before placing the order.'); return }
+		setIsSubmitting(true)
 		try {
-			const result = await createOrder(buildCreateOrderInputFromCart(items, { delivery_address: address, delivery_city: city, scheduled_time_window: timeWindow, delivery_lat: deliveryLocation?.latitude ?? 0, delivery_lng: deliveryLocation?.longitude ?? 0, payment_method: 'mpesa_paybill' }))
+			const result = await createOrder(buildCreateOrderInputFromCart(items, { delivery_address: address, delivery_city: city, scheduled_time_window: timeWindow, delivery_lat: deliveryLocation.latitude, delivery_lng: deliveryLocation.longitude, payment_method: 'mpesa_paybill' }))
 			setPayment(result)
 			setPaymentOrder({ id: result.id, uuid: result.uuid, buyer: 0, total_amount: result.total_amount, delivery_fee: result.delivery_fee, platform_commission: result.platform_commission, discount_amount: result.discount_amount, status: 'placed', sub_orders: [], scheduled_date: new Date().toISOString().slice(0, 10), scheduled_time_window: timeWindow, created_at: new Date().toISOString() })
 		} catch { setError('We could not create your order. Your cart is still available so you can retry.') } finally { setIsSubmitting(false) }

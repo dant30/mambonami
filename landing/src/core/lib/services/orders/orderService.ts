@@ -76,7 +76,7 @@ export function buildCreateOrderInputFromCart(
 		delivery_street: overrides.delivery_street ?? '',
 		delivery_city: overrides.delivery_city ?? '',
 		delivery_postal_code: overrides.delivery_postal_code ?? '',
-		delivery_landmark: overrides.delivery_landmark ?? null,
+		delivery_landmark: overrides.delivery_landmark ?? '',
 		delivery_lat: overrides.delivery_lat ?? 0,
 		delivery_lng: overrides.delivery_lng ?? 0,
 		scheduled_date: overrides.scheduled_date ?? today,

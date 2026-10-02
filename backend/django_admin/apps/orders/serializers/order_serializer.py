@@ -62,7 +62,7 @@ class OrderCreateSerializer(serializers.Serializer):
     delivery_street = serializers.CharField(required=False, allow_blank=True, max_length=200)
     delivery_city = serializers.CharField(required=False, allow_blank=True, max_length=100)
     delivery_postal_code = serializers.CharField(required=False, allow_blank=True, max_length=20)
-    delivery_landmark = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
+    delivery_landmark = serializers.CharField(required=False, allow_blank=True, max_length=200)
     delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6)
     delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6)
     scheduled_date = serializers.DateField()
@@ -82,6 +82,7 @@ class OrderCreateSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
+        attrs['delivery_landmark'] = (attrs.get('delivery_landmark') or '').strip()
         product_uuids = [item['product_uuid'] for item in attrs['items']]
         products = Product.objects.filter(uuid__in=product_uuids, is_active=True)
         if len(products) != len(product_uuids):
@@ -102,7 +103,7 @@ class OrderCreateSerializer(serializers.Serializer):
             street = attrs.get('delivery_street', '').strip()
             city = attrs.get('delivery_city', '').strip()
             postal_code = attrs.get('delivery_postal_code', '').strip()
-            landmark = attrs.get('delivery_landmark', '').strip()
+            landmark = attrs['delivery_landmark']
             if street or city or postal_code or landmark:
                 address_parts = [part for part in [street, city, postal_code, landmark] if part]
                 attrs['delivery_address'] = ', '.join(address_parts)

@@ -91,10 +91,10 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     """
     grouped = cart_data['grouped_products']
     delivery_address = cart_data.get('delivery_address', '')
-    delivery_street = cart_data.get('delivery_street', '')
-    delivery_city = cart_data.get('delivery_city', '')
-    delivery_postal_code = cart_data.get('delivery_postal_code', '')
-    delivery_landmark = cart_data.get('delivery_landmark', '')
+    delivery_street = cart_data.get('delivery_street') or ''
+    delivery_city = cart_data.get('delivery_city') or ''
+    delivery_postal_code = cart_data.get('delivery_postal_code') or ''
+    delivery_landmark = cart_data.get('delivery_landmark') or ''
     delivery_lat = cart_data['delivery_lat']
     delivery_lng = cart_data['delivery_lng']
     scheduled_date = cart_data['scheduled_date']

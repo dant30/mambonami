@@ -187,18 +187,18 @@ export function MapPicker({ value, onChange, onAddressChange, className, label =
 	const inputClass = 'mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground'
 
 	return (
-		<fieldset className={cn('space-y-3', className)}>
+		<fieldset className={cn('min-w-0 w-full max-w-full space-y-3', className)}>
 			<legend className="text-sm font-semibold text-foreground">{label}</legend>
-			<div className="flex gap-2" role="search">
+			<div className="flex min-w-0 flex-col gap-2 sm:flex-row" role="search">
 				<label className="sr-only" htmlFor="map-picker-search">Search for a place</label>
-				<input id="map-picker-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void runSearch() } }} placeholder="Search town, estate or landmark" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground" />
-				<button type="button" onClick={() => void runSearch()} disabled={isSearching} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"><Search className="h-4 w-4" />{isSearching ? 'Searching...' : 'Search'}</button>
+				<input id="map-picker-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void runSearch() } }} placeholder="Search town, estate or landmark" className="box-border min-w-0 w-full flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground" />
+				<button type="button" onClick={() => void runSearch()} disabled={isSearching} className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60 sm:w-auto"><Search className="h-4 w-4" />{isSearching ? 'Searching...' : 'Search'}</button>
 			</div>
 			{results.length > 0 && (
 				<ul className="max-h-48 divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card text-sm">
 					{results.map((result) => (
 						<li key={`${result.latitude},${result.longitude},${result.displayName}`}>
-							<button type="button" onClick={() => pickResult(result)} className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-muted"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{result.displayName}</span></button>
+							<button type="button" onClick={() => pickResult(result)} className="flex w-full min-w-0 items-start gap-2 px-3 py-2 text-left hover:bg-muted"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span className="min-w-0 break-words">{result.displayName}</span></button>
 						</li>
 					))}
 				</ul>
@@ -208,7 +208,7 @@ export function MapPicker({ value, onChange, onAddressChange, className, label =
 					ref={surfaceRef}
 					role="application"
 					aria-label="Interactive map. Tap to drop a pin, drag to move the map."
-					className="relative h-72 w-full cursor-crosshair touch-none select-none overflow-hidden"
+					className="relative h-64 w-full max-w-full cursor-crosshair touch-none select-none overflow-hidden sm:h-72"
 					onPointerDown={onPointerDown}
 					onPointerMove={onPointerMove}
 					onPointerUp={onPointerUp}
@@ -230,7 +230,7 @@ export function MapPicker({ value, onChange, onAddressChange, className, label =
 			{error && <p role="alert" className="text-xs text-destructive">{error}</p>}
 			<details className="text-xs text-muted-foreground">
 				<summary className="cursor-pointer font-semibold">Enter coordinates manually</summary>
-				<div className="mt-2 grid grid-cols-2 gap-3">
+				<div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<label className="font-semibold">Latitude<input type="text" inputMode="decimal" value={draft.latitude} onChange={(event) => setDraft((current) => ({ ...current, latitude: event.target.value }))} onBlur={applyDraft} className={inputClass} /></label>
 					<label className="font-semibold">Longitude<input type="text" inputMode="decimal" value={draft.longitude} onChange={(event) => setDraft((current) => ({ ...current, longitude: event.target.value }))} onBlur={applyDraft} className={inputClass} /></label>
 				</div>
