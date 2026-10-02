@@ -1,4 +1,7 @@
 ﻿# backend/django_admin/apps/notifications/signals.py
+import logging
+
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.orders.models import Order
@@ -6,6 +9,20 @@ from apps.logistics.models import Trip
 from apps.disputes.models import Dispute
 from .models import Notification
 from .tasks import send_notification_task
+
+logger = logging.getLogger(__name__)
+
+
+def _queue_notification(notification_id):
+    try:
+        send_notification_task.delay(notification_id)
+    except Exception:
+        logger.exception('Could not queue notification %s; it remains pending for retry', notification_id)
+
+
+def _queue_after_commit(notification):
+    transaction.on_commit(lambda: _queue_notification(notification.pk))
+
 
 @receiver(post_save, sender=Order)
 def order_notification(sender, instance, created, **kwargs):
@@ -20,7 +37,7 @@ def order_notification(sender, instance, created, **kwargs):
             metadata={'order_id': instance.id, 'status': instance.status},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        send_notification_task.delay(notif.id)
+        _queue_after_commit(notif)
     elif instance.status == 'paid_escrow':
         farmer = instance.farmer_profile.user
         notif = Notification.objects.create(
@@ -33,7 +50,7 @@ def order_notification(sender, instance, created, **kwargs):
             metadata={'order_id': instance.id},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        send_notification_task.delay(notif.id)
+        _queue_after_commit(notif)
 
 
 @receiver(post_save, sender=Trip)
@@ -49,7 +66,7 @@ def trip_notification(sender, instance, created, **kwargs):
             metadata={'order_id': instance.order.id, 'trip_id': instance.id},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        send_notification_task.delay(notif.id)
+        _queue_after_commit(notif)
     elif instance.status == 'delivered':
         buyer = instance.order.buyer
         notif = Notification.objects.create(
@@ -62,7 +79,7 @@ def trip_notification(sender, instance, created, **kwargs):
             metadata={'order_id': instance.order.id},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        send_notification_task.delay(notif.id)
+        _queue_after_commit(notif)
 
 
 @receiver(post_save, sender=Dispute)
@@ -81,4 +98,4 @@ def dispute_notification(sender, instance, created, **kwargs):
                 metadata={'dispute_id': instance.id},
                 delivery_status=Notification.DeliveryStatus.PENDING,
             )
-            send_notification_task.delay(notif.id)
+            _queue_after_commit(notif)
