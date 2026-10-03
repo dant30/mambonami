@@ -1,6 +1,6 @@
 export { FarmerDashboardPage } from './FarmerDashboardPage'
 export { FarmerEarningsPage } from './FarmerEarningsPage'
 export { FarmerOrdersWorkspacePage as FarmerOrdersPage } from './FarmerOrdersWorkspacePage'
-export { FarmerSubOrderDetailPage } from './FarmerSubOrderDetailPage'
+export { FarmerSubOrderDetailWorkspacePage as FarmerSubOrderDetailPage } from './FarmerSubOrderDetailWorkspacePage'
 export { FarmerProductEditorPage as FarmerProductFormPage } from './FarmerProductEditorPage'
 export { FarmerProductsWorkspacePage as FarmerProductsPage } from './FarmerProductsWorkspacePage'

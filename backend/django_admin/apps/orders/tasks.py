@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Order, SubOrder
 from apps.logistics.services.matching import find_eligible_providers, assign_provider_to_order
+from apps.orders.services.state_machine import OrderStateMachine
 
 @shared_task
 def auto_cancel_unpaid_orders():
@@ -20,6 +21,8 @@ def match_transport_for_order(order_id):
     """Async task to find and assign a transport provider."""
     from apps.orders.models import Order
     order = Order.objects.get(id=order_id)
+    if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
+        return
     if not order.are_all_farmers_ready():
         return
     eligible = find_eligible_providers(order)

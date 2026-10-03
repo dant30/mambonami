@@ -17,6 +17,7 @@ export interface SubOrder {
 	farmer: number
 	farmer_phone?: string
 	status: SubOrderStatus
+	order_status?: OrderStatus
 	subtotal: string | number
 	farmer_payout: string | number
 	items: OrderItem[]

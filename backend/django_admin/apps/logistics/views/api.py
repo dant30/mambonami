@@ -10,13 +10,14 @@ from ..models import Trip, TripMedia, TripLocationPing, TripProviderDecline, Tri
 from ..serializers import (
     TripSerializer, TripAssignSerializer, TripPickupSerializer,
     TripDeliverSerializer, OTPVerifySerializer, TripLocationPingSerializer,
-    TripMediaUploadSerializer
+    TripMediaUploadSerializer, TripMediaSerializer,
 )
 from ..services.matching import assign_provider_to_order
 from ..services.fee_calculator import calculate_waiting_surcharge, estimate_fee
 from ..services.otp_service import generate_otp, verify_otp
 from ..services.geolocation import haversine
 from apps.orders.models import Order
+from apps.orders.services.state_machine import OrderStateMachine
 from apps.users.permissions import IsTransportProvider, IsBuyer, IsAdmin
 
 
@@ -67,6 +68,11 @@ class AssignToMeView(generics.GenericAPIView):
         )
         
         provider = request.user.transport_profile
+        order = trip.order
+        if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
+            return Response({'error': 'A successfully paid order is required before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
+        if not order.are_all_farmers_ready():
+            return Response({'error': 'All farmer suborders must be ready before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
         
         with transaction.atomic():
             # Update trip
@@ -112,7 +118,8 @@ class TripStartNavigationPickupView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.ACCEPTED
+            status=TripStatus.ACCEPTED,
+            order__status='transport_assigned',
         )
         trip.status = TripStatus.EN_ROUTE_PICKUP
         trip.started_navigation_pickup = timezone.now()
@@ -137,11 +144,16 @@ class TripArriveAtPickupView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.EN_ROUTE_PICKUP
+            status=TripStatus.EN_ROUTE_PICKUP,
+            order__status='transport_assigned',
         )
         
         serializer = TripPickupSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        if trip.order.status != 'transport_assigned' or not OrderStateMachine.has_successful_payment(trip.order):
+            return Response({'error': 'Pickup is blocked until the order is paid and assigned.'}, status=status.HTTP_409_CONFLICT)
+        if not trip.order.are_all_farmers_ready():
+            return Response({'error': 'All farmer suborders must be ready before pickup.'}, status=status.HTTP_409_CONFLICT)
         
         trip.status = TripStatus.ARRIVED_PICKUP
         trip.arrived_pickup_at = timezone.now()
@@ -176,11 +188,18 @@ class TripPickupView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.ARRIVED_PICKUP
+            status=TripStatus.ARRIVED_PICKUP,
+            order__status='transport_assigned',
         )
         
         serializer = TripPickupSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        if not OrderStateMachine.has_successful_payment(trip.order) or not trip.order.are_all_farmers_ready():
+            return Response({'error': 'Pickup is blocked until payment is verified and all farmer suborders are ready.'}, status=status.HTTP_409_CONFLICT)
+        if trip.order.status != 'transport_assigned' or not OrderStateMachine.has_successful_payment(trip.order):
+            return Response({'error': 'Pickup is blocked until the order has a successful payment and a transport assignment.'}, status=status.HTTP_409_CONFLICT)
+        if not trip.order.are_all_farmers_ready():
+            return Response({'error': 'All farmer suborders must be ready before pickup.'}, status=status.HTTP_409_CONFLICT)
         
         # Calculate waiting surcharge
         waiting_surcharge = Decimal('0.00')
@@ -193,13 +212,15 @@ class TripPickupView(generics.GenericAPIView):
                 waiting_minutes
             )
         
-        # Update trip
-        trip.pickup_lat = serializer.validated_data.get('pickup_lat', trip.pickup_lat)
-        trip.pickup_lng = serializer.validated_data.get('pickup_lng', trip.pickup_lng)
-        trip.waiting_surcharge = waiting_surcharge
-        trip.status = TripStatus.PICKED_UP
-        trip.picked_up_at = timezone.now()
-        trip.save()
+        with transaction.atomic():
+            trip.pickup_lat = serializer.validated_data.get('pickup_lat', trip.pickup_lat)
+            trip.pickup_lng = serializer.validated_data.get('pickup_lng', trip.pickup_lng)
+            trip.waiting_surcharge = waiting_surcharge
+            trip.status = TripStatus.PICKED_UP
+            trip.picked_up_at = timezone.now()
+            trip.save()
+            order = Order.objects.select_for_update().get(pk=trip.order_id)
+            OrderStateMachine.transition(order, 'picked_up', user=request.user)
         
         # Also create pickup photo if provided
         pickup_photo = request.FILES.get('pickup_photo')
@@ -252,7 +273,8 @@ class TripStartNavigationDeliveryView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.PICKED_UP
+            status=TripStatus.PICKED_UP,
+            order__status='picked_up',
         )
         trip.status = TripStatus.EN_ROUTE_DELIVERY
         trip.started_navigation_delivery = timezone.now()
@@ -278,7 +300,8 @@ class TripArriveAtDeliveryView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.EN_ROUTE_DELIVERY
+            status=TripStatus.EN_ROUTE_DELIVERY,
+            order__status='picked_up',
         )
         
         serializer = TripDeliverSerializer(data=request.data, partial=True)
@@ -312,7 +335,8 @@ class GenerateOTPView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.ARRIVED_DELIVERY
+            status=TripStatus.ARRIVED_DELIVERY,
+            order__status='picked_up',
         )
         
         otp = generate_otp(trip)
@@ -344,7 +368,8 @@ class VerifyOTPView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             order__buyer=request.user,
-            status=TripStatus.OTP_PENDING
+            status=TripStatus.OTP_PENDING,
+            order__status='picked_up',
         )
         
         serializer = self.get_serializer(data=request.data)

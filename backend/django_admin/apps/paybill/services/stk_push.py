@@ -189,12 +189,12 @@ def process_stk_callback(payload: dict) -> dict:
         'BusinessShortCode': str(getattr(settings, 'MPESA_PAYBILL_NUMBER', '')),
         'TransactionType': 'CustomerPayBillOnline',
     })
-    if result.get('success'):
+    if result.get('success') and result.get('order_id') == push_request.order_id:
         push_request.status = StkPushRequest.Status.SUCCEEDED
         push_request.result_description = 'Payment confirmed.'
     else:
         push_request.status = StkPushRequest.Status.FAILED
-        push_request.result_description = str(result.get('message', 'Payment reconciliation failed.'))[:2000]
+        push_request.result_description = str(result.get('message', 'Payment was not matched to this order.'))[:2000]
     push_request.callback_payload = payload
     push_request.save(update_fields=['callback_payload', 'status', 'result_description', 'updated_at'])
     if not result.get('success'):

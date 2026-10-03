@@ -95,6 +95,7 @@ class IPNHandler:
             if amount <= 0 or not account_number:
                 return {'success': False, 'message': 'Invalid amount or account number'}
 
+            mismatch_reason = ''
             reservation = AccountNumberReservation.objects.filter(
                 account_number=account_number,
                 is_used=False,
@@ -115,6 +116,14 @@ class IPNHandler:
                             status='placed'  # only pending orders can be paid
                         )
                     except Order.DoesNotExist:
+                        order = None
+                        order_id = None
+                    if order and amount != order.total_amount:
+                        mismatch_reason = (
+                            f'Payment amount {amount} did not equal order total {order.total_amount}; '
+                            'manual reconciliation required.'
+                        )
+                        logger.error('Order %s received an amount mismatch on PayBill', order.id)
                         order = None
                         order_id = None
                 elif reservation.prefix == 'DEP':
@@ -218,7 +227,7 @@ class IPNHandler:
             else:
                 # Orphaned transaction – keep status as 'orphaned'
                 paybill_txn.status = 'orphaned'
-                paybill_txn.notes = f"No valid order found for account {account_number}"
+                paybill_txn.notes = mismatch_reason or f"No valid order found for account {account_number}"
                 paybill_txn.save(update_fields=['status', 'notes'])
 
             # 7. Update float balance and create FloatAdjustment

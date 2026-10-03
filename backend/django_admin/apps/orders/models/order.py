@@ -90,7 +90,9 @@ class Order(BaseModel):
         self.save(update_fields=['status', 'paybill_transaction_code', 'paid_at'])
 
     def is_fully_confirmed(self):
-        return all(sub.status == 'confirmed' for sub in self.sub_orders.all())
+        sub_orders = self.sub_orders.all()
+        return sub_orders.exists() and not sub_orders.exclude(status='confirmed').exists()
 
     def are_all_farmers_ready(self):
-        return all(sub.status == 'ready' for sub in self.sub_orders.all())
+        sub_orders = self.sub_orders.all()
+        return sub_orders.exists() and not sub_orders.exclude(status='ready').exists()

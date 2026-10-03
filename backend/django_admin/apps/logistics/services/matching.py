@@ -1,17 +1,21 @@
 ﻿# backend/django_admin/apps/logistics/services/matching.py
 import logging
 from decimal import Decimal
-from typing import List, Tuple, Optional
+from typing import TYPE_CHECKING, List, Tuple, Optional
 from django.utils import timezone
 from django.db.models import Q, F
 from django.db import transaction
 from apps.users.models import TransportProviderProfile
 from apps.orders.models import Order
+from apps.orders.services.state_machine import OrderStateMachine
 from core.cache import RedisCache
 from .geolocation import haversine, parse_gps
 from .fee_calculator import calculate_delivery_fee, calculate_total_for_buyer, is_peak_hour
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from ..models import Trip
 
 
 def find_eligible_providers(
@@ -28,6 +32,12 @@ def find_eligible_providers(
     
     Returns: List of (provider, estimated_fee, distance) tuples sorted by fee
     """
+    if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
+        logger.warning('Order %s is not paid; transport matching is blocked', order.id)
+        return []
+    if not order.are_all_farmers_ready():
+        logger.warning('Order %s still has farmer items not ready for pickup', order.id)
+        return []
     if not order.total_weight_kg or order.total_weight_kg <= 0:
         logger.warning(f"Order {order.id} has no weight info")
         return []
@@ -186,6 +196,13 @@ def assign_provider_to_order(
         Trip instance
     """
     from ..models import Trip, TripStatus
+
+    with transaction.atomic():
+        order = Order.objects.select_for_update().get(pk=order.pk)
+        if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
+            raise ValueError('A successfully paid order is required before assigning transport.')
+        if not order.are_all_farmers_ready():
+            raise ValueError('All farmer suborders must be ready before assigning transport.')
     
     # Calculate delivery fee
     pickup_location = get_pickup_location_for_order(order)
@@ -241,13 +258,10 @@ def assign_provider_to_order(
             ip_address='',
         )
         
-        # Update order
-        old_delivery_fee = order.delivery_fee or Decimal('0')
-        order.delivery_fee = fee_breakdown['buyer_total']
-        order.total_amount = order.total_amount - old_delivery_fee + fee_breakdown['buyer_total']
+        # The buyer has already paid; keep the order's charged total immutable.
         order.assigned_provider = provider
         order.status = 'transport_assigned'
-        order.save(update_fields=['delivery_fee', 'total_amount', 'assigned_provider', 'status'])
+        order.save(update_fields=['assigned_provider', 'status'])
         
         # Update provider's total deliveries (incremented on completion)
         # provider.total_deliveries is updated via signal on completion

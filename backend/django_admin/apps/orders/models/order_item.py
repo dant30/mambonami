@@ -2,6 +2,7 @@
 # backend/django_admin/apps/orders/models/order_item.py
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from shared.db_models.base import BaseModel
 
 class SubOrder(BaseModel):
@@ -36,16 +37,27 @@ class SubOrder(BaseModel):
 
     def confirm(self):
         """Farmer accepts order."""
+        from apps.orders.services.state_machine import OrderStateMachine
+
+        if self.order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(self.order):
+            raise ValidationError('The buyer must complete payment before the order can be confirmed.')
+        if self.status != 'pending':
+            raise ValidationError(f'Cannot confirm a sub-order in {self.status} status.')
         self.status = 'confirmed'
         self.confirmed_at = timezone.now()
         self.save(update_fields=['status', 'confirmed_at'])
 
     def mark_ready(self):
         """Farmer marks ready for pickup."""
-        if self.status == 'confirmed':
-            self.status = 'ready'
-            self.ready_at = timezone.now()
-            self.save(update_fields=['status', 'ready_at'])
+        from apps.orders.services.state_machine import OrderStateMachine
+
+        if self.order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(self.order):
+            raise ValidationError('The buyer must have a successful payment before goods can be readied.')
+        if self.status != 'confirmed':
+            raise ValidationError('Only a confirmed order can be marked ready for pickup.')
+        self.status = 'ready'
+        self.ready_at = timezone.now()
+        self.save(update_fields=['status', 'ready_at'])
 
 class OrderItem(BaseModel):
     """Individual product line item within a sub‑order."""

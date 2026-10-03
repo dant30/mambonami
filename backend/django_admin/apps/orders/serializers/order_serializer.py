@@ -21,10 +21,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class SubOrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     farmer_phone = serializers.CharField(source='farmer.user.phone', read_only=True)
+    order_status = serializers.CharField(source='order.status', read_only=True)
 
     class Meta:
         model = SubOrder
-        fields = ('id', 'farmer', 'farmer_phone', 'status', 'subtotal', 'farmer_payout', 'items', 'confirmed_at', 'ready_at', 'created_at')
+        fields = ('id', 'farmer', 'farmer_phone', 'order_status', 'status', 'subtotal', 'farmer_payout', 'items', 'confirmed_at', 'ready_at', 'created_at')
 
 class OrderSerializer(serializers.ModelSerializer):
     sub_orders = SubOrderSerializer(many=True, read_only=True)

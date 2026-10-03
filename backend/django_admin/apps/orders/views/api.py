@@ -1,6 +1,8 @@
 ﻿# backend/django_admin/apps/orders/views/api.py
 import logging
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -128,19 +130,27 @@ class FarmerConfirmSubOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsFarmerForSubOrder]
 
     def post(self, request, suborder_id):
-        suborder = get_object_or_404(SubOrder, id=suborder_id)
+        suborder = get_object_or_404(SubOrder.objects.select_related('order', 'farmer__user'), id=suborder_id)
+        self.check_object_permissions(request, suborder)
         action = request.data.get('action')
         if action == 'confirm':
-            suborder.confirm()
-            if suborder.order.is_fully_confirmed():
-                from apps.orders.tasks import match_transport_for_order
-                match_transport_for_order.delay(suborder.order.id)
+            try:
+                suborder.confirm()
+            except ValidationError as exc:
+                return Response({'error': exc.messages[0]}, status=status.HTTP_409_CONFLICT)
             return Response({'status': 'confirmed'})
         elif action == 'reject':
+            if suborder.order.status != 'placed':
+                return Response({'error': 'A paid order cannot be rejected without initiating a refund.'}, status=status.HTTP_409_CONFLICT)
+            if suborder.order.stk_push_requests.filter(status__in=['initiating', 'pending']).exists():
+                return Response({'error': 'An M-Pesa payment prompt is pending. Wait for its result before rejecting this order.'}, status=status.HTTP_409_CONFLICT)
+            if suborder.status != 'pending':
+                return Response({'error': 'Only a pending order can be rejected.'}, status=status.HTTP_409_CONFLICT)
             suborder.status = 'cancelled'
             suborder.save()
             suborder.order.status = 'cancelled'
             suborder.order.save()
+            suborder.order.sub_orders.exclude(pk=suborder.pk).update(status='cancelled')
             return Response({'status': 'cancelled'})
         return Response({'error': 'Invalid action'}, status=400)
 
@@ -148,8 +158,15 @@ class FarmerReadyView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsFarmerForSubOrder]
 
     def post(self, request, suborder_id):
-        suborder = get_object_or_404(SubOrder, id=suborder_id)
-        suborder.mark_ready()
+        suborder = get_object_or_404(SubOrder.objects.select_related('order', 'farmer__user'), id=suborder_id)
+        self.check_object_permissions(request, suborder)
+        try:
+            with transaction.atomic():
+                locked = SubOrder.objects.select_for_update().select_related('order').get(pk=suborder.pk)
+                locked.mark_ready()
+                suborder = locked
+        except ValidationError as exc:
+            return Response({'error': exc.messages[0]}, status=status.HTTP_409_CONFLICT)
         if suborder.order.are_all_farmers_ready():
             from apps.orders.tasks import match_transport_for_order
             match_transport_for_order.delay(suborder.order.id)
