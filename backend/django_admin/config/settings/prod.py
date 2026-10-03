@@ -45,7 +45,7 @@ AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default='')
 AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default='eu-west-1')
-AWS_QUERYSTRING_AUTH = False
+AWS_QUERYSTRING_AUTH = True
 
 # Alternatively use WhiteNoise for static files:
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

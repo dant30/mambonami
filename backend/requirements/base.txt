@@ -1,5 +1,6 @@
 ﻿# backend/requirements/base.txt
 django>=4.2
+django-jazzmin>=3.0.5,<4
 djangorestframework>=3.14
 djangorestframework-simplejwt>=5.3.0
 drf-yasg>=1.21

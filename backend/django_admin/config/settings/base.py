@@ -19,6 +19,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,6 +50,57 @@ INSTALLED_APPS = [
     'apps.audit.apps.AuditConfig',
     'apps.analytics.apps.AnalyticsConfig',
 ]
+JAZZMIN_SETTINGS = {
+    'site_title': 'MAMBONAMI Admin',
+    'site_header': 'MAMBONAMI Operations',
+    'site_brand': 'MAMBONAMI',
+    'welcome_sign': 'Marketplace operations',
+    'copyright': 'MAMBONAMI',
+    'show_sidebar': True,
+    'navigation_expanded': False,
+    'show_ui_builder': False,
+    'search_model': [
+        'users.User',
+        'orders.Order',
+        'products.Product',
+        'paybill.PayBillTransaction',
+    ],
+    'topmenu_links': [
+        {'name': 'Open marketplace', 'url': 'https://www.mambonami.com', 'new_window': True},
+    ],
+    'order_with_respect_to': [
+        'orders', 'products', 'users', 'paybill', 'payouts', 'logistics',
+        'disputes', 'notifications', 'analytics', 'audit', 'payments',
+        'auth', 'django_celery_beat', 'django_celery_results', 'token_blacklist',
+    ],
+    'icons': {
+        'orders': 'fas fa-shopping-basket',
+        'products': 'fas fa-carrot',
+        'users': 'fas fa-users',
+        'paybill': 'fas fa-mobile-alt',
+        'payouts': 'fas fa-money-bill-wave',
+        'logistics': 'fas fa-truck',
+        'disputes': 'fas fa-exclamation-triangle',
+        'notifications': 'fas fa-bell',
+        'analytics': 'fas fa-chart-line',
+        'audit': 'fas fa-clipboard-list',
+        'auth': 'fas fa-user-shield',
+        'django_celery_beat': 'fas fa-clock',
+        'django_celery_results': 'fas fa-tasks',
+        'token_blacklist': 'fas fa-key',
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    'theme': 'flatly',
+    'dark_mode_theme': 'darkly',
+    'navbar': 'navbar-white navbar-light',
+    'sidebar': 'sidebar-dark-primary',
+    'brand_colour': 'navbar-success',
+    'accent': 'accent-success',
+    'sidebar_nav_flat_style': True,
+    'sidebar_nav_compact_style': True,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
