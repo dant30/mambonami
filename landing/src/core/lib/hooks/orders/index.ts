@@ -1,4 +1,5 @@
 export { useActiveOrder } from './useActiveOrder'
 export { useCart } from './useCart'
+export { useCartItemCount } from './useCartItemCount'
 export { useOrder } from './useOrder'
 export { useOrders } from './useOrders'

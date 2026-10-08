@@ -2,6 +2,7 @@ import { BarChart3, ClipboardList, FileCheck2, LogIn, LogOut, Navigation, Packag
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
+import { CartCountBadge } from '../components/ui'
 
 /**
  * ✅✅ SIDEBAR NAVIGATION:
@@ -40,6 +41,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 			{ path: '/how-it-works', label: 'How it works', icon: Navigation },
 			{ path: '/about', label: 'About Mambonami', icon: Users },
 			{ path: '/support', label: 'Support', icon: ShieldCheck },
+			{ path: '/cart', label: 'Cart', icon: Package, showBadge: true },
 		]
 		: role === 'buyer'
 		? [
@@ -47,7 +49,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 			{ path: '/app/buyer/products', label: 'Browse products', icon: Package },
 			{ path: '/app/buyer/orders', label: 'Orders', icon: ClipboardList },
 			{ path: '/app/buyer/wishlist', label: 'Wishlist', icon: Users },
-			{ path: '/app/buyer/cart', label: 'Cart', icon: Package },
+			{ path: '/app/buyer/cart', label: 'Cart', icon: Package, showBadge: true },
 			{ path: '/app/buyer/profile', label: 'Profile', icon: Users },
 			{ path: '/app/buyer/settings', label: 'Settings', icon: ShieldCheck },
 		]
@@ -72,7 +74,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 				{ path: dashboardPath, label: 'Workspace', icon: Users },
 		]
 
-	const items = admin ? adminItems : marketplaceItems
+	const items: Array<{ path: string; label: string; icon: typeof ClipboardList; showBadge?: boolean }> = admin ? adminItems : marketplaceItems
 
 	return (
 		<aside
@@ -94,13 +96,13 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 			</div>
 
 			<nav className="sidebar-nav-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={admin ? 'Admin links' : 'Marketplace links'}>
-				{items.map(({ path, label, icon: Icon }) => (
+				{items.map(({ path, label, icon: Icon, showBadge }) => (
 					<NavLink
 						key={path}
 						to={path}
 						onClick={onItemClick}
 						className={({ isActive }) =>
-							`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+							`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
 								isActive
 									? 'bg-primary text-primary-foreground shadow-sm'
 									: 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -108,7 +110,12 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 						}
 					>
 						<Icon className="h-4 w-4 shrink-0" />
-						{label}
+						<span>{label}</span>
+						{showBadge && path === '/app/buyer/cart' && (
+							<span className="relative ml-auto">
+								<CartCountBadge />
+							</span>
+						)}
 					</NavLink>
 				))}
 			</nav>

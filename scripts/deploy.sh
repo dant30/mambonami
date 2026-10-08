@@ -20,6 +20,10 @@ echo "🚀 Starting deployment for MAMBONAMI (systemd)..."
 
 cd "$PROJECT_DIR" || { echo "❌ Project directory not found"; exit 1; }
 
+# Gunicorn/Django must see the workspace root so `shared` is importable.
+export PYTHONPATH="$PROJECT_DIR:$DJANGO_DIR${PYTHONPATH:+:$PYTHONPATH}"
+export DJANGO_SETTINGS_MODULE="config.settings.prod"
+
 # Git pull
 echo "📦 Pulling latest code..."
 git pull origin main || echo "⚠️  Git pull failed – continuing with current code"

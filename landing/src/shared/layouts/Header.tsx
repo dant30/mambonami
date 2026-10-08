@@ -5,6 +5,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../core/contexts/AuthContext'
 import { useIsMobile } from '../../core/hooks'
 import { useNotifications } from '../../core/lib'
+import { CartCountBadge } from '../components/ui'
 
 /**
  * ✅✅ ROLE-SPECIFIC HEADERS:
@@ -36,7 +37,6 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 	const unreadNotifications = notifications.filter((notification) => !notification.is_read)
 
 	const displayName = String(user?.first_name || user?.username || user?.phone || 'MAMBONAMI member')
-	const closeMenu = () => setMenuOpen(false)
 	useEffect(() => {
 		if (!notificationsOpen && !userMenuOpen) return
 		const closeOnOutsideClick = (event: MouseEvent) => {
@@ -134,7 +134,12 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 					{isAuthenticated ? (
 						// Authenticated actions
 						<>
-							{role === 'buyer' && <Link to="/app/buyer/cart" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart"><ShoppingBasket className="h-5 w-5" /></Link>}
+							{role === 'buyer' && (
+							<Link to="/app/buyer/cart" className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart">
+								<ShoppingBasket className="h-5 w-5" />
+								<CartCountBadge />
+							</Link>
+						)}
 							<div ref={notificationsRef} className="relative">
 								<button type="button" onClick={() => setNotificationsOpen((open) => !open)} className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Notifications" aria-expanded={notificationsOpen}>
 									<Bell className="h-5 w-5" />
@@ -187,7 +192,10 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 						// Guest actions
 						<>
 							<Link to="/wishlist" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Wishlist"><Heart className="h-5 w-5" /></Link>
-							<Link to="/cart" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart"><ShoppingBasket className="h-5 w-5" /></Link>
+							<Link to="/cart" className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart">
+								<ShoppingBasket className="h-5 w-5" />
+								<CartCountBadge />
+							</Link>
 							<Link to="/login" className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted">
 								Log in
 							</Link>

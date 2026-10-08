@@ -2,6 +2,7 @@ import { Heart, Home, Package, ShoppingBasket, UserCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../../core/contexts/AuthContext'
+import { CartCountBadge } from '../components/ui'
 
 /**
  * ✅✅ MOBILE BOTTOM NAVIGATION:
@@ -35,6 +36,7 @@ export function MobileBottomNav() {
 						{ label: 'Shop', path: '/app/buyer/products', icon: Package },
 						{ label: 'Orders', path: '/app/buyer/orders', icon: ShoppingBasket },
 						{ label: 'Wishlist', path: '/app/buyer/wishlist', icon: UserCircle },
+						{ label: 'Cart', path: '/app/buyer/cart', icon: ShoppingBasket, showBadge: true },
 						{ label: 'Dashboard', path: dashboardPath, icon: Home },
 					]
 				: [
@@ -47,7 +49,7 @@ export function MobileBottomNav() {
 					{ label: 'Home', path: '/home', icon: Home },
 					{ label: 'Produce', path: '/products', icon: Package },
 					{ label: 'Wishlist', path: '/wishlist', icon: Heart },
-					{ label: 'Cart', path: '/cart', icon: ShoppingBasket },
+					{ label: 'Cart', path: '/cart', icon: ShoppingBasket, showBadge: true },
 				]
 
 	return (
@@ -55,8 +57,8 @@ export function MobileBottomNav() {
 			className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-18px_rgba(41,74,54,0.55)] md:hidden"
 			aria-label="Mobile navigation"
 		>
-			<div className="mx-auto grid max-w-md grid-cols-4 gap-1">
-				{items.map(({ label, path, icon: Icon }) => {
+			<div className={`mx-auto grid max-w-md gap-1 ${isAuthenticated && role === 'buyer' ? 'grid-cols-5' : 'grid-cols-4'}`}>
+				{items.map(({ label, path, icon: Icon, showBadge }) => {
 					const active =
 						location.pathname === path || (path !== '/home' && location.pathname.startsWith(path))
 
@@ -64,7 +66,7 @@ export function MobileBottomNav() {
 						<Link
 							key={label}
 							to={path}
-							className={`flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] font-semibold ${
+							className={`relative flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] font-semibold ${
 								active
 									? 'text-primary'
 									: 'text-foreground/75 hover:text-foreground'
@@ -72,6 +74,11 @@ export function MobileBottomNav() {
 						>
 							<Icon className={`h-5 w-5 ${active ? 'scale-110' : ''}`} />
 							{label}
+							{showBadge && (
+								<span className="absolute right-3 top-1.5">
+									<CartCountBadge />
+								</span>
+							)}
 						</Link>
 					)
 				})}

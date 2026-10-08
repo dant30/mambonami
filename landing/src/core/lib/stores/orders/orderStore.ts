@@ -6,10 +6,16 @@ const CART_STORAGE_KEY = 'orders_cart'
 let cachedOrders: Order[] = []
 let activeOrder: Order | null = null
 let cachedCart: CartItem[] = localStorageStore.get<CartItem[]>(CART_STORAGE_KEY) ?? []
+const cartListeners = new Set<() => void>()
+
+function notifyCartListeners() {
+	cartListeners.forEach((listener) => listener())
+}
 
 function persistCart(items: CartItem[]) {
 	cachedCart = items
 	localStorageStore.set(CART_STORAGE_KEY, items)
+	notifyCartListeners()
 }
 
 function normalizeCartItem(item: CartItemInput | CartItem): CartItem {
@@ -33,6 +39,15 @@ export const orderStore = {
 	getActiveOrder: () => activeOrder,
 	setActiveOrder: (order: Order | null) => { activeOrder = order },
 	getCart: () => cachedCart,
+	getCartItemCount: () => cachedCart.reduce((total, item) => total + (Number(item.quantity) || 0), 0),
+	subscribeToCart: (listener: () => void) => {
+		cartListeners.add(listener)
+		return () => cartListeners.delete(listener)
+	},
+	refreshCartFromStorage: () => {
+		cachedCart = localStorageStore.get<CartItem[]>(CART_STORAGE_KEY) ?? []
+		notifyCartListeners()
+	},
 	setCart: (items: CartItem[]) => {
 		const normalizedItems = items
 			.filter((item) => Number(item.quantity) > 0)

@@ -13,6 +13,7 @@ export type { AvatarProps } from './Avatar'
 export { BackToTop } from './BackToTop'
 export { Badge } from './Badge'
 export { Button } from './Button'
+export { CartCountBadge } from './Cart'
 
 export {
 	Breadcrumb,
