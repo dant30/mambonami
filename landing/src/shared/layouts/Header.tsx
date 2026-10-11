@@ -31,7 +31,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 
 	// ✅✅ Dashboard path uses /app/{role} pattern
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
-	const profilePath = role === 'buyer' ? '/app/buyer/profile' : dashboardPath
+	const profilePath = role === 'buyer' ? '/app/buyer/profile' : role === 'farmer' ? '/app/farmer/profile' : role === 'retailer' ? '/app/retailer/profile' : role === 'transport_provider' ? '/app/transport/profile' : dashboardPath
 	const homePath = isAuthenticated ? dashboardPath : '/home'
 	const { notifications } = useNotifications(isAuthenticated)
 	const unreadNotifications = notifications.filter((notification) => !notification.is_read)

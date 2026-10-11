@@ -19,8 +19,8 @@ export function MobileBottomNav() {
 	const dashboardPath = isAdmin ? '/app/admin' : role === 'buyer' ? '/app/buyer' : role === 'farmer' ? '/app/farmer' : role === 'retailer' ? '/app/retailer' : role === 'transport_provider' ? '/app/transport' : '/'
 	const producePath = role === 'farmer' ? '/app/farmer/products' : role === 'retailer' ? '/app/retailer/products' : role === 'transport_provider' ? '/app/transport/jobs' : '/products'
 	const produceLabel = role === 'farmer' ? 'Products' : role === 'retailer' ? 'Products' : role === 'transport_provider' ? 'Jobs' : 'Produce'
-	const profilePath = role === 'buyer' ? '/app/buyer/profile' : dashboardPath
-	const profileLabel = role === 'buyer' ? 'Profile' : 'Workspace'
+	const profilePath = role === 'buyer' ? '/app/buyer/profile' : role === 'farmer' ? '/app/farmer/profile' : role === 'retailer' ? '/app/retailer/profile' : role === 'transport_provider' ? '/app/transport/profile' : dashboardPath
+	const profileLabel = role === 'buyer' ? 'Profile' : role === 'farmer' || role === 'retailer' || role === 'transport_provider' ? 'Profile' : 'Workspace'
 	const activityPath = role === 'farmer' ? '/app/farmer/orders' : role === 'retailer' ? '/app/retailer/orders' : '/app/transport/active-jobs'
 	const activityLabel = role === 'farmer' || role === 'retailer' ? 'Orders' : 'Active'
 

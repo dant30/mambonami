@@ -4,3 +4,4 @@ export { FarmerOrdersWorkspacePage as FarmerOrdersPage } from './FarmerOrdersWor
 export { FarmerSubOrderDetailWorkspacePage as FarmerSubOrderDetailPage } from './FarmerSubOrderDetailWorkspacePage'
 export { FarmerProductEditorPage as FarmerProductFormPage } from './FarmerProductEditorPage'
 export { FarmerProductsWorkspacePage as FarmerProductsPage } from './FarmerProductsWorkspacePage'
+export { FarmerProfilePage } from './FarmerProfilePage'

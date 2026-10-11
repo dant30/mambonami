@@ -1,6 +1,7 @@
 export { TransporterDashboardPage } from './TransporterDashboardPage'
 export { TransportEarningsPage } from './TransportEarningsPage'
 export { TransportJobsPage } from './TransportJobsPage'
+export { TransporterProfilePage } from './TransporterProfilePage'
 export { TransportTripOperationsPage as TransportTripDetailPage } from './TransportTripOperationsPage'
 export { TransportTripsPage } from './TransportTripsPage'
 export { TransportVehiclesPage } from './TransportVehiclesPage'

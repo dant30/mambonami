@@ -66,6 +66,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 				{ path: '/app/farmer/orders', label: 'Orders received', icon: ClipboardList },
 				{ path: '/app/farmer/products', label: 'My products', icon: Package },
 				{ path: '/app/farmer/earnings', label: 'Earnings', icon: BarChart3 },
+				{ path: '/app/farmer/profile', label: 'Profile', icon: Users },
 			]
 		: role === 'transport_provider'
 			? [
@@ -74,10 +75,12 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 				{ path: '/app/transport/active-jobs', label: 'Active trips', icon: Navigation },
 				{ path: '/app/transport/vehicles', label: 'Vehicles', icon: Truck },
 				{ path: '/app/transport/earnings', label: 'Earnings', icon: BarChart3 },
+				{ path: '/app/transport/profile', label: 'Profile', icon: Users },
 			]
 			: [
 			{ path: dashboardPath, label: 'Dashboard', icon: ClipboardList },
 			{ path: '/products', label: 'Browse produce', icon: Package },
+			{ path: '/app/retailer/profile', label: 'Profile', icon: Users },
 				{ path: dashboardPath, label: 'Workspace', icon: Users },
 		]
 
