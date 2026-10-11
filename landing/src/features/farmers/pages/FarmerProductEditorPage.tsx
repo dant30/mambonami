@@ -8,7 +8,7 @@ import type { Product, ProductCreateInput } from '../../../core/lib'
 import { getErrorMessage, isApiError } from '../../../core/utils'
 import type { Coordinates } from '../../../core/utils'
 import { FormActions, FormField, FormSection, ValidationErrors } from '../../../shared/components/forms'
-import { MapPicker } from '../../../shared/components/ui'
+import { MapPicker, Select } from '../../../shared/components/ui'
 
 interface ProductFormState {
 	name: string
@@ -215,10 +215,7 @@ export function FarmerProductEditorPage() {
 							<input id="product-variety" value={form.variety} onChange={(event) => update('variety', event.target.value)} className={inputClass} />
 						</FormField>
 						<FormField label="Category" htmlFor="product-category" required error={errors.category}>
-							<select id="product-category" disabled={categoriesLoading} value={form.category} onChange={(event) => update('category', event.target.value)} className={inputClass}>
-								<option value="">{categoriesLoading ? 'Loading categories...' : 'Select a category'}</option>
-								{categories.map((category) => <option key={category.id} value={String(category.id)}>{category.name}</option>)}
-							</select>
+							<Select id="product-category" aria-label="Product category" disabled={categoriesLoading} value={form.category} onChange={(value) => update('category', value)} className="mt-2" options={[{ value: '', label: categoriesLoading ? 'Loading categories...' : 'Select a category' }, ...categories.map((category) => ({ value: String(category.id), label: category.name }))]} />
 						</FormField>
 						<label className="flex items-center gap-3 self-end rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground">
 							<input type="checkbox" checked={form.is_organic} onChange={(event) => update('is_organic', event.target.checked)} className="h-4 w-4 accent-primary" />
@@ -231,9 +228,7 @@ export function FarmerProductEditorPage() {
 					<div className="grid gap-5 sm:grid-cols-2">
 						<NumberField id="product-price" label="Price per unit (KSh)" value={text('price_per_unit')} onChange={(value) => update('price_per_unit', value)} required min="0" error={errors.price_per_unit} />
 						<FormField label="Unit" htmlFor="product-unit" required error={errors.unit}>
-							<select id="product-unit" value={form.unit} onChange={(event) => update('unit', event.target.value)} className={inputClass}>
-								{unitOptions.map((unit) => <option key={unit.code} value={unit.code}>{unit.name}</option>)}
-							</select>
+							<Select id="product-unit" aria-label="Product unit" value={form.unit} onChange={(value) => update('unit', value)} className="mt-2" options={unitOptions.map((unit) => ({ value: unit.code, label: unit.name }))} />
 						</FormField>
 						<NumberField id="product-quantity" label="Quantity available" value={text('available_quantity')} onChange={(value) => update('available_quantity', value)} required min="0" error={errors.available_quantity} helperText={reservedQuantity > 0 ? `${reservedQuantity} ${form.unit} is currently reserved by open orders.` : undefined} />
 						<NumberField id="product-weight" label="Weight per unit (kg)" value={text('weight_per_unit')} onChange={(value) => update('weight_per_unit', value)} min="0" error={errors.weight_per_unit} helperText="Used to plan transport capacity. Leave 0 if the unit is already in kg." />
