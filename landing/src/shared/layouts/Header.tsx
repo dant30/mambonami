@@ -77,9 +77,17 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 				{/* ✅✅ Navigation changes by auth state */}
 				<nav className={isMobile ? 'hidden' : 'hidden items-center gap-7 text-sm font-semibold md:flex'} aria-label="Main navigation">
 					{isAuthenticated ? (
-						// Authenticated: Show role-specific nav
-						<>
-							{role === 'buyer' && (
+						isAdmin ? (
+							<>
+								<NavLink to="/app/admin" end className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Admin</NavLink>
+								<NavLink to="/app/admin/orders" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Orders</NavLink>
+								<NavLink to="/app/admin/products" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Products</NavLink>
+								<NavLink to="/app/admin/users" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Users</NavLink>
+								<NavLink to="/app/admin/analytics" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Analytics</NavLink>
+							</>
+						) : (
+								<>
+								{role === 'buyer' && (
 								<>
 									<NavLink to="/app/buyer/products" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Shop</NavLink>
 									<NavLink to="/app/buyer/orders" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Orders</NavLink>
@@ -110,13 +118,8 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 									<NavLink to="/app/transport/vehicles" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Vehicles</NavLink>
 								</>
 							)}
-							{isAdmin && (
-								<>
-									<NavLink to="/app/admin" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Admin</NavLink>
-									<NavLink to="/app/admin/users" className={({ isActive }) => isActive ? 'text-primary' : 'text-foreground hover:text-primary'}>Users</NavLink>
-								</>
-							)}
-						</>
+							</>
+						)
 					) : (
 						// Guest: Show public nav
 						<>
@@ -134,7 +137,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 					{isAuthenticated ? (
 						// Authenticated actions
 						<>
-							{role === 'buyer' && (
+							{!isAdmin && role === 'buyer' && (
 							<Link to="/app/buyer/cart" className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Shopping cart">
 								<ShoppingBasket className="h-5 w-5" />
 								<CartCountBadge />
@@ -169,13 +172,13 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 										>
 											{isAdmin ? 'Admin Panel' : 'Dashboard'}
 										</Link>
-										<Link
+										{!isAdmin && <Link
 											to={profilePath}
 											onClick={() => setUserMenuOpen(false)}
 											className="block px-4 py-2.5 text-sm hover:bg-muted"
 										>
 											Profile
-										</Link>
+										</Link>}
 										<button
 											type="button"
 											onClick={signOut}

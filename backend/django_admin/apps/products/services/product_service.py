@@ -1,6 +1,7 @@
 ﻿# backend/django_admin/apps/products/services/product_service.py
 from django.db import models, transaction
 from django.core.exceptions import PermissionDenied
+from apps.users.permissions import is_admin_user
 from ..models import Product
 from apps.users.models import FarmerProfile
 from core.cache import RedisCache
@@ -41,7 +42,7 @@ def create_product(farmer_profile: FarmerProfile, data: dict) -> Product:
 
 def update_product(product: Product, data: dict, user) -> Product:
     """Update product if user is the owner or admin."""
-    if product.farmer.user != user and not user.is_staff:
+    if product.farmer.user != user and not is_admin_user(user):
         raise PermissionDenied("You do not own this product.")
     with transaction.atomic():
         for key, value in data.items():
@@ -53,7 +54,7 @@ def update_product(product: Product, data: dict, user) -> Product:
 
 def delete_product(product: Product, user) -> None:
     """Soft delete product (set is_active=False)."""
-    if product.farmer.user != user and not user.is_staff:
+    if product.farmer.user != user and not is_admin_user(user):
         raise PermissionDenied("You do not own this product.")
     product.is_active = False
     product.save()

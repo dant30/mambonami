@@ -120,6 +120,10 @@ export const AUDIT_ENDPOINTS = {
 } as const;
 
 export const ADMIN_ENDPOINTS = {
+	products: {
+		list: '/api/products/admin/',
+		status: (uuid: string) => `/api/products/admin/${uuid}/status/`,
+	},
 	orders: {
 		list: '/admin-api/orders/',
 		detail: (uuid: string) => `/admin-api/orders/${uuid}/`,

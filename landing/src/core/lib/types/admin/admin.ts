@@ -1,6 +1,7 @@
 import type { Dispute, DisputeResolutionInput } from '../disputes'
 import type { Order, OrderStatus } from '../orders'
 import type { Payout } from '../payouts'
+import type { Product } from '../products'
 
 export type AdminRole = 'buyer' | 'farmer' | 'retailer' | 'transport_provider' | 'admin'
 
@@ -84,6 +85,44 @@ export interface AdminDashboardData {
 	disputes: Dispute[]
 	payouts: Payout[]
 	auditLogs: AdminAuditLog[]
+}
+
+export type AdminProduct = Product
+
+export interface AdminDailyMetric {
+	id: number
+	uuid?: string
+	date: string
+	total_orders: number
+	completed_orders: number
+	cancelled_orders: number
+	disputed_orders: number
+	total_sales: string | number
+	platform_commission: string | number
+	total_paid_to_farmers: string | number
+	total_paid_to_transport: string | number
+	total_collections_amount: string | number
+	collections_count: number
+	orphaned_collections: number
+	total_payouts_amount: string | number
+	payouts_count: number
+	failed_payouts: number
+}
+
+export interface AdminAnalyticsSummary {
+	start_date?: string
+	end_date?: string
+	total_orders?: number
+	completed_orders?: number
+	total_sales?: string | number
+	platform_commission?: string | number
+	total_paid_to_farmers?: string | number
+	total_paid_to_transport?: string | number
+}
+
+export interface AdminResourceCache<T> {
+	get: () => T | null | undefined
+	set: (value: T) => void
 }
 
 export interface AdminOrderStatusUpdate {

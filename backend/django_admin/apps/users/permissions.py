@@ -2,6 +2,10 @@
 from rest_framework import permissions
 
 
+def is_admin_user(user):
+    return bool(user and (user.is_staff or user.is_superuser))
+
+
 class IsVerified(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_phone_verified
@@ -24,4 +28,4 @@ class IsBuyer(permissions.BasePermission):
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_staff
+        return request.user.is_authenticated and is_admin_user(request.user)

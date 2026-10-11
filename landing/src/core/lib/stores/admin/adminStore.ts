@@ -1,5 +1,6 @@
-import type { Dispute, Order, Payout } from '../../types'
+import type { Dispute, Order, Payout, Product } from '../../types'
 import type { AdminAuditLog, AdminFarmer, AdminTransportProvider, AdminUser } from '../../types'
+import type { AdminDashboardData } from '../../types/admin'
 
 let users: AdminUser[] = []
 let farmers: AdminFarmer[] = []
@@ -8,8 +9,19 @@ let disputes: Dispute[] = []
 let payouts: Payout[] = []
 let auditLogs: AdminAuditLog[] = []
 let orders: Order[] = []
+let products: Product[] = []
 
 export const adminStore = {
+	getDashboardData: (): AdminDashboardData => ({ orders, users, farmers, transportProviders, disputes, payouts, auditLogs }),
+	setDashboardData: (next: AdminDashboardData) => {
+		orders = next.orders
+		users = next.users
+		farmers = next.farmers
+		transportProviders = next.transportProviders
+		disputes = next.disputes
+		payouts = next.payouts
+		auditLogs = next.auditLogs
+	},
 	getUsers: () => users,
 	setUsers: (next: AdminUser[]) => { users = next },
 	getFarmers: () => farmers,
@@ -24,6 +36,8 @@ export const adminStore = {
 	setAuditLogs: (next: AdminAuditLog[]) => { auditLogs = next },
 	getOrders: () => orders,
 	setOrders: (next: Order[]) => { orders = next },
+	getProducts: () => products,
+	setProducts: (next: Product[]) => { products = next },
 	clear: () => {
 		users = []
 		farmers = []
@@ -32,5 +46,6 @@ export const adminStore = {
 		payouts = []
 		auditLogs = []
 		orders = []
+		products = []
 	},
 }

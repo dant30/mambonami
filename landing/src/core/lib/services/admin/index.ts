@@ -12,9 +12,9 @@ export {
 	listAdminPayouts,
 	listAdminTransportProviders,
 	listAdminUsers,
-	listAdminOrders,
-	getAdminOrder,
 	resolveAdminDispute,
 	suspendAdminUser,
-	updateAdminOrderStatus,
 } from './adminService'
+export { getAdminOrder, listAdminOrders, updateAdminOrderStatus } from './orderAdminService'
+export { getAdminAnalyticsSummary, listAdminDailyMetrics, recomputeAdminMetrics } from './analyticsAdminService'
+export { listAdminProducts, setAdminProductActive } from './productAdminService'

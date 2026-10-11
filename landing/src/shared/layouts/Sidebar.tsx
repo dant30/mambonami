@@ -12,9 +12,16 @@ import { CartCountBadge } from '../components/ui'
  */
 const adminItems = [
 	{ path: '/app/admin', label: 'Dashboard', icon: ClipboardList },
-	{ path: '/app/admin/users', label: 'Users', icon: Users },
+	{ path: '/app/admin/orders', label: 'Orders', icon: ClipboardList },
 	{ path: '/app/admin/products', label: 'Products', icon: Package },
+	{ path: '/app/admin/retailers', label: 'Retailers', icon: Users },
 	{ path: '/app/admin/analytics', label: 'Analytics', icon: BarChart3 },
+	{ path: '/app/admin/staff', label: 'Staff', icon: ShieldCheck },
+	{ path: '/app/admin/users', label: 'Users', icon: Users },
+	{ path: '/app/admin/farmers', label: 'Farmers', icon: Package },
+	{ path: '/app/admin/transport', label: 'Transport', icon: Truck },
+	{ path: '/app/admin/disputes', label: 'Disputes', icon: ShieldCheck },
+	{ path: '/app/admin/payouts', label: 'Payouts', icon: Navigation },
 	{ path: '/app/admin/audit', label: 'Audit log', icon: FileCheck2 },
 ]
 

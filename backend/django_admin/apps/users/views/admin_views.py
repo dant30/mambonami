@@ -46,6 +46,11 @@ class UserAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def suspend(self, request, pk=None):
         user = self.get_object()
+        if user.pk == request.user.pk or user.is_superuser:
+            return Response(
+                {'detail': 'You cannot suspend yourself or a superuser.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user.is_active = False
         user.save(update_fields=['is_active'])
         return Response({'status': 'suspended', 'id': user.id}, status=status.HTTP_200_OK)

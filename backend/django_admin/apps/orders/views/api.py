@@ -11,6 +11,7 @@ from apps.orders.models import Order, SubOrder
 from apps.orders.serializers import OrderSerializer, OrderCreateSerializer, SubOrderSerializer
 from apps.orders.services.order_service import create_order_from_cart
 from apps.orders.services.state_machine import OrderStateMachine
+from apps.users.permissions import is_admin_user
 from apps.orders.permissions import IsBuyer, IsFarmerForSubOrder, IsTransportProviderForOrder
 from core.cache import cache_otp, get_otp
 from core.utils import generate_otp
@@ -58,7 +59,7 @@ class OrderDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return Order.objects.all()
         if user.role == 'buyer':
             return Order.objects.filter(buyer=user)
@@ -79,7 +80,7 @@ class OrderListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return Order.objects.all()
         if user.role == 'buyer':
             return Order.objects.filter(buyer=user)

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from ..models import Dispute
 from ..serializers import DisputeSerializer, DisputeCreateSerializer, DisputeResolutionSerializer
 from ..services.resolution import resolve_dispute
-from apps.users.permissions import IsAdmin
+from apps.users.permissions import IsAdmin, is_admin_user
 
 class DisputeCreateView(generics.CreateAPIView):
     """Buyer/farmer/provider raises a dispute."""
@@ -23,7 +23,7 @@ class DisputeListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return Dispute.objects.all()
         # User can see disputes they raised or disputes on orders they are part of
         return Dispute.objects.filter(
@@ -40,7 +40,7 @@ class DisputeDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return Dispute.objects.all()
         return Dispute.objects.filter(
             models.Q(raised_by=user) |

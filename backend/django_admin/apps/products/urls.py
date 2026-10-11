@@ -5,6 +5,8 @@ from .views import api
 app_name = 'products'
 
 urlpatterns = [
+    path('admin/', api.AdminProductListView.as_view(), name='admin-product-list'),
+    path('admin/<uuid:uuid>/status/', api.AdminProductStatusView.as_view(), name='admin-product-status'),
     # Public
     path('categories/', api.ProductCategoryListView.as_view(), name='product-categories'),
     path('units/', api.ProductUnitListView.as_view(), name='product-units'),

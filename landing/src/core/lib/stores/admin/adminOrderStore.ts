@@ -1,9 +1,7 @@
-import type { Order } from '../../types'
-
-let orders: Order[] = []
+import { adminStore } from './adminStore'
 
 export const adminOrderStore = {
-	getOrders: () => orders,
-	setOrders: (nextOrders: Order[]) => { orders = nextOrders },
-	clear: () => { orders = [] },
+	getOrders: adminStore.getOrders,
+	setOrders: adminStore.setOrders,
+	clear: () => adminStore.setOrders([]),
 }

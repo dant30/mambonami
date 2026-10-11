@@ -8,7 +8,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.permissions import IsAdmin
+from apps.users.permissions import IsAdmin, is_admin_user
 from ..models import Payout
 from ..permissions import CanViewPayouts
 from ..serializers import PayoutSerializer
@@ -21,7 +21,7 @@ class PayoutListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return Payout.objects.all().order_by('-created_at')
 
         recipient_type = 'farmer' if user.role == 'farmer' else 'transport_provider' if user.role == 'transport_provider' else None

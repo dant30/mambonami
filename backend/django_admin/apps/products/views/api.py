@@ -44,6 +44,28 @@ class ProductUnitListView(APIView):
             for code, name in Product.UNIT_CHOICES
         ])
 
+
+class AdminProductListView(generics.ListAPIView):
+    """List all active and inactive product listings for administrators."""
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related('farmer__user', 'category').order_by('-created_at')
+
+
+class AdminProductStatusView(APIView):
+    """Activate or deactivate a product listing without exposing other fields."""
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+
+    def post(self, request, uuid):
+        is_active = request.data.get('is_active')
+        if not isinstance(is_active, bool):
+            return Response({'is_active': 'A boolean value is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = get_object_or_404(Product, uuid=uuid)
+        product.is_active = is_active
+        product.save(update_fields=['is_active', 'updated_at'])
+        return Response(ProductSerializer(product, context={'request': request}).data, status=status.HTTP_200_OK)
+
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]

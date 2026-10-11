@@ -1,2 +1,2 @@
 export { useAdminOrders } from './useAdminOrders'
-export { useAdminResources } from './useAdminResources'
+export { useAdminResource } from './useAdminResource'

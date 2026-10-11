@@ -1,0 +1,1 @@
+export { RetailersAdminPage } from './RetailersAdminPage'

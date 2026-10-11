@@ -1,9 +1,9 @@
 import { apiClient } from '../../../api'
 import { ADMIN_ENDPOINTS } from '../../../api/endpoints'
 import type { Dispute, DisputeResolutionInput } from '../../types/disputes'
-import type { Order, OrderStatus } from '../../types/orders'
 import type { Payout } from '../../types/payouts'
 import type { AdminAuditLog, AdminFarmer, AdminTransportProvider, AdminUser } from '../../types'
+import { listAdminOrders } from './orderAdminService'
 
 function list<T>(response: T[] | { results?: T[] }): T[] { return Array.isArray(response) ? response : response.results ?? [] }
 
@@ -29,6 +29,3 @@ export async function getAdminDashboardData() {
 	return { orders, users, farmers, transportProviders, disputes, payouts, auditLogs }
 }
 
-export async function listAdminOrders(): Promise<Order[]> { return list(await apiClient.get<Order[] | { results?: Order[] }>(ADMIN_ENDPOINTS.orders.list)) }
-export function getAdminOrder(uuid: string): Promise<Order> { return apiClient.get<Order>(ADMIN_ENDPOINTS.orders.detail(uuid)) }
-export function updateAdminOrderStatus(uuid: string, status: OrderStatus): Promise<Order> { return apiClient.post<Order>(ADMIN_ENDPOINTS.orders.status(uuid), { status }) }

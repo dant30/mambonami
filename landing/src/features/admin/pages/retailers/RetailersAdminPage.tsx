@@ -1,0 +1,23 @@
+import { DataTable } from '../../../../shared/components/tables/DataTable'
+import { AdminPageLayout } from '../../components'
+import { activateAdminUser, adminResourceCaches, listAdminUsers, suspendAdminUser, useAdminResource } from '../../../../core/lib'
+import type { AdminUser } from '../../../../core/lib/types/admin'
+import { RetailerAccountStatus } from './components/RetailerAccountStatus'
+
+export function RetailersAdminPage() {
+	const { data, loading, error, notice, busy, refresh, runAction } = useAdminResource(listAdminUsers, adminResourceCaches.users)
+	const retailers = (data ?? []).filter((user) => user.role === 'retailer')
+	const toggle = (retailer: AdminUser) => {
+		const suspend = retailer.is_active
+		if (!window.confirm(`${suspend ? 'Suspend' : 'Activate'} retailer ${retailer.display_name || retailer.phone}?`)) return
+		void runAction(String(retailer.id), () => suspend ? suspendAdminUser(retailer.id) : activateAdminUser(retailer.id), suspend ? 'Retailer suspended.' : 'Retailer activated.')
+	}
+	const columns = [
+		{ header: 'Retailer', render: (retailer: AdminUser) => <div><p className="font-semibold">{retailer.display_name || retailer.username || retailer.phone}</p><p className="text-xs text-muted-foreground">{retailer.phone} · {retailer.email || 'No email'}</p></div> },
+		{ header: 'Verification', render: (retailer: AdminUser) => `${retailer.kyc_status || 'KYC pending'} · ${retailer.is_phone_verified ? 'Phone verified' : 'Phone unverified'}` },
+		{ header: 'Account', render: (retailer: AdminUser) => retailer.is_active ? 'Active' : 'Suspended' },
+		{ header: 'Joined', render: (retailer: AdminUser) => retailer.date_joined ? new Date(retailer.date_joined).toLocaleDateString() : 'Not recorded' },
+		{ header: 'Action', render: (retailer: AdminUser) => <RetailerAccountStatus retailer={retailer} busy={busy === String(retailer.id)} onToggle={() => toggle(retailer)} /> },
+	]
+	return <AdminPageLayout section="retailers" title="Retailers" loading={loading} error={error} notice={notice} onRefresh={refresh}><DataTable data={retailers} columns={columns} keyExtractor={(retailer) => String(retailer.id)} emptyMessage="No retailer accounts found." /></AdminPageLayout>
+}

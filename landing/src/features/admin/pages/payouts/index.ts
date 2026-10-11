@@ -1,0 +1,1 @@
+export { PayoutsAdminPage } from './PayoutsAdminPage'

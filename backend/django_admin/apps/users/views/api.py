@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from core.throttling import BurstThrottle
 from core.validators import normalize_phone_number
-from apps.users.permissions import IsAdmin
+from apps.users.permissions import IsAdmin, is_admin_user
 from ..serializers import (
     RegisterInitSerializer,
     RegistrationStartSerializer,
@@ -499,7 +499,7 @@ class VerificationDocumentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return VerificationDocument.objects.all().order_by('-created_at')
         return VerificationDocument.objects.filter(user=user).order_by('-created_at')
 
@@ -528,7 +528,7 @@ class VerificationDocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return VerificationDocument.objects.all()
         return VerificationDocument.objects.filter(user=user)
 
@@ -536,7 +536,7 @@ class VerificationDocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Only allow certain fields to be updated by the user (not status)
         # Admin updates status through review endpoint
         user = self.request.user
-        if not user.is_staff:
+        if not is_admin_user(user):
             # Users can only update file, document_type, etc. Not status
             serializer.save()
         else:
@@ -600,7 +600,7 @@ class TrustScoreDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if is_admin_user(user):
             return TrustScore.objects.all()
         return TrustScore.objects.filter(user=user)
 
@@ -612,7 +612,7 @@ class TrustScoreDetailView(generics.RetrieveAPIView):
         queryset = self.get_queryset()
         user = self.request.user
 
-        if not user.is_staff:
+        if not is_admin_user(user):
             # Try to get existing score
             try:
                 return queryset.get(user=user)
