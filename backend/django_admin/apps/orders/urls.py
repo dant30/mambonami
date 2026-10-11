@@ -12,6 +12,4 @@ urlpatterns = [
     path('suborders/<int:suborder_id>/', api.FarmerSubOrderDetailView.as_view(), name='farmer-suborder-detail'),
     path('suborders/<int:suborder_id>/confirm/', api.FarmerConfirmSubOrderView.as_view(), name='farmer-suborder-confirm'),
     path('suborders/<int:suborder_id>/ready/', api.FarmerReadyView.as_view(), name='farmer-suborder-ready'),
-    path('<uuid:order_uuid>/generate-otp/', api.GenerateDeliveryOTPView.as_view(), name='generate-otp'),
-    path('<uuid:order_uuid>/verify-otp/', api.VerifyDeliveryOTPView.as_view(), name='verify-otp'),
 ]

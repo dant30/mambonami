@@ -7,6 +7,7 @@ export {
 	generateTripOtp,
 	getAdminTrip,
 	getBuyerTrip,
+	getBuyerTripForOrder,
 	getTrip,
 	listAdminTrips,
 	listAvailableOrders,

@@ -9,6 +9,7 @@ from apps.logistics.services.otp_service import generate_otp
 class DeliveryOtpContractTests(SimpleTestCase):
     def test_generated_otp_is_six_digits(self):
         trip = SimpleNamespace(otp_hash='', otp_expires_at=None, otp_attempts=0, id=1)
+        trip.save = lambda **kwargs: None
         with patch('django.contrib.auth.hashers.make_password', return_value='hashed'):
             otp = generate_otp(trip)
 

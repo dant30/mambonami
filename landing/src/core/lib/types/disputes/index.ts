@@ -1,5 +1,6 @@
 ﻿export type {
 	Dispute,
+	DisputeEvent,
 	DisputeCreateInput,
 	DisputeListResponse,
 	DisputePriority,

@@ -91,6 +91,11 @@ class OrderCreateSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_blank=True, max_length=30)
     items = CartItemSerializer(many=True)
 
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError('Add at least one item to the order.')
+        return value
+
     def validate_delivery_lat(self, value):
         if value < Decimal('-12.0') or value > Decimal('5.0'):
             raise serializers.ValidationError("Delivery latitude is out of expected bounds.")

@@ -2,8 +2,7 @@ import { ArrowLeft, CheckCircle2, ImagePlus, MapPin, Navigation, PackageCheck } 
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
-import { arriveDelivery, arrivePickup, generateTripOtp, recordPickup, startDeliveryNavigation, startPickupNavigation, updateTripLocation, useTrip, verifyTripOtp } from '../../../core/lib'
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '../../../shared/components/ui'
+import { arriveDelivery, arrivePickup, generateTripOtp, recordPickup, startDeliveryNavigation, startPickupNavigation, updateTripLocation, useTrip } from '../../../core/lib'
 
 const steps = ['accepted', 'en_route_pickup', 'arrived_pickup', 'picked_up', 'en_route_delivery', 'arrived_delivery', 'delivered']
 const trackableStatuses = ['accepted', 'en_route_pickup', 'picked_up', 'en_route_delivery', 'arrived_delivery']
@@ -11,8 +10,6 @@ const trackableStatuses = ['accepted', 'en_route_pickup', 'picked_up', 'en_route
 export function TransportTripDetailPage() {
 	const { id = '' } = useParams()
 	const { trip, isLoading, error } = useTrip(id)
-	const [otp, setOtp] = useState('')
-	const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null)
 	const [message, setMessage] = useState('')
 	const [position, setPosition] = useState<{ latitude: number; longitude: number } | null>(null)
 
@@ -31,11 +28,6 @@ export function TransportTripDetailPage() {
 
 	const currentStep = Math.max(0, steps.indexOf(trip.status))
 	const run = async (task: () => Promise<unknown>, success: string) => { setMessage(''); try { await task(); setMessage(success); window.location.reload() } catch { setMessage('The trip could not be updated. Please try again.') } }
-	const submitDelivery = () => {
-		if (!/^\d{6}$/.test(otp)) return setMessage('Enter the six-digit buyer OTP.')
-		if (!deliveryPhoto) return setMessage('Upload a delivery photo before confirming.')
-		return run(() => verifyTripOtp(id, { otp, delivery_photo: deliveryPhoto, delivery_lat: position?.latitude, delivery_lng: position?.longitude }), 'Delivery confirmed with photo proof.')
-	}
 	const latitude = position?.latitude ?? Number(trip.current_lat ?? trip.pickup_lat ?? 0)
 	const longitude = position?.longitude ?? Number(trip.current_lng ?? trip.pickup_lng ?? 0)
 	const mapUrl = latitude && longitude ? `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.03}%2C${latitude - 0.03}%2C${longitude + 0.03}%2C${latitude + 0.03}&layer=mapnik&marker=${latitude}%2C${longitude}` : ''

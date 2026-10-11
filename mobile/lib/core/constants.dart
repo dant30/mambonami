@@ -42,6 +42,7 @@ const String kTripStartDeliveryNavEndpoint = '/api/logistics/trips/';
 const String kTripArriveDeliveryEndpoint = '/api/logistics/trips/';
 const String kTripGenerateOtpEndpoint = '/api/logistics/trips/';
 const String kTripVerifyOtpEndpoint = '/api/logistics/trips/';
+const String kBuyerOrderTripEndpoint = '/api/logistics/buyer/orders/';
 const String kTripLocationEndpoint = '/api/logistics/my-trips/';
 const String kTripMediaEndpoint = '/api/logistics/my-trips/';
 const String kTransportPayoutSummaryEndpoint = '/api/payouts/summary/';

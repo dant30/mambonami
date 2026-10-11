@@ -33,60 +33,60 @@ def release_payment(order_id: int):
     - Platform keeps: product platform commission + transport provider 20% commission
     """
     from apps.orders.models import Order
-    from apps.users.models import FarmerProfile, TransportProviderProfile
+    from apps.orders.services.state_machine import OrderStateMachine
 
-    order = Order.objects.select_related('trip', 'trip__provider').get(id=order_id)
-    if order.status != 'delivered':   # should be set after OTP verification
-        logger.warning(f"Order {order_id} not delivered, cannot release payment")
-        return
+    payouts_to_execute = []
+    with transaction.atomic():
+        order = Order.objects.select_for_update().select_related('trip', 'trip__provider__user').get(id=order_id)
+        if order.status != 'delivered':
+            logger.warning('Order %s is not delivered; payout release skipped', order_id)
+            return
+        if not OrderStateMachine.has_successful_payment(order):
+            raise ValueError(f'Order {order_id} has no reconciled payment allocation.')
 
-    # Check float balance (optional: can be skipped if we trust float)
-    balance = get_estimated_float_balance()
-    
-    # Calculate total payout needed
-    farmer_payouts_total = Decimal('0')
-    provider_payout_amount = Decimal('0')
-    
-    # Calculate farmer payouts (from each sub_order)
-    for sub_order in order.sub_orders.all():
-        farmer_amount = sub_order.subtotal * (Decimal('1') - Decimal('0.08'))  # 8% commission
-        farmer_payouts_total += farmer_amount
-    
-    # Calculate transport provider payout
-    trip = order.trip
-    if trip and trip.provider:
-        # Total delivery fee = agreed fee + waiting surcharge
-        total_trip_fee = trip.agreed_fee + trip.waiting_surcharge
-        provider_payout_amount = total_trip_fee * Decimal('0.80')  # Provider gets 80%
-    
-    total_payout = farmer_payouts_total + provider_payout_amount
-    
-    if balance < total_payout:
-        logger.critical(
-            f"Low float balance for order {order_id}: {balance} < {total_payout}"
-        )
-        raise FloatInsufficientError("PayBill float insufficient for payout")
+        sub_orders = order.sub_orders.select_related('farmer__user').all()
+        payout_total = sum((sub_order.farmer_payout for sub_order in sub_orders), Decimal('0'))
+        trip = getattr(order, 'trip', None)
+        provider_amount = Decimal('0')
+        if trip and trip.provider:
+            provider_amount = (trip.agreed_fee + trip.waiting_surcharge) * Decimal('0.80')
+        total_payout = payout_total + provider_amount
+        balance = get_estimated_float_balance()
+        if balance < total_payout:
+            logger.critical('Low float balance for order %s: %s < %s', order_id, balance, total_payout)
+            raise FloatInsufficientError('PayBill float insufficient for payout')
 
-    # 1. Payout to each farmer
-    for sub_order in order.sub_orders.all():
-        farmer_profile = sub_order.farmer
-        farmer_amount = sub_order.subtotal * (Decimal('1') - Decimal('0.08'))
-        if farmer_amount > 0:
-            farmer_payout = create_payout(order, farmer_profile.user, farmer_amount, 'farmer')
-            _execute_payout(farmer_payout)
-            logger.info(
-                f"Scheduled payout to farmer {farmer_profile.user.phone}: "
-                f"KES {farmer_amount} (sub_order: {sub_order.id})"
+        for sub_order in sub_orders:
+            amount = sub_order.farmer_payout
+            if amount <= 0:
+                continue
+            payout, created = Payout.objects.get_or_create(
+                order=order,
+                recipient_type='farmer',
+                recipient_user=sub_order.farmer.user,
+                defaults={'amount': amount, 'status': 'pending'},
             )
+            if created:
+                payouts_to_execute.append(payout)
 
-    # 2. Payout to transport provider
-    if trip and trip.provider and provider_payout_amount > 0:
-        provider_payout = create_payout(order, trip.provider.user, provider_payout_amount, 'transport_provider')
-        _execute_payout(provider_payout)
+        if trip and trip.provider and provider_amount > 0:
+            payout, created = Payout.objects.get_or_create(
+                order=order,
+                recipient_type='transport_provider',
+                recipient_user=trip.provider.user,
+                defaults={'amount': provider_amount, 'status': 'pending'},
+            )
+            if created:
+                payouts_to_execute.append(payout)
+
+    for payout in payouts_to_execute:
+        _execute_payout(payout)
         logger.info(
-            f"Scheduled payout to provider {trip.provider.user.phone}: "
-            f"KES {provider_payout_amount} "
-            f"(trip fee: KES {trip.agreed_fee + trip.waiting_surcharge})"
+            'Payout %s created for order %s recipient %s amount %s',
+            payout.id,
+            order_id,
+            payout.recipient_user_id,
+            payout.amount,
         )
 
 

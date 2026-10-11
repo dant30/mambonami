@@ -27,7 +27,7 @@ import '../features/transport/pages/available_orders_page.dart';
 import '../features/transport/pages/my_trips_page.dart';
 import '../features/transport/pages/trip_detail_page.dart';
 import '../features/transport/pages/pickup_page.dart';
-import '../features/transport/pages/delivery_page.dart';
+import '../features/transport/pages/delivery_code_page.dart';
 import '../features/transport/pages/earnings_page.dart';
 import '../features/notifications/pages/notifications_page.dart';
 import '../features/buyer/pages/order_tracking_page.dart';

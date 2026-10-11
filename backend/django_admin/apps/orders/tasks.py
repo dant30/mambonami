@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/orders/tasks.py
 from celery import shared_task
+from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
 from .models import Order, SubOrder
@@ -11,13 +12,21 @@ def auto_cancel_unpaid_orders():
     """Cancel orders still 'placed' after 30 minutes."""
     cutoff = timezone.now() - timedelta(minutes=30)
     orders = Order.objects.filter(status='placed', created_at__lt=cutoff)
-    for order in orders:
-        order.status = 'cancelled'
-        order.save()
-        # Release any reserved stock if needed
+    for order_id in orders.values_list('id', flat=True):
+        from apps.orders.services.order_service import release_order_inventory
+
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(pk=order_id)
+            if order.status != 'placed' or order.created_at >= cutoff:
+                continue
+            if order.stk_push_requests.filter(status__in=['initiating', 'pending']).exists():
+                continue
+            order.status = 'cancelled'
+            order.save(update_fields=['status', 'updated_at'])
+            release_order_inventory(order)
 
 @shared_task
-def match_transport_for_order(order_id):
+def match_transport_for_order(order_id, retry_count=0):
     """Async task to find and assign a transport provider."""
     from apps.orders.models import Order
     order = Order.objects.get(id=order_id)
@@ -31,8 +40,8 @@ def match_transport_for_order(order_id):
         assign_provider_to_order(order, provider)
         # Notify provider
     else:
-        # Retry after 2 minutes
-        match_transport_for_order.apply_async(args=[order_id], countdown=120)
+        if retry_count < 30:
+            match_transport_for_order.apply_async(args=[order_id, retry_count + 1], countdown=120)
 
 @shared_task
 def remind_farmer_to_confirm(suborder_id):

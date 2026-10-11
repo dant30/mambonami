@@ -49,8 +49,6 @@ export const ORDER_ENDPOINTS = {
 	suborder: (id: string | number) => `/api/orders/suborders/${id}/`,
 	confirmSuborder: (id: string | number) => `/api/orders/suborders/${id}/confirm/`,
 	readySuborder: (id: string | number) => `/api/orders/suborders/${id}/ready/`,
-	generateOtp: (uuid: string) => `/api/orders/${uuid}/generate-otp/`,
-	verifyOtp: (uuid: string) => `/api/orders/${uuid}/verify-otp/`,
 } as const;
 
 export const LOGISTICS_ENDPOINTS = {
@@ -69,6 +67,7 @@ export const LOGISTICS_ENDPOINTS = {
 	media: (uuid: string) => `/api/logistics/my-trips/${uuid}/media/`,
 	verifyOtp: (uuid: string) => `/api/logistics/trips/${uuid}/verify-otp/`,
 	buyerTrip: (uuid: string) => `/api/logistics/buyer/trips/${uuid}/`,
+	buyerOrderTrip: (orderUuid: string) => `/api/logistics/buyer/orders/${orderUuid}/trip/`,
 	adminTrips: '/api/logistics/admin/trips/',
 	adminTrip: (uuid: string) => `/api/logistics/admin/trips/${uuid}/`,
 	cancelAdminTrip: (uuid: string) => `/api/logistics/admin/trips/${uuid}/cancel/`,
@@ -156,6 +155,7 @@ export const ADMIN_ENDPOINTS = {
 	disputes: {
 		list: '/admin-api/disputes/',
 		detail: (uuid: string) => `/admin-api/disputes/${uuid}/`,
+		review: (uuid: string) => `/admin-api/disputes/${uuid}/review/`,
 		resolve: (uuid: string) => `/admin-api/disputes/${uuid}/resolve/`,
 	},
 	payouts: {

@@ -60,13 +60,15 @@ class TripLocationPingDto {
 class GenerateOtpResponse {
   final String otp;
   final int expiresIn;
+  final String message;
 
-  GenerateOtpResponse({required this.otp, required this.expiresIn});
+  GenerateOtpResponse({required this.otp, required this.expiresIn, this.message = ''});
 
   factory GenerateOtpResponse.fromJson(Map<String, dynamic> json) {
     return GenerateOtpResponse(
-      otp: json['otp'],
-      expiresIn: json['expires_in'],
+      otp: json['otp']?.toString() ?? '',
+      expiresIn: json['expires_in'] is int ? json['expires_in'] as int : int.tryParse(json['expires_in']?.toString() ?? '') ?? 300,
+      message: json['message']?.toString() ?? '',
     );
   }
 }

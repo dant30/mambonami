@@ -57,12 +57,6 @@ class OrderAssigned extends OrderState {
   final String tripUuid;
   const OrderAssigned(this.tripUuid);
 }
-class OTPGenerated extends OrderState {
-  final String otp;
-  const OTPGenerated(this.otp);
-}
-class OTPVerified extends OrderState {}
-
 // Error
 class OrderError extends OrderState {
   final String message;

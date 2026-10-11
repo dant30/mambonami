@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 
-import { getBuyerTrip } from '../../services'
-import { logisticsStore } from '../../stores'
+import { getBuyerTripForOrder } from '../../services'
 import type { Trip } from '../../types'
 
-export function useBuyerTrip(uuid: string) {
-	const [trip, setTrip] = useState<Trip | null>(() => logisticsStore.getBuyerTrip())
-	const [isLoading, setIsLoading] = useState(Boolean(uuid) && logisticsStore.getBuyerTrip() === null)
+export function useBuyerTrip(orderUuid: string, enabled = true) {
+	const [trip, setTrip] = useState<Trip | null>(null)
+	const [isLoading, setIsLoading] = useState(Boolean(orderUuid) && enabled)
 	const [error, setError] = useState<unknown>(null)
+	const [reloadKey, setReloadKey] = useState(0)
+	const refresh = () => setReloadKey((key) => key + 1)
 
 	useEffect(() => {
-		if (!uuid) {
+		if (!orderUuid || !enabled) {
 			setTrip(null)
 			setIsLoading(false)
 			return
@@ -20,10 +21,9 @@ export function useBuyerTrip(uuid: string) {
 		setIsLoading(true)
 		setError(null)
 
-		getBuyerTrip(uuid)
+		getBuyerTripForOrder(orderUuid)
 			.then((nextTrip) => {
 				if (!active) return
-				logisticsStore.setBuyerTrip(nextTrip)
 				setTrip(nextTrip)
 			})
 			.catch((requestError: unknown) => {
@@ -36,7 +36,7 @@ export function useBuyerTrip(uuid: string) {
 		return () => {
 			active = false
 		}
-	}, [uuid])
+	}, [enabled, orderUuid, reloadKey])
 
-	return { trip, isLoading, error }
+	return { trip, isLoading, error, refresh }
 }

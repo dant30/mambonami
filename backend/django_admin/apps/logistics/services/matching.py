@@ -203,6 +203,9 @@ def assign_provider_to_order(
             raise ValueError('A successfully paid order is required before assigning transport.')
         if not order.are_all_farmers_ready():
             raise ValueError('All farmer suborders must be ready before assigning transport.')
+        existing_trip = Trip.objects.filter(order=order).first()
+        if existing_trip:
+            return existing_trip
     
     # Calculate delivery fee
     pickup_location = get_pickup_location_for_order(order)
@@ -224,6 +227,15 @@ def assign_provider_to_order(
     )
     
     with transaction.atomic():
+        order = Order.objects.select_for_update().get(pk=order.pk)
+        if order.status != 'paid_escrow' or not order.are_all_farmers_ready():
+            existing_trip = Trip.objects.filter(order=order).first()
+            if existing_trip:
+                return existing_trip
+            raise ValueError('Order is not ready for transport assignment.')
+        existing_trip = Trip.objects.filter(order=order).first()
+        if existing_trip:
+            return existing_trip
         # Create Trip with 'accepted' status
         trip = Trip.objects.create(
             order=order,
@@ -260,8 +272,8 @@ def assign_provider_to_order(
         
         # The buyer has already paid; keep the order's charged total immutable.
         order.assigned_provider = provider
-        order.status = 'transport_assigned'
-        order.save(update_fields=['assigned_provider', 'status'])
+        order.save(update_fields=['assigned_provider', 'updated_at'])
+        OrderStateMachine.transition(order, 'transport_assigned')
         
         # Update provider's total deliveries (incremented on completion)
         # provider.total_deliveries is updated via signal on completion

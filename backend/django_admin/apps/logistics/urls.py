@@ -24,6 +24,7 @@ urlpatterns = [
     
     # Buyer endpoints
     path('trips/<uuid:trip_uuid>/verify-otp/', api.VerifyOTPView.as_view(), name='verify-otp'),
+    path('buyer/orders/<uuid:order_uuid>/trip/', api.BuyerOrderTripDetailView.as_view(), name='buyer-order-trip-detail'),
     path('buyer/trips/<uuid:uuid>/', api.BuyerTripDetailView.as_view(), name='buyer-trip-detail'),
     
     # Admin endpoints

@@ -21,6 +21,7 @@ export function suspendAdminUser(id: string | number): Promise<AdminUser> { retu
 export function activateAdminUser(id: string | number): Promise<AdminUser> { return apiClient.post<AdminUser>(ADMIN_ENDPOINTS.userActions.activate(id)) }
 export async function listAdminDisputes(): Promise<Dispute[]> { return list(await apiClient.get<Dispute[] | { results?: Dispute[] }>(ADMIN_ENDPOINTS.disputes.list)) }
 export function getAdminDispute(uuid: string): Promise<Dispute> { return apiClient.get<Dispute>(ADMIN_ENDPOINTS.disputes.detail(uuid)) }
+export function startAdminDisputeReview(uuid: string): Promise<Dispute> { return apiClient.post<Dispute>(ADMIN_ENDPOINTS.disputes.review(uuid)) }
 export function resolveAdminDispute(uuid: string, input: DisputeResolutionInput): Promise<Dispute> { return apiClient.post<Dispute>(ADMIN_ENDPOINTS.disputes.resolve(uuid), input) }
 export async function listAdminPayouts(): Promise<Payout[]> { return list(await apiClient.get<Payout[] | { results?: Payout[] }>(ADMIN_ENDPOINTS.payouts.list)) }
 export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> { return list(await apiClient.get<AdminAuditLog[] | { results?: AdminAuditLog[] }>(ADMIN_ENDPOINTS.audit.list)) }

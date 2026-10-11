@@ -3,12 +3,23 @@ from rest_framework import serializers
 
 from apps.orders.serializers import OrderSerializer
 
-from ..models import Dispute
+from ..models import Dispute, DisputeEvent
+
+
+class DisputeEventSerializer(serializers.ModelSerializer):
+    actor_phone = serializers.CharField(source='actor.phone', read_only=True, allow_null=True)
+
+    class Meta:
+        model = DisputeEvent
+        fields = ('id', 'event_type', 'actor', 'actor_phone', 'details', 'metadata', 'created_at')
+        read_only_fields = fields
 
 
 class DisputeSerializer(serializers.ModelSerializer):
     raised_by_phone = serializers.CharField(source="raised_by.phone", read_only=True)
     order_detail = OrderSerializer(source="order", read_only=True)
+    assigned_to_phone = serializers.CharField(source='assigned_to.phone', read_only=True, allow_null=True)
+    events = DisputeEventSerializer(many=True, read_only=True)
 
     class Meta:
         model = Dispute
@@ -19,6 +30,8 @@ class DisputeSerializer(serializers.ModelSerializer):
             "order_detail",
             "raised_by",
             "raised_by_phone",
+            "assigned_to",
+            "assigned_to_phone",
             "reason",
             "description",
             "evidence",
@@ -32,6 +45,7 @@ class DisputeSerializer(serializers.ModelSerializer):
             "penalty_user",
             "created_at",
             "updated_at",
+            "events",
         )
         read_only_fields = (
             "id",

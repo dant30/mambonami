@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { initiateOrderStkPush, useOrder } from '../../../core/lib'
 import type { Order } from '../../../core/lib'
 import { getErrorMessage } from '../../../core/utils'
+import { BuyerDeliveryConfirmation } from '../components/BuyerDeliveryConfirmation'
 
 const steps = ['placed', 'paid_escrow', 'transport_assigned', 'picked_up', 'delivered']
 
@@ -31,6 +32,7 @@ export function BuyerOrderDetailPage() {
 			</div>
 
 			{status === 'placed' && <OrderPaymentPanel order={order} onRefresh={refresh} refreshing={isLoading} />}
+			{status === 'picked_up' && <BuyerDeliveryConfirmation orderUuid={order.uuid} onConfirmed={refresh} />}
 
 			<section className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
 				<div className="space-y-6">{steps.map((step, index) => { const complete = index <= currentStep; return <div key={step} className="flex gap-4"><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${complete ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{complete ? <CheckCircle2 className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}</span><div><p className={`font-semibold capitalize ${complete ? 'text-primary-dark' : 'text-muted-foreground'}`}>{formatStatus(step)}</p><p className="mt-1 text-sm text-muted-foreground">{complete ? 'This step has been recorded.' : 'We will update you as the order progresses.'}</p></div></div> })}</div>

@@ -11,6 +11,7 @@ import '../../../data/models/order.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../widgets/delivery_tracking_card.dart';
 import '../widgets/order_status_timeline.dart';
+import '../widgets/buyer_delivery_confirmation_card.dart';
 
 class OrderTrackingPage extends StatefulWidget {
   final String? orderId;
@@ -307,6 +308,15 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                               ],
                             ),
                           ),
+                          if (state is OrderDetailLoaded && state.order.status == 'picked_up') ...[
+                            const SizedBox(height: 16),
+                            BuyerDeliveryConfirmationCard(
+                              orderUuid: state.order.uuid,
+                              onConfirmed: () => context.read<OrderBloc>().add(
+                                FetchOrderDetailsEvent(orderUuid: state.order.uuid),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

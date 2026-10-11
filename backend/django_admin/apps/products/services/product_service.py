@@ -22,7 +22,7 @@ def list_active_products(filters=None):
         if (min_rating := filters.get('min_rating')) not in (None, ''):
             queryset = queryset.filter(rating__gte=min_rating)
         if filters.get('in_stock') in (True, 'true', '1'):
-            queryset = queryset.filter(available_quantity__gt=0)
+            queryset = queryset.filter(available_quantity__gt=models.F('reserved_quantity'))
         search = filters.get('search')
         if search:
             queryset = queryset.filter(

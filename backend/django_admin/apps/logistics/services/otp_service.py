@@ -50,19 +50,14 @@ def verify_otp(trip: Trip, provided_otp: str, complete_delivery: bool = True) ->
     # 2. Check expiry
     if timezone.now() > trip.otp_expires_at:
         logger.warning(f"OTP verification failed: OTP expired for trip {trip.id}")
-        trip.status = TripStatus.FAILED
-        trip.failure_reason = 'OTP expired'
-        trip.failed_at = timezone.now()
-        trip.save(update_fields=['status', 'failure_reason', 'failed_at'])
+        trip.otp_hash = ''
+        trip.otp_expires_at = None
+        trip.save(update_fields=['otp_hash', 'otp_expires_at'])
         return False
     
     # 3. Check attempts
     if trip.otp_attempts >= 3:
         logger.warning(f"OTP verification failed: max attempts exceeded for trip {trip.id}")
-        trip.status = TripStatus.FAILED
-        trip.failure_reason = 'Max OTP attempts exceeded'
-        trip.failed_at = timezone.now()
-        trip.save(update_fields=['status', 'failure_reason', 'failed_at'])
         return False
     
     # 4. Verify OTP (hashed comparison)

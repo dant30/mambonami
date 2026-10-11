@@ -116,24 +116,6 @@ class OrderRepository {
     }
   }
 
-  // Delivery OTP
-  Future<String> generateOTP(String tripUuid) async {
-    try {
-      final response = await _apiClient.dio.post('/api/logistics/trips/$tripUuid/generate-otp/');
-      return stringValue(normalizeMap(response.data)['otp']);
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<void> verifyOTP(String tripUuid, String otp) async {
-    try {
-      await _apiClient.dio.post('/api/logistics/trips/$tripUuid/verify-otp/', data: {'otp': otp});
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   String _handleError(dynamic error) {
     if (error is DioException) {
       final data = normalizeMap(error.response?.data);

@@ -102,6 +102,10 @@ export async function getBuyerTrip(uuid: string): Promise<Trip> {
 	return apiClient.get<Trip>(LOGISTICS_ENDPOINTS.buyerTrip(uuid))
 }
 
+export async function getBuyerTripForOrder(orderUuid: string): Promise<Trip> {
+	return apiClient.get<Trip>(LOGISTICS_ENDPOINTS.buyerOrderTrip(orderUuid))
+}
+
 export async function listAdminTrips(): Promise<Trip[]> {
 	const response = await apiClient.get<TripListResponse | Trip[]>(LOGISTICS_ENDPOINTS.adminTrips)
 	return normalizeTrips(response)

@@ -17,6 +17,10 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
+    'cancel-expired-unpaid-orders': {
+        'task': 'apps.orders.tasks.auto_cancel_unpaid_orders',
+        'schedule': crontab(minute='*/5'),
+    },
     'aggregate-daily-metrics': {
         'task': 'apps.analytics.tasks.aggregate_today_metrics',
         'schedule': crontab(hour=0, minute=5),  # 00:05 every day

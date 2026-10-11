@@ -27,8 +27,6 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     // Transport provider
     on<FetchAvailableOrdersEvent>(_onFetchAvailableOrders);
     on<AssignToOrderEvent>(_onAssignToOrder);
-    on<GenerateOTPEvent>(_onGenerateOTP);
-    on<VerifyOTPEvent>(_onVerifyOTP);
   }
 
   Future<void> _onCreateOrder(CreateOrderEvent event, Emitter<OrderState> emit) async {
@@ -166,23 +164,4 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
   }
 
-  Future<void> _onGenerateOTP(GenerateOTPEvent event, Emitter<OrderState> emit) async {
-    emit(OrderLoading());
-    try {
-      final otp = await orderRepository.generateOTP(event.tripUuid);
-      emit(OTPGenerated(otp));
-    } catch (e) {
-      emit(OrderError(e.toString()));
-    }
-  }
-
-  Future<void> _onVerifyOTP(VerifyOTPEvent event, Emitter<OrderState> emit) async {
-    emit(OrderLoading());
-    try {
-      await orderRepository.verifyOTP(event.tripUuid, event.otp);
-      emit(OTPVerified());
-    } catch (e) {
-      emit(OrderError(e.toString()));
-    }
-  }
 }

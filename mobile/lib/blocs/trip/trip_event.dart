@@ -46,22 +46,3 @@ class ArriveAtFarmEvent extends TripEvent {
   @override List<Object> get props => [tripUuid];
 }
 
-class GenerateOtpEvent extends TripEvent {
-  final String tripUuid;
-  const GenerateOtpEvent(this.tripUuid);
-  @override List<Object> get props => [tripUuid];
-}
-
-class VerifyOtpEvent extends TripEvent {
-  final String tripUuid;
-  final String otp;
-  const VerifyOtpEvent(this.tripUuid, this.otp);
-  @override List<Object> get props => [tripUuid, otp];
-}
-
-class VerifyDeliveryOtpEvent extends TripEvent {
-  final String orderId;
-  final String otp;
-  const VerifyDeliveryOtpEvent({required this.orderId, required this.otp});
-  @override List<Object> get props => [orderId, otp];
-}

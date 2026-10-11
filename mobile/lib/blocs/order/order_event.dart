@@ -58,12 +58,3 @@ class AssignToOrderEvent extends OrderEvent {
   const AssignToOrderEvent(this.tripUuid);
   @override List<Object> get props => [tripUuid];
 }
-class GenerateOTPEvent extends OrderEvent {
-  final String tripUuid;
-  const GenerateOTPEvent(this.tripUuid);
-}
-class VerifyOTPEvent extends OrderEvent {
-  final String tripUuid;
-  final String otp;
-  const VerifyOTPEvent(this.tripUuid, this.otp);
-}

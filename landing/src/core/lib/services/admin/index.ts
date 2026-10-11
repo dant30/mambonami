@@ -15,6 +15,7 @@ export {
 	listAdminTransportProviders,
 	listAdminUsers,
 	resolveAdminDispute,
+	startAdminDisputeReview,
 	suspendAdminUser,
 	updateAdminStaff,
 } from './adminService'

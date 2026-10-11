@@ -38,6 +38,8 @@ export interface Dispute {
 	order_detail?: Record<string, unknown>
 	raised_by: number
 	raised_by_phone?: string
+	assigned_to?: number | null
+	assigned_to_phone?: string | null
 	reason: DisputeReason
 	description: string
 	evidence: unknown[]
@@ -54,6 +56,17 @@ export interface Dispute {
 	closed_at?: string | null
 	created_at?: string
 	updated_at?: string
+	events?: DisputeEvent[]
+}
+
+export interface DisputeEvent {
+	id: number
+	event_type: string
+	actor?: number | null
+	actor_phone?: string | null
+	details?: string
+	metadata?: Record<string, unknown>
+	created_at?: string
 }
 
 export interface DisputeListResponse {

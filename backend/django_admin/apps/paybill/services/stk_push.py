@@ -38,21 +38,10 @@ def _required_setting(name: str) -> str:
 
 
 def initiate_order_stk_push(order: Order, phone_number: str) -> StkPushRequest:
-    if order.status != 'placed':
-        raise StkPushError('This order is no longer awaiting payment.')
-
     phone = normalize_ke_phone(phone_number)
     amount = Decimal(order.total_amount)
     if amount <= 0 or amount != amount.to_integral_value():
         raise StkPushError('STK Push requires an order total in whole Kenyan shillings. Use the PayBill instructions below.')
-
-    existing = StkPushRequest.objects.filter(
-        order=order,
-        status=StkPushRequest.Status.PENDING,
-        created_at__gte=timezone.now() - timedelta(minutes=3),
-    ).first()
-    if existing:
-        raise StkPushError('An M-Pesa prompt is already pending. Check your phone or use the PayBill fallback.')
 
     consumer_key = _required_setting('MPESA_CONSUMER_KEY')
     consumer_secret = _required_setting('MPESA_CONSUMER_SECRET')
@@ -61,12 +50,23 @@ def initiate_order_stk_push(order: Order, phone_number: str) -> StkPushRequest:
     base_url = _required_setting('MPESA_ENVIRONMENT_URL').rstrip('/')
     callback_base = _required_setting('CALLBACK_BASE_URL').rstrip('/')
 
-    push_request = StkPushRequest.objects.create(
-        order=order,
-        phone_number=phone,
-        amount=amount,
-        status=StkPushRequest.Status.INITIATING,
-    )
+    with transaction.atomic():
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        if locked_order.status != 'placed':
+            raise StkPushError('This order is no longer awaiting payment.')
+        existing = StkPushRequest.objects.filter(
+            order=locked_order,
+            status__in=[StkPushRequest.Status.INITIATING, StkPushRequest.Status.PENDING],
+            created_at__gte=timezone.now() - timedelta(minutes=3),
+        ).first()
+        if existing:
+            raise StkPushError('An M-Pesa prompt is already pending. Check your phone or use the PayBill fallback.')
+        push_request = StkPushRequest.objects.create(
+            order=locked_order,
+            phone_number=phone,
+            amount=amount,
+            status=StkPushRequest.Status.INITIATING,
+        )
 
     try:
         token_response = requests.get(

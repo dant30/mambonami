@@ -52,6 +52,35 @@ class TripRepository {
     }
   }
 
+  Future<Trip> getBuyerTripForOrder(String orderUuid) async {
+    try {
+      final response = await _apiClient.dio.get('$kBuyerOrderTripEndpoint$orderUuid/trip/');
+      return Trip.fromJson(normalizeMap(response.data));
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> verifyBuyerDeliveryOtp({
+    required String tripUuid,
+    required String otp,
+    required String deliveryPhotoPath,
+  }) async {
+    try {
+      final file = File(deliveryPhotoPath);
+      final body = FormData.fromMap({
+        'otp': otp,
+        'delivery_photo': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split(Platform.pathSeparator).last,
+        ),
+      });
+      await _apiClient.dio.post('$kTripVerifyOtpEndpoint$tripUuid/verify-otp/', data: body);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<Trip> markPickup(String uuid, TripPickupDto data) async {
     try {
       final endpoint = '$kTripPickupEndpoint$uuid/pickup/';
@@ -155,14 +184,6 @@ class TripRepository {
     try {
       final response = await _apiClient.dio.post('$kTripGenerateOtpEndpoint$tripUuid/generate-otp/');
       return GenerateOtpResponse.fromJson(normalizeMap(response.data));
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<void> verifyOtp(String tripUuid, String otp) async {
-    try {
-      await _apiClient.dio.post('$kTripVerifyOtpEndpoint$tripUuid/verify-otp/', data: {'otp': otp});
     } catch (e) {
       throw _handleError(e);
     }

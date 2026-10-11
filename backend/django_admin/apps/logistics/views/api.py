@@ -60,21 +60,19 @@ class AssignToMeView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsTransportProvider]
 
     def post(self, request, trip_uuid):
-        trip = get_object_or_404(
-            Trip,
-            uuid=trip_uuid,
-            status=TripStatus.OFFERED,
-            provider__isnull=True
-        )
-        
         provider = request.user.transport_profile
-        order = trip.order
-        if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
-            return Response({'error': 'A successfully paid order is required before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
-        if not order.are_all_farmers_ready():
-            return Response({'error': 'All farmer suborders must be ready before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
-        
         with transaction.atomic():
+            trip = get_object_or_404(
+                Trip.objects.select_for_update().select_related('order'),
+                uuid=trip_uuid,
+                status=TripStatus.OFFERED,
+                provider__isnull=True,
+            )
+            order = Order.objects.select_for_update().get(pk=trip.order_id)
+            if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
+                return Response({'error': 'A successfully paid order is required before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
+            if not order.are_all_farmers_ready():
+                return Response({'error': 'All farmer suborders must be ready before transport can be assigned.'}, status=status.HTTP_409_CONFLICT)
             # Update trip
             trip.provider = provider
             trip.status = TripStatus.ACCEPTED
@@ -92,14 +90,10 @@ class AssignToMeView(generics.GenericAPIView):
             
             # Update order
             order = trip.order
-            order.status = 'transport_assigned'
             order.assigned_provider = provider
-            order.save(update_fields=['status', 'assigned_provider'])
+            order.save(update_fields=['assigned_provider', 'updated_at'])
+            OrderStateMachine.transition(order, 'transport_assigned', user=request.user)
             
-            # Update provider's trip count
-            provider.total_deliveries += 1
-            provider.save(update_fields=['total_deliveries'])
-        
         return Response(
             TripSerializer(trip, context={'request': request}).data,
             status=status.HTTP_200_OK
@@ -335,20 +329,29 @@ class GenerateOTPView(generics.GenericAPIView):
             Trip,
             uuid=trip_uuid,
             provider=request.user.transport_profile,
-            status=TripStatus.ARRIVED_DELIVERY,
+            status__in=[TripStatus.ARRIVED_DELIVERY, TripStatus.OTP_PENDING],
             order__status='picked_up',
         )
         
         otp = generate_otp(trip)
+        from apps.notifications.services.sms import send_otp_message
+
+        sms_result = send_otp_message(trip.order.buyer.phone, otp)
+        if sms_result.get('status') != 'success':
+            trip.otp_hash = ''
+            trip.otp_expires_at = None
+            trip.otp_attempts = 0
+            trip.save(update_fields=['otp_hash', 'otp_expires_at', 'otp_attempts'])
+            return Response(
+                {'error': 'Could not send the delivery code to the buyer. Try again.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         trip.status = TripStatus.OTP_PENDING
         trip.save(update_fields=['status'])
-        
-        # TODO: Send OTP via notification service to buyer
-        # from apps.notifications.services.whatsapp import send_otp_to_buyer
-        # send_otp_to_buyer.delay(trip.order.buyer.id, otp)
-        
+
         return Response({
-            'otp': otp,  # In production, don't return this; send via notification
+            'message': 'Delivery code sent to the buyer.',
             'expires_in': 300,
             'status': trip.status
         }, status=status.HTTP_200_OK)
@@ -364,57 +367,78 @@ class VerifyOTPView(generics.GenericAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, trip_uuid):
-        trip = get_object_or_404(
-            Trip,
-            uuid=trip_uuid,
-            order__buyer=request.user,
-            status=TripStatus.OTP_PENDING,
-            order__status='picked_up',
-        )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        if verify_otp(trip, serializer.validated_data['otp'], complete_delivery=False):
-            delivery_photo = serializer.validated_data['delivery_photo']
-            delivery_lat = serializer.validated_data.get('delivery_lat', trip.delivery_lat)
-            delivery_lng = serializer.validated_data.get('delivery_lng', trip.delivery_lng)
+        with transaction.atomic():
+            trip = get_object_or_404(
+                Trip.objects.select_for_update().select_related('order'),
+                uuid=trip_uuid,
+                order__buyer=request.user,
+            )
+            if trip.status == TripStatus.DELIVERED and trip.order.status == 'delivered':
+                return Response({'message': 'Delivery was already confirmed.', 'status': trip.status}, status=status.HTTP_200_OK)
+            if trip.status != TripStatus.OTP_PENDING or trip.order.status != 'picked_up':
+                return Response({'error': 'This trip is not awaiting delivery confirmation.'}, status=status.HTTP_409_CONFLICT)
+
+            if not verify_otp(trip, serializer.validated_data['otp'], complete_delivery=False):
+                if trip.otp_attempts >= 3 or trip.status == TripStatus.FAILED:
+                    return Response({
+                        'error': 'Maximum OTP attempts exceeded or the code expired. Contact support.',
+                        'status': trip.status,
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'error': 'Invalid or expired OTP',
+                    'attempts_remaining': max(0, 3 - trip.otp_attempts),
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            now = timezone.now()
             TripMedia.objects.create(
                 trip=trip,
                 media_type='delivery',
-                image=delivery_photo,
+                image=serializer.validated_data['delivery_photo'],
                 uploaded_by=request.user,
-                latitude=delivery_lat,
-                longitude=delivery_lng,
+                latitude=serializer.validated_data.get('delivery_lat', trip.delivery_lat),
+                longitude=serializer.validated_data.get('delivery_lng', trip.delivery_lng),
                 caption='Proof of delivery confirmed with buyer OTP',
             )
             trip.status = TripStatus.DELIVERED
-            trip.otp_verified_at = timezone.now()
-            trip.completed_at = timezone.now()
-            trip.save(update_fields=['status', 'otp_verified_at', 'completed_at'])
-            
-            # Payout will be triggered by signal
-            
-            return Response({
-                'message': 'Delivery confirmed, payment released',
-                'status': trip.status
-            }, status=status.HTTP_200_OK)
-        
-        # Check if max attempts exceeded
-        if trip.otp_attempts >= 3:
-            trip.status = TripStatus.FAILED
-            trip.failure_reason = 'OTP attempts exceeded'
-            trip.failed_at = timezone.now()
-            trip.save(update_fields=['status', 'failure_reason', 'failed_at'])
-            return Response({
-                'error': 'Maximum OTP attempts exceeded. Please contact support.',
-                'status': trip.status
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({
-            'error': 'Invalid or expired OTP',
-            'attempts_remaining': 3 - trip.otp_attempts
-        }, status=status.HTTP_400_BAD_REQUEST)
+            trip.otp_verified_at = now
+            trip.completed_at = now
+            trip.completed_device = request.META.get('HTTP_USER_AGENT', '')[:200]
+            trip.otp_hash = ''
+            trip.otp_expires_at = None
+            trip.save(update_fields=[
+                'status', 'otp_verified_at', 'completed_at', 'completed_device',
+                'otp_hash', 'otp_expires_at',
+            ])
+
+            order = Order.objects.select_for_update().get(pk=trip.order_id)
+            from apps.orders.services.order_service import consume_order_inventory
+            consume_order_inventory(order)
+            OrderStateMachine.transition(order, 'delivered', user=request.user)
+
+            if trip.provider_id:
+                provider = trip.provider
+                provider.total_deliveries += 1
+                provider.save(update_fields=['total_deliveries'])
+
+            def dispatch_order_payouts():
+                try:
+                    from apps.payouts.tasks import release_payment_task
+
+                    release_payment_task.delay(order.id)
+                    if trip.provider_id:
+                        from apps.logistics.tasks import update_provider_reliability_metrics
+
+                        update_provider_reliability_metrics.delay(trip.provider_id)
+                except Exception:
+                    import logging
+
+                    logging.getLogger(__name__).exception('Could not enqueue payouts for delivered order %s', order.id)
+
+            transaction.on_commit(dispatch_order_payouts)
+
+        return Response({'message': 'Delivery confirmed.', 'status': trip.status}, status=status.HTTP_200_OK)
 
 
 class ProviderTripListView(generics.ListAPIView):
@@ -446,6 +470,17 @@ class BuyerTripDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Trip.objects.filter(order__buyer=self.request.user)
+
+
+class BuyerOrderTripDetailView(generics.RetrieveAPIView):
+    """Resolve a buyer's trip from the order UUID used by order tracking."""
+    permission_classes = [permissions.IsAuthenticated, IsBuyer]
+    serializer_class = TripSerializer
+    lookup_field = 'order__uuid'
+    lookup_url_kwarg = 'order_uuid'
+
+    def get_queryset(self):
+        return Trip.objects.filter(order__buyer=self.request.user).select_related('order', 'provider__user')
 
 
 class TripLocationPingView(generics.GenericAPIView):

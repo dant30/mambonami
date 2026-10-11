@@ -119,17 +119,6 @@ export function markFarmerSubOrderReady(id: number): Promise<{ status: string }>
 	return apiClient.post<{ status: string }>(ORDER_ENDPOINTS.readySuborder(id))
 }
 
-export function generateDeliveryOtp(uuid: string): Promise<{ message: string }> {
-	return apiClient.post<{ message: string }>(ORDER_ENDPOINTS.generateOtp(uuid))
-}
-
-export function verifyDeliveryOtp(uuid: string, otp: string, photo: File): Promise<{ status: string }> {
-	const body = new FormData()
-	body.append('otp', otp)
-	body.append('photo', photo)
-	return apiClient.post<{ status: string }>(ORDER_ENDPOINTS.verifyOtp(uuid), body)
-}
-
 export function initiateOrderStkPush(orderUuid: string, phoneNumber: string): Promise<StkPushResponse> {
 	return apiClient.post<StkPushResponse>(PAYBILL_ENDPOINTS.stkPush, {
 		order_uuid: orderUuid,

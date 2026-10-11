@@ -90,6 +90,32 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     }
     """
     grouped = cart_data['grouped_products']
+
+    requested_by_product = {}
+    requested_products = {}
+    for products_with_qty in grouped.values():
+        for item in products_with_qty:
+            product_id = item['product'].pk
+            requested_by_product[product_id] = requested_by_product.get(product_id, Decimal('0')) + item['quantity']
+
+    locked_products = {
+        product.pk: product
+        for product in Product.objects.select_for_update().filter(pk__in=requested_by_product, is_active=True)
+    }
+    if len(locked_products) != len(requested_by_product):
+        raise ValidationError('One or more products are no longer available.')
+    for product_id, quantity in requested_by_product.items():
+        product = locked_products[product_id]
+        remaining = product.available_quantity - product.reserved_quantity
+        if quantity > remaining:
+            raise ValidationError(f'Not enough {product.name} remains in stock.')
+        product.reserved_quantity += quantity
+        product.save(update_fields=['reserved_quantity', 'updated_at'])
+    for products_with_qty in grouped.values():
+        for item in products_with_qty:
+            requested_products[item['product'].pk] = locked_products[item['product'].pk]
+            item['product'] = requested_products[item['product'].pk]
+
     delivery_address = cart_data.get('delivery_address', '')
     delivery_street = cart_data.get('delivery_street') or ''
     delivery_city = cart_data.get('delivery_city') or ''
@@ -242,3 +268,40 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     ])
 
     return order
+
+
+@transaction.atomic
+def release_order_inventory(order: Order) -> None:
+    """Release stock reserved by an order that will not be fulfilled."""
+    quantities = {}
+    for item in OrderItem.objects.filter(sub_order__order=order).only('product_id', 'quantity'):
+        quantities[item.product_id] = quantities.get(item.product_id, Decimal('0')) + item.quantity
+    products = Product.objects.select_for_update().filter(pk__in=quantities)
+    for product in products:
+        reserved = product.reserved_quantity
+        quantity = quantities[product.pk]
+        if reserved == 0:
+            continue
+        if reserved < quantity:
+            raise ValidationError(f'Inventory reservation for {product.name} is inconsistent.')
+        product.reserved_quantity = reserved - quantity
+        product.save(update_fields=['reserved_quantity', 'updated_at'])
+
+
+@transaction.atomic
+def consume_order_inventory(order: Order) -> None:
+    """Convert an order's reservation into fulfilled stock after delivery proof."""
+    quantities = {}
+    for item in OrderItem.objects.filter(sub_order__order=order).only('product_id', 'quantity'):
+        quantities[item.product_id] = quantities.get(item.product_id, Decimal('0')) + item.quantity
+    products = Product.objects.select_for_update().filter(pk__in=quantities)
+    if len(products) != len(quantities):
+        raise ValidationError('An ordered product no longer exists.')
+    for product in products:
+        quantity = quantities[product.pk]
+        if (product.reserved_quantity not in (0,) and product.reserved_quantity < quantity) or product.available_quantity < quantity:
+            raise ValidationError(f'Inventory reservation for {product.name} is inconsistent.')
+        if product.reserved_quantity >= quantity:
+            product.reserved_quantity -= quantity
+        product.available_quantity -= quantity
+        product.save(update_fields=['reserved_quantity', 'available_quantity', 'updated_at'])

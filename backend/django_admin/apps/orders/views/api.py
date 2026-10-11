@@ -13,8 +13,6 @@ from apps.orders.services.order_service import create_order_from_cart
 from apps.orders.services.state_machine import OrderStateMachine
 from apps.users.permissions import is_admin_user
 from apps.orders.permissions import IsBuyer, IsFarmerForSubOrder, IsTransportProviderForOrder
-from core.cache import cache_otp, get_otp
-from core.utils import generate_otp
 
 
 def _get_farmer_profile_or_none(user):
@@ -29,10 +27,9 @@ class CartCreateOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBuyer]
 
     def post(self, request):
-        logger = logging.getLogger(__name__)
         serializer = OrderCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         try:
-            serializer.is_valid(raise_exception=True)
             order = create_order_from_cart(request.user, serializer.validated_data)
             return Response({
                 'id': order.id,
@@ -47,9 +44,11 @@ class CartCreateOrderView(APIView):
                 'paybill_number': settings.MPESA_PAYBILL_NUMBER,
                 'instructions': f"Pay KES {order.total_amount} to PayBill {settings.MPESA_PAYBILL_NUMBER}, Account {order.account_number}"
             }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            logger.exception("Order create failed")
-            return Response({"error": "internal", "detail": str(e)}, status=500)
+        except ValidationError as exc:
+            return Response({'detail': exc.messages}, status=status.HTTP_409_CONFLICT)
+        except Exception:
+            logging.getLogger(__name__).exception('Order create failed')
+            return Response({'detail': 'Unable to create this order right now.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OrderDetailView(generics.RetrieveAPIView):
     queryset = Order.objects.all()
@@ -147,11 +146,18 @@ class FarmerConfirmSubOrderView(APIView):
                 return Response({'error': 'An M-Pesa payment prompt is pending. Wait for its result before rejecting this order.'}, status=status.HTTP_409_CONFLICT)
             if suborder.status != 'pending':
                 return Response({'error': 'Only a pending order can be rejected.'}, status=status.HTTP_409_CONFLICT)
-            suborder.status = 'cancelled'
-            suborder.save()
-            suborder.order.status = 'cancelled'
-            suborder.order.save()
-            suborder.order.sub_orders.exclude(pk=suborder.pk).update(status='cancelled')
+            with transaction.atomic():
+                order = Order.objects.select_for_update().get(pk=suborder.order_id)
+                suborder = SubOrder.objects.select_for_update().get(pk=suborder.pk)
+                if suborder.status != 'pending' or order.status != 'placed':
+                    return Response({'error': 'The order changed while it was being rejected.'}, status=status.HTTP_409_CONFLICT)
+                suborder.status = 'cancelled'
+                suborder.save(update_fields=['status', 'updated_at'])
+                order.status = 'cancelled'
+                order.save(update_fields=['status', 'updated_at'])
+                order.sub_orders.exclude(pk=suborder.pk).update(status='cancelled')
+                from apps.orders.services.order_service import release_order_inventory
+                release_order_inventory(order)
             return Response({'status': 'cancelled'})
         return Response({'error': 'Invalid action'}, status=400)
 
@@ -169,38 +175,11 @@ class FarmerReadyView(APIView):
         except ValidationError as exc:
             return Response({'error': exc.messages[0]}, status=status.HTTP_409_CONFLICT)
         if suborder.order.are_all_farmers_ready():
-            from apps.orders.tasks import match_transport_for_order
-            match_transport_for_order.delay(suborder.order.id)
+            def enqueue_transport_match():
+                try:
+                    from apps.orders.tasks import match_transport_for_order
+                    match_transport_for_order.delay(suborder.order_id)
+                except Exception:
+                    logging.getLogger(__name__).exception('Unable to enqueue transport matching for order %s', suborder.order_id)
+            transaction.on_commit(enqueue_transport_match)
         return Response({'status': 'ready'})
-
-class GenerateDeliveryOTPView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsTransportProviderForOrder]
-
-    def post(self, request, order_uuid):
-        order = get_object_or_404(Order, uuid=order_uuid)
-        if order.assigned_provider.user != request.user:
-            return Response({'error': 'Not your assigned order'}, status=403)
-        if order.status != 'picked_up':
-            return Response({'error': 'Order not ready for delivery'}, status=400)
-        otp = generate_otp()
-        cache_otp(f"delivery_otp_{order.id}", otp, timeout=300)
-        from apps.notifications.services.sms import send_otp_message
-        send_otp_message(order.buyer.phone, otp)
-        return Response({'message': 'OTP sent to buyer'})
-
-class VerifyDeliveryOTPView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsBuyer]
-
-    def post(self, request, order_uuid):
-        order = get_object_or_404(Order, uuid=order_uuid, buyer=request.user)
-        otp = request.data.get('otp')
-        photo = request.FILES.get('photo')
-        if not otp or not photo:
-            return Response({'error': 'OTP and photo required'}, status=400)
-        cached_otp = get_otp(f"delivery_otp_{order.id}")
-        if cached_otp != otp:
-            return Response({'error': 'Invalid or expired OTP'}, status=400)
-        OrderStateMachine.transition(order, 'delivered')
-        from apps.payouts.tasks import process_payouts_for_order
-        process_payouts_for_order.delay(order.id)
-        return Response({'status': 'delivered'})

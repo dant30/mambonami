@@ -4,7 +4,6 @@ export {
 	clearCart,
 	confirmFarmerSubOrder,
 	createOrder,
-	generateDeliveryOtp,
 	getActiveOrder,
 	getCart,
 	getCartSummary,
@@ -16,5 +15,4 @@ export {
 	markFarmerSubOrderReady,
 	removeFromCart,
 	updateCartItem,
-	verifyDeliveryOtp,
 } from './orderService'

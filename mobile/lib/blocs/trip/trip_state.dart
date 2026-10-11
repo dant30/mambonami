@@ -52,15 +52,6 @@ class ArriveAtFarmSuccess extends TripState {
   @override List<Object?> get props => [response.message, response.arrivedAt, response.waitingGraceMinutes];
 }
 
-class OtpGenerated extends TripState {
-  final String otp;
-  final int expiresIn;
-  const OtpGenerated(this.otp, this.expiresIn);
-  @override List<Object> get props => [otp, expiresIn];
-}
-
-class DeliveryConfirmed extends TripState {}
-
 class TripError extends TripState {
   final String message;
   const TripError(this.message);
