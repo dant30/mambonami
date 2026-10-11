@@ -57,8 +57,15 @@ class StkPushCallbackView(APIView):
 
     def post(self, request):
         result = process_stk_callback(request.data)
-        status_code = 0 if result.get('success') else 1
-        return Response({'ResultCode': status_code, 'ResultDesc': result.get('message', 'Processed')})
+        logger.info(
+            'STK callback handled: success=%s order_id=%s message=%s',
+            result.get('success'),
+            result.get('order_id'),
+            result.get('message', 'Processed'),
+        )
+        # Safaricom expects an HTTP 200 acknowledgment once the callback is received.
+        # Payment success is tracked separately on the order and STK request.
+        return Response({'ResultCode': 0, 'ResultDesc': 'Callback received'})
 
 class IPNCallbackView(APIView):
     """

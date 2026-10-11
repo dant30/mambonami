@@ -152,13 +152,13 @@ def process_stk_callback(payload: dict) -> dict:
         push_request.status = StkPushRequest.Status.FAILED
         push_request.save(update_fields=['callback_payload', 'result_code', 'result_description', 'status', 'updated_at'])
         logger.warning(
-            'STK payment failed for order %s, checkout %s: result code %s (%s)',
+            'STK payment failed for order %s (checkout %s): result code %s (%s)',
             push_request.order_id,
             checkout_id,
             result_code,
             push_request.result_description,
         )
-        return {'success': True, 'message': 'Payment was not completed'}
+        return {'success': False, 'message': push_request.result_description, 'order_id': None}
 
     metadata_items = ((callback.get('CallbackMetadata') or {}).get('Item') or [])
     metadata = {item.get('Name'): item.get('Value') for item in metadata_items if isinstance(item, dict) and item.get('Name')}
@@ -175,7 +175,14 @@ def process_stk_callback(payload: dict) -> dict:
         push_request.status = StkPushRequest.Status.FAILED
         push_request.result_description = 'Successful callback did not match the expected amount or receipt.'
         push_request.save(update_fields=['callback_payload', 'result_code', 'result_description', 'status', 'updated_at'])
-        logger.error('STK callback payment details did not match order %s', push_request.order_id)
+        logger.error(
+            'STK callback details did not match order %s (checkout %s; receipt_present=%s; phone_matches=%s; amount_matches=%s)',
+            push_request.order_id,
+            checkout_id,
+            bool(receipt),
+            phone_matches,
+            amount_matches,
+        )
         return {'success': False, 'message': 'Payment details did not match'}
 
     transaction_time = metadata.get('TransactionDate') or timezone.localtime().strftime('%Y%m%d%H%M%S')
@@ -189,7 +196,8 @@ def process_stk_callback(payload: dict) -> dict:
         'BusinessShortCode': str(getattr(settings, 'MPESA_PAYBILL_NUMBER', '')),
         'TransactionType': 'CustomerPayBillOnline',
     })
-    if result.get('success') and result.get('order_id') == push_request.order_id:
+    payment_succeeded = result.get('success') and result.get('order_id') == push_request.order_id
+    if payment_succeeded:
         push_request.status = StkPushRequest.Status.SUCCEEDED
         push_request.result_description = 'Payment confirmed.'
     else:
@@ -197,11 +205,17 @@ def process_stk_callback(payload: dict) -> dict:
         push_request.result_description = str(result.get('message', 'Payment was not matched to this order.'))[:2000]
     push_request.callback_payload = payload
     push_request.save(update_fields=['callback_payload', 'status', 'result_description', 'updated_at'])
-    if not result.get('success'):
+    if payment_succeeded:
+        logger.info('STK payment confirmed for order %s (checkout %s)', push_request.order_id, checkout_id)
+    else:
         logger.error(
-            'STK receipt reconciliation failed for order %s, checkout %s: %s',
+            'STK receipt reconciliation failed for order %s (checkout %s): %s',
             push_request.order_id,
             checkout_id,
-            result.get('message', 'unknown reconciliation error'),
+            push_request.result_description,
         )
-    return result
+    return {
+        'success': bool(payment_succeeded),
+        'message': push_request.result_description,
+        'order_id': push_request.order_id if payment_succeeded else None,
+    }

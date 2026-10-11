@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.orders.models import Order
-from apps.paybill.models import AccountNumberReservation
+from apps.paybill.models import AccountNumberReservation, StkPushRequest
 from apps.users.models import Role, User
 
 
@@ -64,6 +64,37 @@ class PayBillSimulationViewTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, 'paid_escrow')
         self.assertEqual(self.order.paybill_transaction_code, self.transaction_code)
+
+    def test_cancelled_stk_callback_marks_attempt_failed_and_acknowledges_callback(self):
+        stk_request = StkPushRequest.objects.create(
+            order=self.order,
+            phone_number=self.phone,
+            amount=self.order.total_amount,
+            status=StkPushRequest.Status.PENDING,
+            checkout_request_id=f'ws_CO_{self.unique_suffix}',
+        )
+        response = self.client.post(
+            reverse('paybill:stk_push_callback'),
+            data=json.dumps({
+                'Body': {
+                    'stkCallback': {
+                        'MerchantRequestID': f'merchant_{self.unique_suffix}',
+                        'CheckoutRequestID': stk_request.checkout_request_id,
+                        'ResultCode': 1032,
+                        'ResultDesc': 'Request cancelled by user',
+                    },
+                },
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['ResultCode'], 0)
+        stk_request.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertEqual(stk_request.status, StkPushRequest.Status.FAILED)
+        self.assertEqual(stk_request.result_description, 'Request cancelled by user')
+        self.assertEqual(self.order.status, 'placed')
 
 
 class C2BCallbackViewTests(TestCase):

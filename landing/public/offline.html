@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#2f6b4f" />
+		<meta name="robots" content="noindex, nofollow" />
+		<title>You are offline | Mambonami</title>
+		<style>
+			:root { color-scheme: light; font-family: "Space Grotesk", "Segoe UI", sans-serif; color: #183c2b; background: #f7f8f3; }
+			* { box-sizing: border-box; }
+			body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; background: radial-gradient(ellipse at 100% 0%, #e7efd9 0, transparent 42%), #f7f8f3; }
+			main { width: min(100%, 520px); padding: 36px; border: 1px solid #dce5d8; border-radius: 20px; background: #fff; box-shadow: 0 18px 50px #183c2b12; }
+			.brand { display: flex; align-items: center; gap: 12px; color: #2f6b4f; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+			.brand img { width: 42px; height: 42px; border-radius: 10px; }
+			h1 { margin: 28px 0 10px; font-family: Georgia, serif; font-size: clamp(30px, 8vw, 42px); line-height: 1.08; }
+			p { color: #5d6c60; font-size: 16px; line-height: 1.65; }
+			.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+			a, button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 0 18px; border: 1px solid #2f6b4f; border-radius: 999px; background: #2f6b4f; color: white; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+			a.secondary { background: white; color: #2f6b4f; }
+			:focus-visible { outline: 3px solid #dcae2a; outline-offset: 3px; }
+			@media (max-width: 420px) { main { padding: 26px 22px; } .actions > * { width: 100%; } }
+		</style>
+	</head>
+	<body>
+		<main>
+			<div class="brand"><img src="/assets/icons/logo.png" alt="" /> Mambonami</div>
+			<h1>You are offline.</h1>
+			<p>Your connection is unavailable right now. Check your network and try again. Your account and payment information are not stored for offline use.</p>
+			<div class="actions">
+				<button type="button" onclick="window.location.reload()">Try again</button>
+				<a class="secondary" href="/home">Go to marketplace</a>
+			</div>
+		</main>
+	</body>
+</html>

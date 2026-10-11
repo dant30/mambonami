@@ -1,0 +1,28 @@
+{
+	"id": "/",
+	"name": "Mambonami | Farm-Fresh Marketplace",
+	"short_name": "Mambonami",
+	"description": "Connect with Kenyan farmers, discover fresh produce, and manage your marketplace orders.",
+	"lang": "en-KE",
+	"start_url": "/home",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "portrait-primary",
+	"background_color": "#f7f8f3",
+	"theme_color": "#2f6b4f",
+	"categories": ["shopping", "food", "business"],
+	"icons": [
+		{
+			"src": "/assets/icons/logo.png",
+			"sizes": "1024x1024",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/assets/icons/favicon.ico",
+			"sizes": "any",
+			"type": "image/x-icon",
+			"purpose": "any"
+		}
+	]
+}

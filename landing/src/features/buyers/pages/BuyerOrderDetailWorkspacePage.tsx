@@ -1,6 +1,6 @@
 import { ArrowLeft, CheckCircle2, Clock3, Copy, CreditCard, MapPin, PackageCheck, RefreshCw } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { initiateOrderStkPush, useOrder } from '../../../core/lib'
 import type { Order } from '../../../core/lib'
@@ -16,6 +16,11 @@ function formatStatus(status: string | null | undefined) {
 export function BuyerOrderDetailPage() {
 	const { id = '' } = useParams()
 	const { order, isLoading, error, refresh } = useOrder(id)
+	useEffect(() => {
+		if (order?.status !== 'placed' || !['initiating', 'pending'].includes(order.stk_payment_status || '')) return
+		const interval = window.setInterval(refresh, 5000)
+		return () => window.clearInterval(interval)
+	}, [order?.status, order?.stk_payment_status, refresh])
 
 	if (isLoading && !order) return <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8"><div className="h-80 animate-pulse rounded-2xl bg-muted" /></main>
 	if (error || !order) return <main className="mx-auto max-w-2xl px-4 py-20 text-center"><h1 className="text-3xl font-semibold text-primary-dark">Order unavailable</h1><Link to="/app/buyer/orders" className="mt-6 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground">Back to orders</Link></main>
@@ -60,6 +65,7 @@ function OrderPaymentPanel({ order, onRefresh, refreshing }: { order: Order; onR
 		try {
 			const result = await initiateOrderStkPush(order.uuid, phone)
 			setMessage(`${result.message} Check your phone and enter your M-Pesa PIN.`)
+			 onRefresh()
 		} catch (requestError) {
 			setError(getErrorMessage(requestError, 'Could not send the M-Pesa prompt. Use the PayBill fallback below.'))
 		} finally { setIsSending(false) }

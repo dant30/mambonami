@@ -14,7 +14,9 @@ createRoot(root).render(
 )
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-	navigator.serviceWorker.register('/service-worker.js').catch((error: unknown) => {
-		console.error('Service worker registration failed:', error)
-	})
+	window.addEventListener('load', () => {
+		navigator.serviceWorker.register('/service-worker.js').catch((error: unknown) => {
+			console.error('Service worker registration failed:', error)
+		})
+	}, { once: true })
 }
