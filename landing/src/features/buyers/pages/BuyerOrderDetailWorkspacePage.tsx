@@ -17,7 +17,7 @@ export function BuyerOrderDetailPage() {
 	const { id = '' } = useParams()
 	const { order, isLoading, error, refresh } = useOrder(id)
 	useEffect(() => {
-		if (order?.status !== 'placed' || !['initiating', 'pending'].includes(order.stk_payment_status || '')) return
+		if (order?.status !== 'placed' || !['initiating', 'pending', 'succeeded'].includes(order.stk_payment_status || '')) return
 		const interval = window.setInterval(refresh, 5000)
 		return () => window.clearInterval(interval)
 	}, [order?.status, order?.stk_payment_status, refresh])
@@ -57,17 +57,23 @@ function OrderPaymentPanel({ order, onRefresh, refreshing }: { order: Order; onR
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
 	const latestStatus = order.stk_payment_status
+	const promptPending = ['initiating', 'pending', 'succeeded'].includes(latestStatus || '')
 
 	const sendPrompt = async () => {
+		if (promptPending) {
+			setMessage('An M-Pesa prompt is already pending. Check your phone or refresh the payment status.')
+			return
+		}
 		setError('')
 		setMessage('')
 		setIsSending(true)
 		try {
 			const result = await initiateOrderStkPush(order.uuid, phone)
 			setMessage(`${result.message} Check your phone and enter your M-Pesa PIN.`)
-			 onRefresh()
+			onRefresh()
 		} catch (requestError) {
 			setError(getErrorMessage(requestError, 'Could not send the M-Pesa prompt. Use the PayBill fallback below.'))
+			onRefresh()
 		} finally { setIsSending(false) }
 	}
 
@@ -85,7 +91,7 @@ function OrderPaymentPanel({ order, onRefresh, refreshing }: { order: Order; onR
 			<div className="flex items-start gap-3"><CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><div><h2 className="font-semibold text-primary-dark">Complete payment</h2><p className="mt-1 text-sm text-muted-foreground">Send an M-Pesa prompt or pay manually with PayBill.</p></div></div>
 			<div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
 				<label className="block text-sm font-semibold text-primary-dark">M-Pesa phone number<input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="0712345678" className="mt-2 w-full min-w-0 rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" /></label>
-				<button type="button" onClick={() => void sendPrompt()} disabled={isSending || !phone.trim()} className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"><CreditCard className="h-4 w-4" />{isSending ? 'Sending prompt...' : 'Send M-Pesa prompt'}</button>
+				<button type="button" onClick={() => void sendPrompt()} disabled={isSending || promptPending || !phone.trim()} className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"><CreditCard className="h-4 w-4" />{isSending ? 'Sending prompt...' : latestStatus === 'succeeded' ? 'Confirming payment...' : promptPending ? 'Prompt already pending' : 'Send M-Pesa prompt'}</button>
 			</div>
 			{latestStatus && <p className="mt-4 text-sm text-muted-foreground">Latest prompt: <span className="font-semibold capitalize text-primary-dark">{formatStatus(latestStatus)}</span>{order.stk_payment_message ? ` · ${order.stk_payment_message}` : ''}</p>}
 			{message && <p role="status" className="mt-4 text-sm text-primary">{message}</p>}

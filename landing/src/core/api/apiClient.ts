@@ -1,3 +1,5 @@
+import { createCorrelationId, getResponseCorrelationId } from './correlation'
+
 export type QueryValue = string | number | boolean | null | undefined;
 
 export interface ApiRequestOptions extends RequestInit {
@@ -8,12 +10,14 @@ export interface ApiRequestOptions extends RequestInit {
 export class ApiError extends Error {
 	readonly status: number;
 	readonly data: unknown;
+	readonly requestId: string | null;
 
-	constructor(status: number, data: unknown) {
+	constructor(status: number, data: unknown, requestId: string | null = null) {
 		super(`API request failed with status ${status}`);
 		this.name = 'ApiError';
 		this.status = status;
 		this.data = data;
+		this.requestId = requestId;
 	}
 }
 
@@ -55,9 +59,10 @@ async function refreshAccessToken() {
 }
 
 async function refreshAccessTokenRequest() {
+	const requestId = createCorrelationId();
 	const response = await fetch(makeUrl('/api/token/refresh/'), {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', 'X-Request-ID': requestId },
 		credentials: 'include',
 		body: JSON.stringify({}),
 	});
@@ -82,6 +87,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 	const headers = new Headers(requestHeaders);
 	const token = getAccessToken();
 
+	if (!headers.has('X-Request-ID')) headers.set('X-Request-ID', createCorrelationId());
 	if (token) headers.set('Authorization', `Bearer ${token}`);
 	if (body && !(body instanceof FormData) && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
@@ -96,12 +102,12 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
 	if (response.status === 401 && !_retry && !path.includes('/token/refresh/')) {
 		const access = await refreshAccessToken();
-		if (access) return apiRequest<T>(path, { ...options, _retry: true });
+		if (access) return apiRequest<T>(path, { ...options, headers, _retry: true });
 		accessToken = null;
 	}
 
 	const data = await parseResponse(response);
-	if (!response.ok) throw new ApiError(response.status, data);
+	if (!response.ok) throw new ApiError(response.status, data, getResponseCorrelationId(response.headers, data));
 	return data as T;
 }
 

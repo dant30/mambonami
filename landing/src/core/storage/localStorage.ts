@@ -7,9 +7,17 @@ interface StorageStore {
 }
 
 function createStorageStore(getStorage: () => Storage | null): StorageStore {
+	const safeGetStorage = () => {
+		try {
+			return getStorage()
+		} catch {
+			return null
+		}
+	}
+
 	return {
 		get<T>(key: string) {
-			const storage = getStorage()
+			const storage = safeGetStorage()
 			if (!storage) return null
 
 			try {
@@ -27,7 +35,7 @@ function createStorageStore(getStorage: () => Storage | null): StorageStore {
 		},
 
 		set<T>(key: string, value: T) {
-			const storage = getStorage()
+			const storage = safeGetStorage()
 			if (!storage) return
 
 			try {
@@ -38,7 +46,7 @@ function createStorageStore(getStorage: () => Storage | null): StorageStore {
 		},
 
 		remove(key) {
-			const storage = getStorage()
+			const storage = safeGetStorage()
 			if (!storage) return
 
 			try {
@@ -49,7 +57,7 @@ function createStorageStore(getStorage: () => Storage | null): StorageStore {
 		},
 
 		has(key) {
-			const storage = getStorage()
+			const storage = safeGetStorage()
 			if (!storage) return false
 
 			try {
@@ -60,7 +68,7 @@ function createStorageStore(getStorage: () => Storage | null): StorageStore {
 		},
 
 		clear() {
-			const storage = getStorage()
+			const storage = safeGetStorage()
 			if (!storage) return
 
 			try {

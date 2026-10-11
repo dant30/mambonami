@@ -1,0 +1,65 @@
+{
+	"app": {
+		"name": "Mambonami",
+		"tagline": "Chakula freshi. Karibu na nyumbani."
+	},
+	"common": {
+		"loading": "Inapakia...",
+		"saving": "Inahifadhi...",
+		"search": "Tafuta",
+		"refresh": "Onyesha upya",
+		"retry": "Jaribu tena",
+		"cancel": "Ghairi",
+		"save": "Hifadhi",
+		"close": "Funga",
+		"back": "Rudi",
+		"notAvailable": "Haipatikani",
+		"copied": "Imenakiliwa."
+	},
+	"navigation": {
+		"home": "Nyumbani",
+		"products": "Bidhaa",
+		"orders": "Maagizo",
+		"cart": "Kikapu",
+		"wishlist": "Vipendwa",
+		"dashboard": "Dashibodi",
+		"profile": "Wasifu",
+		"settings": "Mipangilio",
+		"logout": "Toka"
+	},
+	"auth": {
+		"login": "Ingia",
+		"register": "Fungua akaunti",
+		"phone": "Nambari ya simu",
+		"password": "Nenosiri",
+		"invalidCredentials": "Nambari ya simu au nenosiri si sahihi.",
+		"sessionExpired": "Muda wa kikao umeisha. Ingia tena."
+	},
+	"checkout": {
+		"title": "Malipo salama",
+		"deliveryDetails": "Maelezo ya uwasilishaji",
+		"deliveryAddress": "Anwani ya mtaa",
+		"city": "Jiji",
+		"timeWindow": "Muda wa uwasilishaji",
+		"payment": "Malipo",
+		"paymentPending": "Inasubiri uthibitisho wa malipo ya M-Pesa.",
+		"paymentConfirmed": "Malipo yamethibitishwa na yamehifadhiwa salama kwenye escrow.",
+		"paymentFailed": "Malipo hayakukamilika. Jaribu ombi jingine au utumie PayBill.",
+		"orderReference": "Rejeleo la agizo: {{reference}}",
+		"amountDue": "Kiasi kinachodaiwa: KSh {{amount}}"
+	},
+	"status": {
+		"placed": "Inasubiri malipo",
+		"paidEscrow": "Malipo yamehakikishwa",
+		"transportAssigned": "Usafiri umepangwa",
+		"pickedUp": "Imechukuliwa",
+		"delivered": "Imefikishwa",
+		"disputed": "Inakaguliwa",
+		"cancelled": "Imeghairiwa"
+	},
+	"errors": {
+		"generic": "Hitilafu imetokea. Tafadhali jaribu tena.",
+		"offline": "Inaonekana huna intaneti. Angalia muunganisho kisha ujaribu tena.",
+		"requestId": "Rejeleo: {{requestId}}"
+	}
+}

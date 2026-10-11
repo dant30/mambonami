@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../../core/utils'
 import type { Coordinates } from '../../../core/utils'
 
 function formatMoney(value: string | number) { return `KSh ${Number(value).toLocaleString()}` }
-function isPaid(status: Order['status'] | string | undefined) { return ['paid_escrow', 'transport_assigned', 'picked_up', 'delivered'].includes(String(status || '').toLowerCase()) }
+function isPaid(status: Order['status'] | string | undefined) { return ['paid_escrow', 'transport_assigned', 'picked_up', 'delivered', 'disputed'].includes(String(status || '').toLowerCase()) }
 
 export function CheckoutPage() {
 	const { isAuthenticated, user } = useAuth()
@@ -29,6 +29,15 @@ export function CheckoutPage() {
 	const [notice, setNotice] = useState('')
 
 	const copy = async (value: string) => { try { await navigator.clipboard.writeText(value); setNotice('Copied to clipboard.') } catch { setNotice('Select and copy the payment reference manually.') } }
+	const syncPaymentStatus = async (orderUuid: string) => {
+		try {
+			const latest = await getOrder(orderUuid)
+			setPaymentOrder(latest)
+			return latest
+		} catch {
+			return null
+		}
+	}
 	const submit = async (event: React.FormEvent) => {
 		event.preventDefault(); setError('')
 		if (!deliveryLocation) { setError('Choose your delivery point on the map before placing the order.'); return }
@@ -44,10 +53,12 @@ export function CheckoutPage() {
 					.then((stkResult) => {
 						setPaymentOrder((current) => current ? { ...current, stk_payment_status: 'pending', stk_payment_message: stkResult.message } : current)
 						setNotice(`${stkResult.message} Check your phone and enter your M-Pesa PIN. You can use the PayBill fallback below instead.`)
+						void syncPaymentStatus(result.uuid)
 					})
-					.catch((stkError: unknown) => {
-						setPaymentOrder((current) => current ? { ...current, stk_payment_status: 'failed' } : current)
-						setNotice(`${getErrorMessage(stkError, 'The M-Pesa prompt could not be sent.')} Use the PayBill fallback below.`)
+					.catch(async (stkError: unknown) => {
+						const latest = await syncPaymentStatus(result.uuid)
+						const message = latest?.stk_payment_message || getErrorMessage(stkError, 'The M-Pesa prompt could not be sent.')
+						setNotice(`${message} ${latest?.stk_payment_status === 'pending' || latest?.stk_payment_status === 'initiating' ? 'Check your phone before requesting another prompt.' : 'Use the PayBill fallback below or try again.'}`)
 					})
 					.finally(() => setIsSendingPrompt(false))
 			} else {
@@ -83,8 +94,10 @@ export function CheckoutPage() {
 			const result = await initiateOrderStkPush(payment.uuid, phone)
 			setPaymentOrder((current) => current ? { ...current, stk_payment_status: 'pending', stk_payment_message: result.message } : current)
 			setNotice(`${result.message} Check your phone and enter your M-Pesa PIN.`)
+			void syncPaymentStatus(payment.uuid)
 		} catch (requestError) {
-			setError(getErrorMessage(requestError, 'Could not send a new M-Pesa prompt. Use the PayBill details below.'))
+			const latest = await syncPaymentStatus(payment.uuid)
+			setError(latest?.stk_payment_message || getErrorMessage(requestError, 'Could not send a new M-Pesa prompt. Use the PayBill details below.'))
 		} finally {
 			setIsSendingPrompt(false)
 		}
@@ -118,7 +131,8 @@ export function CheckoutPage() {
 
 	if (!isAuthenticated) return <Navigate to="/login" replace state={{ returnTo: '/checkout' }} />
 	if (items.length === 0 && !payment) return <Navigate to="/app/buyer/cart" replace />
-	if (payment) return <><PaymentStep payment={payment} paymentOrder={paymentOrder} isChecking={isChecking} error={error} notice={notice} onCopy={copy} onCheck={() => void checkPayment()} />{!isPaid(paymentOrder?.status) && paymentOrder?.stk_payment_status !== 'pending' && <PaymentRetryForm initialPhone={user?.phone || ''} sending={isSendingPrompt} onResend={resendPrompt} />}</>
+	const promptBlocksRetry = ['initiating', 'pending', 'succeeded'].includes(paymentOrder?.stk_payment_status || '')
+	if (payment) return <><PaymentStep payment={payment} paymentOrder={paymentOrder} isChecking={isChecking} error={error} notice={notice} onCopy={copy} onCheck={() => void checkPayment()} />{!isPaid(paymentOrder?.status) && !promptBlocksRetry && !isSendingPrompt && <PaymentRetryForm initialPhone={user?.phone || ''} sending={isSendingPrompt} onResend={resendPrompt} />}</>
 	return <main className="min-h-full bg-background"><div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="border-b border-border pb-6"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Secure checkout</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Choose where your harvest should arrive.</h1><p className="mt-3 text-sm text-muted-foreground">Add delivery details, then pay securely through M-Pesa PayBill.</p></div><div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]"><form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"><div className="flex items-center gap-3"><MapPin className="h-5 w-5 text-primary" /><h2 className="text-xl font-semibold text-primary-dark">Delivery details</h2></div>{error && <p role="alert" className="mt-5 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}<MapPicker value={deliveryLocation} onChange={setDeliveryLocation} className="mt-7" /><label className="mt-6 block text-sm font-semibold text-primary-dark">Street address<input required value={address} onChange={(event) => setAddress(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="House, street, or landmark" /></label><label className="mt-5 block text-sm font-semibold text-primary-dark">City<input required value={city} onChange={(event) => setCity(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" /></label><label className="mt-5 block text-sm font-semibold text-primary-dark">Delivery time window<select value={timeWindow} onChange={(event) => setTimeWindow(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary"><option>09:00-12:00</option><option>12:00-15:00</option><option>15:00-18:00</option></select></label><p className="mt-6 flex items-start gap-2 rounded-xl bg-muted p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-primary" />Your payment is held in escrow until delivery is confirmed.</p><button disabled={isSubmitting} className="mt-7 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Creating order...' : 'Continue to payment'}</button><Link to="/app/buyer/cart" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary"><ArrowLeft className="h-4 w-4" />Back to cart</Link></form><aside className="h-fit rounded-2xl border border-border bg-primary-dark p-6 text-primary-foreground lg:sticky lg:top-24"><p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">Order summary</p><div className="mt-6 space-y-3 text-sm"><div className="flex justify-between text-primary-foreground/75"><span>{summary.totalQuantity} items</span><span>{formatMoney(summary.subtotal)}</span></div><div className="flex justify-between text-primary-foreground/75"><span>Delivery</span><span>Calculated</span></div><div className="flex justify-between border-t border-primary-foreground/20 pt-4 text-lg font-bold"><span>Total</span><span>{formatMoney(summary.total)}</span></div></div><p className="mt-6 flex items-start gap-2 text-xs leading-5 text-primary-foreground/60"><Clipboard className="mt-0.5 h-4 w-4 shrink-0" />After placing the order, you will receive a unique PayBill account number.</p></aside></div></div></main>
 }
 

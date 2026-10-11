@@ -1,5 +1,6 @@
 export { ApiError, apiClient, apiRequest } from './apiClient';
 export type { ApiRequestOptions, QueryValue } from './apiClient';
+export { createCorrelationId, getResponseCorrelationId, isCorrelationId } from './correlation';
 export {
 	ADMIN_ENDPOINTS,
 	ANALYTICS_ENDPOINTS,
