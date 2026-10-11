@@ -87,6 +87,7 @@ export interface AdminDashboardData {
 	disputes: Dispute[]
 	payouts: Payout[]
 	auditLogs: AdminAuditLog[]
+	metrics: AdminDailyMetric[]
 }
 
 export type AdminProduct = Product

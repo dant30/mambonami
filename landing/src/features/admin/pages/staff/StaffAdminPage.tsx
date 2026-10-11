@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { DataTable } from '../../../../shared/components/tables/DataTable'
+import { Modal } from '../../../../shared/components/ui/Modal'
 import { AdminPageLayout } from '../../components'
 import { activateAdminUser, adminResourceCaches, createAdminStaff, listAdminStaff, suspendAdminUser, updateAdminStaff, useAdminResource } from '../../../../core/lib'
 import type { AdminStaffInput, AdminUser } from '../../../../core/lib/types/admin'
@@ -41,7 +42,9 @@ export function StaffAdminPage() {
 	]
 	return <AdminPageLayout section="staff" title="Staff" loading={loading} error={error} notice={notice} onRefresh={refresh}>
 		<div className="mb-4 flex justify-end"><button type="button" onClick={() => { setFormError(''); setEditor('create') }} className="min-h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:brightness-95">Create staff account</button></div>
-		{editor && <StaffEditorForm key={editor === 'create' ? 'create' : editor.id} staff={editor === 'create' ? undefined : editor} saving={saving} error={formError} onCancel={() => setEditor(null)} onSubmit={submitStaff} />}
+		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'create' ? 'Create staff account' : 'Edit staff member'} subtitle="Roles and permissions are managed separately." maxWidth="2xl">
+			{editor && <StaffEditorForm key={editor === 'create' ? 'create' : editor.id} staff={editor === 'create' ? undefined : editor} saving={saving} error={formError} onCancel={() => setEditor(null)} onSubmit={submitStaff} />}
+		</Modal>
 		<DataTable data={staff} columns={columns} keyExtractor={(member) => String(member.id)} emptyMessage="No staff accounts found." />
 	</AdminPageLayout>
 }

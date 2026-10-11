@@ -4,6 +4,7 @@ import type { Dispute, DisputeResolutionInput } from '../../types/disputes'
 import type { Payout } from '../../types/payouts'
 import type { AdminAuditLog, AdminFarmer, AdminStaffInput, AdminTransportProvider, AdminUser } from '../../types'
 import { listAdminOrders } from './orderAdminService'
+import { listAdminDailyMetrics } from './analyticsAdminService'
 
 function list<T>(response: T[] | { results?: T[] }): T[] { return Array.isArray(response) ? response : response.results ?? [] }
 
@@ -26,9 +27,9 @@ export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> { return li
 export function getAdminAuditLog(uuid: string): Promise<AdminAuditLog> { return apiClient.get<AdminAuditLog>(ADMIN_ENDPOINTS.audit.detail(uuid)) }
 
 export async function getAdminDashboardData() {
-	const [orders, users, farmers, transportProviders, disputes, payouts, auditLogs] = await Promise.all([
-		listAdminOrders(), listAdminUsers(), listAdminFarmers(), listAdminTransportProviders(), listAdminDisputes(), listAdminPayouts(), listAdminAuditLogs(),
+	const [orders, users, farmers, transportProviders, disputes, payouts, auditLogs, metrics] = await Promise.all([
+		listAdminOrders(), listAdminUsers(), listAdminFarmers(), listAdminTransportProviders(), listAdminDisputes(), listAdminPayouts(), listAdminAuditLogs(), listAdminDailyMetrics(),
 	])
-	return { orders, users, farmers, transportProviders, disputes, payouts, auditLogs }
+	return { orders, users, farmers, transportProviders, disputes, payouts, auditLogs, metrics }
 }
 
