@@ -40,10 +40,17 @@ export function BuyerDeliveryConfirmation({ orderUuid, onConfirmed }: { orderUui
 		}
 	}
 
+	const tripErrorMessage = (() => {
+		if (tripError instanceof Error) return tripError.message
+		if (typeof tripError === 'string') return tripError
+		return 'Refresh this order in a moment to load the delivery confirmation.'
+	})()
+	const hasTripError = !isLoading && tripError !== null && tripError !== undefined
+
 	return <section className="mt-6 border-y border-border py-5" aria-labelledby="delivery-confirmation-title">
 		<div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><div><h2 id="delivery-confirmation-title" className="font-semibold text-primary-dark">Confirm delivery</h2><p className="mt-1 text-sm text-muted-foreground">The transporter sends a one-time code to your registered phone after arriving.</p></div></div>
 		{isLoading && <p className="mt-4 text-sm text-muted-foreground">Checking the delivery trip…</p>}
-		{!isLoading && tripError && <EmptyState size="sm" title="Delivery trip unavailable" description="Refresh this order in a moment to load the delivery confirmation." />}
+		{hasTripError && <EmptyState size="sm" title="Delivery trip unavailable" description={tripErrorMessage} />}
 		{!isLoading && trip && trip.status !== 'otp_pending' && trip.status !== 'delivered' && <p className="mt-4 text-sm text-muted-foreground">Delivery code becomes available when the transporter marks arrival. Current trip status: <span className="font-semibold capitalize">{trip.status.replaceAll('_', ' ')}</span>.</p>}
 		{trip?.status === 'otp_pending' && <div className="mt-5 grid gap-4 sm:grid-cols-2">
 			<div><label className="mb-2 block text-xs font-bold uppercase text-muted-foreground">Six-digit SMS code</label><InputOTP maxLength={6} value={otp} onChange={setOtp} inputMode="numeric" aria-label="Six digit delivery code"><InputOTPGroup>{[0, 1, 2, 3, 4, 5].map((index) => <InputOTPSlot key={index} index={index} className="h-11 w-11 text-base" />)}</InputOTPGroup></InputOTP></div>

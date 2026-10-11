@@ -1,6 +1,6 @@
 import type { Dispute, Order, Payout, Product } from '../../types'
 import type { AdminAuditLog, AdminFarmer, AdminTransportProvider, AdminUser } from '../../types'
-import type { AdminDashboardData } from '../../types/admin'
+import type { AdminDashboardData, AdminDailyMetric } from '../../types/admin'
 
 let users: AdminUser[] = []
 let staff: AdminUser[] = []
@@ -11,9 +11,10 @@ let payouts: Payout[] = []
 let auditLogs: AdminAuditLog[] = []
 let orders: Order[] = []
 let products: Product[] = []
+let metrics: AdminDailyMetric[] = []
 
 export const adminStore = {
-	getDashboardData: (): AdminDashboardData => ({ orders, users, farmers, transportProviders, disputes, payouts, auditLogs }),
+	getDashboardData: (): AdminDashboardData => ({ orders, users, farmers, transportProviders, disputes, payouts, auditLogs, metrics }),
 	setDashboardData: (next: AdminDashboardData) => {
 		orders = next.orders
 		users = next.users
@@ -22,6 +23,7 @@ export const adminStore = {
 		disputes = next.disputes
 		payouts = next.payouts
 		auditLogs = next.auditLogs
+		metrics = next.metrics
 	},
 	getUsers: () => users,
 	setUsers: (next: AdminUser[]) => { users = next },
@@ -51,5 +53,6 @@ export const adminStore = {
 		auditLogs = []
 		orders = []
 		products = []
+		metrics = []
 	},
 }
