@@ -9,6 +9,7 @@ export type {
 	AdminProduct,
 	AdminResourceCache,
 	AdminRole,
+	AdminStaffInput,
 	AdminTransportProvider,
 	AdminUser,
 } from './admin'

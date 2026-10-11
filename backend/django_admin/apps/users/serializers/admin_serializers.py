@@ -1,5 +1,8 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from ..models import FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile, User
+from core.validators import normalize_phone_number
+from ..models import FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile, Role, User
 
 class FarmerAdminSerializer(serializers.ModelSerializer):
     user_phone = serializers.CharField(source='user.phone', read_only=True)
@@ -88,3 +91,65 @@ class UserAdminSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
         return None
+
+
+class StaffAdminSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, min_length=8)
+    display_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'phone', 'username', 'first_name', 'middle_name', 'last_name',
+            'display_name', 'email', 'password', 'date_joined', 'is_active',
+            'is_staff', 'is_superuser', 'role', 'last_seen',
+        )
+        read_only_fields = ('id', 'date_joined', 'is_active', 'is_staff', 'is_superuser', 'role', 'last_seen')
+
+    def validate_phone(self, value):
+        try:
+            normalized = normalize_phone_number(value)
+        except (DjangoValidationError, TypeError, ValueError) as exc:
+            detail = exc.messages if isinstance(exc, DjangoValidationError) else str(exc)
+            raise serializers.ValidationError(detail) from exc
+
+        existing = User.objects.filter(phone=normalized)
+        if self.instance:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise serializers.ValidationError('A user with this phone number already exists.')
+        return normalized
+
+    def validate(self, attrs):
+        if self.instance is None and not attrs.get('password'):
+            raise serializers.ValidationError({'password': 'A password is required when creating a staff account.'})
+        password = attrs.get('password')
+        if password:
+            candidate = self.instance or User(
+                username=attrs.get('username', ''),
+                phone=attrs.get('phone', ''),
+                email=attrs.get('email', ''),
+            )
+            try:
+                validate_password(password, user=candidate)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError({'password': exc.messages}) from exc
+        return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        return User.objects.create_user(
+            password=password,
+            role=Role.BUYER,
+            is_staff=True,
+            **validated_data,
+        )
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance

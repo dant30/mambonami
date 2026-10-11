@@ -9,6 +9,7 @@ export const adminResourceCaches = {
 	orders: { get: adminOrderStore.getOrders, set: adminOrderStore.setOrders },
 	products: { get: adminStore.getProducts, set: adminStore.setProducts },
 	users: { get: adminStore.getUsers, set: adminStore.setUsers },
+	staff: { get: adminStore.getStaff, set: adminStore.setStaff },
 	farmers: { get: adminStore.getFarmers, set: adminStore.setFarmers },
 	transportProviders: { get: adminStore.getTransportProviders, set: adminStore.setTransportProviders },
 	disputes: { get: adminStore.getDisputes, set: adminStore.setDisputes },

@@ -3,6 +3,7 @@ from django.test import SimpleTestCase
 from apps.users.models import Role, User
 from apps.users.serializers.admin_serializers import (
     FarmerAdminSerializer,
+    StaffAdminSerializer,
     TransportProviderAdminSerializer,
     UserAdminSerializer,
 )
@@ -32,3 +33,12 @@ class AdminSerializerFieldTests(SimpleTestCase):
         self.assertNotIn('is_id_verified', UserAdminSerializer().fields)
         self.assertNotIn('avatar', FarmerAdminSerializer().fields)
         self.assertNotIn('avatar', TransportProviderAdminSerializer().fields)
+
+    def test_staff_serializer_does_not_allow_privilege_fields(self):
+        serializer = StaffAdminSerializer()
+
+        writable_names = {field.field_name for field in serializer._writable_fields}
+        self.assertNotIn('role', writable_names)
+        self.assertNotIn('is_staff', writable_names)
+        self.assertNotIn('is_superuser', writable_names)
+        self.assertTrue(serializer.fields['password'].write_only)

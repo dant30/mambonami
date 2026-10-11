@@ -3,6 +3,7 @@ import type { AdminAuditLog, AdminFarmer, AdminTransportProvider, AdminUser } fr
 import type { AdminDashboardData } from '../../types/admin'
 
 let users: AdminUser[] = []
+let staff: AdminUser[] = []
 let farmers: AdminFarmer[] = []
 let transportProviders: AdminTransportProvider[] = []
 let disputes: Dispute[] = []
@@ -24,6 +25,8 @@ export const adminStore = {
 	},
 	getUsers: () => users,
 	setUsers: (next: AdminUser[]) => { users = next },
+	getStaff: () => staff,
+	setStaff: (next: AdminUser[]) => { staff = next },
 	getFarmers: () => farmers,
 	setFarmers: (next: AdminFarmer[]) => { farmers = next },
 	getTransportProviders: () => transportProviders,
@@ -40,6 +43,7 @@ export const adminStore = {
 	setProducts: (next: Product[]) => { products = next },
 	clear: () => {
 		users = []
+		staff = []
 		farmers = []
 		transportProviders = []
 		disputes = []

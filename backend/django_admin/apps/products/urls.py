@@ -1,12 +1,13 @@
 ﻿# backend/django_admin/apps/products/urls.py
 from django.urls import path
 from .views import api
+from .views.admin_views import AdminProductListView, AdminProductStatusView
 
 app_name = 'products'
 
 urlpatterns = [
-    path('admin/', api.AdminProductListView.as_view(), name='admin-product-list'),
-    path('admin/<uuid:uuid>/status/', api.AdminProductStatusView.as_view(), name='admin-product-status'),
+    path('admin/', AdminProductListView.as_view(), name='admin-product-list'),
+    path('admin/<uuid:uuid>/status/', AdminProductStatusView.as_view(), name='admin-product-status'),
     # Public
     path('categories/', api.ProductCategoryListView.as_view(), name='product-categories'),
     path('units/', api.ProductUnitListView.as_view(), name='product-units'),

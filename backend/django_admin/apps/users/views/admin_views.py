@@ -7,6 +7,7 @@ from ..models import FarmerProfile, TransportProviderProfile, User
 from ..permissions import IsAdmin
 from ..serializers.admin_serializers import (
     FarmerAdminSerializer,
+    StaffAdminSerializer,
     TransportProviderAdminSerializer,
     UserAdminSerializer,
 )
@@ -61,3 +62,9 @@ class UserAdminViewSet(viewsets.ModelViewSet):
         user.is_active = True
         user.save(update_fields=['is_active'])
         return Response({'status': 'activated', 'id': user.id}, status=status.HTTP_200_OK)
+
+
+class StaffAdminViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdmin]
+    serializer_class = StaffAdminSerializer
+    queryset = User.objects.filter(is_staff=True, is_superuser=False).order_by('last_name', 'first_name', 'id')

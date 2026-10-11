@@ -132,6 +132,8 @@ export const ADMIN_ENDPOINTS = {
 	users: {
 		list: '/admin-api/users/users/',
 		detail: (id: string | number) => `/admin-api/users/users/${id}/`,
+		staff: '/admin-api/users/staff/',
+		staffDetail: (id: string | number) => `/admin-api/users/staff/${id}/`,
 	},
 	farmers: {
 		list: '/admin-api/users/farmers/',

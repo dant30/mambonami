@@ -27,6 +27,8 @@ export interface AdminUser {
 	last_seen?: string | null
 }
 
+export type AdminStaffInput = Pick<AdminUser, 'phone' | 'username'> & Partial<Pick<AdminUser, 'first_name' | 'middle_name' | 'last_name' | 'email'>> & { password?: string }
+
 export interface AdminFarmer {
 	id: number
 	user: number
