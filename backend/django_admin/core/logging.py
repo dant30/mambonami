@@ -1,8 +1,21 @@
 # core/logging.py
 import logging
 import json
+from contextvars import ContextVar
 from datetime import datetime
 from typing import Any, Dict
+
+request_id_context: ContextVar[str] = ContextVar('request_id', default='-')
+
+
+class RequestIDFilter(logging.Filter):
+    """Attach the active request ID to every log record."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not getattr(record, 'request_id', None):
+            record.request_id = request_id_context.get()
+        return True
+
 
 class StructuredFormatter(logging.Formatter):
     """Format logs as JSON for better ingestion (e.g., ELK, Datadog)."""

@@ -6,16 +6,14 @@ Implements full idempotency, reconciliation, auditing, and payment lifecycle.
 import logging
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from django.db.models import F
 from django.utils.timezone import make_aware, now
-from django.core.exceptions import ObjectDoesNotExist
 
 from apps.paybill.models import (
     MpesaCallback,
     PayBillTransaction,
     AccountNumberReservation,
-    PaymentAllocation,
     FloatAdjustment,
 )
 from apps.orders.models import Order
@@ -50,28 +48,21 @@ class IPNHandler:
         # 2. Start atomic transaction with row lock on callback
         with transaction.atomic():
             # Lock the callback record to prevent concurrent processing
-            try:
-                callback = MpesaCallback.objects.select_for_update().get(
-                    pk=transaction_code
-                )
-                if callback.is_processed:
-                    logger.info(f"Callback {transaction_code} already processed, ignoring.")
-                    return {'success': True, 'message': 'Already processed'}
-            except ObjectDoesNotExist:
-                # Create new callback record (locked implicitly)
-                callback = MpesaCallback(
-                    transaction_code=transaction_code,
-                    order_id=None,  # will set later
-                    callback_payload=callback_data,
-                    is_processed=False,
-                    processing_attempts=0,
-                )
-                callback.save()
+            callback, callback_created = MpesaCallback.objects.get_or_create(
+                transaction_code=transaction_code,
+                defaults={
+                    'order_id': None,
+                    'callback_payload': callback_data,
+                    'is_processed': False,
+                    'processing_attempts': 1,
+                },
+            )
+            callback = MpesaCallback.objects.select_for_update().get(pk=transaction_code)
+            if callback.is_processed:
+                logger.info('Callback %s already processed, ignoring.', transaction_code)
+                return {'success': True, 'message': 'Already processed'}
 
-            # Increment attempt count for existing callbacks only
-            if callback._state.adding:
-                callback.save()  # save to get pk, but we'll set order_id later
-            else:
+            if not callback_created:
                 callback.processing_attempts = F('processing_attempts') + 1
                 callback.save(update_fields=['processing_attempts'])
                 # Refresh the value to get the actual integer
@@ -153,7 +144,7 @@ class IPNHandler:
                 'transaction_type': transaction_type,
                 'currency': 'KES',
                 'status': 'received',  # initial status
-                'matched_order': order,
+                'matched_order': None,
                 'callback': callback,
                 'running_balance': Decimal('0'),  # will update after balance
                 'notes': '',
@@ -174,37 +165,21 @@ class IPNHandler:
                 paybill_txn.business_shortcode = business_shortcode
                 paybill_txn.transaction_type = transaction_type
                 paybill_txn.transaction_time = cls._parse_mpesa_time(trans_time)
-                # Don't overwrite matched_order if already set
-                if not paybill_txn.matched_order and order:
-                    paybill_txn.matched_order = order
                 paybill_txn.save(update_fields=[
                     'sender_phone', 'payer_first_name', 'payer_middle_name',
                     'payer_last_name', 'business_shortcode', 'transaction_type',
-                    'transaction_time', 'matched_order'
+                    'transaction_time'
                 ])
 
             # 6. Update order status and create allocation if order found
             if order:
-                # Mark order as paid (escrow held)
-                order.status = 'paid_escrow'
-                order.paybill_transaction_code = transaction_code
-                order.paid_at = now()
-                order.save(update_fields=['status', 'paybill_transaction_code', 'paid_at'])
-                logger.info(f"Order {order.id} marked as PAID via IPN")
+                from apps.paybill.services.payment_service import complete_order_payment
 
-                # Update transaction status to 'matched'
-                paybill_txn.status = 'matched'
-                paybill_txn.matched_order = order
-                paybill_txn.save(update_fields=['status', 'matched_order'])
-
-                # Create PaymentAllocation
-                PaymentAllocation.objects.create(
-                    transaction=paybill_txn,
-                    order=order,
-                    amount=amount,
-                    allocation_type='order',
+                paybill_txn, order = complete_order_payment(
+                    order_id=order.id,
+                    transaction_code=transaction_code,
                 )
-                logger.info(f"Allocation created for order {order.id}")
+                logger.info('Order %s payment completed via PayBill.', order.id)
 
                 # Update AccountNumberReservation to used
                 if reservation and not reservation.is_used:

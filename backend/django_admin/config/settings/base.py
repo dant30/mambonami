@@ -249,13 +249,18 @@ if not os.path.exists(LOG_DIR):
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'request_id': {
+            '()': 'core.logging.RequestIDFilter',
+        },
+    },
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} [{request_id}] {message}',
             'style': '{',
         },
         'simple': {
-            'format': '{levelname} {asctime} {message}',
+            'format': '{levelname} {asctime} [{request_id}] {message}',
             'style': '{',
         },
     },
@@ -263,6 +268,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['request_id'],
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -270,6 +276,7 @@ LOGGING = {
             'maxBytes': 10485760,
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['request_id'],
         },
     },
     'root': {

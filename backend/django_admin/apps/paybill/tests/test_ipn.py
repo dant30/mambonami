@@ -6,7 +6,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.orders.models import Order
-from apps.paybill.models import AccountNumberReservation, StkPushRequest
+from apps.paybill.models import AccountNumberReservation, PaymentAllocation, PayBillTransaction, StkPushRequest
+from apps.paybill.services.payment_service import complete_order_payment
 from apps.users.models import Role, User
 
 
@@ -64,6 +65,18 @@ class PayBillSimulationViewTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, 'paid_escrow')
         self.assertEqual(self.order.paybill_transaction_code, self.transaction_code)
+
+        complete_order_payment(order_id=self.order.id, transaction_code=self.transaction_code)
+        complete_order_payment(order_id=self.order.id, transaction_code=self.transaction_code)
+        payment = PayBillTransaction.objects.get(transaction_code=self.transaction_code)
+        self.assertEqual(
+            PaymentAllocation.objects.filter(
+                transaction=payment,
+                order=self.order,
+                allocation_type='order',
+            ).count(),
+            1,
+        )
 
     def test_cancelled_stk_callback_marks_attempt_failed_and_acknowledges_callback(self):
         stk_request = StkPushRequest.objects.create(
