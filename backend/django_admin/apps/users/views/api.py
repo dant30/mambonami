@@ -284,12 +284,31 @@ class CustomTokenObtainPairView(generics.GenericAPIView):
         user = authenticate_user(phone, password)
 
         if not user:
+            from apps.audit.services import log_security_event
+
+            log_security_event(
+                event_type='authentication_failed',
+                description='An authentication attempt failed.',
+                severity='medium',
+                request=request,
+            )
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Update last login info
         user.last_login = timezone.now()
         user.last_login_ip = request.META.get('REMOTE_ADDR')
         user.save(update_fields=['last_login', 'last_login_ip'])
+
+        from apps.audit.services import log_action
+
+        log_action(
+            user=user,
+            action='LOGIN',
+            model_name='users.User',
+            object_id=user.pk,
+            object_repr=str(user),
+            request=request,
+        )
 
         tokens = get_tokens_for_user(user)
         user_data = _build_safe_user_payload(user, request)
@@ -355,6 +374,19 @@ class LogoutView(APIView):
                 RefreshToken(raw_refresh).blacklist()
             except TokenError:
                 pass
+
+        user = request.user if getattr(request.user, 'is_authenticated', False) else None
+        if user:
+            from apps.audit.services import log_action
+
+            log_action(
+                user=user,
+                action='LOGOUT',
+                model_name='users.User',
+                object_id=user.pk,
+                object_repr=str(user),
+                request=request,
+            )
 
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie('refresh_token', path='/api/token/')

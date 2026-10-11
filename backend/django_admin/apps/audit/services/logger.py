@@ -2,12 +2,17 @@
 # backend/django_admin/apps/audit/services/logger.py
 import json
 import logging
+import re
 from typing import Optional, Any, Dict
 from django.db import transaction
 from django.utils.timezone import now
-from ..models import AuditLog
+from ..models import AuditLog, SecurityEvent
 
 logger = logging.getLogger(__name__)
+SENSITIVE_METADATA_KEYS = (
+    'password', 'token', 'secret', 'otp', 'pin', 'authorization', 'credential',
+    'apikey', 'privatekey', 'cookie', 'session',
+)
 
 def log_action(
     user,
@@ -75,6 +80,47 @@ def log_model_change(sender, instance, action, request=None, **kwargs):
         request=request,
         commit=True
     )
+
+
+def log_security_event(
+    event_type: str,
+    description: str,
+    severity: str = SecurityEvent.Severity.MEDIUM,
+    user=None,
+    request=None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> SecurityEvent:
+    """Persist a security event without retaining credential-like metadata."""
+    event = SecurityEvent(
+        event_type=event_type,
+        description=description,
+        severity=severity,
+        user=user if user and getattr(user, 'is_authenticated', False) else None,
+        metadata=_redact_metadata(metadata or {}),
+    )
+    if request:
+        event.ip_address = _get_client_ip(request)
+        event.request_id = getattr(request, 'request_id', '')
+    event.save()
+    logger.warning('Security event recorded: %s (%s)', event.event_type, event.severity)
+    return event
+
+
+def _redact_metadata(value):
+    if isinstance(value, dict):
+        redacted = {}
+        for key, item in value.items():
+            normalized_key = re.sub(r'[^a-z0-9]', '', str(key).lower())
+            if any(sensitive_key in normalized_key for sensitive_key in SENSITIVE_METADATA_KEYS):
+                redacted[str(key)] = '[REDACTED]'
+            else:
+                redacted[str(key)] = _redact_metadata(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_metadata(item) for item in value]
+    if isinstance(value, tuple):
+        return [_redact_metadata(item) for item in value]
+    return value
 
 def _get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

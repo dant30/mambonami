@@ -79,6 +79,30 @@ export interface AdminAuditLog {
 	created_at?: string
 }
 
+export type AdminSecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
+
+export interface AdminSecurityEvent {
+	id: number
+	uuid: string
+	event_type: string
+	description: string
+	severity: AdminSecuritySeverity
+	user: number | null
+	actor_phone?: string | null
+	ip_address?: string | null
+	request_id?: string
+	investigated: boolean
+	investigation_notes: string
+	resolved_at?: string | null
+	created_at: string
+}
+
+export interface AdminSecurityEventUpdate {
+	investigated: boolean
+	investigation_notes: string
+	resolved_at?: string | null
+}
+
 export interface AdminDashboardData {
 	orders: Order[]
 	users: AdminUser[]

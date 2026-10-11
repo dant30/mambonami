@@ -2,7 +2,7 @@ import { apiClient } from '../../../api'
 import { ADMIN_ENDPOINTS } from '../../../api/endpoints'
 import type { Dispute, DisputeResolutionInput } from '../../types/disputes'
 import type { Payout } from '../../types/payouts'
-import type { AdminAuditLog, AdminFarmer, AdminStaffInput, AdminTransportProvider, AdminUser } from '../../types'
+import type { AdminAuditLog, AdminFarmer, AdminSecurityEvent, AdminSecurityEventUpdate, AdminStaffInput, AdminTransportProvider, AdminUser } from '../../types'
 import { listAdminOrders } from './orderAdminService'
 import { listAdminDailyMetrics } from './analyticsAdminService'
 
@@ -26,6 +26,8 @@ export function resolveAdminDispute(uuid: string, input: DisputeResolutionInput)
 export async function listAdminPayouts(): Promise<Payout[]> { return list(await apiClient.get<Payout[] | { results?: Payout[] }>(ADMIN_ENDPOINTS.payouts.list)) }
 export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> { return list(await apiClient.get<AdminAuditLog[] | { results?: AdminAuditLog[] }>(ADMIN_ENDPOINTS.audit.list)) }
 export function getAdminAuditLog(uuid: string): Promise<AdminAuditLog> { return apiClient.get<AdminAuditLog>(ADMIN_ENDPOINTS.audit.detail(uuid)) }
+export async function listAdminSecurityEvents(): Promise<AdminSecurityEvent[]> { return list(await apiClient.get<AdminSecurityEvent[] | { results?: AdminSecurityEvent[] }>(ADMIN_ENDPOINTS.audit.securityEvents)) }
+export function updateAdminSecurityEvent(uuid: string, input: AdminSecurityEventUpdate): Promise<AdminSecurityEvent> { return apiClient.patch<AdminSecurityEvent>(ADMIN_ENDPOINTS.audit.securityEvent(uuid), input) }
 
 export async function getAdminDashboardData() {
 	const [orders, users, farmers, transportProviders, disputes, payouts, auditLogs, metrics] = await Promise.all([

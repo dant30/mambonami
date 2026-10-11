@@ -1,7 +1,7 @@
 ﻿# backend/django_admin/apps/audit/serializers/audit_serializer.py
 # backend/django_admin/apps/audit/serializers/audit_serializer.py
 from rest_framework import serializers
-from ..models import AuditLog
+from ..models import AuditLog, SecurityEvent
 
 
 class AuditActorSerializer(serializers.Serializer):
@@ -33,3 +33,26 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'timestamp', 'request_id', 'endpoint', 'actor', 'actor_phone',
             'resource_type', 'resource_id', 'description', 'metadata', 'created_at',
         )
+
+
+class SecurityEventSerializer(serializers.ModelSerializer):
+    actor_phone = serializers.CharField(source='user.phone', read_only=True, allow_null=True)
+
+    class Meta:
+        model = SecurityEvent
+        fields = (
+            'id', 'uuid', 'event_type', 'description', 'severity', 'user', 'actor_phone',
+            'ip_address', 'request_id', 'investigated', 'investigation_notes',
+            'resolved_at', 'created_at',
+        )
+        read_only_fields = (
+            'id', 'uuid', 'event_type', 'description', 'severity', 'user',
+            'actor_phone', 'ip_address', 'request_id', 'created_at',
+        )
+
+    def validate(self, attrs):
+        investigated = attrs.get('investigated', self.instance.investigated if self.instance else False)
+        resolved_at = attrs.get('resolved_at', self.instance.resolved_at if self.instance else None)
+        if resolved_at and not investigated:
+            raise serializers.ValidationError({'investigated': 'Resolve an event only after marking it investigated.'})
+        return attrs

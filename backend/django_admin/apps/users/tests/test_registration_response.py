@@ -5,9 +5,10 @@ from django.test import SimpleTestCase, TestCase
 from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 
+from apps.audit.models import AuditLog, SecurityEvent
 from apps.users.models import Role, User
 from apps.users.serializers.user_serializer import RegistrationStartSerializer, UserDetailSerializer, VerifyOTPSerializer
-from apps.users.views.api import CustomTokenObtainPairView
+from apps.users.views.api import CustomTokenObtainPairView, LogoutView
 from core.throttling import BurstThrottle
 
 
@@ -107,3 +108,36 @@ class LoginViewFallbackTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('tokens', response.data)
         self.assertEqual(response.data['user']['phone'], user.phone)
+        self.assertTrue(AuditLog.objects.filter(user=user, action='LOGIN').exists())
+
+    def test_authenticated_logout_creates_audit_log(self):
+        user = User.objects.create_user(
+            phone='+254700000002',
+            username='logouttest',
+            password='TestPass123!',
+            role=Role.BUYER,
+        )
+        request = APIRequestFactory().post('/api/users/logout/', {}, format='json')
+        from rest_framework.test import force_authenticate
+        force_authenticate(request, user=user)
+
+        response = LogoutView.as_view()(request)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertTrue(AuditLog.objects.filter(user=user, action='LOGOUT').exists())
+
+    def test_failed_jwt_login_creates_security_event_without_credentials(self):
+        request = APIRequestFactory().post(
+            '/api/users/login/',
+            {'phone': '+254700000009', 'password': 'NeverStoreThisPassword'},
+            format='json',
+        )
+        request.user = AnonymousUser()
+
+        response = CustomTokenObtainPairView.as_view()(request)
+
+        self.assertEqual(response.status_code, 401)
+        event = SecurityEvent.objects.get(event_type='authentication_failed')
+        self.assertEqual(event.severity, SecurityEvent.Severity.MEDIUM)
+        self.assertEqual(event.metadata, {})
+        self.assertNotIn('NeverStoreThisPassword', event.description)

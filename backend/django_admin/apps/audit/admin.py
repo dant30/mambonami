@@ -1,6 +1,6 @@
 ﻿# backend/django_admin/apps/audit/admin.py
 from django.contrib import admin
-from .models import AuditLog
+from .models import AuditLog, SecurityEvent
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
@@ -19,3 +19,24 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False  # prevent deletions
+
+
+@admin.register(SecurityEvent)
+class SecurityEventAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'event_type', 'severity', 'user', 'ip_address', 'investigated', 'resolved_at')
+    list_filter = ('event_type', 'severity', 'investigated', 'created_at')
+    search_fields = ('description', 'event_type', 'user__phone', 'ip_address')
+    readonly_fields = ('id', 'uuid', 'created_at', 'updated_at', 'event_type', 'description', 'severity', 'user', 'ip_address', 'request_id', 'metadata')
+    list_select_related = ('user',)
+    date_hierarchy = 'created_at'
+    ordering = ('investigated', '-created_at')
+    fieldsets = (
+        ('Event', {'fields': ('id', 'uuid', 'created_at', 'event_type', 'description', 'severity', 'user', 'ip_address', 'request_id', 'metadata')}),
+        ('Investigation', {'fields': ('investigated', 'investigation_notes', 'resolved_at')}),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

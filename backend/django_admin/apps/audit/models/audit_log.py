@@ -55,3 +55,39 @@ class AuditLog(BaseModel):
         if self.pk:
             raise RuntimeError("AuditLog entries cannot be updated after creation.")
         super().save(*args, **kwargs)
+
+
+class SecurityEvent(BaseModel):
+    class Severity(models.TextChoices):
+        LOW = 'low', 'Low'
+        MEDIUM = 'medium', 'Medium'
+        HIGH = 'high', 'High'
+        CRITICAL = 'critical', 'Critical'
+
+    event_type = models.CharField(max_length=100, db_index=True)
+    description = models.TextField()
+    severity = models.CharField(max_length=10, choices=Severity.choices, default=Severity.MEDIUM, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='security_events',
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    request_id = models.CharField(max_length=100, blank=True, db_index=True)
+    investigated = models.BooleanField(default=False, db_index=True)
+    investigation_notes = models.TextField(blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = 'security_events'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event_type', 'created_at'], name='audit_sec_event_created_idx'),
+            models.Index(fields=['severity', 'investigated', 'created_at'], name='audit_sec_sev_inv_created_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.created_at} - {self.event_type} ({self.severity})'

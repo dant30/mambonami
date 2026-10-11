@@ -151,6 +151,8 @@ export const ADMIN_ENDPOINTS = {
 	audit: {
 		list: '/admin-api/audit/logs/',
 		detail: (uuid: string) => `/admin-api/audit/logs/${uuid}/`,
+		securityEvents: '/admin-api/audit/security-events/',
+		securityEvent: (uuid: string) => `/admin-api/audit/security-events/${uuid}/`,
 	},
 	disputes: {
 		list: '/admin-api/disputes/',
