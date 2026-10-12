@@ -32,21 +32,21 @@ interface AdminPageLayoutProps {
 
 export function AdminPageLayout({ section, title, loading = false, error, notice, onRefresh, children }: AdminPageLayoutProps) {
 	return (
-		<main className="mx-auto min-h-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-			<header className="border-b border-border pb-6">
+		<main className="mx-auto min-h-full max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+			<header className="border-b border-border pb-4 sm:pb-6">
 				<p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Mambonami operations</p>
 				<div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-					<h1 className="text-3xl font-semibold text-primary-dark">{title}</h1>
+					<h1 className="text-2xl font-semibold text-primary-dark sm:text-3xl">{title}</h1>
 					<Button variant="outline" size="sm" onClick={onRefresh}>Refresh</Button>
 				</div>
-				<nav className="-mb-6 mt-6 flex gap-1 overflow-x-auto" aria-label="Admin sections">
-					{adminSections.map(({ id, label, path }) => <Link key={id} to={path} aria-current={id === section ? 'page' : undefined} className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition ${id === section ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>{label}</Link>)}
+				<nav className="-mb-4 mt-4 flex gap-1 overflow-x-auto sm:-mb-6 sm:mt-6" aria-label="Admin sections">
+					{adminSections.map(({ id, label, path }) => <Link key={id} to={path} aria-current={id === section ? 'page' : undefined} className={`min-h-11 whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition sm:text-sm ${id === section ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>{label}</Link>)}
 				</nav>
 			</header>
 
 			{error && <div role="alert" className="mt-6 border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive">{error}</div>}
 			{notice && <p role="status" className="mt-6 border-l-4 border-emerald-600 bg-emerald-50 p-4 text-sm text-emerald-900">{notice}</p>}
-			{loading ? <div className="mt-8 space-y-3" aria-label="Loading admin records"><div className="h-16 animate-pulse bg-muted" /><div className="h-16 animate-pulse bg-muted" /><div className="h-16 animate-pulse bg-muted" /></div> : <section className="mt-6">{children}</section>}
+			{loading ? <div className="mt-5 space-y-3 sm:mt-8" aria-label="Loading admin records"><div className="h-16 animate-pulse bg-muted" /><div className="h-16 animate-pulse bg-muted" /><div className="h-16 animate-pulse bg-muted" /></div> : <section className="mt-4 sm:mt-6">{children}</section>}
 		</main>
 	)
 }

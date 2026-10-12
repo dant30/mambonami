@@ -32,7 +32,7 @@ export function AnalyticsAdminPage() {
 	]
 	return <AdminPageLayout section="analytics" title="Analytics" loading={loading} error={error} notice={notice} onRefresh={refresh}>
 		<div className="mb-5 flex justify-end"><MetricsRecomputeButton busy={busy === 'metrics'} onRecompute={() => void runAction('metrics', () => recomputeAdminMetrics(today, today), 'Metrics recomputation started.')} /></div>
-		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 			<StatCard title="Orders · 30 days" value={summary.total_orders ?? 0} subtitle={`${summary.completed_orders ?? 0} completed`} variant="flat" />
 			<StatCard title="Sales · 30 days" value={`KES ${summary.total_sales ?? 0}`} subtitle="Recorded marketplace sales" variant="flat" />
 			<StatCard title="Platform commission" value={`KES ${summary.platform_commission ?? 0}`} subtitle="Recorded commission" variant="flat" />

@@ -16,15 +16,15 @@ export function FarmerEarningsPage() {
 	] as const
 
 	return (
-		<main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-			<div className="border-b border-border pb-8">
+		<main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+			<div className="border-b border-border pb-4 sm:pb-8">
 				<p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Your money</p>
-				<h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Earnings & payouts</h1>
-				<p className="mt-3 text-sm text-muted-foreground">Follow what your harvest has earned and what is still processing.</p>
+				<h1 className="mt-2 text-2xl font-semibold text-primary-dark sm:text-4xl">Earnings & payouts</h1>
+				<p className="mt-2 text-sm leading-5 text-muted-foreground sm:mt-3 sm:leading-normal">Follow what your harvest has earned and what is still processing.</p>
 			</div>
 
 			{earningsLoading ? (
-				<div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="mt-5 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 					{Array.from({ length: 4 }).map((_, index) => (
 						<div key={index} className="rounded-2xl border border-border bg-card p-5">
 							<Skeleton className="h-4 w-20 rounded-md" />
@@ -33,7 +33,7 @@ export function FarmerEarningsPage() {
 					))}
 				</div>
 			) : (
-				<div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="mt-5 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 					{metrics.map(([label, value]) => (
 						<StatCard
 							key={label}
@@ -47,8 +47,8 @@ export function FarmerEarningsPage() {
 				</div>
 			)}
 
-			<Card className="mt-8 overflow-hidden" padding="none">
-				<div className="flex items-center justify-between border-b border-border p-5">
+			<Card className="mt-5 overflow-hidden sm:mt-8" padding="none">
+				<div className="flex items-center justify-between border-b border-border p-3 sm:p-5">
 					<div className="flex items-center gap-3">
 						<Wallet className="h-5 w-5 text-primary" />
 						<h2 className="font-semibold text-primary-dark">Payout history</h2>
@@ -57,7 +57,7 @@ export function FarmerEarningsPage() {
 				</div>
 
 				{earningsLoading ? (
-					<div className="p-8">
+					<div className="p-5 sm:p-8">
 						<Skeleton className="h-6 w-48 rounded-md" />
 					</div>
 				) : payouts.length === 0 ? (
@@ -70,7 +70,7 @@ export function FarmerEarningsPage() {
 					</div>
 				) : (
 					payouts.map((payout) => (
-						<div key={payout.uuid} className="flex items-center justify-between gap-4 border-b border-border p-5 last:border-b-0">
+						<div key={payout.uuid} className="flex items-center justify-between gap-3 border-b border-border p-3 sm:gap-4 sm:p-5 last:border-b-0">
 							<div>
 								<p className="font-semibold text-primary-dark">Order payout</p>
 								<p className="mt-1 text-xs capitalize text-muted-foreground">{payout.status} · {payout.created_at ? new Date(payout.created_at).toLocaleDateString() : 'Date pending'}</p>

@@ -31,7 +31,7 @@ export function DataTable<T>({
 
   if (!data || data.length === 0) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-sm">
+      <div className="p-5 text-center bg-white rounded-xl border border-slate-200 text-slate-400 text-sm sm:rounded-2xl sm:p-8">
         {emptyMessage}
       </div>
     );
@@ -40,13 +40,13 @@ export function DataTable<T>({
   const visibleData = data.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-xs">
-        <table className="w-full text-left text-sm">
+      <div className="space-y-3 sm:space-y-4">
+      <div className="overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-xs sm:rounded-2xl">
+        <table className="w-full min-w-[640px] text-left text-xs sm:text-sm">
         <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
           <tr>
             {columns.map((col, idx) => (
-              <th key={idx} className={`px-5 py-3.5 ${col.className || ''}`}>
+              <th key={idx} className={`px-3 py-3 sm:px-5 sm:py-3.5 ${col.className || ''}`}>
                 {col.header}
               </th>
             ))}
@@ -56,7 +56,7 @@ export function DataTable<T>({
           {visibleData.map((item) => (
             <tr key={keyExtractor(item)} className="hover:bg-slate-50/70 transition-colors">
               {columns.map((col, cIdx) => (
-                <td key={cIdx} className={`px-5 py-4 ${col.className || ''}`}>
+                <td key={cIdx} className={`px-3 py-3 sm:px-5 sm:py-4 ${col.className || ''}`}>
                   {col.render ? col.render(item) : col.accessor ? String(item[col.accessor]) : null}
                 </td>
               ))}

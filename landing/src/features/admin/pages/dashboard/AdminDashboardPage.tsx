@@ -35,7 +35,7 @@ export function AdminDashboardPage() {
 	const openDisputes = overview.disputes.filter((dispute) => ['open', 'under_review'].includes(dispute.status))
 
 	return <AdminPageLayout section="overview" title="Overview" loading={loading} error={error} notice={notice} onRefresh={refresh}>
-		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 			<DashboardMetric title="Marketplace orders" value={overview.orders.length} subtitle="All recorded orders" to="/app/admin/orders" />
 			<DashboardMetric title="User accounts" value={overview.users.length} subtitle="Across all account roles" to="/app/admin/users" />
 			<DashboardMetric title="Pending approvals" value={pendingApprovals} subtitle="Farmers and transport providers" to="/app/admin/farmers" />

@@ -18,11 +18,11 @@ export function FarmerOrdersWorkspacePage() {
 	}
 
 	return (
-		<main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-			<header className="border-b border-border pb-8">
+		<main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+			<header className="border-b border-border pb-4 sm:pb-8">
 				<p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Farm operations</p>
-				<h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Orders received</h1>
-				<p className="mt-3 text-sm text-muted-foreground">Confirm buyer orders, prepare stock, and mark each fulfilment ready for collection.</p>
+				<h1 className="mt-2 text-2xl font-semibold text-primary-dark sm:text-4xl">Orders received</h1>
+				<p className="mt-2 text-sm leading-5 text-muted-foreground sm:mt-3 sm:leading-normal">Confirm buyer orders, prepare stock, and mark each fulfilment ready for collection.</p>
 			</header>
 
 			{Boolean(error) && <p role="alert" className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">Unable to load incoming orders. Refresh the page to try again.</p>}
@@ -31,19 +31,19 @@ export function FarmerOrdersWorkspacePage() {
 			{isLoading ? (
 				<div className="mt-8 space-y-3" aria-label="Loading orders">{[1, 2, 3].map((item) => <div key={item} className="h-32 animate-pulse rounded-2xl bg-muted" />)}</div>
 			) : subOrders.length === 0 ? (
-				<div className="mt-8 rounded-2xl border border-dashed border-border p-12 text-center">
+				<div className="mt-5 rounded-2xl border border-dashed border-border p-6 text-center sm:mt-8 sm:p-12">
 					<ClipboardList className="mx-auto h-9 w-9 text-primary" />
 					<h2 className="mt-4 text-xl font-semibold text-primary-dark">No incoming orders yet</h2>
 					<p className="mt-2 text-sm text-muted-foreground">Published products will appear here when buyers place orders.</p>
 					<Link to="/app/farmer/products" className="mt-5 inline-flex rounded-full border border-border px-4 py-2 text-sm font-semibold text-primary-dark">Review my products</Link>
 				</div>
 			) : (
-				<div className="mt-8 grid gap-5 lg:grid-cols-2">
+				<div className="mt-5 grid gap-3 sm:mt-8 sm:gap-5 lg:grid-cols-2">
 					{subOrders.map((subOrder) => {
 						const busy = actions.busyId === subOrder.id
 						const paid = subOrder.order_status === 'paid_escrow'
 						return (
-							<article key={subOrder.id} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+							<article key={subOrder.id} className="rounded-xl border border-border bg-card p-4 shadow-sm sm:rounded-2xl sm:p-6">
 								<div className="flex items-start justify-between gap-4">
 									<div>
 										<p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Sub-order #{subOrder.id}</p>

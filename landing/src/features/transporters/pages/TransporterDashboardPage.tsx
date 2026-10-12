@@ -86,26 +86,26 @@ export function TransporterDashboardPage() {
 	]
 
 	return (
-		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-			<section className="relative overflow-hidden rounded-3xl bg-primary-dark p-6 text-primary-foreground shadow-soft sm:p-8">
+		<main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+			<section className="relative overflow-hidden rounded-2xl bg-primary-dark p-5 text-primary-foreground shadow-soft sm:rounded-3xl sm:p-8">
 				<div className="relative z-10 max-w-2xl">
-					<p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary">Delivery operations</p>
-					<h1 className="mt-3 text-3xl font-semibold sm:text-4xl">
+					<p className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary sm:text-xs">Delivery operations</p>
+					<h1 className="mt-2 text-2xl font-semibold sm:mt-3 sm:text-4xl">
 						{greeting}, {user?.first_name || 'Driver'}.
 					</h1>
-					<p className="mt-4 max-w-xl text-sm leading-7 text-primary-foreground/75">
+					<p className="mt-2 max-w-xl text-sm leading-5 text-primary-foreground/75 sm:mt-4 sm:leading-7">
 						Find the next route, keep customers informed, and finish every delivery with confidence.
 					</p>
-					<div className="mt-7 flex flex-wrap gap-3">
-						<Link to="/app/transport/jobs" className="inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-sm font-bold text-primary-dark">
+					<div className="mt-4 grid grid-cols-2 gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
+						<Link to="/app/transport/jobs" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-secondary px-3 py-2.5 text-xs font-bold text-primary-dark sm:px-5 sm:py-3 sm:text-sm">
 							<Plus className="h-4 w-4" />
 							Find jobs
 						</Link>
-						<Link to="/app/transport/active-jobs" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/25 px-5 py-3 text-sm font-bold text-primary-foreground">
+						<Link to="/app/transport/active-jobs" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/25 px-3 py-2.5 text-center text-xs font-bold text-primary-foreground sm:px-5 sm:py-3 sm:text-sm">
 							<Navigation className="h-4 w-4" />
 							Active trips
 						</Link>
-						<Link to="/app/transport/vehicles" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/25 px-5 py-3 text-sm font-bold text-primary-foreground">
+						<Link to="/app/transport/vehicles" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/25 px-3 py-2.5 text-center text-xs font-bold text-primary-foreground sm:px-5 sm:py-3 sm:text-sm">
 							<Settings2 className="h-4 w-4" />
 							Vehicle
 						</Link>
@@ -113,8 +113,8 @@ export function TransporterDashboardPage() {
 				</div>
 			</section>
 
-			<section className="mt-6 rounded-2xl border border-border bg-card p-5">
-				<div className="flex flex-wrap items-center justify-between gap-4">
+			<section className="mt-4 rounded-xl border border-border bg-card p-3 sm:mt-6 sm:rounded-2xl sm:p-5">
+					<div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
 					<div>
 						<p className="text-sm font-semibold text-primary-dark">Availability</p>
 						<p className="mt-1 text-sm text-muted-foreground">
@@ -129,17 +129,17 @@ export function TransporterDashboardPage() {
 						aria-checked={isOnline}
 						disabled={availabilityBusy || !profile?.deposit_paid}
 						onClick={() => void toggleAvailability()}
-						className={`relative h-8 w-14 rounded-full transition ${isOnline ? 'bg-primary' : 'bg-muted'} disabled:opacity-60`}
+						className={`relative h-11 w-14 shrink-0 rounded-full transition ${isOnline ? 'bg-primary' : 'bg-muted'} disabled:opacity-60`}
 					>
 						<span
-							className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${isOnline ? 'left-7' : 'left-1'}`}
+							className={`absolute top-2.5 h-6 w-6 rounded-full bg-white transition ${isOnline ? 'left-7' : 'left-1'}`}
 						/>
 					</button>
 				</div>
 				{availabilityMessage && <p role="alert" className="mt-3 text-sm text-destructive">{availabilityMessage}</p>}
 			</section>
 
-			<section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			<section className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
 				{metricsLoading
 					? Array.from({ length: 4 }).map((_, index) => (
 							<div key={index} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -161,8 +161,8 @@ export function TransporterDashboardPage() {
 						))}
 			</section>
 
-				<section className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+					<section className="mt-4 grid gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+					<div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
 						<div className="flex items-center justify-between gap-4">
 							<div>
 								<p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Dispatch queue</p>
@@ -170,7 +170,7 @@ export function TransporterDashboardPage() {
 							</div>
 							<Link to="/app/transport/jobs" className="text-sm font-bold text-primary hover:underline">View all</Link>
 						</div>
-						<div className="mt-5 divide-y divide-border">
+						<div className="mt-3 divide-y divide-border sm:mt-5">
 							{jobsLoading ? <Skeleton className="h-20 w-full rounded-xl" /> : featuredJobs.length === 0 ? (
 								<p className="py-8 text-sm text-muted-foreground">No delivery jobs are available right now.</p>
 							) : featuredJobs.map((job) => (
@@ -188,7 +188,7 @@ export function TransporterDashboardPage() {
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+					<div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
 						<div className="flex items-center gap-3">
 							<div className="rounded-xl bg-secondary/20 p-2 text-primary"><Truck className="h-5 w-5" /></div>
 							<div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Vehicle status</p><h2 className="mt-1 text-xl font-semibold text-primary-dark">{vehicleLabel}</h2></div>
@@ -201,17 +201,17 @@ export function TransporterDashboardPage() {
 					</div>
 				</section>
 
-				<section className="mt-6 grid gap-6 lg:grid-cols-2">
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+				<section className="mt-4 grid gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-2">
+					<div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
 						<div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Activity</p><h2 className="mt-1 text-xl font-semibold text-primary-dark">Recent trip activity</h2></div><Link to="/app/transport/completed-jobs" className="text-sm font-bold text-primary hover:underline">History</Link></div>
-						<div className="mt-5 divide-y divide-border">
+						<div className="mt-3 divide-y divide-border sm:mt-5">
 							{tripsLoading ? <Skeleton className="h-20 w-full rounded-xl" /> : recentTrips.length === 0 ? <p className="py-8 text-sm text-muted-foreground">Your trip activity will appear here.</p> : recentTrips.map((trip) => (
 								<div key={trip.uuid} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><p className="font-semibold text-primary-dark">Trip #{trip.order_id || trip.order}</p><p className="mt-1 truncate text-sm text-muted-foreground">{trip.delivery_address || 'Delivery destination'}</p></div><div className="shrink-0 text-right"><p className="text-sm font-semibold capitalize text-primary-dark">{trip.status.replaceAll('_', ' ')}</p><p className="mt-1 text-xs text-muted-foreground">KSh {Number(trip.provider_payout ?? trip.agreed_fee ?? 0).toLocaleString()}</p></div></div>
 							))}
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+					<div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
 						<div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Today</p><h2 className="mt-1 text-xl font-semibold text-primary-dark">Payout breakdown</h2></div><Wallet className="h-5 w-5 text-primary" /></div>
 						<div className="mt-5 space-y-3">
 							<div className="flex items-center justify-between rounded-xl bg-muted/40 px-4 py-3"><span className="text-sm text-muted-foreground">Completed</span><span className="font-semibold text-primary-dark">KSh {Number(summary?.completed_payout_amount ?? 0).toLocaleString()}</span></div>

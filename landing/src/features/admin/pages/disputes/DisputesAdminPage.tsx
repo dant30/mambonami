@@ -80,7 +80,7 @@ export function DisputesAdminPage() {
 	const columns = [{ header: 'Dispute', render: (dispute: Dispute) => <DisputeQueueRow dispute={dispute} onReview={() => setSelected(dispute)} /> }]
 
 	return <AdminPageLayout section="disputes" title="Disputes" loading={loading} error={error} notice={notice} onRefresh={refresh}>
-		<div className="mb-6 grid gap-4 sm:grid-cols-3"><StatCard title="Open" value={openCount} subtitle="Awaiting review" variant="flat" /><StatCard title="Under review" value={reviewCount} subtitle="Currently being handled" variant="flat" /><StatCard title="Urgent" value={urgentCount} subtitle="Unresolved urgent cases" variant="flat" /></div>
+		<div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-3 sm:gap-4"><StatCard title="Open" value={openCount} subtitle="Awaiting review" variant="flat" /><StatCard title="Under review" value={reviewCount} subtitle="Currently being handled" variant="flat" /><StatCard title="Urgent" value={urgentCount} subtitle="Unresolved urgent cases" variant="flat" /></div>
 		{notice && <p role="status" className="mb-4 border-l-4 border-emerald-600 bg-emerald-50 p-4 text-sm text-emerald-900">{notice}</p>}
 		<div className="mb-4 grid gap-3 sm:grid-cols-[1fr_14rem]"><input aria-label="Search disputes" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search case, order, buyer, issue" className="min-h-10 rounded-md border border-border bg-background px-3 text-sm" /><Select aria-label="Filter disputes by status" options={statusOptions} value={statusFilter} onChange={setStatusFilter} /></div>
 		<DataTable data={visibleDisputes} columns={columns} keyExtractor={(dispute) => dispute.uuid} emptyMessage="No disputes match these filters." />

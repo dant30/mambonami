@@ -195,15 +195,15 @@ export function FarmerProductEditorPage() {
 	const text = (key: keyof ProductFormState) => String(form[key])
 
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+		<main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
 			<Link to="/app/farmer/products" className="inline-flex items-center gap-2 text-sm font-bold text-primary"><ArrowLeft className="h-4 w-4" />Back to products</Link>
-			<div className="mt-8">
+			<div className="mt-5 sm:mt-8">
 				<p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Farm inventory</p>
-				<h1 className="mt-2 text-3xl font-semibold text-primary-dark">{editing ? 'Edit product' : 'Add a product'}</h1>
-				<p className="mt-3 text-sm text-muted-foreground">Capture the details buyers and transporters need to trust, order and collect your harvest.</p>
+				<h1 className="mt-2 text-2xl font-semibold text-primary-dark sm:text-3xl">{editing ? 'Edit product' : 'Add a product'}</h1>
+				<p className="mt-2 text-sm leading-5 text-muted-foreground sm:mt-3 sm:leading-normal">Capture the details buyers and transporters need to trust, order and collect your harvest.</p>
 			</div>
 
-			<form id="farmer-product-form" onSubmit={(event) => void submit(event)} noValidate className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
+			<form id="farmer-product-form" onSubmit={(event) => void submit(event)} noValidate className="mt-5 rounded-xl border border-border bg-card p-4 sm:mt-8 sm:rounded-2xl sm:p-8">
 				<ValidationErrors errors={generalErrors} />
 
 				<FormSection title="Product identity" description="Name and classify the harvest buyers will see." icon={<Sprout className="h-4 w-4" />}>

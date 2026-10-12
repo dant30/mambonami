@@ -136,7 +136,8 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 			{admin && (
 				<div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground">
 					<ShieldCheck className="mb-2 h-5 w-5 text-primary" />
-					Staff-only workspace
+					<p>Staff-only workspace</p>
+					<button type="button" onClick={() => { logout(); onItemClick?.(); navigate('/login') }} className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-muted px-3 py-3 font-bold text-destructive hover:bg-destructive/10"><LogOut className="h-4 w-4" />Log out</button>
 				</div>
 			)}
 

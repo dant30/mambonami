@@ -136,7 +136,7 @@ export function PageHeader({
   const renderBackButton = () => {
     if (!onBack && !backHref) return null
 
-    const buttonClasses = `inline-flex items-center gap-1.5 rounded-xl text-xs font-bold transition min-h-[36px] px-3 py-1.5 ${
+    const buttonClasses = `inline-flex items-center gap-1.5 rounded-xl text-xs font-bold transition min-h-10 px-3 py-1.5 ${
       dark || isPrimary
         ? 'bg-white/10 text-primary-foreground hover:bg-white/20 active:scale-95'
         : 'bg-muted text-foreground hover:bg-muted/80 active:scale-95'
