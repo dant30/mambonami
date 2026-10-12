@@ -237,4 +237,71 @@ samp {
     padding-inline: 0.5rem;
     text-align: center;
   }
+
+  main.min-h-full:has(input[placeholder="House, street, or landmark"]) > div[class*="max-w-7xl"] {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+  }
+
+  main.min-h-full:has(input[placeholder="House, street, or landmark"]) form > button:last-child {
+    position: fixed;
+    z-index: 35;
+    inset-inline: 1rem;
+    bottom: calc(3.75rem + env(safe-area-inset-bottom));
+    width: calc(100% - 2rem);
+    min-height: 2.75rem;
+    margin-top: 0;
+    box-shadow: 0 8px 24px -12px rgb(20 45 35 / 55%);
+  }
+
+  main.min-h-full:has(input[placeholder="House, street, or landmark"]) form:has(input:focus) > button:last-child {
+    position: static;
+    width: 100%;
+    margin-top: 1.75rem;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) > div[class*="mt-8"] {
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) > div[class*="mt-8"] > div:first-child {
+    max-height: 17rem;
+    border-radius: 1rem;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) > div[class*="mt-8"] > div:first-child img {
+    max-height: 17rem;
+    aspect-ratio: 4 / 3;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) > div[class*="mt-8"] > div:nth-child(2) h1 {
+    margin-top: 0.75rem;
+    font-size: 1.75rem;
+    line-height: 1.15;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) > div[class*="mt-8"] > div:nth-child(2) > p {
+    margin-top: 0.75rem;
+    line-height: 1.5;
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]) button:has(svg.lucide-shopping-basket) {
+    position: fixed;
+    z-index: 35;
+    inset-inline: 1rem;
+    bottom: calc(3.75rem + env(safe-area-inset-bottom));
+    width: calc(100% - 2rem);
+    min-height: 2.75rem;
+    justify-content: center;
+    box-shadow: 0 8px 24px -12px rgb(20 45 35 / 55%);
+  }
+
+  main[class*="max-w-7xl"]:has(> a[href="/products"]):has(input:focus) button:has(svg.lucide-shopping-basket) {
+    position: static;
+    width: 100%;
+  }
 }
