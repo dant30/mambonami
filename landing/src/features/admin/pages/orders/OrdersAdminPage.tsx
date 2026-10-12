@@ -11,11 +11,11 @@ export function OrdersAdminPage() {
 		void runAction(order.uuid, () => updateAdminOrderStatus(order.uuid, status), 'Order status updated.')
 	}
 	const columns = [
-		{ header: 'Order / Buyer', render: (order: Order) => <div><p className="font-bold text-primary">{order.uuid}</p><p className="mt-1 text-sm text-foreground">{order.buyer_name || order.buyer_phone || `Buyer ${order.buyer}`}</p></div> },
-		{ header: 'Amount', render: (order: Order) => <span className="font-semibold">KES {order.total_amount}</span> },
-		{ header: 'Items', render: (order: Order) => order.item_summary || `${order.sub_orders?.length ?? 0} farmer suborders` },
-		{ header: 'Created', render: (order: Order) => new Date(order.created_at).toLocaleDateString() },
-		{ header: 'Status', render: (order: Order) => <OrderStatusControl order={order} busy={busy === order.uuid} onSave={(status) => saveStatus(order, status)} /> },
+		{ header: 'Order / Buyer', mobileRole: 'title' as const, render: (order: Order) => <div><p className="break-all font-bold text-primary">{order.uuid}</p><p className="mt-1 text-sm text-foreground">{order.buyer_name || order.buyer_phone || `Buyer ${order.buyer}`}</p></div> },
+		{ header: 'Amount', mobileRole: 'summary' as const, render: (order: Order) => <span className="font-semibold">KES {order.total_amount}</span> },
+		{ header: 'Items', mobileRole: 'detail' as const, render: (order: Order) => order.item_summary || `${order.sub_orders?.length ?? 0} farmer suborders` },
+		{ header: 'Created', mobileRole: 'detail' as const, render: (order: Order) => new Date(order.created_at).toLocaleDateString() },
+		{ header: 'Status', mobileRole: 'action' as const, render: (order: Order) => <OrderStatusControl order={order} busy={busy === order.uuid} onSave={(status) => saveStatus(order, status)} /> },
 	]
 
 	return (

@@ -16,11 +16,11 @@ export function UsersAdminPage() {
 		void runAction(String(user.id), () => suspend ? suspendAdminUser(user.id) : activateAdminUser(user.id), suspend ? 'User suspended.' : 'User activated.')
 	}
 	const columns = [
-		{ header: 'User', render: (user: AdminUser) => <div><p className="font-semibold">{user.display_name || user.phone}</p><p className="text-xs text-muted-foreground">{user.email || 'No email'} · {user.phone}</p></div> },
-		{ header: 'Role', render: (user: AdminUser) => user.role.replaceAll('_', ' ') },
-		{ header: 'Account', render: (user: AdminUser) => <span>{user.is_active ? 'Active' : 'Suspended'} · {user.kyc_status || 'KYC pending'}{user.is_staff ? ' · Staff' : ''}</span> },
-		{ header: 'Joined', render: (user: AdminUser) => user.date_joined ? new Date(user.date_joined).toLocaleDateString() : 'Not recorded' },
-		{ header: 'Actions', render: (user: AdminUser) => <UserStatusAction user={user} busy={busy === String(user.id)} onToggle={() => toggle(user)} /> },
+		{ header: 'User', mobileRole: 'title' as const, render: (user: AdminUser) => <div><p className="break-words font-semibold">{user.display_name || user.phone}</p><p className="break-all text-xs text-muted-foreground">{user.email || 'No email'} · {user.phone}</p></div> },
+		{ header: 'Role', mobileRole: 'summary' as const, render: (user: AdminUser) => user.role.replaceAll('_', ' ') },
+		{ header: 'Account', mobileRole: 'status' as const, render: (user: AdminUser) => <span>{user.is_active ? 'Active' : 'Suspended'} · {user.kyc_status || 'KYC pending'}{user.is_staff ? ' · Staff' : ''}</span> },
+		{ header: 'Joined', mobileRole: 'detail' as const, render: (user: AdminUser) => user.date_joined ? new Date(user.date_joined).toLocaleDateString() : 'Not recorded' },
+		{ header: 'Actions', mobileRole: 'action' as const, render: (user: AdminUser) => <UserStatusAction user={user} busy={busy === String(user.id)} onToggle={() => toggle(user)} /> },
 	]
 
 	return <AdminPageLayout section="users" title="Users" loading={loading} error={error} notice={notice} onRefresh={refresh}>

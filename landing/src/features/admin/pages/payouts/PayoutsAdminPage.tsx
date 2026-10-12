@@ -8,12 +8,12 @@ export function PayoutsAdminPage() {
 	const { data, loading, error, notice, refresh } = useAdminResource(listAdminPayouts, adminResourceCaches.payouts)
 	const payouts = data ?? []
 	const columns = [
-		{ header: 'Recipient', render: (payout: Payout) => <div><p className="font-semibold">{payout.recipient_type.replaceAll('_', ' ')}</p><p className="text-xs text-muted-foreground">User #{payout.recipient_user}</p></div> },
-		{ header: 'Order', render: (payout: Payout) => payout.order_uuid || `#${payout.order}` },
-		{ header: 'Amount', render: (payout: Payout) => `KES ${payout.amount}` },
-		{ header: 'Status', render: (payout: Payout) => <PayoutStatus status={payout.status} /> },
-		{ header: 'Created', render: (payout: Payout) => payout.created_at ? new Date(payout.created_at).toLocaleString() : 'Not recorded' },
-		{ header: 'Details', render: (payout: Payout) => payout.error_message || payout.b2c_transaction_id || '—' },
+		{ header: 'Recipient', mobileRole: 'title' as const, render: (payout: Payout) => <div><p className="font-semibold">{payout.recipient_type.replaceAll('_', ' ')}</p><p className="text-xs text-muted-foreground">User #{payout.recipient_user}</p></div> },
+		{ header: 'Order', mobileRole: 'detail' as const, render: (payout: Payout) => payout.order_uuid || `#${payout.order}` },
+		{ header: 'Amount', mobileRole: 'summary' as const, render: (payout: Payout) => `KES ${payout.amount}` },
+		{ header: 'Status', mobileRole: 'status' as const, render: (payout: Payout) => <PayoutStatus status={payout.status} /> },
+		{ header: 'Created', mobileRole: 'detail' as const, render: (payout: Payout) => payout.created_at ? new Date(payout.created_at).toLocaleString() : 'Not recorded' },
+		{ header: 'Details', mobileRole: 'detail' as const, render: (payout: Payout) => payout.error_message || payout.b2c_transaction_id || '—' },
 	]
 	return <AdminPageLayout section="payouts" title="Payouts" loading={loading} error={error} notice={notice} onRefresh={refresh}><DataTable data={payouts} columns={columns} keyExtractor={(payout) => payout.uuid} emptyMessage="No payouts found." /></AdminPageLayout>
 }

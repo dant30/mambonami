@@ -77,7 +77,7 @@ export function DisputesAdminPage() {
 			setResolvingId(null)
 		}
 	}
-	const columns = [{ header: 'Dispute', render: (dispute: Dispute) => <DisputeQueueRow dispute={dispute} onReview={() => setSelected(dispute)} /> }]
+	const columns = [{ header: 'Dispute', mobileRole: 'title' as const, render: (dispute: Dispute) => <DisputeQueueRow dispute={dispute} onReview={() => setSelected(dispute)} /> }]
 
 	return <AdminPageLayout section="disputes" title="Disputes" loading={loading} error={error} notice={notice} onRefresh={refresh}>
 		<div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-3 sm:gap-4"><StatCard title="Open" value={openCount} subtitle="Awaiting review" variant="flat" /><StatCard title="Under review" value={reviewCount} subtitle="Currently being handled" variant="flat" /><StatCard title="Urgent" value={urgentCount} subtitle="Unresolved urgent cases" variant="flat" /></div>

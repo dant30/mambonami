@@ -295,3 +295,48 @@ Admin mobile record cards
 Route-level code splitting
 Image optimization
 Automated mobile viewport testing
+
+## Implementation Status (2026-10-13)
+
+Status reflects the landing application in this workspace. A completed marker means the item is implemented; partial work remains marked incomplete until its stated scope is finished.
+
+1. **Compact page shells**
+  - ✅✅ Buyer dashboard, orders, wishlist, cart, profile, and settings use compact phone spacing. Wishlist cards use two columns.
+  - ✅✅ Farmer workspace pages, retailer dashboard actions, and transporter dashboards have received mobile spacing improvements.
+  - ❌❌ A full compact-shell audit of all retailer, transporter, and public informational routes is still needed.
+
+2. **Product detail purchasing**
+  - ✅✅ Product detail has a compact phone image area and an add-to-cart action fixed above the mobile navigation.
+  - ❌❌ A real image carousel is blocked by the current product API, which exposes one image URL per product. Collapsible description/delivery sections are not implemented.
+
+3. **Cart and checkout**
+  - ✅✅ Cart rows are compact and the phone layout has a sticky subtotal and checkout action.
+  - ✅✅ Checkout keeps its validated submit action reachable above the mobile navigation; it returns to normal flow while a form field is focused.
+  - ❌❌ Optional delivery details, including the time window, are not collapsed into disclosures.
+
+4. **Mobile admin record cards**
+  - ✅✅ Mobile record cards with expandable details and visible actions are implemented for disputes, orders, payouts, users, and audit/security events.
+  - ✅✅ Desktop tables remain available from the `md` breakpoint upward.
+
+5. **Progressive registration**
+  - ✅✅ Buyer, farmer, retailer, and transport-provider registration use four role-aware steps with per-step validation and a review screen.
+  - ✅✅ Non-sensitive fields and step position persist for the browser session. Passwords are excluded and must be re-entered after interruption.
+
+6. **Route-level code splitting**
+  - ❌❌ Workspace route chunks and lazy-loaded charts/maps have not been implemented.
+
+7. **Product image optimization**
+  - ✅✅ Cart thumbnails load lazily and commerce cards use compact square imagery.
+  - ❌❌ Responsive `srcSet`, WebP/AVIF variants, and lazy loading across all below-the-fold product imagery are not implemented.
+
+8. **Fixed-control coordination**
+  - ✅✅ Cart and purchase actions are offset above the fixed mobile navigation and reserve scroll space.
+  - ❌❌ Floating support, back-to-top, toast, and sticky controls are not yet route-aware as a complete system.
+
+9. **Reusable mobile primitives**
+  - ✅✅ Shared horizontal category rails and mobile page/card styling patterns are in use.
+  - ❌❌ Dedicated `PageShell`, `MobileRecordCard`, `StickyActionBar`, and compact empty-state components are not implemented.
+
+10. **Viewport test matrix**
+  - ❌❌ Automated checks at 320, 360, 390, and 430 CSS pixels have not been added or run.
+  - ❌❌ Production build and visual overflow/navigation checks remain unverified because the integrated terminal cannot launch in this environment.

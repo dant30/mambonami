@@ -84,20 +84,20 @@ export function AuditAdminPage() {
 	}
 
 	const activityColumns = [
-		{ header: 'Action', render: (log: AdminAuditLog) => <AuditActionLabel action={log.action} /> },
-		{ header: 'Actor', render: (log: AdminAuditLog) => log.actor_phone || `User ${log.actor ?? 'system'}` },
-		{ header: 'Resource', render: (log: AdminAuditLog) => `${log.resource_type || 'Resource'} ${log.resource_id ?? ''}` },
-		{ header: 'Description', render: (log: AdminAuditLog) => log.description || 'Not recorded' },
-		{ header: 'When', render: (log: AdminAuditLog) => formatDate(log.created_at) },
+		{ header: 'Action', mobileRole: 'title' as const, render: (log: AdminAuditLog) => <AuditActionLabel action={log.action} /> },
+		{ header: 'Actor', mobileRole: 'summary' as const, render: (log: AdminAuditLog) => log.actor_phone || `User ${log.actor ?? 'system'}` },
+		{ header: 'Resource', mobileRole: 'detail' as const, render: (log: AdminAuditLog) => `${log.resource_type || 'Resource'} ${log.resource_id ?? ''}` },
+		{ header: 'Description', mobileRole: 'detail' as const, render: (log: AdminAuditLog) => log.description || 'Not recorded' },
+		{ header: 'When', mobileRole: 'detail' as const, render: (log: AdminAuditLog) => formatDate(log.created_at) },
 	]
 
 	const securityColumns = [
-		{ header: 'Event', render: (event: AdminSecurityEvent) => <span className="font-semibold capitalize text-foreground">{readableEventType(event.event_type)}</span> },
-		{ header: 'Severity', render: (event: AdminSecurityEvent) => <SecuritySeverityLabel severity={event.severity} /> },
-		{ header: 'Source', render: (event: AdminSecurityEvent) => <span className="text-sm text-muted-foreground">{event.actor_phone || event.ip_address || 'Unknown source'}</span> },
-		{ header: 'State', render: (event: AdminSecurityEvent) => <span className="text-sm font-medium text-foreground">{event.resolved_at ? 'Resolved' : event.investigated ? 'Reviewed' : 'Needs review'}</span> },
-		{ header: 'When', render: (event: AdminSecurityEvent) => formatDate(event.created_at) },
-		{ header: '', render: (event: AdminSecurityEvent) => <Button type="button" size="sm" variant="outline" onClick={() => setSelectedUuid(event.uuid)}>{event.uuid === selectedUuid ? 'Selected' : 'Review'}</Button> },
+		{ header: 'Event', mobileRole: 'title' as const, render: (event: AdminSecurityEvent) => <span className="font-semibold capitalize text-foreground">{readableEventType(event.event_type)}</span> },
+		{ header: 'Severity', mobileRole: 'summary' as const, render: (event: AdminSecurityEvent) => <SecuritySeverityLabel severity={event.severity} /> },
+		{ header: 'Source', mobileRole: 'detail' as const, render: (event: AdminSecurityEvent) => <span className="text-sm text-muted-foreground">{event.actor_phone || event.ip_address || 'Unknown source'}</span> },
+		{ header: 'State', mobileRole: 'status' as const, render: (event: AdminSecurityEvent) => <span className="text-sm font-medium text-foreground">{event.resolved_at ? 'Resolved' : event.investigated ? 'Reviewed' : 'Needs review'}</span> },
+		{ header: 'When', mobileRole: 'detail' as const, render: (event: AdminSecurityEvent) => formatDate(event.created_at) },
+		{ header: '', mobileRole: 'action' as const, render: (event: AdminSecurityEvent) => <Button type="button" size="sm" variant="outline" onClick={() => setSelectedUuid(event.uuid)}>{event.uuid === selectedUuid ? 'Selected' : 'Review'}</Button> },
 	]
 
 	const tabs = [
