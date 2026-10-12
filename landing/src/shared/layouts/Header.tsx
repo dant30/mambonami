@@ -65,13 +65,13 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-border bg-background shadow-[0_6px_22px_-14px_rgba(41,74,54,0.5)]">
-			<div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto flex min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:min-h-16 sm:gap-4 sm:px-6 lg:px-8">
 				{/* ✅✅ Logo always links to /home (public marketplace, not dashboard) */}
-				<Link to={homePath} className="flex shrink-0 items-center gap-2.5" aria-label="MAMBONAMI home">
-					<span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+				<Link to={homePath} className="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label="MAMBONAMI home">
+					<span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground sm:h-9 sm:w-9">
 						<Leaf className="h-4 w-4" />
 					</span>
-					<span className="font-display text-xl font-bold tracking-tight text-primary-dark">MAMBONAMI</span>
+					<span className="font-display text-lg font-bold tracking-tight text-primary-dark sm:text-xl">MAMBONAMI</span>
 				</Link>
 
 				{/* ✅✅ Navigation changes by auth state */}
@@ -212,7 +212,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
 				{/* ✅✅ Mobile menu toggle */}
 				<button
 					type="button"
-					className="rounded-full border border-border p-2 md:hidden"
+					className="flex h-11 w-11 items-center justify-center rounded-full border border-border md:hidden"
 					aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
 					aria-expanded={menuOpen}
 					aria-controls="mobile-navigation"

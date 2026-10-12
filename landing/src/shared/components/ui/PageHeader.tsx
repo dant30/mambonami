@@ -188,8 +188,8 @@ export function PageHeader({
 
   return (
     <header
-      className={`relative overflow-hidden rounded-3xl ${
-        isMinimal ? 'p-0' : 'p-6 sm:p-8'
+      className={`relative overflow-hidden rounded-2xl sm:rounded-3xl ${
+        isMinimal ? 'p-0' : 'p-4 sm:p-8'
       } ${getContainerStyles()} ${className}`}
     >
       {dark && (
@@ -265,7 +265,7 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="relative z-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+      <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-3 sm:gap-4">
             {icon && (
@@ -320,14 +320,14 @@ export function PageHeader({
             </div>
           </div>
 
-          {children && <div className="mt-5">{children}</div>}
+            {children && <div className="mt-4 sm:mt-5">{children}</div>}
         </div>
 
         {actions && <div className="relative z-10 w-full shrink-0 self-start sm:w-auto sm:self-end [&>div]:flex-nowrap [&>div]:w-full [&>div>button]:min-w-0 [&>div>button]:flex-1 [&>div>button]:whitespace-nowrap [&>div>a]:min-w-0 [&>div>a]:flex-1 [&>div>a]:whitespace-nowrap sm:[&>div>button]:flex-none sm:[&>div>a]:flex-none">{actions}</div>}
       </div>
 
       {tabs && (
-        <div className="relative z-10 mt-6 border-t border-border/80 pt-4">
+          <div className="relative z-10 mt-4 border-t border-border/80 pt-3 sm:mt-6 sm:pt-4">
           {tabs}
         </div>
       )}

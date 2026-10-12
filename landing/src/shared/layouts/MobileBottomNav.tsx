@@ -54,19 +54,20 @@ export function MobileBottomNav() {
 
 	return (
 		<nav
-			className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-18px_rgba(41,74,54,0.55)] md:hidden"
+			className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-18px_rgba(41,74,54,0.55)] backdrop-blur-xl md:hidden"
 			aria-label="Mobile navigation"
 		>
-			<div className={`mx-auto grid max-w-md gap-1 ${isAuthenticated && role === 'buyer' ? 'grid-cols-5' : 'grid-cols-4'}`}>
+			<div className={`mx-auto grid max-w-md gap-1 ${isAdmin ? 'grid-cols-3' : isAuthenticated && role === 'buyer' ? 'grid-cols-5' : isAuthenticated ? 'grid-cols-4' : 'grid-cols-4'}`}>
 				{items.map(({ label, path, icon: Icon, showBadge }) => {
 					const active =
-						location.pathname === path || (path !== '/home' && location.pathname.startsWith(path))
+						location.pathname === path ||
+						(path !== dashboardPath && location.pathname.startsWith(`${path}/`))
 
 					return (
 						<Link
 							key={label}
 							to={path}
-							className={`relative flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] font-semibold ${
+							className={`relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${
 								active
 									? 'text-primary'
 									: 'text-foreground/75 hover:text-foreground'
