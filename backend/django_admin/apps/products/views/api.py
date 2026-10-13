@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -149,7 +149,7 @@ class WishlistItemView(APIView):
 
 class FarmerProductListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsFarmer]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -180,6 +180,7 @@ class FarmerProductListCreateView(generics.ListCreateAPIView):
 
 class FarmerProductUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsFarmer]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     serializer_class = ProductCreateUpdateSerializer
     lookup_field = 'uuid'
 

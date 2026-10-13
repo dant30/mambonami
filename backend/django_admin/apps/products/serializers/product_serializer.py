@@ -94,11 +94,15 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_pickup_lat(self, value):
+        if value is None:
+            return value
         if value < Decimal('-12.0') or value > Decimal('5.0'):
             raise serializers.ValidationError("Pickup latitude is out of expected bounds.")
         return value
 
     def validate_pickup_lng(self, value):
+        if value is None:
+            return value
         if value < Decimal('34.0') or value > Decimal('42.0'):
             raise serializers.ValidationError("Pickup longitude is out of expected bounds.")
         return value
