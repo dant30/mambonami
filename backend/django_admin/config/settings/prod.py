@@ -64,6 +64,11 @@ LOGGING['handlers']['console']['level'] = 'ERROR'   # reduce noise
 LOGGING['loggers']['django']['handlers'] = ['file']
 LOGGING['loggers']['apps.paybill']['handlers'] = ['file']
 LOGGING['root']['handlers'] = ['file']
+LOGGING['loggers']['middleware'] = {
+    'handlers': ['console', 'file'],
+    'level': 'ERROR',
+    'propagate': False,
+}
 
 # Celery broker – use production Redis URL
 CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost:6379/0')
