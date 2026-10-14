@@ -1,12 +1,115 @@
-import { ClipboardList, MapPin } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ArrowRight, ClipboardList, MapPin, ShoppingBasket } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { useOrders } from '../../../core/lib'
+import { useOrders } from "../../../core/lib";
+import { EmptyState } from "../../../shared/components/feedback";
+import { Badge, PageHeader, Skeleton } from "../../../shared/components/ui";
 
-function label(status: string | null | undefined) { return String(status || 'processing').replaceAll('_', ' ') }
+const terminalStatuses = ["delivered", "cancelled", "refunded"];
+const formatStatus = (status: string) => status.replaceAll("_", " ");
+const statusVariant = (status: string) =>
+  status === "delivered"
+    ? "success"
+    : status === "cancelled" || status === "refunded"
+      ? "danger"
+      : "warning";
 
 export function BuyerOrdersPage({ activeOnly = false }: { activeOnly?: boolean }) {
-	const { orders, isLoading, error } = useOrders()
-	const visibleOrders = activeOnly ? orders.filter((order) => !['delivered', 'cancelled'].includes(String(order.status || '').toLowerCase())) : orders
-	return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="border-b border-border pb-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Your orders</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">{activeOnly ? 'Active orders' : 'Order history'}</h1><p className="mt-3 text-sm text-muted-foreground">{activeOnly ? 'Stay close to orders making their way to you.' : 'Review every order from your Mambonami marketplace.'}</p></div>{error && <p role="alert" className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">Unable to load your orders.</p>}{isLoading ? <div className="mt-8 space-y-3">{[1, 2, 3].map((item) => <div key={item} className="h-24 animate-pulse rounded-2xl bg-muted" />)}</div> : visibleOrders.length === 0 ? <div className="mt-8 rounded-2xl border border-dashed border-border p-12 text-center"><ClipboardList className="mx-auto h-9 w-9 text-primary" /><h2 className="mt-4 text-xl font-semibold text-primary-dark">{activeOnly ? 'No active orders' : 'No orders yet'}</h2><p className="mt-2 text-sm text-muted-foreground">Browse fresh produce when you are ready for your next order.</p><Link to="/app/buyer/products" className="mt-5 inline-flex rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Shop produce</Link></div> : <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-card">{visibleOrders.map((order) => <article key={order.uuid} className="flex flex-col gap-4 border-b border-border p-5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">#{order.account_number || order.uuid.slice(0, 8)}</p><h2 className="mt-2 font-semibold text-primary-dark">{order.item_summary || 'Marketplace order'}</h2><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{order.delivery_city || order.delivery_address || 'Delivery details pending'}</p></div><div className="flex items-center justify-between gap-5 sm:justify-end"><div className="text-right"><p className="font-bold text-primary-dark">KSh {Number(order.total_amount).toLocaleString()}</p><span className="mt-1 inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-semibold capitalize text-muted-foreground">{label(order.status)}</span></div><Link to={`/app/buyer/orders/${order.uuid}`} className="rounded-full border border-border px-4 py-2 text-xs font-bold text-primary-dark hover:bg-muted">Details</Link></div></article>)}</div>}</main>
+  const { orders = [], isLoading, error } = useOrders();
+  const visibleOrders = activeOnly
+    ? orders.filter((order) => !terminalStatuses.includes(order.status))
+    : orders;
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <PageHeader
+        variant="minimal"
+        eyebrow="Purchases"
+        title={activeOnly ? "Active orders" : "Order history"}
+        description={
+          activeOnly
+            ? "Track paid orders from preparation through delivery."
+            : "Review payments, delivery status, and previous purchases."
+        }
+        icon={<ClipboardList className="h-5 w-5" />}
+        actions={
+          <Link
+            to="/app/buyer/products"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+          >
+            <ShoppingBasket className="h-4 w-4" /> Shop produce
+          </Link>
+        }
+      />
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+          Unable to load your orders.
+        </p>
+      )}
+      {isLoading ? (
+        <div className="mt-5 space-y-3">
+          {[1, 2, 3].map((item) => (
+            <Skeleton key={item} className="h-32 rounded-2xl" />
+          ))}
+        </div>
+      ) : visibleOrders.length === 0 ? (
+        <EmptyState
+          className="mt-5 rounded-2xl border border-dashed border-border bg-card px-4"
+          size="sm"
+          icon={<ClipboardList className="h-6 w-6" />}
+          title={activeOnly ? "No active orders" : "No orders yet"}
+          description="Your paid marketplace orders and delivery updates will appear here."
+          action={
+            <Link
+              to="/app/buyer/products"
+              className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+            >
+              Browse produce
+            </Link>
+          }
+        />
+      ) : (
+        <section className="mt-5 grid gap-3 lg:grid-cols-2" aria-label="Orders">
+          {visibleOrders.map((order) => (
+            <article
+              key={order.uuid}
+              className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Order #{order.account_number || order.uuid.slice(0, 8)}
+                  </p>
+                  <h2 className="mt-1 line-clamp-2 text-base font-semibold text-primary-dark">
+                    {order.item_summary || "Marketplace produce order"}
+                  </h2>
+                </div>
+                <Badge variant={statusVariant(order.status)} size="sm">
+                  {formatStatus(order.status)}
+                </Badge>
+              </div>
+              <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span className="line-clamp-2">
+                  {order.delivery_city || order.delivery_address || "Delivery destination pending"}
+                </span>
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
+                <p className="font-bold text-primary-dark">
+                  KSh {Number(order.total_amount).toLocaleString()}
+                </p>
+                <Link
+                  to={`/app/buyer/orders/${order.uuid}`}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-bold text-primary-dark hover:bg-muted"
+                >
+                  View order <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+    </main>
+  );
 }

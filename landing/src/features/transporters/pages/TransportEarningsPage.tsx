@@ -1,9 +1,99 @@
-import { ArrowUpRight, Wallet } from 'lucide-react'
+import { ArrowUpRight, Banknote, Clock3, Wallet } from "lucide-react";
 
-import { usePayouts, usePayoutSummary } from '../../../core/lib'
+import { usePayouts, usePayoutSummary } from "../../../core/lib";
+import { StatCard } from "../../../shared/components/cards";
+import { EmptyState } from "../../../shared/components/feedback";
+import { Badge, PageHeader, Skeleton } from "../../../shared/components/ui";
 
 export function TransportEarningsPage() {
-	const { summary, isLoading: summaryLoading } = usePayoutSummary()
-	const { payouts, isLoading: payoutsLoading } = usePayouts()
-	return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="border-b border-border pb-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Driver finances</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Earnings</h1><p className="mt-3 text-sm text-muted-foreground">Track delivery income and payout status in one place.</p></div><div className="mt-5 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">{[['Total earned', summary?.total_payout_amount], ['Completed', summary?.completed_payout_amount], ['Pending', summary?.pending_payout_amount], ['Today', summary?.today_payout_amount]].map(([label, value]) => <div key={String(label)} className="min-w-0 rounded-xl border border-border bg-card p-3 sm:rounded-2xl sm:p-5"><p className="text-xs text-muted-foreground sm:text-sm">{label}</p><p className="mt-2 break-words text-lg font-semibold text-primary-dark sm:mt-3 sm:text-2xl">{summaryLoading ? '...' : `KSh ${Number(value ?? 0).toLocaleString()}`}</p></div>)}</div><section className="mt-5 overflow-hidden rounded-xl border border-border bg-card sm:mt-8 sm:rounded-2xl"><div className="flex items-center gap-3 border-b border-border p-3 sm:p-5"><Wallet className="h-5 w-5 text-primary" /><h2 className="font-semibold text-primary-dark">Payout history</h2></div>{payoutsLoading ? <p className="p-5 text-sm text-muted-foreground sm:p-8">Loading payouts...</p> : payouts.length === 0 ? <p className="p-5 text-center text-sm text-muted-foreground sm:p-8">Completed delivery payouts will appear here.</p> : payouts.map((payout) => <div key={payout.uuid} className="flex items-center justify-between gap-3 border-b border-border p-3 sm:gap-4 sm:p-5 last:border-b-0"><div><p className="font-semibold text-primary-dark">Delivery payout</p><p className="mt-1 text-xs capitalize text-muted-foreground">{payout.status}</p></div><p className="flex items-center gap-1 text-sm font-bold text-primary-dark sm:text-base">KSh {Number(payout.amount).toLocaleString()}<ArrowUpRight className="h-4 w-4 text-primary" /></p></div>)}</section></main>
+  const { summary, isLoading: summaryLoading } = usePayoutSummary();
+  const { payouts = [], isLoading: payoutsLoading } = usePayouts();
+  const metrics = [
+    ["Total earned", summary?.total_payout_amount, "All recorded payouts"],
+    ["Completed", summary?.completed_payout_amount, "Settled to M-Pesa"],
+    ["Pending", summary?.pending_payout_amount, "Processing"],
+    ["Today", summary?.today_payout_amount, "Today's deliveries"],
+  ] as const;
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <PageHeader
+        variant="minimal"
+        eyebrow="Driver finances"
+        title="Earnings & payouts"
+        description="Track delivery income and settlement status."
+        icon={<Wallet className="h-5 w-5" />}
+      />
+      <section
+        className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4"
+        aria-label="Earnings summary"
+      >
+        {metrics.map(([label, value, detail], index) =>
+          summaryLoading ? (
+            <Skeleton key={label} className="h-28 rounded-2xl" />
+          ) : (
+            <StatCard
+              key={label}
+              title={label}
+              value={`KSh ${Number(value ?? 0).toLocaleString()}`}
+              subtitle={detail}
+              icon={index === 2 ? <Clock3 className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
+              className="min-w-0"
+            />
+          ),
+        )}
+      </section>
+      <section className="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:mt-7">
+        <div className="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+              Settlements
+            </p>
+            <h2 className="mt-1 font-semibold text-primary-dark">Payout history</h2>
+          </div>
+          <Badge variant="neutral" size="sm">
+            {payouts.length} records
+          </Badge>
+        </div>
+        {payoutsLoading ? (
+          <div className="space-y-3 p-4">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        ) : payouts.length === 0 ? (
+          <EmptyState
+            size="sm"
+            icon={<Wallet className="h-6 w-6" />}
+            title="No payouts yet"
+            description="Completed delivery payouts will be recorded here."
+          />
+        ) : (
+          payouts.map((payout) => (
+            <div
+              key={payout.uuid}
+              className="flex items-center justify-between gap-3 border-b border-border p-4 last:border-b-0 sm:p-5"
+            >
+              <div className="min-w-0">
+                <p className="font-semibold text-primary-dark">Delivery payout</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {payout.created_at
+                    ? new Date(payout.created_at).toLocaleDateString()
+                    : "Date pending"}
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="flex items-center gap-1 font-bold text-primary-dark">
+                  KSh {Number(payout.amount).toLocaleString()}
+                  <ArrowUpRight className="h-4 w-4 text-primary" />
+                </p>
+                <Badge variant={payout.status === "completed" ? "success" : "warning"} size="sm">
+                  {payout.status}
+                </Badge>
+              </div>
+            </div>
+          ))
+        )}
+      </section>
+    </main>
+  );
 }

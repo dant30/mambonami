@@ -1,14 +1,127 @@
-import { Heart, ShoppingBasket, Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { Heart, ShoppingBasket, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
-import { addToCart, useBuyerWishlist, useBuyerWishlistActions } from '../../../core/lib'
+import { addToCart, useBuyerWishlist, useBuyerWishlistActions } from "../../../core/lib";
+import { EmptyState } from "../../../shared/components/feedback";
+import { Button, PageHeader, Skeleton } from "../../../shared/components/ui";
 
 export function BuyerWishlistPage() {
-	const { items, isLoading, error } = useBuyerWishlist()
-	const { remove, isBusy } = useBuyerWishlistActions()
-	const [removed, setRemoved] = useState<string[]>([])
-	const visible = items.filter((item) => !removed.includes(item.product.uuid))
-	const removeItem = async (uuid: string) => { await remove(uuid); setRemoved((current) => [...current, uuid]) }
-	return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="flex items-end justify-between border-b border-border pb-6"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Saved for later</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark">Your wishlist</h1><p className="mt-3 text-sm text-muted-foreground">Keep favourite produce close for your next order.</p></div><Heart className="h-8 w-8 text-primary" /></div>{Boolean(error) && <p role="alert" className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">Unable to load your wishlist.</p>}{isLoading ? <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-72 animate-pulse rounded-2xl bg-muted" />)}</div> : visible.length === 0 ? <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-12 text-center"><Heart className="mx-auto h-9 w-9 text-primary" /><h2 className="mt-4 text-xl font-semibold text-primary-dark">Nothing saved yet</h2><p className="mt-2 text-sm text-muted-foreground">Tap the heart on produce you want to revisit.</p><Link to="/app/buyer/products" className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground">Explore produce</Link></div> : <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{visible.map((item) => <article key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card"><Link to={`/product/${item.product.uuid}`}><img src={item.product.image_url || item.product.image || '/assets/images/produce.jpg'} alt={item.product.name} className="aspect-square w-full object-cover" /></Link><div className="p-4"><Link to={`/product/${item.product.uuid}`} className="font-semibold text-primary-dark hover:text-primary">{item.product.name}</Link><p className="mt-2 text-sm font-bold text-primary-dark">KSh {Number(item.product.price_per_unit).toLocaleString()} <span className="font-normal text-muted-foreground">/ {item.product.unit}</span></p><div className="mt-4 flex gap-2"><button type="button" onClick={() => addToCart({ product_uuid: item.product.uuid, quantity: 1, unit_price: item.product.price_per_unit, product_detail: item.product })} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground"><ShoppingBasket className="h-4 w-4" />Add to cart</button><button type="button" disabled={isBusy} onClick={() => void removeItem(item.product.uuid)} aria-label={`Remove ${item.product.name}`} className="rounded-full border border-border p-2.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button></div></div></article>)}</div>}</main>
+  const { items = [], isLoading, error } = useBuyerWishlist();
+  const { remove } = useBuyerWishlistActions();
+  const [busyProduct, setBusyProduct] = useState<string | null>(null);
+  const visible = items.filter((item) => item.product);
+
+  const removeItem = async (productUuid: string) => {
+    setBusyProduct(productUuid);
+    try {
+      await remove(productUuid);
+    } finally {
+      setBusyProduct(null);
+    }
+  };
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <PageHeader
+        variant="minimal"
+        eyebrow="Saved produce"
+        title="Your wishlist"
+        description="Keep frequently purchased produce close and move it to your cart when you are ready."
+        icon={<Heart className="h-5 w-5" />}
+      />
+      {Boolean(error) && (
+        <p role="alert" className="mt-4 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+          Unable to load your wishlist.
+        </p>
+      )}
+      {isLoading ? (
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <Skeleton key={item} className="aspect-[0.72/1] rounded-2xl" />
+          ))}
+        </div>
+      ) : visible.length === 0 ? (
+        <EmptyState
+          className="mt-5 rounded-2xl border border-dashed border-border bg-card px-4"
+          size="sm"
+          icon={<Heart className="h-6 w-6" />}
+          title="Nothing saved yet"
+          description="Save produce you buy often so your next order takes less time."
+          action={
+            <Link
+              to="/app/buyer/products"
+              className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+            >
+              Explore produce
+            </Link>
+          }
+        />
+      ) : (
+        <section
+          className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
+          aria-label="Saved products"
+        >
+          {visible.map((item) => (
+            <article
+              key={item.id}
+              className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+            >
+              <Link to={`/product/${item.product.uuid}`} className="block overflow-hidden bg-muted">
+                <img
+                  src={item.product.image_url || item.product.image || "/assets/images/produce.jpg"}
+                  alt={item.product.name}
+                  className="aspect-square w-full object-cover transition duration-300 hover:scale-105"
+                  loading="lazy"
+                />
+              </Link>
+              <div className="p-3 sm:p-4">
+                <Link
+                  to={`/product/${item.product.uuid}`}
+                  className="line-clamp-2 text-sm font-semibold text-primary-dark hover:text-primary"
+                >
+                  {item.product.name}
+                </Link>
+                <p className="mt-1 text-sm font-bold text-primary-dark">
+                  KSh {Number(item.product.price_per_unit).toLocaleString()}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    / {item.product.unit}
+                  </span>
+                </p>
+                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        product_uuid: item.product.uuid,
+                        quantity: 1,
+                        unit_price: item.product.price_per_unit,
+                        product_detail: item.product,
+                      })
+                    }
+                    leftIcon={<ShoppingBasket className="h-4 w-4" />}
+                    className="min-h-10 min-w-0 px-2 text-[11px] sm:text-xs"
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busyProduct === item.product.uuid}
+                    onClick={() => void removeItem(item.product.uuid)}
+                    aria-label={`Remove ${item.product.name}`}
+                    className="h-10 w-10 px-0 text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+    </main>
+  );
 }

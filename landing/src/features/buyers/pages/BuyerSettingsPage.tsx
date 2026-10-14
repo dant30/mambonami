@@ -1,13 +1,142 @@
-import { Bell, LockKeyhole, ShieldCheck } from 'lucide-react'
-import { FormEvent, useState } from 'react'
+import { Bell, LockKeyhole, ShieldCheck } from "lucide-react";
+import { FormEvent, useState } from "react";
 
-import { changePassword } from '../../../core/lib'
+import { changePassword } from "../../../core/lib";
+import { FormField, FormSection } from "../../../shared/components/forms";
+import { Button, Input, PageHeader, Switch } from "../../../shared/components/ui";
 
 export function BuyerSettingsPage() {
-	const [notifications, setNotifications] = useState(true)
-	const [passwords, setPasswords] = useState({ old_password: '', new_password: '', confirm_password: '' })
-	const [message, setMessage] = useState('')
-	const [error, setError] = useState('')
-	const submit = async (event: FormEvent) => { event.preventDefault(); setMessage(''); setError(''); try { await changePassword(passwords); setPasswords({ old_password: '', new_password: '', confirm_password: '' }); setMessage('Password updated successfully.') } catch { setError('We could not update your password. Check the details and try again.') } }
-	return <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8"><div className="border-b border-border pb-6"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Account</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark">Settings</h1><p className="mt-3 text-sm text-muted-foreground">Manage notifications and account security.</p></div><section className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7"><div className="flex items-center justify-between gap-4"><div className="flex items-center gap-3"><Bell className="h-5 w-5 text-primary" /><div><h2 className="font-semibold text-primary-dark">Order notifications</h2><p className="mt-1 text-sm text-muted-foreground">Receive updates about deliveries and orders.</p></div></div><button type="button" role="switch" aria-checked={notifications} onClick={() => setNotifications(!notifications)} className={`relative h-7 w-12 rounded-full ${notifications ? 'bg-primary' : 'bg-muted'}`}><span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${notifications ? 'left-6' : 'left-1'}`} /></button></div></section><form onSubmit={submit} className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7"><div className="flex items-center gap-3"><LockKeyhole className="h-5 w-5 text-primary" /><div><h2 className="font-semibold text-primary-dark">Change password</h2><p className="mt-1 text-sm text-muted-foreground">Use a strong password you do not reuse elsewhere.</p></div></div><div className="mt-5 space-y-4">{[['old_password', 'Current password'], ['new_password', 'New password'], ['confirm_password', 'Confirm new password']].map(([key, label]) => <label key={key} className="block text-sm font-semibold text-primary-dark">{label}<input required type="password" value={passwords[key as keyof typeof passwords]} onChange={(event) => setPasswords({ ...passwords, [key]: event.target.value })} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" /></label>)}</div>{message && <p role="status" className="mt-5 text-sm text-primary">{message}</p>}{error && <p role="alert" className="mt-5 text-sm text-destructive">{error}</p>}<button type="submit" className="mt-6 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground">Update password</button></form><div className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />Your account is protected by authenticated checkout and secure platform transactions.</div></main>
+  const [notifications, setNotifications] = useState(true);
+  const [passwords, setPasswords] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+    if (passwords.new_password !== passwords.confirm_password) {
+      setError("New passwords do not match.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await changePassword(passwords);
+      setPasswords({ old_password: "", new_password: "", confirm_password: "" });
+      setMessage("Password updated.");
+    } catch {
+      setError("We could not update your password. Check your current password and try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <PageHeader
+        variant="minimal"
+        eyebrow="Buyer account"
+        title="Settings"
+        description="Choose order alerts and protect account access."
+        icon={<ShieldCheck className="h-5 w-5" />}
+      />
+
+      <section className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <Switch
+          id="order-notifications"
+          checked={notifications}
+          onChange={setNotifications}
+          size="lg"
+          label="Order notifications"
+          description="Receive payment, preparation, dispatch, and delivery updates."
+        />
+      </section>
+
+      <form
+        onSubmit={submit}
+        className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"
+      >
+        <FormSection
+          title="Change password"
+          description="Use at least eight characters and avoid passwords used elsewhere."
+          icon={<LockKeyhole className="h-4 w-4" />}
+          divider={false}
+        >
+          <div className="grid gap-4">
+            <FormField label="Current password" htmlFor="current-password" required>
+              <Input
+                id="current-password"
+                required
+                type="password"
+                autoComplete="current-password"
+                value={passwords.old_password}
+                onChange={(event) =>
+                  setPasswords({ ...passwords, old_password: event.target.value })
+                }
+              />
+            </FormField>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="New password" htmlFor="new-password" required>
+                <Input
+                  id="new-password"
+                  required
+                  minLength={8}
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwords.new_password}
+                  onChange={(event) =>
+                    setPasswords({ ...passwords, new_password: event.target.value })
+                  }
+                />
+              </FormField>
+              <FormField label="Confirm password" htmlFor="confirm-password" required>
+                <Input
+                  id="confirm-password"
+                  required
+                  minLength={8}
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwords.confirm_password}
+                  onChange={(event) =>
+                    setPasswords({ ...passwords, confirm_password: event.target.value })
+                  }
+                />
+              </FormField>
+            </div>
+          </div>
+        </FormSection>
+        {message && (
+          <p
+            role="status"
+            className="mt-4 rounded-xl bg-primary/10 p-3 text-sm font-medium text-primary"
+          >
+            {message}
+          </p>
+        )}
+        {error && (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {error}
+          </p>
+        )}
+        <div className="mt-5 flex justify-end border-t border-border pt-4">
+          <Button type="submit" isLoading={isSaving} className="w-full sm:w-auto">
+            Update password
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+        <Bell className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        Notification preferences are stored for this account and can be changed at any time.
+      </div>
+    </main>
+  );
 }

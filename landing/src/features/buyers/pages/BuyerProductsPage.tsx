@@ -1,21 +1,105 @@
-import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
-import { useDebounce } from '../../../core/hooks'
-import { useProductCategories, useProducts } from '../../../core/lib'
-import { MarketplaceProductGrid } from '../../home/components/MarketplaceProductGrid'
+import { useDebounce } from "../../../core/hooks";
+import { useProductCategories, useProducts } from "../../../core/lib";
+import { Button, Input, PageHeader } from "../../../shared/components/ui";
+import { MarketplaceProductGrid } from "../../home/components/MarketplaceProductGrid";
 
 export function BuyerProductsPage() {
-	const [searchParams] = useSearchParams()
-	const [search, setSearch] = useState('')
-	const [activeSearch, setActiveSearch] = useState('')
-	const debouncedSearch = useDebounce(search, 300)
-	const [category, setCategory] = useState(() => searchParams.get('category') || '')
-	const { products, isLoading, error } = useProducts({ search: activeSearch, category: category || undefined, page_size: 24 })
-	const { categories } = useProductCategories()
-	useEffect(() => {
-		setActiveSearch(debouncedSearch)
-	}, [debouncedSearch])
-	return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="flex flex-col gap-4 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Your marketplace</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Find your next fresh order.</h1><p className="mt-3 text-sm text-muted-foreground">Shop directly from trusted local growers and suppliers.</p></div><label className="relative w-full sm:max-w-sm"><span className="sr-only">Search products</span><Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search produce..." className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-primary" /></label></div><div className="mt-6 flex gap-2 overflow-x-auto pb-2">{[ { code: '', name: 'All produce' }, ...categories ].map((item) => <button key={item.code || 'all'} type="button" onClick={() => setCategory(item.code)} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${category === item.code ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-primary-dark hover:bg-muted'}`}>{item.name}</button>)}</div><div className="mt-8">{error ? <p role="alert" className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive">Unable to load products.</p> : <MarketplaceProductGrid products={products} loading={isLoading} />}</div></main>
+  const [params, setParams] = useSearchParams();
+  const [search, setSearch] = useState(params.get("search") || "");
+  const [category, setCategory] = useState(params.get("category") || "");
+  const debouncedSearch = useDebounce(search, 300);
+  const { categories = [] } = useProductCategories();
+  const { products = [], isLoading, error } = useProducts({ search: debouncedSearch, category });
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (debouncedSearch) next.set("search", debouncedSearch);
+    if (category) next.set("category", category);
+    setParams(next, { replace: true });
+  }, [category, debouncedSearch, setParams]);
+
+  const categoryOptions = [{ code: "", name: "All produce" }, ...categories];
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <PageHeader
+        variant="minimal"
+        eyebrow="Buyer marketplace"
+        title="Fresh produce, ready to order"
+        description="Compare verified local supply, current prices, and available quantities."
+        icon={<Search className="h-5 w-5" />}
+      />
+
+      <section
+        aria-label="Product filters"
+        className="mt-4 rounded-2xl border border-border bg-card p-3 sm:mt-6 sm:p-5"
+      >
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <SlidersHorizontal className="h-4 w-4 text-primary" />
+          Filter marketplace
+        </div>
+        <div className="mt-3">
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search tomatoes, onions, avocado..."
+            aria-label="Search products"
+            leftIcon={<Search className="h-4 w-4" />}
+          />
+        </div>
+        <div
+          className="mobile-scroll-row mt-3 flex gap-2 overflow-x-auto pb-1"
+          aria-label="Product categories"
+        >
+          {categoryOptions.map((item) => (
+            <Button
+              key={item.code || "all"}
+              type="button"
+              size="sm"
+              variant={category === item.code ? "primary" : "outline"}
+              onClick={() => setCategory(item.code)}
+              aria-pressed={category === item.code}
+              className="min-h-10 shrink-0 rounded-full whitespace-nowrap"
+            >
+              {item.name}
+            </Button>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-5 sm:mt-7" aria-live="polite">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-primary-dark">
+            {isLoading
+              ? "Checking availability..."
+              : `${products.length} available ${products.length === 1 ? "product" : "products"}`}
+          </p>
+          {(search || category) && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSearch("");
+                setCategory("");
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+        {error ? (
+          <p role="alert" className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+            Unable to load products. Check your connection and try again.
+          </p>
+        ) : (
+          <MarketplaceProductGrid products={products} loading={isLoading} />
+        )}
+      </section>
+    </main>
+  );
 }
