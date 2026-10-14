@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.users.models import FarmerProfile
@@ -48,6 +49,8 @@ class ProductUnitListView(APIView):
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'public_products'
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['category__code', 'farmer__user__phone', 'is_organic']
     ordering_fields = ['price_per_unit', 'harvest_date', 'created_at', 'rating']
