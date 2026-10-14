@@ -1,6 +1,6 @@
 const soundSources = {
-  notification: '/sounds/alert.mp3',
-  message: '/sounds/success.mp3',
+  notification: '/assets/sounds/alert.mp3',
+  message: '/assets/sounds/success.mp3',
 } as const
 
 type SoundName = keyof typeof soundSources

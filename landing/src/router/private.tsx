@@ -10,6 +10,7 @@ import { BuyerProductsPage } from '../features/buyers/pages/BuyerProductsPage'
 import { BuyerProfilePage } from '../features/buyers/pages/BuyerProfilePage'
 import { BuyerSettingsPage } from '../features/buyers/pages/BuyerSettingsPage'
 import { BuyerWishlistPage } from '../features/buyers/pages/BuyerWishlistPage'
+import { NotificationsPage } from '../features/notifications'
 import { CheckoutPage } from '../features/home/pages'
 import { ProductDetailPage } from '../features/home/pages/ProductDetailPage'
 import { FarmerDashboardPage, FarmerEarningsPage, FarmerOrdersPage, FarmerProductFormPage, FarmerProductsPage, FarmerProfilePage, FarmerSubOrderDetailPage } from '../features/farmers/pages'
@@ -75,6 +76,7 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/buyer/checkout', element: <PrivateLayout requiredRole="buyer"><CheckoutPage /></PrivateLayout> },
 	{ path: '/app/buyer/profile', element: <PrivateLayout requiredRole="buyer"><BuyerProfilePage /></PrivateLayout> },
 	{ path: '/app/buyer/settings', element: <PrivateLayout requiredRole="buyer"><BuyerSettingsPage /></PrivateLayout> },
+	{ path: '/app/buyer/notifications', element: <PrivateLayout requiredRole="buyer"><NotificationsPage /></PrivateLayout> },
 	{ path: '/app/buyer/*', element: <PrivateLayout requiredRole="buyer"><BuyerDashboardPage /></PrivateLayout> },
 
 	// ✅✅ Farmer workspace: /app/farmer/*
@@ -88,6 +90,7 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/farmer/earnings', element: <PrivateLayout requiredRole="farmer"><FarmerEarningsPage /></PrivateLayout> },
 	{ path: '/app/farmer/profile', element: <PrivateLayout requiredRole="farmer"><FarmerProfilePage /></PrivateLayout> },
 	{ path: '/app/farmer/settings', element: <PrivateLayout requiredRole="farmer"><FarmerSettingsPage /></PrivateLayout> },
+	{ path: '/app/farmer/notifications', element: <PrivateLayout requiredRole="farmer"><NotificationsPage /></PrivateLayout> },
 	{ path: '/app/farmer/*', element: <PrivateLayout requiredRole="farmer"><FarmerDashboardPage /></PrivateLayout> },
 
 	// ✅✅ Retailer workspace: /app/retailer/*
@@ -98,6 +101,7 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/retailer/invoices', element: <PrivateLayout requiredRole="retailer"><RetailerInvoicesPage /></PrivateLayout> },
 	{ path: '/app/retailer/profile', element: <PrivateLayout requiredRole="retailer"><RetailerProfilePage /></PrivateLayout> },
 	{ path: '/app/retailer/settings', element: <PrivateLayout requiredRole="retailer"><RetailerSettingsPage /></PrivateLayout> },
+	{ path: '/app/retailer/notifications', element: <PrivateLayout requiredRole="retailer"><NotificationsPage /></PrivateLayout> },
 	{ path: '/app/retailer/*', element: <PrivateLayout requiredRole="retailer"><RetailerDashboardPage /></PrivateLayout> },
 
 	// ✅✅ Transport provider workspace: /app/transport/*
@@ -110,5 +114,6 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/transport/vehicles', element: <PrivateLayout requiredRole="transport_provider"><TransportVehiclesPage /></PrivateLayout> },
 	{ path: '/app/transport/profile', element: <PrivateLayout requiredRole="transport_provider"><TransporterProfilePage /></PrivateLayout> },
 	{ path: '/app/transport/settings', element: <PrivateLayout requiredRole="transport_provider"><TransporterSettingsPage /></PrivateLayout> },
+	{ path: '/app/transport/notifications', element: <PrivateLayout requiredRole="transport_provider"><NotificationsPage /></PrivateLayout> },
 	{ path: '/app/transport/*', element: <PrivateLayout requiredRole="transport_provider"><TransporterDashboardPage /></PrivateLayout> },
 ]

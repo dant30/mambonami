@@ -12,6 +12,10 @@ export function useProductCategories() {
 
 	useEffect(() => {
 		let active = true
+		if (productStore.getCategories().length > 0) {
+			setIsLoading(false)
+			return () => { active = false }
+		}
 		setIsLoading(true)
 		setError(null)
 

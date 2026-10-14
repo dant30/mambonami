@@ -92,7 +92,7 @@ export function ProductsPage() {
 			<div className="mobile-scroll-row mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Browse categories">
 				<Button type="button" size="sm" variant={!category ? 'primary' : 'outline'} onClick={() => { setCategory(''); setPage(1) }} className="min-h-10 shrink-0 rounded-full">All</Button>
 				{categories.map((item) => <Button key={item.id} type="button" size="sm" variant={category === item.code ? 'primary' : 'outline'} onClick={() => { setCategory(item.code); setPage(1) }} className="min-h-10 shrink-0 rounded-full">{item.name}</Button>)}
-				{Boolean(categoryError) && <span className="self-center text-xs text-muted-foreground">Categories unavailable</span>}
+				{Boolean(categoryError) && categories.length === 0 && <span role="status" className="self-center text-xs text-muted-foreground">Categories unavailable</span>}
 			</div>
 
 			<section aria-label="Search and filters" className="mt-3 rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">

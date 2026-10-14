@@ -16,6 +16,7 @@ import {
 	TransportersAdminPage,
 	UsersAdminPage,
 } from '../features/admin'
+import { NotificationsPage } from '../features/notifications'
 import { MainLayout } from '../shared/layouts'
 
 function AdminLayout({ children }: { children: ReactNode }) {
@@ -40,6 +41,7 @@ export const adminRoutes: RouteObject[] = [
 	{ path: '/app/admin/disputes', element: <AdminLayout><DisputesAdminPage /></AdminLayout> },
 	{ path: '/app/admin/payouts', element: <AdminLayout><PayoutsAdminPage /></AdminLayout> },
 	{ path: '/app/admin/audit', element: <AdminLayout><AuditAdminPage /></AdminLayout> },
+	{ path: '/app/admin/notifications', element: <AdminLayout><NotificationsPage /></AdminLayout> },
 	{ path: '/app/admin/*', element: <Navigate to="/app/admin" replace /> },
 	{ path: '/admin/orders', element: <Navigate to="/app/admin/orders" replace /> },
 ]

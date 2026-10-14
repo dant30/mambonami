@@ -15,6 +15,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../core/contexts/AuthContext";
 import { useIsMobile } from "../../core/hooks";
 import { useNotifications } from "../../core/lib";
+import { getRoleNotificationsPath } from "../../core/utils/roleRoutes";
 import { CartCountBadge } from "../components/ui";
 
 /**
@@ -63,6 +64,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
             : dashboardPath;
   const settingsPath =
     role === "transport_provider" ? "/app/transport/settings" : `/app/${role}/settings`;
+  const notificationsPath = getRoleNotificationsPath(role, isAdmin);
   const homePath = isAuthenticated ? dashboardPath : "/home";
   const { notifications } = useNotifications(isAuthenticated);
   const unreadNotifications = notifications.filter((notification) => !notification.is_read);
@@ -86,6 +88,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setUserMenuOpen(false);
+        setNotificationsOpen(false);
       }
     };
     window.addEventListener("keydown", closeOnEscape);
@@ -365,7 +368,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                   )}
                 </button>
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-card py-2 shadow-xl">
+                  <div className="fixed inset-x-3 top-[calc(env(safe-area-inset-top)+3.75rem)] z-[60] max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-border bg-card py-2 shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:z-50 sm:mt-2 sm:w-80">
                     <p className="border-b border-border bg-muted px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-primary-dark">
                       Notifications
                     </p>
@@ -373,7 +376,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                       unreadNotifications.slice(0, 3).map((notification) => (
                         <Link
                           key={notification.id}
-                          to={notification.action_url || "/"}
+                          to={notification.action_url?.startsWith("/") ? notification.action_url : notificationsPath}
                           onClick={() => setNotificationsOpen(false)}
                           className="block border-b border-border px-4 py-3 hover:bg-muted"
                         >
@@ -391,7 +394,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                       </p>
                     )}
                     <Link
-                      to="/notifications"
+                      to={notificationsPath}
                       onClick={() => setNotificationsOpen(false)}
                       className="block px-4 py-3 text-center text-xs font-bold text-primary hover:bg-muted"
                     >

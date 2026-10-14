@@ -3,6 +3,7 @@ import type { Notification, NotificationPreference } from '../../types'
 let cachedNotifications: Notification[] = []
 let cachedPreferences: NotificationPreference[] = []
 let activePreference: NotificationPreference | null = null
+const notificationListeners = new Set<() => void>()
 
 export const notificationStore = {
 	getNotifications(): Notification[] {
@@ -10,6 +11,13 @@ export const notificationStore = {
 	},
 	setNotifications(notifications: Notification[]) {
 		cachedNotifications = notifications
+		notificationListeners.forEach((listener) => listener())
+	},
+	subscribe(listener: () => void) {
+		notificationListeners.add(listener)
+		return () => {
+			notificationListeners.delete(listener)
+		}
 	},
 	getPreferences(): NotificationPreference[] {
 		return cachedPreferences
@@ -27,5 +35,6 @@ export const notificationStore = {
 		cachedNotifications = []
 		cachedPreferences = []
 		activePreference = null
+		notificationListeners.forEach((listener) => listener())
 	},
 }

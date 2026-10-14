@@ -34,6 +34,8 @@ class ProductCategoryListView(generics.ListAPIView):
     queryset = ProductCategory.objects.filter(is_active=True)
     serializer_class = ProductCategorySerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'public_categories'
 
 
 class ProductUnitListView(APIView):
@@ -76,6 +78,8 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'public_product_detail'
     lookup_field = 'uuid'
 
     def get_serializer_context(self):

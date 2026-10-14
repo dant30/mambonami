@@ -3,7 +3,7 @@ from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APIRequestFactory
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 
-from apps.products.views.api import ProductListView
+from apps.products.views.api import ProductCategoryListView, ProductDetailView, ProductListView
 
 
 class PublicProductThrottleTests(SimpleTestCase):
@@ -24,3 +24,9 @@ class PublicProductThrottleTests(SimpleTestCase):
             'public_products',
             settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'],
         )
+
+    def test_public_categories_and_details_have_independent_rate_scopes(self):
+        self.assertEqual(ProductCategoryListView.throttle_scope, 'public_categories')
+        self.assertEqual(ProductDetailView.throttle_scope, 'public_product_detail')
+        self.assertIn('public_categories', settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'])
+        self.assertIn('public_product_detail', settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'])

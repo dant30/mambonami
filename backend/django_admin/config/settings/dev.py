@@ -30,6 +30,8 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
     'anon': '10000/day',
     'user': '10000/day',
     'public_products': '10000/day',
+    'public_categories': '10000/day',
+    'public_product_detail': '10000/day',
 }
 
 # M-Pesa – force sandbox

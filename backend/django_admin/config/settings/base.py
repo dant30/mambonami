@@ -191,6 +191,8 @@ REST_FRAMEWORK = {
         'anon': '100/day',
         'user': '1000/day',
         'public_products': '120/minute',
+        'public_categories': '120/minute',
+        'public_product_detail': '120/minute',
     },
     'NUM_PROXIES': 1,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
