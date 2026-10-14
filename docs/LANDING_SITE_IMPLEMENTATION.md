@@ -1,6 +1,6 @@
 # Mambonami Landing Site & Platform Architecture
 
-**Last Updated**: 2026-09-11
+**Last Updated**: 2026-10-14
 
 ---
 
@@ -58,6 +58,7 @@ Completed: guest wishlist migration after authentication, server-backed paginati
 16. [Role-Based Headers](#19-the-header-should-change-based-on-authentication)
 17. [Shared Layout System](#20-architectural-recommendation-shared-layout-system)
 18. [Complete User Journey](#21-the-final-mambonami-journey)
+19. [Workspace UI/UX Pass](#22-buyer-farmer-and-transporter-workspace-uiux-pass)
 
 ---
 
@@ -2351,3 +2352,104 @@ No friction at each step. Just a clear path forward.
 - [ ] Design database schema updates (if needed)
 - [ ] Plan deployment strategy
 - [ ] Set up monitoring and analytics
+
+---
+
+## 22. Buyer, Farmer, and Transporter Workspace UI/UX Pass
+
+This pass standardizes the authenticated buyer, farmer, and transporter workspaces around a compact, mobile-first operating model. Existing API hooks, mutations, route contracts, and business rules are preserved. The work focuses on hierarchy, task completion, responsive density, and reuse of the shared component library.
+
+### Shared Workspace Principles
+
+- Mobile pages use compact shared `PageHeader` treatments instead of oversized, independently styled title blocks.
+- Primary actions remain visible and touch-safe without oversized header areas.
+- Metrics and product collections use two-column mobile layouts where comparison is useful; operational records remain one-column for readability.
+- Shared `Button`, `Input`, `Switch`, `Badge`, `Skeleton`, `Card`, `StatCard`, `FormField`, `FormSection`, and `EmptyState` components are reused for consistent states and interactions.
+- Loading, empty, success, warning, and error states use a consistent visual hierarchy.
+- Content prioritizes purchase, fulfilment, route, inventory, profile, security, and payout decisions.
+- Mobile spacing is tightened to bring the next useful action closer to the first viewport.
+
+### Buyer Workspace
+
+#### Marketplace
+
+- Added a compact buyer marketplace header and a dedicated filter surface.
+- Grouped search, category selection, URL query state, result count, and filter reset into one workflow.
+- Category controls use horizontally scrollable, touch-safe shared buttons on small screens.
+- Product results retain the existing marketplace grid and two-column mobile card layout.
+
+#### Orders
+
+- Replaced the dense list with responsive order cards showing order reference, item summary, delivery destination, total, status, and a detail action.
+- Added semantic status badges for active, delivered, cancelled, and refunded states.
+- Improved loading and empty states and added a direct route back to marketplace shopping.
+
+#### Wishlist
+
+- Retained a two-column mobile product grid while reducing card padding and action labels.
+- Added lazy-loaded product images, compact price/unit treatment, touch-safe add/remove controls, and a business-focused empty state.
+
+#### Cart and Account
+
+- Cart shows live item count and subtotal in its shared page header.
+- Cart loading density and the mobile-to-desktop checkout layout were tightened without changing quantity or removal behavior.
+- Buyer profile uses shared form fields, inputs, validation semantics, save feedback, and a full-width mobile submit action.
+- Settings uses shared switch and form primitives, password confirmation validation, and clear success/error feedback.
+- Dashboard copy reflects marketplace tasks and labels the cart action accurately.
+- Dashboard category, active-order, recent-order, and wishlist sections use reduced mobile spacing and denser cards.
+
+### Farmer Workspace
+
+#### Dashboard and Action Center
+
+- Reduced mobile stack spacing and focused the dashboard description on paid orders, accurate stock, and payouts.
+- Renamed and tightened the action center around the next operational tasks.
+- Quick actions use compact two-column mobile tiles for product, order, and earnings destinations.
+- Product, order, earnings, and performance summaries remain connected to existing workspace data.
+
+#### Orders and Fulfilment
+
+- Added a shared operational header with live order count.
+- Replaced ad-hoc status pills with semantic badges distinguishing unpaid, paid, and ready states.
+- Converted loading and no-order states to shared `Skeleton` and `EmptyState` patterns.
+- Confirm, reject, and mark-ready actions use shared buttons while preserving the payment lock and fulfilment rules.
+- Order details keep produce quantities, payout, payment lock, and collection guidance visible with tighter mobile spacing.
+
+#### Storefront, Product Editor, Profile, and Earnings
+
+- Storefront presents listing count, add-product action, stock state, price, quantity, and edit/delete controls in a compact two-column mobile grid.
+- Product status uses consistent listed, in-stock, out-of-stock, and unlisted badges.
+- The product editor retains its identity, price/stock, freshness, pickup, image, and description sections with compact mobile spacing.
+- Farmer profile sections are grouped into one business form surface with shared fields and a clear save boundary.
+- Earnings uses shared headers, metric cards, payout badges, and compact settlement history.
+
+### Transporter Workspace
+
+#### Dispatch and Trips
+
+- Available jobs use route cards with separate pickup and delivery blocks, status, payout, details, and accept/decline actions.
+- Active and completed trips use responsive operational cards with destination, status, expected payout, and one manage action.
+- Empty states direct available drivers back to the dispatch board.
+- Corrected the invalid desktop navigation path `/app/transport/active` to `/app/transport/active-jobs`.
+
+#### Dashboard, Vehicle, Profile, and Earnings
+
+- Dashboard availability uses the shared `Switch` while preserving provider deposit gating and the existing availability mutation.
+- Dashboard dispatch, vehicle, route, activity, and payout sections use a tighter mobile rhythm.
+- Vehicle management uses shared form components, helper text, uppercase plate normalization, validation attributes, and compact save feedback.
+- Transporter profile sections are grouped into a unified business form on mobile and desktop.
+- Earnings uses shared metric cards and semantic payout badges with dates and settlement totals.
+- Trip operations retain status progression and OTP handoff rules with tighter mobile header spacing.
+
+### Accessibility and Responsive Behavior
+
+- Interactive controls preserve labels, `aria-pressed`, `aria-checked`, status regions, and alert regions where applicable.
+- Key controls remain usable by touch and do not rely on hover.
+- Long produce names, destinations, currency values, and status text wrap or truncate within card boundaries rather than forcing horizontal overflow.
+- Mobile grids, horizontal category rails, sticky cart checkout, and bottom-navigation safe areas remain part of the shared layout system.
+
+### Verification
+
+- Keep the root preview source and `landing/` source aligned when both contain the same implementation.
+- Run TypeScript validation and the Vite production build before considering the pass fully verified.
+- Confirm preview loading and interactions in the browser; editing source alone does not verify the deployed or running preview.
