@@ -59,6 +59,7 @@ Completed: guest wishlist migration after authentication, server-backed paginati
 17. [Shared Layout System](#20-architectural-recommendation-shared-layout-system)
 18. [Complete User Journey](#21-the-final-mambonami-journey)
 19. [Workspace UI/UX Pass](#22-buyer-farmer-and-transporter-workspace-uiux-pass)
+20. [Mobile Account, Routing, and Marketplace Refinement](#23-mobile-account-routing-and-marketplace-refinement)
 
 ---
 
@@ -2453,3 +2454,39 @@ This pass standardizes the authenticated buyer, farmer, and transporter workspac
 - Keep the root preview source and `landing/` source aligned when both contain the same implementation.
 - Run TypeScript validation and the Vite production build before considering the pass fully verified.
 - Confirm preview loading and interactions in the browser; editing source alone does not verify the deployed or running preview.
+
+## 23. Mobile Account, Routing, and Marketplace Refinement
+
+### Routing and Authenticated Layout
+
+- Centralized role dashboard resolution so `transport_provider` always resolves to `/app/transport`.
+- Added a compatibility redirect from `/app/transport_provider/*` and sanitized old login return destinations.
+- Restricted the marketing footer, support button, and back-to-top control to `/home`.
+- Authenticated workspaces now prioritize business content without rendering marketing chrome.
+
+### Mobile Navigation
+
+- Rebuilt bottom navigation with five role-specific destinations and an elevated primary action.
+- Buyer primary action is shopping, farmer primary action is adding produce, transporter primary action is finding jobs, and retailer primary action is buying stock.
+- Added active indicators, compact labels, safe-area spacing, and appropriate cart badges.
+- Added settings destinations to the desktop sidebar and account menu for all marketplace roles.
+
+### Profiles and Role Settings
+
+- Added a reusable account identity panel with circular avatar, initials fallback, photo editing, phone/email verification, active state, account state, and KYC state.
+- Buyer profile now supports personal identity, national ID, delivery defaults, instructions, and refund account.
+- Farmer profile now supports identity, county hierarchy, GPS, cooperative, M-Pesa payout number, and bank account.
+- Transporter profile now supports identity, vehicle capacity and licensing, and payout account.
+- Retailer profile now supports owner, business contact, registration, KRA, payout, address, and GPS fields.
+- Added settings routes for buyers, farmers, transporters, and retailers.
+- Settings persist role-relevant notification categories and password changes through existing APIs.
+- Transporter settings persist kilometre rate, free waiting time, and paid waiting rate.
+- Profile API output now includes active state and the role payment fields used by these screens.
+
+### Marketplace Mobile Refinements
+
+- Replaced buyer category cards with compact horizontally scrolling category chips.
+- Rebuilt public product filters around search, sort, quick Organic/In-stock chips, compact advanced filters, active-filter count, and clear action.
+- Removed the global selector that forced unrelated mobile grids and product details into two columns.
+- Compacted the farmer earnings snapshot into three mobile metrics.
+- Removed authenticated floating controls that collided with mobile navigation and business actions.
