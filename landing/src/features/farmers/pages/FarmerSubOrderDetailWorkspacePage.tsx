@@ -8,21 +8,28 @@ import { getErrorMessage } from "../../../core/utils";
 
 export function FarmerSubOrderDetailWorkspacePage() {
   const { id = "" } = useParams();
+  const subOrderId = Number(id);
+  const hasValidId = /^\d+$/.test(id) && Number.isSafeInteger(subOrderId);
   const [subOrder, setSubOrder] = useState<FarmerOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const actions = useFarmerOrderActions();
 
   const refresh = useCallback(() => {
-    if (!id) return;
+    if (!hasValidId) {
+      setError("Invalid order reference.");
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
-    getFarmerWorkspaceSubOrder(Number(id))
+    setError("");
+    getFarmerWorkspaceSubOrder(subOrderId)
       .then(setSubOrder)
       .catch((requestError: unknown) =>
         setError(getErrorMessage(requestError, "This order is unavailable.")),
       )
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [hasValidId, subOrderId]);
 
   useEffect(() => {
     refresh();

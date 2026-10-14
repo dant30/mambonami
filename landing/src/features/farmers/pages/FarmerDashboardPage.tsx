@@ -19,7 +19,7 @@ export function FarmerDashboardPage() {
   const { user } = useAuth();
   const { data, summary, isLoading, error } = useFarmerDashboard();
   const products = data?.products ?? [];
-  const orders = data?.orders ?? [];
+  const subOrders = data?.subOrders ?? [];
 
   return (
     <main className="min-h-full bg-background">
@@ -60,7 +60,7 @@ export function FarmerDashboardPage() {
         <FarmerActionCenter summary={summary} products={products} isLoading={isLoading} />
         <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr]">
           <FarmerProductPreview products={products} />
-          <FarmerOrderList orders={orders} isLoading={isLoading} />
+          <FarmerOrderList subOrders={subOrders} isLoading={isLoading} />
         </section>
         <FarmerEarningsSnapshot summary={summary} isLoading={isLoading} />
         <FarmerQuickActions />

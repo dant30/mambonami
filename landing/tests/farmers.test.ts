@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createElement } from 'react'
+import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
+import { FarmerOrderList } from '../src/features/farmers/components/FarmerOrderList'
 import { summarizeFarmerDashboard } from '../src/core/lib/services/farmers/farmerService'
 import { farmerStore } from '../src/core/lib/stores/farmers/farmerStore'
 import type { FarmerDashboardData } from '../src/core/lib/types/farmers/farmer'
@@ -32,5 +36,22 @@ describe('farmer library', () => {
 		farmerStore.clear()
 		expect(farmerStore.getProducts()).toEqual([])
 		expect(farmerStore.getSummary()).toBeNull()
+	})
+
+	it('links dashboard orders using numeric suborder IDs', () => {
+		render(createElement(MemoryRouter, null, createElement(FarmerOrderList, {
+			subOrders: [{
+				id: 7,
+				farmer: 1,
+				status: 'pending',
+				order_status: 'paid_escrow',
+				subtotal: 100,
+				farmer_payout: 92,
+				items: [],
+				created_at: '2026-10-14T00:00:00Z',
+			}],
+		})))
+
+		expect(screen.getByRole('link', { name: /Review order/ }).getAttribute('href')).toBe('/app/farmer/orders/7')
 	})
 })
