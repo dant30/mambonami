@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from core.throttling import BurstThrottle
+from core.throttling import BurstThrottle, RefreshTokenThrottle
 from core.validators import normalize_phone_number
 from apps.users.permissions import IsAdmin, is_admin_user
 from ..serializers import (
@@ -333,6 +333,7 @@ class CookieTokenRefreshView(APIView):
     """Refresh access tokens from the HttpOnly cookie used by the web client."""
 
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RefreshTokenThrottle]
 
     def post(self, request, *args, **kwargs):
         raw_refresh = request.COOKIES.get('refresh_token')

@@ -54,3 +54,8 @@ class AdminRateThrottle(_SafeSimpleRateThrottle):
 class BurstThrottle(_SafeSimpleRateThrottle):
     """Used for login or OTP endpoints – stricter limit."""
     rate = '10/minute'
+
+
+class RefreshTokenThrottle(_SafeSimpleRateThrottle):
+    """Allow normal cookie-based session restoration under its own IP limit."""
+    rate = '60/minute'

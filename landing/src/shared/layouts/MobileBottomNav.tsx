@@ -2,6 +2,7 @@ import {
 	BarChart3,
 	Heart,
 	Home,
+	LogIn,
 	Navigation,
 	Package,
 	Plus,
@@ -83,7 +84,7 @@ export function MobileBottomNav() {
 					{ label: 'Produce', path: '/products', icon: Package },
 					{ label: 'Cart', path: '/cart', icon: ShoppingBasket, primary: true, showBadge: true },
 					{ label: 'Saved', path: '/wishlist', icon: Heart },
-					{ label: 'Join', path: '/role-select', icon: UserCircle },
+					{ label: 'Sign in', path: '/login', icon: LogIn },
 				]
 
 	return (
@@ -106,9 +107,13 @@ export function MobileBottomNav() {
 						{({ isActive }) => (
 							<>
 								<span className={primary ? `flex h-12 w-12 items-center justify-center rounded-full border-4 border-background shadow-soft ${isActive ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground'}` : 'relative flex items-center justify-center'}>
-									<Icon className={primary ? 'h-5 w-5' : 'h-5 w-5'} />
+									{showBadge ? (
+										<span className="relative flex h-5 w-5 items-center justify-center">
+											<Icon className="h-5 w-5" />
+											<CartCountBadge />
+										</span>
+									) : <Icon className="h-5 w-5" />}
 									{!primary && isActive && <span className="absolute -bottom-2 h-1 w-1 rounded-full bg-primary" />}
-									{showBadge && <span className="absolute -right-3 -top-2"><CartCountBadge /></span>}
 								</span>
 								<span className={primary ? 'mt-0.5 whitespace-nowrap' : 'truncate'}>{label}</span>
 							</>

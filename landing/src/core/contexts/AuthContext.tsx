@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { AUTH_ENDPOINTS } from '../api/endpoints'
-import { apiClient } from '../api/apiClient'
+import { ApiError, apiClient } from '../api/apiClient'
 import { addToWishlist, guestWishlistStore } from '../lib'
 
 /**
@@ -116,11 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			apiClient.setAccessToken(response.access)
 			setAccessToken(response.access)
 			setUser(response.user)
-		} catch {
-			// No valid session, user is not authenticated
+		} catch (error) {
+			// A transient outage or rate limit must not erase the cookie-session hint.
 			setAccessToken(null)
 			setUser(null)
-			window.localStorage.removeItem(sessionHintKey)
+			if (error instanceof ApiError && error.status === 401) {
+				window.localStorage.removeItem(sessionHintKey)
+			}
 		} finally {
 			setIsInitialized(true)
 		}
@@ -198,9 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			apiClient.setAccessToken(response.access)
 			setAccessToken(response.access)
 		} catch (error) {
-			// Refresh failed, logout user
-			setSession(null, null)
-			window.localStorage.removeItem(sessionHintKey)
+			if (error instanceof ApiError && error.status === 401) {
+				setSession(null, null)
+				window.localStorage.removeItem(sessionHintKey)
+			}
 			throw error
 		}
 	}

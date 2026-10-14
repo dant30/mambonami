@@ -68,6 +68,10 @@ async function refreshAccessTokenRequest() {
 	});
 
 	if (!response.ok) {
+		const data = await parseResponse(response);
+		if (response.status === 429 || response.status >= 500) {
+			throw new ApiError(response.status, data, getResponseCorrelationId(response.headers, data));
+		}
 		accessToken = null;
 		return null;
 	}

@@ -16,6 +16,11 @@ function LoginProbe() {
 	return <button onClick={() => void login({ phone: '+254700000000', password: 'secret' })}>{isAuthenticated ? 'signed in' : 'sign in'}</button>
 }
 
+function RestoreProbe() {
+	const { isInitialized, isAuthenticated } = useAuth()
+	return <span>{isInitialized ? (isAuthenticated ? 'signed in' : 'guest') : 'restoring'}</span>
+}
+
 function jsonResponse(body: unknown, status = 200) {
 	return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 }
@@ -24,6 +29,16 @@ describe('guest wishlist migration', () => {
 	beforeEach(() => {
 		guestWishlistStore.clear()
 		orderStore.clear()
+		window.localStorage.removeItem('mambonami_session_hint')
+	})
+
+	it('keeps the session hint when refresh is temporarily rate limited', async () => {
+		window.localStorage.setItem('mambonami_session_hint', '1')
+		vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: 'throttled' }, 429)))
+		render(<AuthProvider><RestoreProbe /></AuthProvider>)
+
+		await waitFor(() => expect(screen.getByText('guest')).toBeInTheDocument())
+		expect(window.localStorage.getItem('mambonami_session_hint')).toBe('1')
 	})
 
 	it('clears locally stored items after every server migration succeeds', async () => {
