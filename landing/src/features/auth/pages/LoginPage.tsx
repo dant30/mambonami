@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { getErrorMessage } from '../../../core/utils'
+import { getRoleDashboardPath } from '../../../core/utils/roleRoutes'
 import { AuthField, AuthLayout, AuthSubmit } from '../components'
 
 /**
@@ -14,20 +15,7 @@ import { AuthField, AuthLayout, AuthSubmit } from '../components'
  * - /app/admin for admins
  */
 export function determinePostLoginDestination(user: Record<string, unknown> | null | undefined) {
-	const role = String(user?.role ?? '')
-	const isAdmin = Boolean(user?.is_staff || user?.is_superuser)
-
-	// ✅✅ Admin routes to /app/admin
-	if (isAdmin) return '/app/admin'
-
-	// ✅✅ Role-based routing to /app/{role}
-	if (role === 'buyer') return '/app/buyer'
-	if (role === 'farmer') return '/app/farmer'
-	if (role === 'retailer') return '/app/retailer'
-	if (role === 'transport_provider') return '/app/transport'
-
-	// Fallback to buyer if role not found
-	return '/app/buyer'
+	return getRoleDashboardPath(user?.role, Boolean(user?.is_staff || user?.is_superuser))
 }
 
 export function LoginPage() {
@@ -48,7 +36,9 @@ export function LoginPage() {
 		try {
 			const response = await login({ phone, password })
 			// Redirect to intended destination or role dashboard
-			const destination = returnTo || determinePostLoginDestination(response.user ?? null)
+			const destination = returnTo?.startsWith('/app/transport_provider')
+				? '/app/transport'
+				: returnTo || determinePostLoginDestination(response.user ?? null)
 			navigate(destination, { replace: true })
 		} catch (requestError) {
 			setError(getErrorMessage(requestError, 'Unable to log in.'))

@@ -13,20 +13,24 @@ import { BuyerWishlistPage } from '../features/buyers/pages/BuyerWishlistPage'
 import { CheckoutPage } from '../features/home/pages'
 import { ProductDetailPage } from '../features/home/pages/ProductDetailPage'
 import { FarmerDashboardPage, FarmerEarningsPage, FarmerOrdersPage, FarmerProductFormPage, FarmerProductsPage, FarmerProfilePage, FarmerSubOrderDetailPage } from '../features/farmers/pages'
+import { FarmerSettingsPage } from '../features/farmers/pages/FarmerSettingsPage'
 import { RetailerDashboardPage } from '../features/retailers/pages/RetailerDashboardPage'
 import { RetailerInvoicesPage } from '../features/retailers/pages/RetailerInvoicesPage'
 import { RetailerOrdersPage } from '../features/retailers/pages/RetailerOrdersPage'
 import { RetailerProductsPage } from '../features/retailers/pages/RetailerProductsPage'
 import { RetailerProfilePage } from '../features/retailers/pages/RetailerProfilePage'
+import { RetailerSettingsPage } from '../features/retailers/pages/RetailerSettingsPage'
 import { RetailerSuppliersPage } from '../features/retailers/pages'
 import { TransporterDashboardPage } from '../features/transporters/pages/TransporterDashboardPage'
 import { TransportEarningsPage } from '../features/transporters/pages/TransportEarningsPage'
 import { TransportJobsPage } from '../features/transporters/pages/TransportJobsPage'
 import { TransporterProfilePage } from '../features/transporters/pages/TransporterProfilePage'
+import { TransporterSettingsPage } from '../features/transporters/pages/TransporterSettingsPage'
 import { TransportTripDetailPage } from '../features/transporters/pages'
 import { TransportTripsPage } from '../features/transporters/pages'
 import { TransportVehiclesPage } from '../features/transporters/pages/TransportVehiclesPage'
 import { MainLayout } from '../shared/layouts'
+import { getRoleDashboardPath } from '../core/utils/roleRoutes'
 
 /**
  * ✅✅ ROUTE ARCHITECTURE:
@@ -51,13 +55,14 @@ function PrivateLayout({ children, requiredRole }: PrivateLayoutProps) {
 
 	if (requiredRole && user?.role !== requiredRole) {
 		// User is authenticated but not the correct role
-		return <Navigate to={`/app/${user?.role || 'buyer'}`} replace />
+		return <Navigate to={getRoleDashboardPath(user?.role, Boolean(user?.is_staff || user?.is_superuser))} replace />
 	}
 
 	return <MainLayout>{children}</MainLayout>
 }
 
 export const privateRoutes: RouteObject[] = [
+	{ path: '/app/transport_provider/*', element: <Navigate to="/app/transport" replace /> },
 	// ✅✅ Buyer workspace: /app/buyer/*
 	{ path: '/app/buyer', element: <PrivateLayout requiredRole="buyer"><BuyerDashboardPage /></PrivateLayout> },
 	{ path: '/app/buyer/products', element: <PrivateLayout requiredRole="buyer"><BuyerProductsPage /></PrivateLayout> },
@@ -82,6 +87,7 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/farmer/sales', element: <PrivateLayout requiredRole="farmer"><FarmerEarningsPage /></PrivateLayout> },
 	{ path: '/app/farmer/earnings', element: <PrivateLayout requiredRole="farmer"><FarmerEarningsPage /></PrivateLayout> },
 	{ path: '/app/farmer/profile', element: <PrivateLayout requiredRole="farmer"><FarmerProfilePage /></PrivateLayout> },
+	{ path: '/app/farmer/settings', element: <PrivateLayout requiredRole="farmer"><FarmerSettingsPage /></PrivateLayout> },
 	{ path: '/app/farmer/*', element: <PrivateLayout requiredRole="farmer"><FarmerDashboardPage /></PrivateLayout> },
 
 	// ✅✅ Retailer workspace: /app/retailer/*
@@ -91,6 +97,7 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/retailer/suppliers', element: <PrivateLayout requiredRole="retailer"><RetailerSuppliersPage /></PrivateLayout> },
 	{ path: '/app/retailer/invoices', element: <PrivateLayout requiredRole="retailer"><RetailerInvoicesPage /></PrivateLayout> },
 	{ path: '/app/retailer/profile', element: <PrivateLayout requiredRole="retailer"><RetailerProfilePage /></PrivateLayout> },
+	{ path: '/app/retailer/settings', element: <PrivateLayout requiredRole="retailer"><RetailerSettingsPage /></PrivateLayout> },
 	{ path: '/app/retailer/*', element: <PrivateLayout requiredRole="retailer"><RetailerDashboardPage /></PrivateLayout> },
 
 	// ✅✅ Transport provider workspace: /app/transport/*
@@ -102,5 +109,6 @@ export const privateRoutes: RouteObject[] = [
 	{ path: '/app/transport/earnings', element: <PrivateLayout requiredRole="transport_provider"><TransportEarningsPage /></PrivateLayout> },
 	{ path: '/app/transport/vehicles', element: <PrivateLayout requiredRole="transport_provider"><TransportVehiclesPage /></PrivateLayout> },
 	{ path: '/app/transport/profile', element: <PrivateLayout requiredRole="transport_provider"><TransporterProfilePage /></PrivateLayout> },
+	{ path: '/app/transport/settings', element: <PrivateLayout requiredRole="transport_provider"><TransporterSettingsPage /></PrivateLayout> },
 	{ path: '/app/transport/*', element: <PrivateLayout requiredRole="transport_provider"><TransporterDashboardPage /></PrivateLayout> },
 ]

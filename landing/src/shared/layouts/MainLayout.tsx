@@ -20,6 +20,7 @@ export function MainLayout({ children, admin = false }: { children: ReactNode; a
 	const isAdmin = admin || Boolean(user?.is_staff || user?.is_superuser)
 	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 	const routeSeo = resolveRouteSeo(location.pathname)
+	const showHomeChrome = location.pathname === '/home'
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
@@ -30,11 +31,11 @@ export function MainLayout({ children, admin = false }: { children: ReactNode; a
 				{isAuthenticated && isDesktop && <Sidebar admin={isAdmin} />}
 				<div className="flex min-w-0 flex-1 flex-col">
 					<main className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
-					<Footer />
+					{showHomeChrome && <Footer />}
 				</div>
 			</div>
-			<FloatingButton />
-			<BackToTop />
+			{showHomeChrome && <FloatingButton />}
+			{showHomeChrome && <BackToTop />}
 			<ToastContainer />
 			{!isDesktop && <MobileBottomNav />}
 		</div>

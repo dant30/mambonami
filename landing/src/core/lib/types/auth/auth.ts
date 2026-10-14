@@ -7,7 +7,17 @@ export interface AuthUser {
 	email?: string
 	first_name?: string
 	last_name?: string
+	middle_name?: string
 	role?: AuthRole
+	avatar_url?: string | null
+	is_phone_verified?: boolean
+	is_email_verified?: boolean
+	is_active?: boolean
+	account_status?: string
+	kyc_status?: string
+	national_id?: string
+	date_joined?: string
+	last_seen?: string
 	is_staff?: boolean
 	is_superuser?: boolean
 	[key: string]: unknown
@@ -28,6 +38,10 @@ export interface TransportProfile {
 	paybill_number?: string
 	rating?: number
 	total_deliveries?: number
+	base_rate_per_km?: number
+	waiting_grace_minutes?: number
+	waiting_rate_per_min?: number
+	bank_account?: string
 }
 
 export interface AuthTokens {

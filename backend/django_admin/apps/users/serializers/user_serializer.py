@@ -506,13 +506,13 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name',
+            'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'national_id',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
-            'account_status', 'kyc_status', 'verification_status', 'avatar', 'avatar_url',
+            'is_active', 'account_status', 'kyc_status', 'verification_status', 'avatar', 'avatar_url',
             'is_staff', 'is_superuser', 'date_joined', 'last_seen',
             'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
-        read_only_fields = ('id', 'date_joined', 'is_staff', 'is_superuser', 'last_seen')
+        read_only_fields = ('id', 'is_active', 'date_joined', 'is_staff', 'is_superuser', 'last_seen')
 
     def get_avatar_url(self, obj):
         if obj.avatar:
@@ -538,6 +538,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'cooperative': p.cooperative,
                 'coop_verified': p.coop_verified,
                 'mpesa_number': p.mpesa_number,
+                'bank_account': p.bank_account,
                 'total_sales': p.total_sales,
                 'rating': p.rating,
                 'total_orders': p.total_orders,
@@ -561,6 +562,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'is_approved': p.is_approved,
                 'rating': p.rating,
                 'total_deliveries': p.total_deliveries,
+                'bank_account': p.bank_account,
                 'avatar_url': self._get_avatar_url(p),
                 'base_rate_per_km': p.base_rate_per_km,
                 'waiting_grace_minutes': p.waiting_grace_minutes,

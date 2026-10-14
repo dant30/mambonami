@@ -61,6 +61,8 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
           : role === "transport_provider"
             ? "/app/transport/profile"
             : dashboardPath;
+  const settingsPath =
+    role === "transport_provider" ? "/app/transport/settings" : `/app/${role}/settings`;
   const homePath = isAuthenticated ? dashboardPath : "/home";
   const { notifications } = useNotifications(isAuthenticated);
   const unreadNotifications = notifications.filter((notification) => !notification.is_read);
@@ -425,13 +427,22 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                       {isAdmin ? "Admin Panel" : "Dashboard"}
                     </Link>
                     {!isAdmin && (
-                      <Link
-                        to={profilePath}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block px-4 py-2.5 text-sm hover:bg-muted"
-                      >
-                        Profile
-                      </Link>
+                      <>
+                        <Link
+                          to={profilePath}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2.5 text-sm hover:bg-muted"
+                        >
+                          Profile
+                        </Link>
+                        <Link
+                          to={settingsPath}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2.5 text-sm hover:bg-muted"
+                        >
+                          Settings
+                        </Link>
+                      </>
                     )}
                     <button
                       type="button"

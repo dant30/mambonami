@@ -38,6 +38,12 @@ export function updateProfile(input: Partial<AuthUser> & Record<string, unknown>
 	return apiClient.patch<AuthResponse['user']>(AUTH_ENDPOINTS.profile, input)
 }
 
+export function uploadAvatar(file: File) {
+	const body = new FormData()
+	body.append('avatar', file)
+	return apiClient.patch<AuthResponse['user']>(AUTH_ENDPOINTS.avatar, body)
+}
+
 export function updateTransportProfile(input: Partial<TransportProfile>) {
 	return apiClient.patch<AuthResponse['user']>(AUTH_ENDPOINTS.profile, input)
 }

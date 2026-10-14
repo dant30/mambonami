@@ -1,217 +1,98 @@
-import { Check, MapPin, Phone, Save, Sprout, Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, MapPin, Save, Sprout, UserCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import { useAuth } from "../../../core/contexts/AuthContext";
-import { updateProfile } from "../../../core/lib";
-import { FormField, FormSection } from "../../../shared/components/forms";
-import { Button, Input, PageHeader, Select } from "../../../shared/components/ui";
+import { useAuth } from '../../../core/contexts/AuthContext'
+import { updateProfile } from '../../../core/lib'
+import { ProfileIdentityPanel } from '../../account/components/ProfileIdentityPanel'
+import { FormField, FormSection } from '../../../shared/components/forms'
+import { Badge, Button, Input } from '../../../shared/components/ui'
 
-type FarmerProfileForm = {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  farm_name: string;
-  farm_address: string;
-  farm_region: string;
-  mpesa_number: string;
-};
-
-const emptyForm: FarmerProfileForm = {
-  first_name: "",
-  last_name: "",
-  email: "",
-  phone: "",
-  farm_name: "",
-  farm_address: "",
-  farm_region: "Nairobi",
-  mpesa_number: "",
-};
+const blank = {
+	first_name: '', middle_name: '', last_name: '', email: '', phone: '', national_id: '',
+	county: '', sub_county: '', ward: '', village: '', cooperative: '', latitude: '', longitude: '',
+	mpesa_number: '', bank_account: '',
+}
 
 export function FarmerProfilePage() {
-  const { user } = useAuth();
-  const [form, setForm] = useState<FarmerProfileForm>(emptyForm);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+	const { user } = useAuth()
+	const [form, setForm] = useState(blank)
+	const [isSaving, setIsSaving] = useState(false)
+	const [message, setMessage] = useState('')
+	const [error, setError] = useState('')
 
-  useEffect(() => {
-    setForm({
-      first_name: user?.first_name ?? "",
-      last_name: user?.last_name ?? "",
-      email: user?.email ?? "",
-      phone: user?.phone ?? "",
-      farm_name: String(user?.farm_name ?? user?.business_name ?? ""),
-      farm_address: String(user?.farm_address ?? user?.business_address ?? ""),
-      farm_region: String(user?.farm_region ?? "Nairobi"),
-      mpesa_number: String(user?.mpesa_number ?? ""),
-    });
-  }, [user]);
+	useEffect(() => {
+		const profile = (user?.farm_profile || {}) as Record<string, unknown>
+		setForm({
+			first_name: String(user?.first_name || ''), middle_name: String(user?.middle_name || ''),
+			last_name: String(user?.last_name || ''), email: String(user?.email || ''),
+			phone: String(user?.phone || ''), national_id: String(user?.national_id || ''),
+			county: String(profile.county || ''), sub_county: String(profile.sub_county || ''),
+			ward: String(profile.ward || ''), village: String(profile.village || ''),
+			cooperative: String(profile.cooperative || ''), latitude: String(profile.latitude || ''),
+			longitude: String(profile.longitude || ''), mpesa_number: String(profile.mpesa_number || ''),
+			bank_account: String(profile.bank_account || ''),
+		})
+	}, [user])
 
-  const updateField = <K extends keyof FarmerProfileForm>(
-    field: K,
-    value: FarmerProfileForm[K],
-  ) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
+	const update = (field: keyof typeof form, value: string) => setForm((current) => ({ ...current, [field]: value }))
+	const submit = async (event: React.FormEvent) => {
+		event.preventDefault()
+		setIsSaving(true)
+		setMessage('')
+		setError('')
+		try {
+			await updateProfile(form)
+			setMessage('Farm profile saved.')
+		} catch {
+			setError('We could not update your farm profile.')
+		} finally {
+			setIsSaving(false)
+		}
+	}
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSaving(true);
-    setMessage("");
-    setError("");
-    try {
-      await updateProfile({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        farm_name: form.farm_name,
-        farm_address: form.farm_address,
-        farm_region: form.farm_region,
-        mpesa_number: form.mpesa_number,
-      });
-      setMessage("Farm profile updated successfully.");
-    } catch {
-      setError("We could not update your farm profile. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
-      <PageHeader
-        eyebrow="Farmer workspace"
-        title="Your farm profile"
-        description="Keep your contact, farm, and payment details ready for buyer orders and payouts."
-        icon={<Sprout className="h-5 w-5" />}
-        variant="light"
-      />
-
-      <form
-        onSubmit={submit}
-        className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"
-      >
-        <FormSection
-          title="Primary details"
-          description="Your personal information is shared with customers and support teams."
-          icon={<Phone className="h-4 w-4" />}
-        >
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="First name" htmlFor="farmer-first-name">
-              <Input
-                id="farmer-first-name"
-                value={form.first_name}
-                onChange={(event) => updateField("first_name", event.target.value)}
-                placeholder="Akinyi"
-              />
-            </FormField>
-            <FormField label="Last name" htmlFor="farmer-last-name">
-              <Input
-                id="farmer-last-name"
-                value={form.last_name}
-                onChange={(event) => updateField("last_name", event.target.value)}
-                placeholder="Wanjiku"
-              />
-            </FormField>
-            <FormField label="Email" htmlFor="farmer-email">
-              <Input
-                id="farmer-email"
-                type="email"
-                value={form.email}
-                onChange={(event) => updateField("email", event.target.value)}
-                placeholder="you@example.com"
-              />
-            </FormField>
-            <FormField label="Phone number" htmlFor="farmer-phone">
-              <Input
-                id="farmer-phone"
-                value={form.phone}
-                readOnly
-                className="bg-muted text-muted-foreground"
-              />
-            </FormField>
-          </div>
-        </FormSection>
-
-        <FormSection
-          title="Farm details"
-          description="This information helps buyers identify and trust your farm."
-          icon={<MapPin className="h-4 w-4" />}
-        >
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Farm name" htmlFor="farm-name">
-              <Input
-                id="farm-name"
-                value={form.farm_name}
-                onChange={(event) => updateField("farm_name", event.target.value)}
-                placeholder="Nairobi Greens"
-              />
-            </FormField>
-            <FormField label="Farm region" htmlFor="farm-region">
-              <Select
-                id="farm-region"
-                aria-label="Farm region"
-                value={form.farm_region}
-                onChange={(value) => updateField("farm_region", value)}
-                options={[
-                  "Nairobi",
-                  "Central",
-                  "Eastern",
-                  "Rift Valley",
-                  "Western",
-                  "Coast",
-                  "Nyanza",
-                ].map((region) => ({ value: region, label: region }))}
-              />
-            </FormField>
-            <FormField label="Farm address" htmlFor="farm-address" className="md:col-span-2">
-              <Input
-                id="farm-address"
-                value={form.farm_address}
-                onChange={(event) => updateField("farm_address", event.target.value)}
-                placeholder="Kisii Road, Kiambu"
-              />
-            </FormField>
-          </div>
-        </FormSection>
-
-        <FormSection
-          title="Payment details"
-          description="Buyers and the platform use this information for escrow and payout flows."
-          icon={<Wallet className="h-4 w-4" />}
-        >
-          <FormField label="M-Pesa number" htmlFor="mpesa-number">
-            <Input
-              id="mpesa-number"
-              value={form.mpesa_number}
-              onChange={(event) => updateField("mpesa_number", event.target.value)}
-              placeholder="0712345678"
-            />
-          </FormField>
-        </FormSection>
-
-        {message && (
-          <p
-            role="status"
-            className="flex items-center gap-2 rounded-xl bg-primary/10 p-3 text-sm text-primary"
-          >
-            <Check className="h-4 w-4" />
-            {message}
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        <div className="flex justify-end border-t border-border pt-5">
-          <Button type="submit" isLoading={isSaving} leftIcon={<Save className="h-4 w-4" />}>
-            {isSaving ? "Saving profile..." : "Save changes"}
-          </Button>
-        </div>
-      </form>
-    </main>
-  );
+	return (
+		<main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8">
+			<ProfileIdentityPanel user={user} roleLabel="Farmer account" />
+			{Boolean((user?.farm_profile as Record<string, unknown> | undefined)?.cooperative) && (
+				<div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm">
+					<span className="text-muted-foreground">Cooperative endorsement</span>
+					<Badge variant={(user?.farm_profile as Record<string, unknown>).coop_verified ? 'success' : 'warning'} size="sm">
+						{(user?.farm_profile as Record<string, unknown>).coop_verified ? 'Verified' : 'Pending review'}
+					</Badge>
+				</div>
+			)}
+			<form onSubmit={submit} className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+				<FormSection title="Farmer identity" description="Account details used for buyer trust, support, and verification." icon={<UserCircle className="h-4 w-4" />}>
+					<div className="grid gap-4 sm:grid-cols-2">
+						<FormField label="First name" htmlFor="farmer-first-name"><Input id="farmer-first-name" value={form.first_name} onChange={(event) => update('first_name', event.target.value)} /></FormField>
+						<FormField label="Middle name" htmlFor="farmer-middle-name"><Input id="farmer-middle-name" value={form.middle_name} onChange={(event) => update('middle_name', event.target.value)} /></FormField>
+						<FormField label="Last name" htmlFor="farmer-last-name"><Input id="farmer-last-name" value={form.last_name} onChange={(event) => update('last_name', event.target.value)} /></FormField>
+						<FormField label="Email" htmlFor="farmer-email"><Input id="farmer-email" type="email" value={form.email} onChange={(event) => update('email', event.target.value)} /></FormField>
+						<FormField label="Verified phone" htmlFor="farmer-phone"><Input id="farmer-phone" value={form.phone} readOnly className="bg-muted text-muted-foreground" /></FormField>
+						<FormField label="National ID" htmlFor="farmer-national-id"><Input id="farmer-national-id" value={form.national_id} onChange={(event) => update('national_id', event.target.value)} /></FormField>
+					</div>
+				</FormSection>
+				<FormSection title="Farm location" description="Precise location improves pickup planning and delivery pricing." icon={<MapPin className="h-4 w-4" />}>
+					<div className="grid gap-4 sm:grid-cols-2">
+						<FormField label="County" htmlFor="farm-county"><Input id="farm-county" value={form.county} onChange={(event) => update('county', event.target.value)} /></FormField>
+						<FormField label="Sub-county" htmlFor="farm-sub-county"><Input id="farm-sub-county" value={form.sub_county} onChange={(event) => update('sub_county', event.target.value)} /></FormField>
+						<FormField label="Ward" htmlFor="farm-ward"><Input id="farm-ward" value={form.ward} onChange={(event) => update('ward', event.target.value)} /></FormField>
+						<FormField label="Village" htmlFor="farm-village"><Input id="farm-village" value={form.village} onChange={(event) => update('village', event.target.value)} /></FormField>
+						<FormField label="Latitude" htmlFor="farm-latitude"><Input id="farm-latitude" type="number" inputMode="decimal" value={form.latitude} onChange={(event) => update('latitude', event.target.value)} /></FormField>
+						<FormField label="Longitude" htmlFor="farm-longitude"><Input id="farm-longitude" type="number" inputMode="decimal" value={form.longitude} onChange={(event) => update('longitude', event.target.value)} /></FormField>
+					</div>
+				</FormSection>
+				<FormSection title="Farm business" description="Cooperative membership and payout details." icon={<Sprout className="h-4 w-4" />}>
+					<div className="grid gap-4 sm:grid-cols-2">
+						<FormField label="Cooperative or group" htmlFor="farm-cooperative"><Input id="farm-cooperative" value={form.cooperative} onChange={(event) => update('cooperative', event.target.value)} /></FormField>
+						<FormField label="M-Pesa payout number" htmlFor="farm-mpesa"><Input id="farm-mpesa" value={form.mpesa_number} onChange={(event) => update('mpesa_number', event.target.value)} /></FormField>
+						<FormField label="Bank account" htmlFor="farm-bank" className="sm:col-span-2"><Input id="farm-bank" value={form.bank_account} onChange={(event) => update('bank_account', event.target.value)} /></FormField>
+					</div>
+				</FormSection>
+				{message && <p role="status" className="flex items-center gap-2 rounded-xl bg-primary/10 p-3 text-sm text-primary"><Check className="h-4 w-4" />{message}</p>}
+				{error && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+				<div className="flex justify-end border-t border-border pt-4"><Button type="submit" isLoading={isSaving} leftIcon={<Save className="h-4 w-4" />} className="w-full sm:w-auto">Save profile</Button></div>
+			</form>
+		</main>
+	)
 }

@@ -1,68 +1,49 @@
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Leaf } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-import type { ProductCategory } from "../../../core/lib";
-import { Skeleton } from "../../../shared/components/ui";
+import type { ProductCategory } from '../../../core/lib'
+import { Skeleton } from '../../../shared/components/ui'
 
 const fallbackCategories: ProductCategory[] = [
-  { id: 0, code: "MA", name: "Matunda (Fruits)" },
-  { id: 1, code: "MBO", name: "Mboga (Vegetables)" },
-  { id: 2, code: "NA", name: "Nafaka (Cereals)" },
-  { id: 3, code: "MI", name: "Mizizi (Roots)" },
-];
+	{ id: 0, code: 'MA', name: 'Matunda' },
+	{ id: 1, code: 'MBO', name: 'Mboga' },
+	{ id: 2, code: 'NA', name: 'Nafaka' },
+	{ id: 3, code: 'MI', name: 'Mizizi' },
+]
 
 const categoryNames: Record<string, string> = {
-  MA: "Matunda (Fruits)",
-  MBO: "Mboga (Vegetables)",
-  NA: "Nafaka (Cereals)",
-  MI: "Mizizi (Roots)",
-};
+	MA: 'Matunda',
+	MBO: 'Mboga',
+	NA: 'Nafaka',
+	MI: 'Mizizi',
+}
 
-export function BuyerCategoryScroller({
-  categories,
-  isLoading,
-}: {
-  categories: ProductCategory[];
-  isLoading?: boolean;
-}) {
-  const visible = categories.length > 0 ? categories.slice(0, 6) : fallbackCategories;
-  return (
-    <section className="mt-5 sm:mt-7">
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Explore</p>
-          <h2 className="mt-1 text-lg font-semibold text-primary-dark">Shop by category</h2>
-        </div>
-        <Link to="/app/buyer/products" className="text-sm font-bold text-primary">
-          View marketplace
-        </Link>
-      </div>
-      <div className="mobile-scroll-row mt-3 flex gap-3 overflow-x-auto pb-2">
-        {isLoading
-          ? [1, 2, 3, 4].map((item) => (
-              <Skeleton key={item} className="h-24 w-36 shrink-0 rounded-2xl" />
-            ))
-          : visible.map((category) => {
-              const code = category.code.toUpperCase();
-              return (
-                <Link
-                  key={category.code}
-                  to={`/app/buyer/products?category=${encodeURIComponent(category.code)}`}
-                  className="group min-w-36 shrink-0 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
-                >
-                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                    {code}
-                  </span>
-                  <p className="mt-2 text-sm font-semibold text-primary-dark">
-                    {categoryNames[code] || category.name}
-                  </p>
-                  <span className="mt-2 flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary">
-                    Shop <ArrowRight className="h-3 w-3" />
-                  </span>
-                </Link>
-              );
-            })}
-      </div>
-    </section>
-  );
+export function BuyerCategoryScroller({ categories, isLoading }: { categories: ProductCategory[]; isLoading?: boolean }) {
+	const visible = categories.length > 0 ? categories.slice(0, 8) : fallbackCategories
+
+	return (
+		<section className="mt-5 sm:mt-7" aria-labelledby="buyer-categories">
+			<div className="flex items-center justify-between gap-3">
+				<h2 id="buyer-categories" className="text-base font-semibold text-primary-dark sm:text-lg">Categories</h2>
+				<Link to="/app/buyer/products" className="shrink-0 text-xs font-bold text-primary sm:text-sm">View all</Link>
+			</div>
+			<div className="mobile-scroll-row mt-2 flex gap-2 overflow-x-auto pb-1">
+				{isLoading
+					? [1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-11 w-28 shrink-0 rounded-full" />)
+					: visible.map((category) => {
+							const code = category.code.toUpperCase()
+							return (
+								<Link
+									key={category.code}
+									to={`/app/buyer/products?category=${encodeURIComponent(category.code)}`}
+									className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs font-bold text-primary-dark transition hover:border-primary/30 hover:bg-primary/5"
+								>
+									<span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary"><Leaf className="h-4 w-4" /></span>
+									{categoryNames[code] || category.name}
+								</Link>
+							)
+						})}
+			</div>
+		</section>
+	)
 }
