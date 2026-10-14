@@ -335,14 +335,14 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
         </nav>
 
         {/* ✅✅ Right side actions */}
-        <div className="hidden items-center gap-2 sm:flex">
+        <div className="flex items-center gap-2">
           {isAuthenticated ? (
             // Authenticated actions
             <>
               {!isAdmin && role === "buyer" && (
                 <Link
                   to="/app/buyer/cart"
-                  className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className="relative hidden rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground sm:block"
                   aria-label="Shopping cart"
                 >
                   <ShoppingBasket className="h-5 w-5" />
@@ -400,7 +400,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                   </div>
                 )}
               </div>
-              <div ref={userMenuRef} className="relative">
+              <div ref={userMenuRef} className="relative hidden sm:block">
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((open) => !open)}
@@ -458,7 +458,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
             </>
           ) : (
             // Guest actions
-            <>
+            <div className="hidden items-center gap-2 sm:flex">
               <Link
                 to="/wishlist"
                 className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -486,7 +486,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
               >
                 Get started
               </Link>
-            </>
+            </div>
           )}
         </div>
 

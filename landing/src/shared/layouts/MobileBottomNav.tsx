@@ -32,7 +32,7 @@ function roleItems(role: string, dashboardPath: string): NavItem[] {
 			{ label: 'Orders', path: '/app/buyer/orders', icon: ShoppingBasket },
 			{ label: 'Shop', path: '/app/buyer/products', icon: Store, primary: true },
 			{ label: 'Saved', path: '/app/buyer/wishlist', icon: Heart },
-			{ label: 'Profile', path: '/app/buyer/profile', icon: UserCircle },
+			{ label: 'Cart', path: '/app/buyer/cart', icon: ShoppingBasket, showBadge: true },
 		]
 	}
 	if (role === 'farmer') {
@@ -89,7 +89,7 @@ export function MobileBottomNav() {
 	return (
 		<nav
 			aria-label="Mobile navigation"
-			className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-soft backdrop-blur-xl md:hidden"
+			className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-soft md:hidden"
 		>
 			<div className="mx-auto grid h-16 max-w-md grid-cols-5 items-end gap-1">
 				{items.map(({ label, path, icon: Icon, primary, showBadge }) => (

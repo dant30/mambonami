@@ -1,4 +1,4 @@
-import { Heart, Search, ShoppingBasket } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../../core/contexts/AuthContext";
@@ -50,40 +50,17 @@ export function BuyerDashboardPage() {
             <p className="mt-2 text-sm leading-6 text-primary-foreground/70 sm:mt-3 sm:text-base sm:leading-7">
               Shop verified local produce and track every order.
             </p>
-            <Link
-              to="/app/buyer/products"
-              className="mt-4 flex min-h-11 items-center gap-3 rounded-xl bg-white px-3 py-3 text-left shadow-lg transition hover:bg-white/95 sm:mt-6 sm:rounded-2xl sm:px-4 sm:py-3.5"
-            >
-              <Search className="h-5 w-5 shrink-0 text-slate-400" />
-              <span className="truncate text-sm text-slate-400">
-                Search produce, suppliers or categories...
-              </span>
-            </Link>
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="mt-4 flex flex-row gap-2 sm:mt-5 sm:flex-wrap sm:gap-3">
               <Link
                 to="/app/buyer/products"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-secondary px-3 py-2.5 text-center text-xs font-bold text-primary-dark sm:px-5 sm:text-sm"
+                className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-2 py-2.5 text-center text-xs font-bold text-primary-dark sm:flex-none sm:px-5 sm:text-sm"
               >
                 <ShoppingBasket className="h-4 w-4" />
-                Browse produce
-              </Link>
-              <Link
-                to="/app/buyer/cart"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/20 px-3 py-2.5 text-center text-xs font-bold text-primary-foreground hover:bg-primary-foreground/10 sm:px-5 sm:text-sm"
-              >
-                <ShoppingBasket className="h-4 w-4" />
-                View cart
-              </Link>
-              <Link
-                to="/app/buyer/wishlist"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/20 px-3 py-2.5 text-center text-xs font-bold text-primary-foreground hover:bg-primary-foreground/10 sm:px-5 sm:text-sm"
-              >
-                <Heart className="h-4 w-4" />
-                Wishlist
+                <span className="truncate">Browse products</span>
               </Link>
               <Link
                 to="/app/buyer/orders"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/20 px-3 py-2.5 text-center text-xs font-bold text-primary-foreground hover:bg-primary-foreground/10 sm:px-5 sm:text-sm"
+                className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-primary-foreground/20 px-2 py-2.5 text-center text-xs font-bold text-primary-foreground hover:bg-primary-foreground/10 sm:flex-none sm:px-5 sm:text-sm"
               >
                 My orders
               </Link>

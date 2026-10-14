@@ -11,8 +11,8 @@ function statusStep(status: string | null | undefined) {
     ["shipped", "in_transit", "out_for_delivery", "transport_assigned", "picked_up"].includes(value)
   )
     return 3;
-  if (["confirmed", "accepted", "paid_escrow"].includes(value)) return 2;
-  return 1;
+  if (["processing", "placed", "paid_escrow"].includes(value)) return 2;
+  return value ? 1 : 2;
 }
 function statusLabel(status: string | null | undefined) {
   const value = String(status || "").toLowerCase();
@@ -21,10 +21,9 @@ function statusLabel(status: string | null | undefined) {
     ["shipped", "in_transit", "out_for_delivery", "transport_assigned", "picked_up"].includes(value)
   )
     return "On the way";
-  if (["confirmed", "accepted", "paid_escrow"].includes(value)) return "Confirmed";
-  return value === "processing" || value === "placed"
-    ? "Preparing"
-    : String(status || "Processing").replaceAll("_", " ");
+  if (["processing", "placed", "paid_escrow"].includes(value)) return "Preparing";
+  if (["confirmed", "accepted"].includes(value)) return "Confirmed";
+  return String(status || "Processing").replaceAll("_", " ");
 }
 
 export function BuyerActiveOrder({
@@ -75,7 +74,7 @@ export function BuyerActiveOrder({
               </p>
             </div>
             <Link
-              to={`/app/buyer/orders/${order.uuid}`}
+              to={`/app/buyer/orders/${order.uuid || order.id}`}
               className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
             >
               Track delivery <ArrowRight className="h-4 w-4" />
