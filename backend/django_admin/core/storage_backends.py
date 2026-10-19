@@ -2,6 +2,19 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage, Storage
 from django.utils.deconstruct import deconstructible
 from storages.backends.s3boto3 import S3Boto3Storage
+from urllib.parse import urlsplit
+
+
+def _normalize_cdn_domain(value):
+    if not value:
+        return None
+
+    value = value.strip()
+    if value.startswith(('https//', 'http//')):
+        scheme, domain = value.split('//', 1)
+        value = f'{scheme}://{domain}'
+    parsed = urlsplit(value if '://' in value else f'//{value}')
+    return parsed.netloc or None
 
 
 class SpacesPublicMediaStorage(S3Boto3Storage):
@@ -10,7 +23,7 @@ class SpacesPublicMediaStorage(S3Boto3Storage):
     endpoint_url = settings.DO_SPACES_ENDPOINT
     access_key = settings.DO_SPACES_PUBLIC_ACCESS_KEY
     secret_key = settings.DO_SPACES_PUBLIC_SECRET_KEY
-    custom_domain = settings.DO_SPACES_CDN_DOMAIN or None
+    custom_domain = _normalize_cdn_domain(settings.DO_SPACES_CDN_DOMAIN)
     url_protocol = 'https:'
     default_acl = 'public-read'
     querystring_auth = False

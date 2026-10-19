@@ -7,10 +7,25 @@ from core.storage_backends import (
     PrivateMediaStorage,
     SpacesPrivateMediaStorage,
     SpacesPublicMediaStorage,
+    _normalize_cdn_domain,
 )
 
 
 class SpacesStoragePolicyTests(SimpleTestCase):
+    def test_cdn_domain_accepts_url_or_hostname(self):
+        self.assertEqual(
+            _normalize_cdn_domain('https://cdn.example.com/media/'),
+            'cdn.example.com',
+        )
+        self.assertEqual(
+            _normalize_cdn_domain('cdn.example.com'),
+            'cdn.example.com',
+        )
+        self.assertEqual(
+            _normalize_cdn_domain('https//cdn.example.com'),
+            'cdn.example.com',
+        )
+
     def test_public_media_is_public_and_not_signed(self):
         self.assertEqual(SpacesPublicMediaStorage.default_acl, 'public-read')
         self.assertFalse(SpacesPublicMediaStorage.querystring_auth)

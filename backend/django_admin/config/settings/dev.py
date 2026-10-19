@@ -7,6 +7,16 @@ ALLOWED_HOSTS = ['*']
 # Development database – optional override (use default from base)
 # DATABASES['default'] = ... (you can use SQLite or local PostgreSQL)
 
+if USE_S3:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'core.storage_backends.SpacesPublicMediaStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
+
 # Show emails in console instead of sending
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
