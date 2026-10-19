@@ -32,20 +32,32 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'https://admin.mambonami.com',
 ])
 
-# User uploads use S3; static assets are collected locally and served by Nginx.
+# Media is stored in S3-compatible DigitalOcean Spaces. Static assets remain
+# local and are served by Nginx; verification documents use a separate private Space.
+if not all((
+    DO_SPACES_PUBLIC_ACCESS_KEY,
+    DO_SPACES_PUBLIC_SECRET_KEY,
+    DO_SPACES_PRIVATE_ACCESS_KEY,
+    DO_SPACES_PRIVATE_SECRET_KEY,
+    DO_SPACES_PUBLIC_BUCKET,
+    DO_SPACES_PRIVATE_BUCKET,
+)):
+    raise RuntimeError(
+        'Production media storage requires separate public/private Spaces keys and buckets.'
+    )
+if DO_SPACES_PUBLIC_BUCKET == DO_SPACES_PRIVATE_BUCKET:
+    raise RuntimeError('Public media and verification documents must use separate Spaces buckets.')
+
+USE_S3 = True
+
 STORAGES = {
     'default': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'BACKEND': 'core.storage_backends.SpacesPublicMediaStorage',
     },
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
-AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default='')
-AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default='eu-west-1')
-AWS_QUERYSTRING_AUTH = True
 
 # Alternatively use WhiteNoise for static files:
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

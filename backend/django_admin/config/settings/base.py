@@ -212,6 +212,18 @@ SIMPLE_JWT = {
 # Storage & cache toggles
 CACHE_TTL = env.int('CACHE_TTL', default=300)
 USE_S3 = env.bool('USE_S3', default=False)
+DO_SPACES_REGION = env('DO_SPACES_REGION', default='nyc3')
+DO_SPACES_ENDPOINT = env(
+    'DO_SPACES_ENDPOINT',
+    default=f'https://{DO_SPACES_REGION}.digitaloceanspaces.com',
+)
+DO_SPACES_PUBLIC_ACCESS_KEY = env('DO_SPACES_PUBLIC_ACCESS_KEY', default='')
+DO_SPACES_PUBLIC_SECRET_KEY = env('DO_SPACES_PUBLIC_SECRET_KEY', default='')
+DO_SPACES_PRIVATE_ACCESS_KEY = env('DO_SPACES_PRIVATE_ACCESS_KEY', default='')
+DO_SPACES_PRIVATE_SECRET_KEY = env('DO_SPACES_PRIVATE_SECRET_KEY', default='')
+DO_SPACES_PUBLIC_BUCKET = env('DO_SPACES_PUBLIC_BUCKET', default='')
+DO_SPACES_PRIVATE_BUCKET = env('DO_SPACES_PRIVATE_BUCKET', default='')
+DO_SPACES_CDN_DOMAIN = env('DO_SPACES_CDN_DOMAIN', default='')
 
 # CORS - allow all for dev; restrict in prod
 CORS_ALLOW_ALL_ORIGINS = True  # override in prod

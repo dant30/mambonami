@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 from shared.db_models.base import BaseModel
 from apps.users.models import User
+from core.storage_backends import PrivateMediaStorage
 
 
 class TripStatus(models.TextChoices):
@@ -104,7 +105,12 @@ class Trip(BaseModel):
 
     # ── Delivery notes ──
     delivery_notes = models.TextField(blank=True)
-    buyer_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    buyer_signature = models.ImageField(
+        upload_to='signatures/',
+        storage=PrivateMediaStorage(),
+        blank=True,
+        null=True,
+    )
 
     # ── Ratings ──
     buyer_rating = models.PositiveSmallIntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
@@ -245,7 +251,7 @@ class TripMedia(BaseModel):
     
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='media')
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPES)
-    image = models.ImageField(upload_to='trips/media/')
+    image = models.ImageField(upload_to='trips/media/', storage=PrivateMediaStorage())
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='trip_media')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
