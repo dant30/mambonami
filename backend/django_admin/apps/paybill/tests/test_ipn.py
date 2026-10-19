@@ -111,6 +111,36 @@ class PayBillSimulationViewTests(TestCase):
 
 
 class C2BCallbackViewTests(TestCase):
+    def setUp(self):
+        self.unique_suffix = datetime.now().strftime('%Y%m%d%H%M%S%f')
+        self.phone = '254712345678'
+        self.account_number = f'ORD-{self.unique_suffix}'
+        self.transaction_code = f'C2B-{self.unique_suffix}'
+        self.buyer = User.objects.create_user(
+            username=f'buyer-c2b-{self.unique_suffix}',
+            phone=self.phone,
+            role=Role.BUYER,
+            password='StrongPass123!',
+        )
+        self.order = Order.objects.create(
+            buyer=self.buyer,
+            total_amount=Decimal('1200.00'),
+            delivery_fee=Decimal('100.00'),
+            platform_commission=Decimal('96.00'),
+            status='placed',
+            account_number=self.account_number,
+            delivery_address='Nairobi',
+            scheduled_date=date.today(),
+            scheduled_time_window='10:00-12:00',
+        )
+        AccountNumberReservation.objects.create(
+            prefix='ORD',
+            related_object_id=self.order.id,
+            related_object_type='Order',
+            account_number=self.account_number,
+            is_used=False,
+        )
+
     def test_validation_callback_returns_success_response(self):
         payload = {
             'TransactionType': 'CustomerPayBillOnline',
@@ -135,17 +165,16 @@ class C2BCallbackViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'].split(';')[0], 'application/xml')
-        self.assertIn('<ResultCode>0</ResultCode>', response.content.decode())
+        self.assertEqual(response.json()['ResultCode'], 0)
 
-    def test_confirmation_callback_returns_success_response(self):
+    def test_confirmation_callback_processes_real_daraja_payload(self):
         payload = {
             'TransactionType': 'CustomerPayBillOnline',
-            'TransID': '1234567891',
-            'TransTime': '20240101120001',
+            'TransID': self.transaction_code,
+            'TransTime': datetime.now().strftime('%Y%m%d%H%M%S'),
             'TransAmount': '1200.00',
             'BusinessShortCode': '4749215',
-            'BillRefNumber': 'ORD-124',
+            'BillRefNumber': self.account_number,
             'InvoiceNumber': '',
             'OrgAccountBalance': '10000.00',
             'ThirdPartyTransID': '',
@@ -162,5 +191,7 @@ class C2BCallbackViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'].split(';')[0], 'application/xml')
-        self.assertIn('<ResultCode>0</ResultCode>', response.content.decode())
+        self.assertEqual(response.json()['ResultCode'], 0)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'paid_escrow')
+        self.assertEqual(self.order.paybill_transaction_code, self.transaction_code)

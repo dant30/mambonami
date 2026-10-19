@@ -2,7 +2,6 @@
 # backend/django_admin/apps/paybill/views/api.py
 import logging
 from django.conf import settings
-from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
@@ -108,14 +107,7 @@ class C2BValidationCallbackView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        response_xml = (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Response>'
-            '<ResultCode>0</ResultCode>'
-            '<ResultDesc>Accepted</ResultDesc>'
-            '</Response>'
-        )
-        return HttpResponse(response_xml, content_type='application/xml')
+        return Response({'ResultCode': 0, 'ResultDesc': 'Accepted'})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -125,14 +117,16 @@ class C2BConfirmationCallbackView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        response_xml = (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Response>'
-            '<ResultCode>0</ResultCode>'
-            '<ResultDesc>Accepted</ResultDesc>'
-            '</Response>'
+        result = IPNHandler.process_callback(request.data)
+        logger.info(
+            'C2B confirmation handled: success=%s order_id=%s message=%s',
+            result.get('success'),
+            result.get('order_id'),
+            result.get('message', 'Processed'),
         )
-        return HttpResponse(response_xml, content_type='application/xml')
+        # The transfer has already completed; acknowledge delivery even when
+        # reconciliation needs manual attention to avoid repeated callbacks.
+        return Response({'ResultCode': 0, 'ResultDesc': 'Accepted'})
 
 
 class PayBillSimulationView(APIView):

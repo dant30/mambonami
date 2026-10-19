@@ -285,6 +285,7 @@ class IPNHandler:
         # Map common field variations
         field_mapping = {
             'TransactionCode': 'transaction_code',
+            'TransID': 'transaction_code',
             'Amount': 'amount',
             'TransAmount': 'amount',  # alternative
             'AccountNumber': 'account_number',
@@ -293,6 +294,7 @@ class IPNHandler:
             'MSISDN': 'sender_phone',
             'Time': 'trans_time',
             'TransactionTime': 'trans_time',
+            'TransTime': 'trans_time',
             'FirstName': 'first_name',
             'MiddleName': 'middle_name',
             'LastName': 'last_name',
