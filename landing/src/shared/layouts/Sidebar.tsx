@@ -91,6 +91,7 @@ export function Sidebar({ admin = false, mobileDrawer = false, onItemClick, onCl
 
 	return (
 		<aside
+			id={mobileDrawer ? 'mobile-navigation' : undefined}
 			className={
 				mobileDrawer
 					? 'flex h-full min-h-full w-full flex-col overflow-hidden bg-background p-4 text-foreground'

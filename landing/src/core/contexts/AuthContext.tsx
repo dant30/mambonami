@@ -23,6 +23,7 @@ export interface AuthUser {
 	id?: string | number
 	phone?: string
 	email?: string
+	avatar_url?: string | null
 	first_name?: string
 	last_name?: string
 	role?: string

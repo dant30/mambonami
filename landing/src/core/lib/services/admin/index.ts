@@ -18,6 +18,7 @@ export {
 	resolveAdminDispute,
 	startAdminDisputeReview,
 	suspendAdminUser,
+	updateAdminUser,
 	updateAdminStaff,
 	updateAdminSecurityEvent,
 } from './adminService'

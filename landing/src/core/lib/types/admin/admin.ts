@@ -14,6 +14,7 @@ export interface AdminUser {
 	last_name?: string
 	full_name?: string
 	display_name?: string
+	avatar_url?: string | null
 	role: AdminRole | string
 	email?: string
 	is_active: boolean

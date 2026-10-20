@@ -1,9 +1,17 @@
-import { Button } from '../../../../../shared/components/ui/Button'
+import { ShieldCheck, ShieldOff } from 'lucide-react'
 import type { AdminUser } from '../../../../../core/lib/types/admin'
 
-export function UserStatusAction({ user, busy, onToggle }: { user: AdminUser; busy: boolean; onToggle: () => void }) {
-	const protectedAccount = user.is_superuser
-	return <Button size="sm" variant={user.is_active ? 'danger' : 'outline'} disabled={busy || protectedAccount} onClick={onToggle}>
-		{busy ? 'Saving' : protectedAccount ? 'Superuser' : user.is_active ? 'Suspend' : 'Activate'}
-	</Button>
+export function UserStatusAction({ user, busy, disabled = false, onToggle }: { user: AdminUser; busy: boolean; disabled?: boolean; onToggle: () => void }) {
+	const action = user.is_active ? 'Suspend' : 'Activate'
+	const Icon = user.is_active ? ShieldOff : ShieldCheck
+	return <button
+		type="button"
+		aria-label={`${action} ${user.display_name || user.phone}`}
+		title={busy ? 'Saving status' : action}
+		disabled={busy || disabled}
+		onClick={onToggle}
+		className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+	>
+		<Icon className="h-4 w-4" aria-hidden="true" />
+	</button>
 }

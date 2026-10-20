@@ -6,7 +6,6 @@ import {
   LogOut,
   Menu,
   ShoppingBasket,
-  UserCircle,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +15,7 @@ import { useAuth } from "../../core/contexts/AuthContext";
 import { useIsMobile } from "../../core/hooks";
 import { useNotifications } from "../../core/lib";
 import { getRoleNotificationsPath } from "../../core/utils/roleRoutes";
-import { CartCountBadge } from "../components/ui";
+import { Avatar, CartCountBadge } from "../components/ui";
 
 /**
  * ✅✅ ROLE-SPECIFIC HEADERS:
@@ -28,10 +27,15 @@ import { CartCountBadge } from "../components/ui";
  * Retailer: Dashboard, Shop, Orders, Suppliers, Purchases | Search, Notifications, Profile
  * Transport: Dashboard, Jobs, Active, Vehicles | Availability, Notifications, Profile
  */
-export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
+export function Header({
+  onMenuToggle,
+  mobileMenuOpen = false,
+}: {
+  onMenuToggle?: () => void;
+  mobileMenuOpen?: boolean;
+}) {
   const { isAuthenticated, user, logout } = useAuth();
   const isMobile = useIsMobile();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -72,6 +76,7 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const displayName = String(
     user?.first_name || user?.username || user?.phone || "MAMBONAMI member",
   );
+  const avatarUrl = typeof user?.avatar_url === "string" ? user.avatar_url : null;
   useEffect(() => {
     if (!notificationsOpen && !userMenuOpen) return;
     const closeOnOutsideClick = (event: MouseEvent) => {
@@ -86,7 +91,6 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setMenuOpen(false);
         setUserMenuOpen(false);
         setNotificationsOpen(false);
       }
@@ -403,20 +407,27 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
                   </div>
                 )}
               </div>
-              <div ref={userMenuRef} className="relative hidden sm:block">
+              <div ref={userMenuRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => setUserMenuOpen((open) => !open)}
-                  className="flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5 text-sm font-semibold"
-                  aria-expanded={userMenuOpen}
-                  aria-controls="user-menu"
+                  onClick={() => {
+                    if (isMobile) {
+                      onMenuToggle?.();
+                      return;
+                    }
+                    setUserMenuOpen((open) => !open);
+                  }}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card p-1.5 text-sm font-semibold hover:bg-muted sm:w-auto sm:gap-2 sm:px-2 sm:py-1.5"
+                  aria-label={isMobile ? "Open account navigation" : `Open ${displayName} menu`}
+                  aria-expanded={isMobile ? mobileMenuOpen : userMenuOpen}
+                  aria-controls={isMobile ? "mobile-navigation" : "user-menu"}
                   aria-haspopup="menu"
                 >
-                  <UserCircle className="h-5 w-5 text-primary" />
-                  <span className="max-w-28 truncate">{displayName}</span>
-                  <ChevronDown className="h-4 w-4" />
+                  <Avatar src={avatarUrl} name={displayName} size="sm" />
+                  <span className="hidden max-w-28 truncate sm:inline">{displayName}</span>
+                  <ChevronDown className="hidden h-4 w-4 sm:block" />
                 </button>
-                {userMenuOpen && (
+                {!isMobile && userMenuOpen && (
                   <div
                     id="user-menu"
                     role="menu"
@@ -494,19 +505,18 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
         </div>
 
         {/* ✅✅ Mobile menu toggle */}
-        <button
-          type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border md:hidden"
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-navigation"
-          onClick={() => {
-            setMenuOpen((open) => !open);
-            onMenuToggle?.();
-          }}
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {!isAuthenticated && (
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-border md:hidden"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            onClick={onMenuToggle}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        )}
       </div>
 
       {/* ✅✅ Mobile menu */}
