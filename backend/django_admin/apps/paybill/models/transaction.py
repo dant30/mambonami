@@ -97,6 +97,12 @@ class PayBillTransaction(BaseModel):
         default=0,
         help_text="Float balance after this transaction"
     )
+    remaining_allocated_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Unrefunded amount allocated to orders or other purposes",
+    )
     notes = models.TextField(blank=True)
 
     class Meta:

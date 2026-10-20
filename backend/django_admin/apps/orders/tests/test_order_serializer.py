@@ -1,11 +1,13 @@
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
 from rest_framework.exceptions import ValidationError
 
 from apps.orders.serializers import OrderCreateSerializer
-from apps.products.models import Product, ProductCategory
+from apps.products.models import BulkPriceTier, Product, ProductCategory
+from apps.products.services.pricing import resolve_unit_price
 from apps.users.models import FarmerProfile, User
 
 
@@ -44,7 +46,20 @@ class DuplicateCartLineTests(TestCase):
             harvest_date=date.today(),
         )
 
-    def test_duplicate_product_lines_are_merged_before_grouping(self):
+    @patch('apps.products.signals.RedisCache.delete')
+    def test_duplicate_product_lines_use_coalesced_quantity_tier(self, _delete_cache):
+        BulkPriceTier.objects.create(
+            product=self.product,
+            buyer_role='any',
+            minimum_quantity=Decimal('6.00'),
+            unit_price=Decimal('45.00'),
+        )
+        BulkPriceTier.objects.create(
+            product=self.product,
+            buyer_role='any',
+            minimum_quantity=Decimal('12.00'),
+            unit_price=Decimal('38.00'),
+        )
         serializer = OrderCreateSerializer(data={
             'delivery_address': 'Near farm',
             'delivery_lat': '1.000000',
@@ -62,3 +77,7 @@ class DuplicateCartLineTests(TestCase):
         self.assertEqual(serializer.validated_data['items'][0]['quantity'], Decimal('12.00'))
         grouped_items = next(iter(serializer.validated_data['grouped_products'].values()))
         self.assertEqual(grouped_items[0]['quantity'], Decimal('12.00'))
+        self.assertEqual(
+            resolve_unit_price(self.product, self.buyer.role, grouped_items[0]['quantity']),
+            Decimal('38.00'),
+        )

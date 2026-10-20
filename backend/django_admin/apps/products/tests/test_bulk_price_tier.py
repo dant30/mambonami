@@ -1,5 +1,5 @@
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -54,3 +54,27 @@ class BulkPriceTierTests(TestCase):
         self.assertEqual(resolve_unit_price(self.product, 'retailer', Decimal('12')), Decimal('38.00'))
         self.assertEqual(resolve_unit_price(self.product, 'buyer', Decimal('6')), Decimal('45.00'))
         self.assertEqual(resolve_unit_price(self.product, 'buyer', Decimal('5')), Decimal('50.00'))
+
+    @patch('apps.products.signals.RedisCache.delete')
+    def test_three_units_use_per_unit_half_up_rounding(self, _delete_cache):
+        """A 5% fixed-tier equivalent rounds per unit: KES 31.66 x 3 = KES 94.98."""
+        undiscounted_price = Decimal('33.33')
+        fixed_tier_price = (undiscounted_price * Decimal('0.95')).quantize(
+            Decimal('0.01'),
+            rounding=ROUND_HALF_UP,
+        )
+        BulkPriceTier.objects.create(
+            product=self.product,
+            buyer_role='any',
+            minimum_quantity=Decimal('3.00'),
+            unit_price=fixed_tier_price,
+        )
+
+        unit_price = resolve_unit_price(self.product, 'buyer', Decimal('3.00'))
+        line_total = (unit_price * Decimal('3.00')).quantize(
+            Decimal('0.01'),
+            rounding=ROUND_HALF_UP,
+        )
+
+        self.assertEqual(unit_price, Decimal('31.66'))
+        self.assertEqual(line_total, Decimal('94.98'))

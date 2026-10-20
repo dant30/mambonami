@@ -27,7 +27,7 @@ def complete_order_payment(*, order_id: int, transaction_code: str) -> tuple[Pay
     elif order.status not in {'paid_escrow', 'transport_assigned', 'picked_up', 'delivered', 'disputed'}:
         raise PaymentCompletionError(f'An order with status {order.status} cannot be paid.')
 
-    allocation, _ = PaymentAllocation.objects.get_or_create(
+    allocation, allocation_created = PaymentAllocation.objects.get_or_create(
         transaction=payment,
         order=order,
         allocation_type='order',
@@ -38,5 +38,9 @@ def complete_order_payment(*, order_id: int, transaction_code: str) -> tuple[Pay
 
     payment.matched_order = order
     payment.status = 'matched'
-    payment.save(update_fields=['matched_order', 'status'])
+    update_fields = ['matched_order', 'status']
+    if allocation_created:
+        payment.remaining_allocated_amount = payment.amount
+        update_fields.append('remaining_allocated_amount')
+    payment.save(update_fields=update_fields)
     return payment, order

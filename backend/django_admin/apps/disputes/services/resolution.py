@@ -3,7 +3,8 @@ import logging
 from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
-from apps.payouts.services.payout_service import create_payout, _execute_payout
+from apps.payouts.services.payout_service import _execute_payout
+from apps.paybill.models import PayBillTransaction, PaymentAllocation
 from apps.paybill.services.reconciliation import get_estimated_float_balance
 from core.exceptions import FloatInsufficientError
 from ..models import Dispute
@@ -31,11 +32,9 @@ def resolve_dispute(dispute: Dispute, resolution_data: dict, admin_user) -> Disp
         _apply_refund(dispute)
         _apply_penalty(dispute)
 
-        # If dispute is resolved and order still has escrow, release remaining to farmer/provider
-        _release_remaining_escrow(dispute)
-
     return dispute
 
+@transaction.atomic
 def _apply_refund(dispute: Dispute):
     """Refund buyer via B2C from float."""
     if dispute.refund_amount > 0:
@@ -43,6 +42,24 @@ def _apply_refund(dispute: Dispute):
         balance = get_estimated_float_balance()
         if balance < dispute.refund_amount:
             raise FloatInsufficientError("Cannot refund: float insufficient")
+        payment = PayBillTransaction.objects.select_for_update().filter(
+            transaction_code=dispute.order.paybill_transaction_code,
+            matched_order=dispute.order,
+        ).first()
+        if payment is None:
+            raise ValueError('Cannot refund an order without its matched payment transaction.')
+        if payment.remaining_allocated_amount < dispute.refund_amount:
+            raise ValueError('Refund exceeds the order payment amount remaining in escrow.')
+
+        PaymentAllocation.objects.create(
+            transaction=payment,
+            order=dispute.order,
+            allocation_type='refund',
+            amount=-dispute.refund_amount,
+        )
+        payment.remaining_allocated_amount -= dispute.refund_amount
+        payment.save(update_fields=['remaining_allocated_amount', 'updated_at'])
+
         # Create a payout for refund (recipient_type = 'buyer_refund')
         from apps.payouts.models import Payout
         refund_payout = Payout.objects.create(
@@ -61,12 +78,3 @@ def _apply_penalty(dispute: Dispute):
         # Store penalty in user profile or separate Penalty model for deduction
         # For MVP, just log. In real system, create a Penalty record.
         logger.info(f"Penalty {dispute.penalty_amount} applied to user {dispute.penalty_user.id}")
-
-def _release_remaining_escrow(dispute: Dispute):
-    """If dispute is resolved and order not fully settled, release remaining funds."""
-    # Check if order's remaining escrow needs to be released to farmer/provider
-    # This depends on your order state machine. For MVP, we can trigger a payout service.
-    from apps.payouts.services.payout_service import release_payment
-    # Only release if order not already fully paid
-    if dispute.order.status != 'delivered':
-        release_payment(dispute.order.id)

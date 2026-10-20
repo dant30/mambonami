@@ -1,8 +1,10 @@
 ﻿import json
 from datetime import date, datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase
+from django.utils import timezone
 from django.urls import reverse
 
 from apps.orders.models import Order
@@ -69,6 +71,7 @@ class PayBillSimulationViewTests(TestCase):
         complete_order_payment(order_id=self.order.id, transaction_code=self.transaction_code)
         complete_order_payment(order_id=self.order.id, transaction_code=self.transaction_code)
         payment = PayBillTransaction.objects.get(transaction_code=self.transaction_code)
+        self.assertEqual(payment.remaining_allocated_amount, Decimal('1200.00'))
         self.assertEqual(
             PaymentAllocation.objects.filter(
                 transaction=payment,
@@ -77,6 +80,33 @@ class PayBillSimulationViewTests(TestCase):
             ).count(),
             1,
         )
+
+    @patch('apps.paybill.services.payment_service.Order.mark_paid')
+    def test_payment_completion_does_not_restore_refunded_escrow_on_retry(self, _mark_paid):
+        payment = PayBillTransaction.objects.create(
+            transaction_code=f'IDEMPOTENT-{self.unique_suffix}',
+            amount=Decimal('1200.00'),
+            account_number=self.account_number,
+            sender_phone=self.phone,
+            transaction_time=timezone.now(),
+            status='matched',
+            matched_order=self.order,
+        )
+        complete_order_payment(order_id=self.order.id, transaction_code=payment.transaction_code)
+        payment.refresh_from_db()
+        PaymentAllocation.objects.create(
+            transaction=payment,
+            order=self.order,
+            allocation_type='refund',
+            amount=Decimal('-200.00'),
+        )
+        payment.remaining_allocated_amount = Decimal('1000.00')
+        payment.save(update_fields=['remaining_allocated_amount'])
+
+        complete_order_payment(order_id=self.order.id, transaction_code=payment.transaction_code)
+
+        payment.refresh_from_db()
+        self.assertEqual(payment.remaining_allocated_amount, Decimal('1000.00'))
 
     def test_cancelled_stk_callback_marks_attempt_failed_and_acknowledges_callback(self):
         stk_request = StkPushRequest.objects.create(

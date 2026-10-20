@@ -1,8 +1,9 @@
 ﻿# backend/django_admin/apps/payouts/services/payout_service.py
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
 from django.utils import timezone
 from apps.paybill.services.reconciliation import get_estimated_float_balance
+from apps.paybill.models import PayBillTransaction, PaymentAllocation
 from core.exceptions import FloatInsufficientError
 from ..models import Payout
 from .b2c_client import SafaricomB2CClient
@@ -37,27 +38,54 @@ def release_payment(order_id: int):
 
     payouts_to_execute = []
     with transaction.atomic():
-        order = Order.objects.select_for_update().select_related('trip', 'trip__provider__user').get(id=order_id)
+        order = Order.objects.select_for_update(of=('self',)).select_related(
+            'trip', 'trip__provider__user'
+        ).get(id=order_id)
         if order.status != 'delivered':
             logger.warning('Order %s is not delivered; payout release skipped', order_id)
             return
         if not OrderStateMachine.has_successful_payment(order):
             raise ValueError(f'Order {order_id} has no reconciled payment allocation.')
 
+        payment = PayBillTransaction.objects.select_for_update().get(
+            transaction_code=order.paybill_transaction_code,
+            matched_order=order,
+        )
+        remaining_amount = payment.remaining_allocated_amount
+        if remaining_amount < 0:
+            raise ValueError(f'Order {order_id} has a negative remaining escrow allocation.')
+        base_allocation = PaymentAllocation.objects.get(
+            transaction=payment,
+            order=order,
+            allocation_type='order',
+        )
+        if base_allocation.amount <= 0:
+            raise ValueError(f'Order {order_id} has an invalid base payment allocation.')
+        payout_ratio = remaining_amount / base_allocation.amount
+
         sub_orders = order.sub_orders.select_related('farmer__user').all()
-        payout_total = sum((sub_order.farmer_payout for sub_order in sub_orders), Decimal('0'))
+        farmer_payouts = [
+            (
+                sub_order,
+                (sub_order.farmer_payout * payout_ratio).quantize(
+                    Decimal('0.01'), rounding=ROUND_HALF_UP
+                ),
+            )
+            for sub_order in sub_orders
+        ]
         trip = getattr(order, 'trip', None)
         provider_amount = Decimal('0')
         if trip and trip.provider:
-            provider_amount = (trip.agreed_fee + trip.waiting_surcharge) * Decimal('0.80')
-        total_payout = payout_total + provider_amount
+            provider_amount = (trip.provider_payout * payout_ratio).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+        total_payout = sum((amount for _, amount in farmer_payouts), Decimal('0')) + provider_amount
         balance = get_estimated_float_balance()
         if balance < total_payout:
             logger.critical('Low float balance for order %s: %s < %s', order_id, balance, total_payout)
             raise FloatInsufficientError('PayBill float insufficient for payout')
 
-        for sub_order in sub_orders:
-            amount = sub_order.farmer_payout
+        for sub_order, amount in farmer_payouts:
             if amount <= 0:
                 continue
             payout, created = Payout.objects.get_or_create(

@@ -91,7 +91,7 @@ def calculate_waiting_surcharge(
     extra_minutes = waiting_minutes - provider.waiting_grace_minutes
     surcharge = Decimal(str(extra_minutes)) * provider.waiting_rate_per_min
     
-    return surcharge.quantize(Decimal('0.01'), rounding=ROUND_UP)
+    return surcharge.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 
 def get_default_rates_for_vehicle_type(vehicle_type: str) -> Dict[str, Any]:
@@ -256,14 +256,14 @@ def calculate_total_for_buyer(
     provider_payout = buyer_total - commission
     
     return {
-        'base_fee': base_fee.quantize(Decimal('0.01')),
-        'distance_fee': base_fee.quantize(Decimal('0.01')),  # alias
-        'weight_fee': weight_fee.quantize(Decimal('0.01')),
-        'waiting_fee': waiting_fee.quantize(Decimal('0.01')),
-        'surge_fee': surge_fee.quantize(Decimal('0.01')),
-        'commission': commission.quantize(Decimal('0.01')),
-        'provider_payout': provider_payout.quantize(Decimal('0.01')),
-        'platform_fee': platform_fee.quantize(Decimal('0.01')),
-        'buyer_total': buyer_total.quantize(Decimal('0.01')),
+        'base_fee': base_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'distance_fee': base_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),  # alias
+        'weight_fee': weight_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'waiting_fee': waiting_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'surge_fee': surge_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'commission': commission.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'provider_payout': provider_payout.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'platform_fee': platform_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        'buyer_total': buyer_total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
         'is_peak_hour': peak,
     }

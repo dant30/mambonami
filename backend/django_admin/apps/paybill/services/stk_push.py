@@ -19,6 +19,16 @@ class StkPushError(Exception):
     pass
 
 
+FRIENDLY_STK_ERRORS = {
+    '2029': 'M-Pesa could not complete this payment request. Please try again or use PayBill.',
+}
+
+
+def _friendly_stk_message(result_code, result_description: str) -> str:
+    """Return a user-safe message while leaving provider details in the callback payload."""
+    return FRIENDLY_STK_ERRORS.get(str(result_code), result_description or 'M-Pesa payment failed. Please try again or use PayBill.')
+
+
 def normalize_ke_phone(value: str) -> str:
     digits = re.sub(r'\D', '', value or '')
     if digits.startswith('0') and len(digits) == 10:
@@ -144,19 +154,23 @@ def process_stk_callback(payload: dict) -> dict:
         return {'success': True, 'message': 'Already processed'}
 
     result_code = callback.get('ResultCode')
+    raw_result_description = str(callback.get('ResultDesc', ''))
     push_request.callback_payload = payload
     push_request.result_code = int(result_code) if result_code is not None else None
-    push_request.result_description = str(callback.get('ResultDesc', ''))[:2000]
 
     if str(result_code) != '0':
         push_request.status = StkPushRequest.Status.FAILED
+        push_request.result_description = _friendly_stk_message(
+            result_code,
+            raw_result_description,
+        )[:2000]
         push_request.save(update_fields=['callback_payload', 'result_code', 'result_description', 'status', 'updated_at'])
         logger.warning(
             'STK payment failed for order %s (checkout %s): result code %s (%s)',
             push_request.order_id,
             checkout_id,
             result_code,
-            push_request.result_description,
+            raw_result_description,
         )
         return {'success': False, 'message': push_request.result_description, 'order_id': None}
 
