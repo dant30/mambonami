@@ -1,4 +1,5 @@
 export type {
+	FulfillmentType,
 	CartItem,
 	CartItemInput,
 	CartSummary,

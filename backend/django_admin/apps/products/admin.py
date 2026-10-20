@@ -1,6 +1,6 @@
 ﻿# backend/django_admin/apps/products/admin.py
 from django.contrib import admin
-from .models import ProductCategory, Product
+from .models import BulkPriceTier, ProductCategory, Product
 
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
@@ -30,3 +30,10 @@ class ProductAdmin(admin.ModelAdmin):
         ('Status', {'fields': ('is_active',)}),
         ('System', {'fields': ('uuid', 'created_at', 'updated_at')}),
     )
+
+
+@admin.register(BulkPriceTier)
+class BulkPriceTierAdmin(admin.ModelAdmin):
+    list_display = ('product', 'buyer_role', 'minimum_quantity', 'unit_price', 'is_active')
+    list_filter = ('buyer_role', 'is_active')
+    search_fields = ('product__name', 'product__sku')

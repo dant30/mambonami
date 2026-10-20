@@ -41,6 +41,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'uuid', 'buyer', 'buyer_phone', 'buyer_name',
+            'fulfillment_type',
             'total_amount', 'delivery_fee', 'platform_commission',
             'promo_code', 'discount_amount',
             'status', 'account_number', 'delivery_address',
@@ -78,13 +79,18 @@ class OrderSerializer(serializers.ModelSerializer):
         return ", ".join(items[:3])
 
 class OrderCreateSerializer(serializers.Serializer):
+    fulfillment_type = serializers.ChoiceField(
+        choices=Order.FULFILLMENT_CHOICES,
+        required=False,
+        default='delivery',
+    )
     delivery_address = serializers.CharField(required=False, allow_blank=True)
     delivery_street = serializers.CharField(required=False, allow_blank=True, max_length=200)
     delivery_city = serializers.CharField(required=False, allow_blank=True, max_length=100)
     delivery_postal_code = serializers.CharField(required=False, allow_blank=True, max_length=20)
     delivery_landmark = serializers.CharField(required=False, allow_blank=True, max_length=200)
-    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6)
-    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6)
+    delivery_lat = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    delivery_lng = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
     scheduled_date = serializers.DateField()
     scheduled_time_window = serializers.CharField(max_length=50)
     payment_method = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
@@ -97,21 +103,44 @@ class OrderCreateSerializer(serializers.Serializer):
         return value
 
     def validate_delivery_lat(self, value):
+        if value is None:
+            return value
         if value < Decimal('-12.0') or value > Decimal('5.0'):
             raise serializers.ValidationError("Delivery latitude is out of expected bounds.")
         return value
 
     def validate_delivery_lng(self, value):
+        if value is None:
+            return value
         if value < Decimal('34.0') or value > Decimal('42.0'):
             raise serializers.ValidationError("Delivery longitude is out of expected bounds.")
         return value
 
     def validate(self, attrs):
         attrs['delivery_landmark'] = (attrs.get('delivery_landmark') or '').strip()
+        if attrs['fulfillment_type'] == 'delivery':
+            if attrs.get('delivery_lat') is None or attrs.get('delivery_lng') is None:
+                raise serializers.ValidationError({
+                    'delivery_location': 'Choose a delivery point on the map.'
+                })
+        coalesced_items = {}
+        for item in attrs['items']:
+            product_uuid = item['product_uuid']
+            if product_uuid in coalesced_items:
+                coalesced_items[product_uuid]['quantity'] += item['quantity']
+            else:
+                coalesced_items[product_uuid] = dict(item)
+        attrs['items'] = list(coalesced_items.values())
+
         product_uuids = [item['product_uuid'] for item in attrs['items']]
-        products = Product.objects.filter(uuid__in=product_uuids, is_active=True)
+        products = Product.objects.filter(uuid__in=product_uuids, is_active=True).select_related('farmer__user')
         if len(products) != len(product_uuids):
             raise serializers.ValidationError("One or more products are invalid or inactive.")
+
+        request = self.context.get('request')
+        buyer_id = getattr(getattr(request, 'user', None), 'pk', None)
+        if buyer_id is not None and any(product.farmer.user_id == buyer_id for product in products):
+            raise serializers.ValidationError({'items': 'You cannot purchase your own products.'})
         
         product_lookup = {p.uuid: p for p in products}
         farmer_map = {}
@@ -124,7 +153,7 @@ class OrderCreateSerializer(serializers.Serializer):
             farmer_map[prod.farmer_id] = farmer_products
         attrs['grouped_products'] = farmer_map
 
-        if not attrs.get('delivery_address'):
+        if attrs['fulfillment_type'] == 'delivery' and not attrs.get('delivery_address'):
             street = attrs.get('delivery_street', '').strip()
             city = attrs.get('delivery_city', '').strip()
             postal_code = attrs.get('delivery_postal_code', '').strip()

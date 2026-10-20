@@ -12,6 +12,7 @@ Supports:
 
 from decimal import Decimal, ROUND_UP, ROUND_HALF_UP
 from typing import Optional, Dict, Any
+from django.conf import settings
 from django.utils import timezone
 
 
@@ -21,6 +22,7 @@ def calculate_delivery_fee(
     provider,  # TransportProviderProfile instance
     waiting_minutes: int = 0,
     is_peak_hour: bool = False,
+    fulfillment_type: str = 'delivery',
 ) -> Decimal:
     """
     Calculate total delivery fee for a provider.
@@ -39,6 +41,9 @@ def calculate_delivery_fee(
         fee = (distance * base_rate) + weight_penalty + waiting_surcharge + surge
         rounded up to nearest 5 KES
     """
+    if fulfillment_type == 'self_pickup':
+        return Decimal('0.00')
+
     fee = Decimal('0')
     
     # 1. Distance component (base rate)
@@ -63,7 +68,7 @@ def calculate_delivery_fee(
     # 5. Round up to nearest 5 KES (easier for cash transactions)
     fee_rounded = (fee / Decimal('5')).quantize(Decimal('1'), rounding=ROUND_UP) * Decimal('5')
     
-    return fee_rounded
+    return max(fee_rounded, Decimal(str(settings.MIN_DELIVERY_FEE_KES)))
 
 
 def calculate_waiting_surcharge(
@@ -136,7 +141,8 @@ def estimate_fee(
     total_weight_kg: float,
     vehicle_type: str = 'motorcycle',
     capacity_kg: int = None,
-    is_peak_hour: bool = False
+    is_peak_hour: bool = False,
+    fulfillment_type: str = 'delivery',
 ) -> Decimal:
     """
     Estimate delivery fee without a provider instance (for frontend preview).
@@ -163,7 +169,7 @@ def estimate_fee(
     provider = ProviderStub(vehicle_type, capacity_kg)
     return calculate_delivery_fee(
         distance_km, total_weight_kg, provider,
-        waiting_minutes=0, is_peak_hour=is_peak_hour
+        waiting_minutes=0, is_peak_hour=is_peak_hour, fulfillment_type=fulfillment_type
     )
 
 
@@ -199,6 +205,21 @@ def calculate_total_for_buyer(
                    surge_fee, commission, provider_payout, platform_fee, buyer_total
     """
     from decimal import Decimal
+
+    if getattr(order, 'fulfillment_type', 'delivery') == 'self_pickup':
+        zero = Decimal('0.00')
+        return {
+            'base_fee': zero,
+            'distance_fee': zero,
+            'weight_fee': zero,
+            'waiting_fee': zero,
+            'surge_fee': zero,
+            'commission': zero,
+            'provider_payout': zero,
+            'platform_fee': zero,
+            'buyer_total': zero,
+            'is_peak_hour': False,
+        }
     
     # Calculate base fee
     base_fee = Decimal(str(distance_km)) * provider.base_rate_per_km
@@ -224,7 +245,10 @@ def calculate_total_for_buyer(
     
     # Total before commission
     buyer_total = base_fee + weight_fee + waiting_fee + surge_fee
-    buyer_total = (buyer_total / Decimal('5')).quantize(Decimal('1'), rounding=ROUND_UP) * Decimal('5')
+    buyer_total = max(
+        (buyer_total / Decimal('5')).quantize(Decimal('1'), rounding=ROUND_UP) * Decimal('5'),
+        Decimal(str(settings.MIN_DELIVERY_FEE_KES)),
+    )
     
     # Commission (20% of buyer_total)
     commission = buyer_total * Decimal('0.20')

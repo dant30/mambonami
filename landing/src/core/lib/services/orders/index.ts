@@ -2,6 +2,7 @@ export {
 	addToCart,
 	buildCreateOrderInputFromCart,
 	clearCart,
+	confirmSelfPickup,
 	confirmFarmerSubOrder,
 	createOrder,
 	getActiveOrder,

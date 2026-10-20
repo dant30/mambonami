@@ -73,13 +73,14 @@ export function buildCreateOrderInputFromCart(
 	const today = new Date().toISOString().slice(0, 10)
 
 	return {
+		fulfillment_type: overrides.fulfillment_type ?? 'delivery',
 		delivery_address: overrides.delivery_address ?? '',
 		delivery_street: overrides.delivery_street ?? '',
 		delivery_city: overrides.delivery_city ?? '',
 		delivery_postal_code: overrides.delivery_postal_code ?? '',
 		delivery_landmark: overrides.delivery_landmark ?? '',
-		delivery_lat: overrides.delivery_lat ?? 0,
-		delivery_lng: overrides.delivery_lng ?? 0,
+		delivery_lat: overrides.delivery_lat,
+		delivery_lng: overrides.delivery_lng,
 		scheduled_date: overrides.scheduled_date ?? today,
 		scheduled_time_window: overrides.scheduled_time_window ?? '09:00-12:00',
 		payment_method: overrides.payment_method ?? null,
@@ -90,6 +91,10 @@ export function buildCreateOrderInputFromCart(
 
 export function getOrder(uuid: string): Promise<Order> {
 	return apiClient.get<Order>(ORDER_ENDPOINTS.detail(uuid))
+}
+
+export function confirmSelfPickup(uuid: string): Promise<Order> {
+	return apiClient.post<Order>(ORDER_ENDPOINTS.confirmSelfPickup(uuid))
 }
 
 export function getActiveOrder(): Promise<Order | null> {

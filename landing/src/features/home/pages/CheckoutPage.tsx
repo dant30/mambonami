@@ -20,6 +20,7 @@ export function CheckoutPage() {
 	const [city, setCity] = useState('Nairobi')
 	const [timeWindow, setTimeWindow] = useState('09:00-12:00')
 	const [deliveryLocation, setDeliveryLocation] = useState<Coordinates | null>(null)
+	const [fulfillmentType, setFulfillmentType] = useState<'delivery' | 'self_pickup'>('delivery')
 	const [payment, setPayment] = useState<CreateOrderResponse | null>(null)
 	const [paymentOrder, setPaymentOrder] = useState<Order | null>(null)
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -40,12 +41,12 @@ export function CheckoutPage() {
 	}
 	const submit = async (event: React.FormEvent) => {
 		event.preventDefault(); setError('')
-		if (!deliveryLocation) { setError('Choose your delivery point on the map before placing the order.'); return }
+		if (fulfillmentType === 'delivery' && !deliveryLocation) { setError('Choose your delivery point on the map before placing the order.'); return }
 		setIsSubmitting(true)
 		try {
-			const result = await createOrder(buildCreateOrderInputFromCart(items, { delivery_address: address, delivery_city: city, scheduled_time_window: timeWindow, delivery_lat: deliveryLocation.latitude, delivery_lng: deliveryLocation.longitude, payment_method: 'mpesa_paybill' }))
+			const result = await createOrder(buildCreateOrderInputFromCart(items, { fulfillment_type: fulfillmentType, delivery_address: fulfillmentType === 'delivery' ? address : '', delivery_city: fulfillmentType === 'delivery' ? city : '', scheduled_time_window: timeWindow, delivery_lat: deliveryLocation?.latitude, delivery_lng: deliveryLocation?.longitude, payment_method: 'mpesa_paybill' }))
 			setPayment(result)
-			setPaymentOrder({ id: result.id, uuid: result.uuid, buyer: 0, total_amount: result.total_amount, delivery_fee: result.delivery_fee, platform_commission: result.platform_commission, discount_amount: result.discount_amount, status: 'placed', sub_orders: [], scheduled_date: new Date().toISOString().slice(0, 10), scheduled_time_window: timeWindow, created_at: new Date().toISOString() })
+			setPaymentOrder({ id: result.id, uuid: result.uuid, buyer: 0, fulfillment_type: fulfillmentType, total_amount: result.total_amount, delivery_fee: result.delivery_fee, platform_commission: result.platform_commission, discount_amount: result.discount_amount, status: 'placed', sub_orders: [], scheduled_date: new Date().toISOString().slice(0, 10), scheduled_time_window: timeWindow, created_at: new Date().toISOString() })
 			if (user?.phone) {
 				setNotice('Sending an M-Pesa prompt to your account phone...')
 				setIsSendingPrompt(true)
@@ -133,7 +134,52 @@ export function CheckoutPage() {
 	if (items.length === 0 && !payment) return <Navigate to="/app/buyer/cart" replace />
 	const promptBlocksRetry = ['initiating', 'pending', 'succeeded'].includes(paymentOrder?.stk_payment_status || '')
 	if (payment) return <><PaymentStep payment={payment} paymentOrder={paymentOrder} isChecking={isChecking} error={error} notice={notice} onCopy={copy} onCheck={() => void checkPayment()} />{!isPaid(paymentOrder?.status) && !promptBlocksRetry && !isSendingPrompt && <PaymentRetryForm initialPhone={user?.phone || ''} sending={isSendingPrompt} onResend={resendPrompt} />}</>
-	return <main className="min-h-full bg-background"><div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="border-b border-border pb-6"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Secure checkout</p><h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Choose where your harvest should arrive.</h1><p className="mt-3 text-sm text-muted-foreground">Add delivery details, then pay securely through M-Pesa PayBill.</p></div><div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]"><form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"><div className="flex items-center gap-3"><MapPin className="h-5 w-5 text-primary" /><h2 className="text-xl font-semibold text-primary-dark">Delivery details</h2></div>{error && <p role="alert" className="mt-5 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}<MapPicker value={deliveryLocation} onChange={setDeliveryLocation} className="mt-7" /><label className="mt-6 block text-sm font-semibold text-primary-dark">Street address<input required value={address} onChange={(event) => setAddress(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="House, street, or landmark" /></label><label className="mt-5 block text-sm font-semibold text-primary-dark">City<input required value={city} onChange={(event) => setCity(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" /></label><label className="mt-5 block text-sm font-semibold text-primary-dark">Delivery time window<Select aria-label="Delivery time window" value={timeWindow} onChange={setTimeWindow} className="mt-2" options={[{ value: '09:00-12:00', label: '09:00-12:00' }, { value: '12:00-15:00', label: '12:00-15:00' }, { value: '15:00-18:00', label: '15:00-18:00' }]} /></label><p className="mt-6 flex items-start gap-2 rounded-xl bg-muted p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-primary" />Your payment is held in escrow until delivery is confirmed.</p><button disabled={isSubmitting} className="mt-7 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Creating order...' : 'Continue to payment'}</button><Link to="/app/buyer/cart" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary"><ArrowLeft className="h-4 w-4" />Back to cart</Link></form><aside className="h-fit rounded-2xl border border-border bg-primary-dark p-6 text-primary-foreground lg:sticky lg:top-24"><p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">Order summary</p><div className="mt-6 space-y-3 text-sm"><div className="flex justify-between text-primary-foreground/75"><span>{summary.totalQuantity} items</span><span>{formatMoney(summary.subtotal)}</span></div><div className="flex justify-between text-primary-foreground/75"><span>Delivery</span><span>Calculated</span></div><div className="flex justify-between border-t border-primary-foreground/20 pt-4 text-lg font-bold"><span>Total</span><span>{formatMoney(summary.total)}</span></div></div><p className="mt-6 flex items-start gap-2 text-xs leading-5 text-primary-foreground/60"><Clipboard className="mt-0.5 h-4 w-4 shrink-0" />After placing the order, you will receive a unique PayBill account number.</p></aside></div></div></main>
+	return (
+		<main className="min-h-full bg-background">
+			<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+				<div className="border-b border-border pb-6">
+					<p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Secure checkout</p>
+					<h1 className="mt-2 text-3xl font-semibold text-primary-dark sm:text-4xl">Choose where your harvest should arrive.</h1>
+					<p className="mt-3 text-sm text-muted-foreground">Add delivery details, then pay securely through M-Pesa PayBill.</p>
+				</div>
+				<div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]">
+					<form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+						<div className="flex items-center gap-3">
+							<MapPin className="h-5 w-5 text-primary" />
+							<h2 className="text-xl font-semibold text-primary-dark">Fulfillment</h2>
+						</div>
+						<div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="Choose fulfillment method">
+							<button type="button" aria-pressed={fulfillmentType === 'delivery'} onClick={() => setFulfillmentType('delivery')} className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold ${fulfillmentType === 'delivery' ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-foreground'}`}>Delivery</button>
+							<button type="button" aria-pressed={fulfillmentType === 'self_pickup'} onClick={() => setFulfillmentType('self_pickup')} className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold ${fulfillmentType === 'self_pickup' ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-foreground'}`}>Self pickup</button>
+						</div>
+						{error && <p role="alert" className="mt-5 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+						{fulfillmentType === 'delivery' ? (
+							<>
+								<MapPicker value={deliveryLocation} onChange={setDeliveryLocation} className="mt-7" />
+								<label className="mt-6 block text-sm font-semibold text-primary-dark">Street address<input required value={address} onChange={(event) => setAddress(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="House, street, or landmark" /></label>
+								<label className="mt-5 block text-sm font-semibold text-primary-dark">City<input required value={city} onChange={(event) => setCity(event.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" /></label>
+							</>
+						) : (
+							<p className="mt-6 rounded-xl bg-muted p-4 text-sm leading-6 text-muted-foreground">Collect your order from the farmers after every suborder is marked ready. No delivery fee will be added.</p>
+						)}
+						<label className="mt-5 block text-sm font-semibold text-primary-dark">{fulfillmentType === 'delivery' ? 'Delivery time window' : 'Collection time window'}<Select aria-label={fulfillmentType === 'delivery' ? 'Delivery time window' : 'Collection time window'} value={timeWindow} onChange={setTimeWindow} className="mt-2" options={[{ value: '09:00-12:00', label: '09:00-12:00' }, { value: '12:00-15:00', label: '12:00-15:00' }, { value: '15:00-18:00', label: '15:00-18:00' }]} /></label>
+						<p className="mt-6 flex items-start gap-2 rounded-xl bg-muted p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-primary" />Your payment is held in escrow until {fulfillmentType === 'delivery' ? 'delivery' : 'you confirm collection'}.</p>
+						<button disabled={isSubmitting} className="mt-7 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Creating order...' : 'Continue to payment'}</button>
+						<Link to="/app/buyer/cart" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary"><ArrowLeft className="h-4 w-4" />Back to cart</Link>
+					</form>
+					<aside className="h-fit rounded-2xl border border-border bg-primary-dark p-6 text-primary-foreground lg:sticky lg:top-24">
+						<p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">Order summary</p>
+						<div className="mt-6 space-y-3 text-sm">
+							<div className="flex justify-between text-primary-foreground/75"><span>{summary.totalQuantity} items</span><span>{formatMoney(summary.subtotal)}</span></div>
+							<div className="flex justify-between text-primary-foreground/75"><span>{fulfillmentType === 'delivery' ? 'Delivery' : 'Self pickup'}</span><span>{fulfillmentType === 'delivery' ? 'Calculated at checkout' : formatMoney(0)}</span></div>
+							<div className="flex justify-between border-t border-primary-foreground/20 pt-4 text-lg font-bold"><span>Total before promotions</span><span>{formatMoney(summary.subtotal + (fulfillmentType === 'delivery' ? summary.delivery_fee : 0))}</span></div>
+						</div>
+						<p className="mt-6 flex items-start gap-2 text-xs leading-5 text-primary-foreground/60"><Clipboard className="mt-0.5 h-4 w-4 shrink-0" />After placing the order, you will receive a unique PayBill account number.</p>
+					</aside>
+				</div>
+			</div>
+		</main>
+	)
 }
 
 function PaymentStep({ payment, paymentOrder, isChecking, error, notice, onCopy, onCheck }: { payment: CreateOrderResponse; paymentOrder: Order | null; isChecking: boolean; error: string; notice: string; onCopy: (value: string) => void; onCheck: () => void }) {

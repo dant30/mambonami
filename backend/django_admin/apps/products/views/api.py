@@ -75,7 +75,7 @@ class ProductListView(generics.ListAPIView):
         return list_active_products(self.request.query_params)
 
 class ProductDetailView(generics.RetrieveAPIView):
-    queryset = Product.objects.filter(is_active=True)
+    queryset = Product.objects.filter(is_active=True).select_related('farmer__user', 'category').prefetch_related('bulk_price_tiers')
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
     throttle_classes = [ScopedRateThrottle]

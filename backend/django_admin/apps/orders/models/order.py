@@ -6,6 +6,10 @@ from django.conf import settings
 
 class Order(BaseModel):
     """Main order – groups multiple farmer‑specific sub‑orders."""
+    FULFILLMENT_CHOICES = [
+        ('delivery', 'Delivery'),
+        ('self_pickup', 'Self Pickup'),
+    ]
     STATUS_CHOICES = [
         ('cart', 'Cart'),
         ('placed', 'Placed (pending payment)'),
@@ -21,6 +25,11 @@ class Order(BaseModel):
         on_delete=models.PROTECT,
         related_name='orders',
         limit_choices_to={'role__in': ['buyer', 'retailer']}
+    )
+    fulfillment_type = models.CharField(
+        max_length=20,
+        choices=FULFILLMENT_CHOICES,
+        default='delivery',
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)

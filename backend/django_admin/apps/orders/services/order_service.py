@@ -1,18 +1,43 @@
 ﻿# backend/django_admin/apps/orders/services/order_service.py
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
+import logging
+from typing import Optional
+
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from apps.orders.models import Order, SubOrder, OrderItem
 from apps.products.models import Product
+from apps.products.services.pricing import resolve_unit_price
 from apps.paybill.services.account_number import generate_account_number
 from apps.logistics.services.geolocation import haversine
 from apps.logistics.services.fee_calculator import estimate_fee as calculate_delivery_fee_estimate
 from apps.orders.models.promo import PromoCode
 
+logger = logging.getLogger(__name__)
 
-def calculate_order_fee_breakdown(cart_data: dict) -> dict:
+
+def coalesce_grouped_products(grouped: dict) -> dict:
+    coalesced = {}
+    for farmer_id, items in grouped.items():
+        products_by_id = {}
+        for item in items:
+            product = item['product']
+            product_id = product.pk
+            if product_id in products_by_id:
+                products_by_id[product_id]['quantity'] += item['quantity']
+            else:
+                products_by_id[product_id] = {'product': product, 'quantity': item['quantity']}
+        coalesced[farmer_id] = list(products_by_id.values())
+    return coalesced
+
+
+def calculate_order_fee_breakdown(cart_data: dict, order: Optional[Order] = None) -> dict:
     grouped = cart_data.get('grouped_products', {})
+    fulfillment_type = cart_data.get(
+        'fulfillment_type',
+        getattr(order, 'fulfillment_type', 'delivery'),
+    )
     subtotal = Decimal('0')
     total_weight_kg = Decimal('0')
 
@@ -20,29 +45,32 @@ def calculate_order_fee_breakdown(cart_data: dict) -> dict:
         for item in products_with_qty:
             product = item['product']
             quantity = item['quantity']
-            subtotal += product.price_per_unit * quantity
+            buyer_role = order.buyer.role if order else cart_data.get('buyer_role', 'buyer')
+            unit_price = resolve_unit_price(product, buyer_role, quantity)
+            subtotal += (unit_price * quantity).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             total_weight_kg += getattr(product, 'weight_per_unit', Decimal('0')) * quantity
 
-    delivery_distance = Decimal('10')
-    try:
-        from apps.logistics.services.matching import get_pickup_location
-        from apps.orders.models import Order
+    delivery_distance = Decimal('0') if fulfillment_type == 'self_pickup' else Decimal('10')
+    if fulfillment_type == 'delivery' and order is not None:
+        try:
+            from apps.logistics.services.matching import get_pickup_location_for_order
 
-        order = Order(buyer=None)
-        pickup_location = get_pickup_location(order)
-        delivery_lat = cart_data.get('delivery_lat')
-        delivery_lng = cart_data.get('delivery_lng')
-        if pickup_location and delivery_lat is not None and delivery_lng is not None:
-            delivery_distance = Decimal(str(haversine(
-                pickup_location[0], pickup_location[1],
-                float(delivery_lat), float(delivery_lng)
-            )))
-    except Exception:
-        delivery_distance = Decimal('10')
+            pickup_location = get_pickup_location_for_order(order)
+            delivery_lat = cart_data.get('delivery_lat')
+            delivery_lng = cart_data.get('delivery_lng')
+            if pickup_location and delivery_lat is not None and delivery_lng is not None:
+                delivery_distance = Decimal(str(haversine(
+                    pickup_location[0], pickup_location[1],
+                    float(delivery_lat), float(delivery_lng)
+                )))
+        except (ValueError, AttributeError, TypeError):
+            logger.exception('Unable to calculate delivery distance for order %s', order.pk)
+            delivery_distance = Decimal('10')
 
     delivery_fee = calculate_delivery_fee_estimate(
         distance_km=float(delivery_distance),
-        total_weight_kg=float(total_weight_kg)
+        total_weight_kg=float(total_weight_kg),
+        fulfillment_type=fulfillment_type,
     )
     platform_commission = subtotal * Decimal('0.08')
     total_amount = subtotal + delivery_fee
@@ -53,15 +81,16 @@ def calculate_order_fee_breakdown(cart_data: dict) -> dict:
         if promo_obj.discount_type == 'fixed':
             discount_amount = promo_obj.discount_value
         elif promo_obj.discount_type == 'percent':
-            discount_amount = (total_amount * promo_obj.discount_value) / Decimal('100')
+            discount_amount = (subtotal * promo_obj.discount_value) / Decimal('100')
             if promo_obj.max_discount_amount and discount_amount > promo_obj.max_discount_amount:
                 discount_amount = promo_obj.max_discount_amount
-        if discount_amount > total_amount:
-            discount_amount = total_amount
+        if discount_amount > subtotal:
+            discount_amount = subtotal
         total_amount -= discount_amount
 
     return {
         'subtotal': subtotal,
+        'delivery_distance_km': delivery_distance,
         'delivery_fee': delivery_fee,
         'platform_commission': platform_commission,
         'discount_amount': discount_amount,
@@ -89,7 +118,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         '_promo_code': PromoCode instance (validated in serializer, optional)
     }
     """
-    grouped = cart_data['grouped_products']
+    grouped = coalesce_grouped_products(cart_data['grouped_products'])
 
     requested_by_product = {}
     requested_products = {}
@@ -97,6 +126,12 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         for item in products_with_qty:
             product_id = item['product'].pk
             requested_by_product[product_id] = requested_by_product.get(product_id, Decimal('0')) + item['quantity']
+
+    if Product.objects.filter(
+        pk__in=requested_by_product,
+        farmer__user_id=buyer.pk,
+    ).exists():
+        raise ValidationError('You cannot purchase your own products.')
 
     locked_products = {
         product.pk: product
@@ -121,8 +156,9 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     delivery_city = cart_data.get('delivery_city') or ''
     delivery_postal_code = cart_data.get('delivery_postal_code') or ''
     delivery_landmark = cart_data.get('delivery_landmark') or ''
-    delivery_lat = cart_data['delivery_lat']
-    delivery_lng = cart_data['delivery_lng']
+    fulfillment_type = cart_data.get('fulfillment_type', 'delivery')
+    delivery_lat = cart_data.get('delivery_lat')
+    delivery_lng = cart_data.get('delivery_lng')
     scheduled_date = cart_data['scheduled_date']
     scheduled_time_window = cart_data['scheduled_time_window']
     promo_code_str = cart_data.get('promo_code', '')
@@ -131,6 +167,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
     # 1. Create main order (placeholder totals)
     order = Order.objects.create(
         buyer=buyer,
+        fulfillment_type=fulfillment_type,
         total_amount=0,
         delivery_fee=0,
         platform_commission=0,
@@ -164,7 +201,8 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         for item in products_with_qty:
             product = item['product']
             quantity = item['quantity']
-            line_total = product.price_per_unit * quantity
+            unit_price = resolve_unit_price(product, buyer.role, quantity)
+            line_total = (unit_price * quantity).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             sub_total += line_total
 
             # Weight calculation (if weight_per_unit exists)
@@ -174,7 +212,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
             items_list.append(OrderItem(
                 product=product,
                 quantity=quantity,
-                unit_price=product.price_per_unit,
+                unit_price=unit_price,
                 total_price=line_total
             ))
 
@@ -197,22 +235,28 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         total_platform_commission += commission
 
     # 4. Calculate delivery fee
-    delivery_distance = Decimal('10')
-    try:
-        from apps.logistics.services.matching import get_pickup_location
-        pickup_location = get_pickup_location(order)
-        if pickup_location and delivery_lat is not None and delivery_lng is not None:
-            delivery_distance = Decimal(str(haversine(
-                pickup_location[0], pickup_location[1],
-                float(delivery_lat), float(delivery_lng)
-            )))
-    except Exception:
+    if fulfillment_type == 'self_pickup':
+        delivery_distance = Decimal('0')
+        delivery_fee = Decimal('0.00')
+    else:
         delivery_distance = Decimal('10')
+        try:
+            from apps.logistics.services.matching import get_pickup_location_for_order
+            pickup_location = get_pickup_location_for_order(order)
+            if pickup_location and delivery_lat is not None and delivery_lng is not None:
+                delivery_distance = Decimal(str(haversine(
+                    pickup_location[0], pickup_location[1],
+                    float(delivery_lat), float(delivery_lng)
+                )))
+        except (ValueError, AttributeError, TypeError):
+            logger.exception('Unable to calculate delivery distance for order %s', order.pk)
+            delivery_distance = Decimal('10')
 
-    delivery_fee = calculate_delivery_fee_estimate(
-        distance_km=float(delivery_distance),
-        total_weight_kg=float(total_weight_kg)
-    )
+        delivery_fee = calculate_delivery_fee_estimate(
+            distance_km=float(delivery_distance),
+            total_weight_kg=float(total_weight_kg),
+            fulfillment_type=fulfillment_type,
+        )
     total_delivery_fee = delivery_fee
     total_order_amount += delivery_fee
 
@@ -222,11 +266,11 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         if promo_obj.discount_type == 'fixed':
             discount_amount = promo_obj.discount_value
         elif promo_obj.discount_type == 'percent':
-            discount_amount = (total_order_amount * promo_obj.discount_value) / Decimal('100')
+            discount_amount = (subtotal * promo_obj.discount_value) / Decimal('100')
             if promo_obj.max_discount_amount and discount_amount > promo_obj.max_discount_amount:
                 discount_amount = promo_obj.max_discount_amount
-        if discount_amount > total_order_amount:
-            discount_amount = total_order_amount
+        if discount_amount > subtotal:
+            discount_amount = subtotal
         order.discount_amount = discount_amount
         total_order_amount -= discount_amount
         promo_obj.times_used += 1
@@ -246,8 +290,9 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
         'grouped_products': grouped,
         'delivery_lat': delivery_lat,
         'delivery_lng': delivery_lng,
+        'fulfillment_type': fulfillment_type,
         '_promo_code': promo_obj,
-    })
+    }, order=order)
     if breakdown['subtotal'] != subtotal:
         subtotal = breakdown['subtotal']
     if breakdown['delivery_fee'] != total_delivery_fee:

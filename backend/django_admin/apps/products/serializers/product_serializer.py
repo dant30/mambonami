@@ -2,13 +2,20 @@
 from rest_framework import serializers
 from decimal import Decimal
 from datetime import date
-from ..models import Product, ProductCategory, WishlistItem
+from ..models import BulkPriceTier, Product, ProductCategory, WishlistItem
 from core.utils import calculate_distance
 
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
         fields = ('id', 'code', 'name')
+
+
+class BulkPriceTierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BulkPriceTier
+        fields = ('id', 'buyer_role', 'minimum_quantity', 'unit_price')
+        read_only_fields = fields
 
 class ProductSerializer(serializers.ModelSerializer):
     farmer_phone = serializers.CharField(source='farmer.user.phone', read_only=True)
@@ -19,6 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
     remaining_shelf_life = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     distance_km = serializers.SerializerMethodField()
+    bulk_price_tiers = BulkPriceTierSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -31,6 +39,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'image_url', 'description',
             'pickup_lat', 'pickup_lng', 'weight_per_unit',
             'rating', 'review_count', 'wishlist_count',
+            'bulk_price_tiers',
             'distance_km',
             'created_at', 'updated_at'
         )

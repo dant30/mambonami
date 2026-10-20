@@ -45,6 +45,7 @@ export const ORDER_ENDPOINTS = {
 	create: '/api/orders/create/',
 	active: '/api/orders/active/',
 	detail: (uuid: string) => `/api/orders/${uuid}/`,
+	confirmSelfPickup: (uuid: string) => `/api/orders/${uuid}/confirm-self-pickup/`,
 	suborders: '/api/orders/suborders/',
 	suborder: (id: string | number) => `/api/orders/suborders/${id}/`,
 	confirmSuborder: (id: string | number) => `/api/orders/suborders/${id}/confirm/`,

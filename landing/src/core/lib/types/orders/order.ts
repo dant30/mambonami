@@ -1,6 +1,7 @@
 import type { Product } from '../products'
 
 export type OrderStatus = 'cart' | 'placed' | 'paid_escrow' | 'transport_assigned' | 'picked_up' | 'delivered' | 'cancelled' | 'disputed'
+export type FulfillmentType = 'delivery' | 'self_pickup'
 export type SubOrderStatus = 'pending' | 'confirmed' | 'ready' | 'cancelled'
 
 export interface OrderItem {
@@ -38,6 +39,7 @@ export interface Order {
 	promo_code?: string
 	discount_amount: string | number
 	status: OrderStatus
+	fulfillment_type?: FulfillmentType
 	account_number?: string
 	paybill_number?: string
 	stk_payment_status?: 'initiating' | 'pending' | 'succeeded' | 'failed' | null
@@ -94,13 +96,14 @@ export interface CartItemInput {
 }
 
 export interface CreateOrderInput {
+	fulfillment_type?: FulfillmentType
 	delivery_address?: string
 	delivery_street?: string
 	delivery_city?: string
 	delivery_postal_code?: string
 	delivery_landmark?: string | null
-	delivery_lat: number
-	delivery_lng: number
+	delivery_lat?: number
+	delivery_lng?: number
 	scheduled_date: string
 	scheduled_time_window: string
 	payment_method?: string | null

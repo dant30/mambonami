@@ -8,7 +8,7 @@ from core.cache import RedisCache
 
 def list_active_products(filters=None):
     """Return active products with optional filtering."""
-    queryset = Product.objects.filter(is_active=True).select_related('farmer__user', 'category')
+    queryset = Product.objects.filter(is_active=True).select_related('farmer__user', 'category').prefetch_related('bulk_price_tiers')
     if filters:
         category_code = filters.get('category_code') or filters.get('category')
         if category_code:

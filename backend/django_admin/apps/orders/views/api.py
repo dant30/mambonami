@@ -27,7 +27,7 @@ class CartCreateOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBuyer]
 
     def post(self, request):
-        serializer = OrderCreateSerializer(data=request.data)
+        serializer = OrderCreateSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         try:
             order = create_order_from_cart(request.user, serializer.validated_data)
@@ -72,6 +72,27 @@ class OrderDetailView(generics.RetrieveAPIView):
         if user.role == 'transport_provider':
             return Order.objects.filter(assigned_provider=user.transport_profile)
         return Order.objects.none()
+
+
+class ConfirmSelfPickupView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsBuyer]
+
+    def post(self, request, uuid):
+        order = get_object_or_404(
+            Order.objects.filter(buyer=request.user),
+            uuid=uuid,
+        )
+        if order.fulfillment_type != 'self_pickup':
+            return Response({'detail': 'This order is not a self-pickup order.'}, status=status.HTTP_409_CONFLICT)
+        try:
+            completed_order = OrderStateMachine.transition(
+                order,
+                'delivered',
+                actor=request.user,
+            )
+        except ValidationError as exc:
+            return Response({'detail': exc.messages}, status=status.HTTP_409_CONFLICT)
+        return Response(OrderSerializer(completed_order, context={'request': request}).data)
 
 class OrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
@@ -174,7 +195,7 @@ class FarmerReadyView(APIView):
                 suborder = locked
         except ValidationError as exc:
             return Response({'error': exc.messages[0]}, status=status.HTTP_409_CONFLICT)
-        if suborder.order.are_all_farmers_ready():
+        if suborder.order.are_all_farmers_ready() and suborder.order.fulfillment_type == 'delivery':
             def enqueue_transport_match():
                 try:
                     from apps.orders.tasks import match_transport_for_order

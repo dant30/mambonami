@@ -30,6 +30,8 @@ def match_transport_for_order(order_id, retry_count=0):
     """Async task to find and assign a transport provider."""
     from apps.orders.models import Order
     order = Order.objects.get(id=order_id)
+    if order.fulfillment_type == 'self_pickup':
+        return
     if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
         return
     if not order.are_all_farmers_ready():

@@ -330,6 +330,7 @@ CALLBACK_BASE_URL = env('CALLBACK_BASE_URL', default='https://api.mambonami.com'
 # Platform commission (MVP)
 PLATFORM_COMMISSION_PERCENT = 8  # 8%
 DELIVERY_PLATFORM_PERCENT = 20   # 20%
+MIN_DELIVERY_FEE_KES = 50
 
 # OTP settings
 OTP_LENGTH = 6

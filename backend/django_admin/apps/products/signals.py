@@ -3,10 +3,26 @@ import logging
 from django.db.models import Avg
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Product
+from .models import BulkPriceTier, Product
 from .models.review import ProductReview
+from core.cache import RedisCache
 
 logger = logging.getLogger(__name__)
+
+
+def invalidate_product_price_cache(product_id):
+    RedisCache.delete('product_list_cache')
+    RedisCache.delete(f'product_{product_id}')
+
+
+@receiver(post_save, sender=BulkPriceTier)
+def bulk_price_tier_saved(sender, instance, **kwargs):
+    invalidate_product_price_cache(instance.product_id)
+
+
+@receiver(post_delete, sender=BulkPriceTier)
+def bulk_price_tier_deleted(sender, instance, **kwargs):
+    invalidate_product_price_cache(instance.product_id)
 
 # ─── Product creation log ─────────────────────────────────────────────────────
 @receiver(post_save, sender=Product)

@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/products/serializers/__init__.py
 from .product_serializer import (
+    BulkPriceTierSerializer,
     ProductCategorySerializer,
     ProductSerializer,
     ProductCreateUpdateSerializer,
@@ -8,6 +9,7 @@ from .product_serializer import (
 from .review_serializer import ProductReviewSerializer
 
 __all__ = [
+    'BulkPriceTierSerializer',
     'ProductCategorySerializer',
     'ProductSerializer',
     'ProductCreateUpdateSerializer',

@@ -32,6 +32,8 @@ def find_eligible_providers(
     
     Returns: List of (provider, estimated_fee, distance) tuples sorted by fee
     """
+    if order.fulfillment_type == 'self_pickup':
+        return []
     if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
         logger.warning('Order %s is not paid; transport matching is blocked', order.id)
         return []
@@ -55,6 +57,7 @@ def find_eligible_providers(
         is_approved=True,
         deposit_paid=True,
         user__is_active=True,
+        user__role='transport_provider',
         capacity_kg__gte=order.total_weight_kg,  # Filter by capacity
     ).select_related('user').order_by('-rating')
     
@@ -197,8 +200,17 @@ def assign_provider_to_order(
     """
     from ..models import Trip, TripStatus
 
+    if order.fulfillment_type == 'self_pickup':
+        raise ValueError('Self-pickup orders cannot be assigned to a transport provider.')
+
     with transaction.atomic():
         order = Order.objects.select_for_update().get(pk=order.pk)
+        if provider.user.role != 'transport_provider':
+            raise ValueError('Only transport-provider accounts can be assigned to an order.')
+        if provider.user_id == order.buyer_id:
+            raise ValueError('The buyer cannot deliver their own order.')
+        if order.sub_orders.filter(farmer__user_id=provider.user_id).exists():
+            raise ValueError('A farmer on this order cannot deliver the same order.')
         if order.status != 'paid_escrow' or not OrderStateMachine.has_successful_payment(order):
             raise ValueError('A successfully paid order is required before assigning transport.')
         if not order.are_all_farmers_ready():

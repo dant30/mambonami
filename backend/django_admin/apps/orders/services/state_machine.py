@@ -21,7 +21,14 @@ class OrderStateMachine:
     }
 
     @classmethod
-    def can_transition(cls, order: Order, new_status: str) -> bool:
+    def can_transition(cls, order: Order, new_status: str, actor=None) -> bool:
+        if order.status == 'paid_escrow' and new_status == 'delivered':
+            return (
+                order.fulfillment_type == 'self_pickup'
+                and actor is not None
+                and actor.pk == order.buyer_id
+                and order.are_all_farmers_ready()
+            )
         return new_status in cls.ALLOWED_TRANSITIONS.get(order.status, [])
 
     @staticmethod
@@ -43,9 +50,10 @@ class OrderStateMachine:
 
     @classmethod
     @transaction.atomic
-    def transition(cls, order: Order, new_status: str, user=None):
+    def transition(cls, order: Order, new_status: str, user=None, actor=None):
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
-        if not cls.can_transition(locked_order, new_status):
+        transition_actor = actor if actor is not None else user
+        if not cls.can_transition(locked_order, new_status, actor=transition_actor):
             raise ValidationError(f"Cannot transition from {locked_order.status} to {new_status}")
         if new_status in {'paid_escrow', 'transport_assigned', 'picked_up', 'delivered'} and not cls.has_successful_payment(locked_order):
             raise ValidationError("A successfully reconciled payment is required before fulfilment can proceed.")
@@ -58,7 +66,15 @@ class OrderStateMachine:
 
             if not Trip.objects.filter(order=locked_order, status=TripStatus.PICKED_UP).exists():
                 raise ValidationError("The assigned transporter must record pickup before the order can advance.")
-        if new_status == 'delivered':
+        if new_status == 'delivered' and locked_order.fulfillment_type == 'self_pickup':
+            if transition_actor is None or transition_actor.pk != locked_order.buyer_id:
+                raise ValidationError('Only the buyer can confirm self-pickup collection.')
+            if not locked_order.are_all_farmers_ready():
+                raise ValidationError('All farmers must mark their suborders ready before collection.')
+            from apps.orders.services.order_service import consume_order_inventory
+
+            consume_order_inventory(locked_order)
+        elif new_status == 'delivered':
             from apps.logistics.models import Trip, TripStatus
 
             if not Trip.objects.filter(

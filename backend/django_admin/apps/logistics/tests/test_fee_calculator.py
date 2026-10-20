@@ -1,11 +1,13 @@
 # django_admin/apps/logistics/tests/test_fee_calculator.py
 from decimal import Decimal
+from types import SimpleNamespace
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from apps.users.models import TransportProviderProfile
 from apps.logistics.services.fee_calculator import (
     calculate_delivery_fee,
     calculate_waiting_surcharge,
+    calculate_total_for_buyer,
     get_default_rates_for_vehicle_type,
     estimate_fee,
 )
@@ -242,8 +244,18 @@ class FeeCalculatorTests(TestCase):
             provider=self.provider_motorcycle,
             waiting_minutes=0
         )
-        # Expected: 0 * 25 = 0, rounded to 0
-        self.assertEqual(fee, Decimal('0.00'))
+        # Delivery orders observe the configured minimum even at zero distance.
+        self.assertEqual(fee, Decimal('50'))
+
+    def test_buyer_total_applies_minimum_delivery_fee(self):
+        order = SimpleNamespace(total_weight_kg=Decimal('50'))
+        fee_breakdown = calculate_total_for_buyer(
+            order=order,
+            provider=self.provider_motorcycle,
+            distance_km=0,
+        )
+
+        self.assertEqual(fee_breakdown['buyer_total'], Decimal('50'))
 
     def test_large_distance_and_weight(self):
         """Test large distances and weights."""
