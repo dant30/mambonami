@@ -314,7 +314,8 @@ LOGGING = {
 
 # M-Pesa Configuration (Safaricom)
 MPESA_PAYBILL_NUMBER = env('MPESA_PAYBILL_NUMBER', default='123456')
-MPESA_SHORTCODE_TYPE = 'paybill'
+MPESA_TILL_NUMBER = env('MPESA_TILL_NUMBER', default='')
+MPESA_SHORTCODE_TYPE = 'till'
 MPESA_CONSUMER_KEY = env('MPESA_CONSUMER_KEY', default='')
 MPESA_CONSUMER_SECRET = env('MPESA_CONSUMER_SECRET', default='')
 MPESA_PASSKEY = env('MPESA_PASSKEY', default='')          # for STK Push (if used later)

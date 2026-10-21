@@ -1,14 +1,16 @@
 from datetime import date
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from apps.orders.models import Order
 from apps.paybill.models import StkPushRequest
 from apps.paybill.services.stk_push import (
     StkPushError,
     _friendly_stk_message,
+    initiate_order_stk_push,
     normalize_ke_phone,
     process_stk_callback,
 )
@@ -76,3 +78,51 @@ class StkPushFriendlyErrorTests(TestCase):
         self.assertEqual(push_request.result_description, friendly_message)
         self.assertEqual(push_request.callback_payload, payload)
         self.assertIn(raw_description, '\n'.join(captured.output))
+
+
+@override_settings(
+    MPESA_CONSUMER_KEY='test-consumer-key',
+    MPESA_CONSUMER_SECRET='test-consumer-secret',
+    MPESA_PASSKEY='test-passkey',
+    MPESA_PAYBILL_NUMBER='4749215',
+    MPESA_TILL_NUMBER='4749231',
+    MPESA_ENVIRONMENT_URL='https://sandbox.safaricom.co.ke',
+    CALLBACK_BASE_URL='https://api.example.test',
+)
+class StkPushPayloadTests(TestCase):
+    def test_initiate_stk_push_targets_configured_till(self):
+        user = get_user_model().objects.create_user(
+            phone='254712345678',
+            username='stk-payload-buyer',
+            password='StrongPass123!',
+            role='buyer',
+        )
+        order = Order.objects.create(
+            buyer=user,
+            total_amount=Decimal('100.00'),
+            delivery_fee=Decimal('0.00'),
+            account_number='ORD-STK-TILL',
+            scheduled_date=date.today(),
+            scheduled_time_window='10:00-12:00',
+        )
+        token_response = Mock()
+        token_response.json.return_value = {'access_token': 'test-access-token'}
+        push_response = Mock()
+        push_response.json.return_value = {
+            'ResponseCode': '0',
+            'MerchantRequestID': 'merchant-request-test',
+            'CheckoutRequestID': 'checkout-request-test',
+            'CustomerMessage': 'STK prompt sent.',
+        }
+
+        with patch('apps.paybill.services.stk_push.requests.get', return_value=token_response), patch(
+            'apps.paybill.services.stk_push.requests.post', return_value=push_response,
+        ) as post_request:
+            initiate_order_stk_push(order, '0712345678')
+
+        payload = post_request.call_args.kwargs['json']
+        self.assertEqual(payload['BusinessShortCode'], '4749215')
+        self.assertEqual(payload['TransactionType'], 'CustomerBuyGoodsOnline')
+        self.assertEqual(payload['PartyB'], '4749231')
+        self.assertEqual(payload['PartyA'], '254712345678')
+        self.assertEqual(payload['PhoneNumber'], '254712345678')

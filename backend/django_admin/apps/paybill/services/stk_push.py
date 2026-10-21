@@ -57,6 +57,7 @@ def initiate_order_stk_push(order: Order, phone_number: str) -> StkPushRequest:
     consumer_secret = _required_setting('MPESA_CONSUMER_SECRET')
     passkey = _required_setting('MPESA_PASSKEY')
     shortcode = _required_setting('MPESA_PAYBILL_NUMBER')
+    till_number = _required_setting('MPESA_TILL_NUMBER')
     base_url = _required_setting('MPESA_ENVIRONMENT_URL').rstrip('/')
     callback_base = _required_setting('CALLBACK_BASE_URL').rstrip('/')
 
@@ -96,10 +97,10 @@ def initiate_order_stk_push(order: Order, phone_number: str) -> StkPushRequest:
             'BusinessShortCode': shortcode,
             'Password': password,
             'Timestamp': timestamp,
-            'TransactionType': 'CustomerPayBillOnline',
+            'TransactionType': 'CustomerBuyGoodsOnline',
             'Amount': int(amount),
             'PartyA': phone,
-            'PartyB': shortcode,
+            'PartyB': till_number,
             'PhoneNumber': phone,
             'CallBackURL': f'{callback_base}/api/paybill/stk-callback/',
             'AccountReference': order.account_number,
@@ -208,7 +209,7 @@ def process_stk_callback(payload: dict) -> dict:
         'PhoneNumber': str(metadata.get('PhoneNumber') or push_request.phone_number),
         'Time': str(transaction_time),
         'BusinessShortCode': str(getattr(settings, 'MPESA_PAYBILL_NUMBER', '')),
-        'TransactionType': 'CustomerPayBillOnline',
+        'TransactionType': 'CustomerBuyGoodsOnline',
     })
     payment_succeeded = result.get('success') and result.get('order_id') == push_request.order_id
     if payment_succeeded:
