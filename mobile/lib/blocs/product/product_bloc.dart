@@ -51,6 +51,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final cached = await productRepository.getCachedProducts(
         categoryCode: event.categoryCode,
         farmerId: event.farmerId,
+        buyerLatitude: event.buyerLatitude,
+        buyerLongitude: event.buyerLongitude,
       );
       if (cached.isNotEmpty) {
         emit(ProductLoaded(_syncFavorites(cached)));
@@ -61,6 +63,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final products = await productRepository.getProducts(
         categoryCode: event.categoryCode,
         farmerId: event.farmerId,
+        buyerLatitude: event.buyerLatitude,
+        buyerLongitude: event.buyerLongitude,
       );
       emit(ProductLoaded(_syncFavorites(products)));
     } catch (e) {

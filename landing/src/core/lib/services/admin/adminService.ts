@@ -10,13 +10,17 @@ function list<T>(response: T[] | { results?: T[] }): T[] { return Array.isArray(
 
 export async function listAdminUsers(): Promise<AdminUser[]> { return list(await apiClient.get<AdminUser[] | { results?: AdminUser[] }>(ADMIN_ENDPOINTS.users.list)) }
 export function getAdminUser(id: string | number): Promise<AdminUserDetail> { return apiClient.get<AdminUserDetail>(ADMIN_ENDPOINTS.users.detail(id)) }
-export function updateAdminUser(id: string | number, input: Partial<AdminUser>): Promise<AdminUser> { return apiClient.patch<AdminUser>(ADMIN_ENDPOINTS.users.detail(id), input) }
+export function updateAdminUser(id: string | number, input: Partial<AdminUserDetail>): Promise<AdminUserDetail> { return apiClient.patch<AdminUserDetail>(ADMIN_ENDPOINTS.users.detail(id), input) }
+export function getAdminStaff(id: string | number): Promise<AdminUser> { return apiClient.get<AdminUser>(ADMIN_ENDPOINTS.users.staffDetail(id)) }
 export async function listAdminStaff(): Promise<AdminUser[]> { return list(await apiClient.get<AdminUser[] | { results?: AdminUser[] }>(ADMIN_ENDPOINTS.users.staff)) }
 export function createAdminStaff(input: AdminStaffInput): Promise<AdminUser> { return apiClient.post<AdminUser>(ADMIN_ENDPOINTS.users.staff, input) }
 export function updateAdminStaff(id: string | number, input: Partial<AdminStaffInput>): Promise<AdminUser> { return apiClient.patch<AdminUser>(ADMIN_ENDPOINTS.users.staffDetail(id), input) }
 export async function listAdminFarmers(): Promise<AdminFarmer[]> { return list(await apiClient.get<AdminFarmer[] | { results?: AdminFarmer[] }>(ADMIN_ENDPOINTS.farmers.list)) }
+export function getAdminFarmer(id: string | number): Promise<AdminFarmer> { return apiClient.get<AdminFarmer>(ADMIN_ENDPOINTS.farmers.detail(id)) }
+export function updateAdminFarmer(id: string | number, input: Partial<AdminFarmer>): Promise<AdminFarmer> { return apiClient.patch<AdminFarmer>(ADMIN_ENDPOINTS.farmers.detail(id), input) }
 export function approveAdminFarmer(id: string | number): Promise<AdminFarmer> { return apiClient.post<AdminFarmer>(ADMIN_ENDPOINTS.farmers.approve(id)) }
 export async function listAdminTransportProviders(): Promise<AdminTransportProvider[]> { return list(await apiClient.get<AdminTransportProvider[] | { results?: AdminTransportProvider[] }>(ADMIN_ENDPOINTS.transportProviders.list)) }
+export function getAdminTransportProvider(id: string | number): Promise<AdminTransportProvider> { return apiClient.get<AdminTransportProvider>(ADMIN_ENDPOINTS.transportProviders.detail(id)) }
 export function approveAdminTransportProvider(id: string | number): Promise<AdminTransportProvider> { return apiClient.post<AdminTransportProvider>(ADMIN_ENDPOINTS.transportProviders.approve(id)) }
 export function suspendAdminUser(id: string | number): Promise<AdminUser> { return apiClient.post<AdminUser>(ADMIN_ENDPOINTS.userActions.suspend(id)) }
 export function activateAdminUser(id: string | number): Promise<AdminUser> { return apiClient.post<AdminUser>(ADMIN_ENDPOINTS.userActions.activate(id)) }

@@ -2,10 +2,13 @@ from decimal import Decimal
 from datetime import date
 from types import SimpleNamespace
 
-from django.test import SimpleTestCase, TestCase
+from django.core.exceptions import ValidationError
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import override_settings
+from django.core.exceptions import ValidationError
 
 from apps.orders.models import Order, OrderItem, SubOrder
-from apps.orders.services.order_service import calculate_order_fee_breakdown
+from apps.orders.services.order_service import calculate_order_fee_breakdown, create_order_from_cart
 from apps.products.models import Product, ProductCategory
 from apps.users.models import FarmerProfile, User
 
@@ -91,3 +94,36 @@ class OrderFeeDistanceTests(TestCase):
 
         self.assertAlmostEqual(float(breakdown['delivery_distance_km']), 0.2, places=2)
         self.assertEqual(breakdown['delivery_fee'], Decimal('10'))
+
+    @override_settings(MAX_DELIVERY_DISTANCE_KM=50.0)
+    def test_create_order_rejects_a_delivery_beyond_the_radius(self):
+        buyer = User.objects.create_user(
+            phone='+254700000093', username='distance-limit-buyer', password='TestPassword123!', role='buyer'
+        )
+        farmer_user = User.objects.create_user(
+            phone='+254700000094', username='distance-limit-farmer', password='TestPassword123!', role='farmer'
+        )
+        farmer = FarmerProfile.objects.get(user=farmer_user)
+        category = ProductCategory.objects.create(code='LIM', name='Distance Limit Produce')
+        product = Product.objects.create(
+            farmer=farmer,
+            category=category,
+            name='Far away oranges',
+            price_per_unit=Decimal('10.00'),
+            available_quantity=Decimal('10.00'),
+            unit='piece',
+            harvest_date=date.today(),
+            pickup_lat=Decimal('-1.2864'),
+            pickup_lng=Decimal('36.8172'),
+        )
+
+        with self.assertRaisesMessage(ValidationError, 'We currently deliver within 50 km'):
+            create_order_from_cart(buyer, {
+                'grouped_products': {farmer.pk: [{'product': product, 'quantity': Decimal('1.00')}]},
+                'delivery_lat': Decimal('-1.0000'),
+                'delivery_lng': Decimal('37.5000'),
+                'delivery_address': 'Vihiga',
+                'scheduled_date': date.today(),
+                'scheduled_time_window': '09:00-12:00',
+            })
+

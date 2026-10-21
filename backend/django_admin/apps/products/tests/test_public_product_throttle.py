@@ -2,8 +2,9 @@ from django.conf import settings
 from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APIRequestFactory
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
+from types import SimpleNamespace
 
-from apps.products.views.api import ProductCategoryListView, ProductDetailView, ProductListView
+from apps.products.views.api import ProductCategoryListView, ProductDetailView, ProductListView, _product_ids_within_delivery_radius
 
 
 class PublicProductThrottleTests(SimpleTestCase):
@@ -30,3 +31,13 @@ class PublicProductThrottleTests(SimpleTestCase):
         self.assertEqual(ProductDetailView.throttle_scope, 'public_product_detail')
         self.assertIn('public_categories', settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'])
         self.assertIn('public_product_detail', settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'])
+
+    @override_settings(MAX_DELIVERY_DISTANCE_KM=50.0)
+    def test_product_radius_filter_keeps_nearby_products_only(self):
+        products = [
+            SimpleNamespace(pk=1, pickup_lat=1.0, pickup_lng=37.0),
+            SimpleNamespace(pk=2, pickup_lat=1.0, pickup_lng=38.0),
+            SimpleNamespace(pk=3, pickup_lat=None, pickup_lng=None),
+        ]
+
+        self.assertEqual(_product_ids_within_delivery_radius(products, 1.0, 37.001), [1])

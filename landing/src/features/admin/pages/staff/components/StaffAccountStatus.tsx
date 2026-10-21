@@ -1,6 +1,7 @@
-import { Button } from '../../../../../shared/components/ui/Button'
+import { Eye, Pencil } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { AdminUser } from '../../../../../core/lib/types/admin'
 
 export function StaffAccountStatus({ member, busy, onToggle, onEdit }: { member: AdminUser; busy: boolean; onToggle: () => void; onEdit: () => void }) {
-	return <div className="flex items-center gap-2"><Button size="sm" variant="outline" onClick={onEdit}>Edit</Button><Button size="sm" variant={member.is_active ? 'danger' : 'outline'} disabled={busy || member.is_superuser} onClick={onToggle}>{busy ? 'Saving' : member.is_superuser ? 'Superuser' : member.is_active ? 'Suspend' : 'Activate'}</Button></div>
+	return <div className="flex items-center gap-1.5"><Link to={`/app/admin/staff/${member.id}`} aria-label={`View staff member ${member.display_name || member.phone}`} title="View staff member" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted"><Eye className="h-4 w-4" /></Link><button type="button" aria-label={`Edit staff member ${member.display_name || member.phone}`} title="Edit staff member" onClick={onEdit} className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted"><Pencil className="h-4 w-4" /></button><button type="button" aria-label={member.is_active ? 'Suspend staff account' : 'Activate staff account'} disabled={busy || member.is_superuser} onClick={onToggle} className="min-h-9 rounded-md border border-border px-3 text-xs font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50">{busy ? 'Saving…' : member.is_superuser ? 'Protected' : member.is_active ? 'Suspend' : 'Activate'}</button></div>
 }

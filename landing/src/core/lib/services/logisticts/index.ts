@@ -6,6 +6,7 @@ export {
 	cancelAdminTrip,
 	generateTripOtp,
 	getAdminTrip,
+	updateAdminTrip,
 	getBuyerTrip,
 	getBuyerTripForOrder,
 	getTrip,

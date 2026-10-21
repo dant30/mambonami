@@ -20,6 +20,7 @@ import '../../../shared/utils/dashboard_data_utils.dart';
 import '../../../shared/widgets/avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../../../services/buyer_location_service.dart';
 import '../widgets/category_chip_bar.dart';
 import '../widgets/buyer_hero_carousel.dart';
 import '../widgets/flash_deals_section.dart';
@@ -55,7 +56,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(const FetchProductsEvent());
+    _fetchBuyerProducts();
     context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
   }
 
@@ -691,8 +692,16 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
 
   // ── Refresh data ──────────────────────────────────────────────────
   Future<void> _refreshData() async {
-    context.read<ProductBloc>().add(const FetchProductsEvent());
+    await _fetchBuyerProducts();
     context.read<OrderBloc>().add(FetchBuyerOrdersEvent());
-    return Future.value();
+  }
+
+  Future<void> _fetchBuyerProducts() async {
+    final coordinates = await BuyerLocationService.resolve();
+    if (!mounted) return;
+    context.read<ProductBloc>().add(FetchProductsEvent(
+          buyerLatitude: coordinates?.latitude,
+          buyerLongitude: coordinates?.longitude,
+        ));
   }
 }

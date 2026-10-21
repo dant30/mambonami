@@ -83,4 +83,5 @@ const String kCartItemTable = 'cart_items';
 const String kAddressTable = 'saved_addresses';
 // Product cache TTL
 const Duration kProductCacheTTL = Duration(hours: 6);
+const double kMaxDeliveryDistanceKm = 50.0;
 

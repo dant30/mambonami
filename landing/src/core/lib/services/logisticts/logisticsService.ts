@@ -115,6 +115,10 @@ export async function getAdminTrip(uuid: string): Promise<Trip> {
 	return apiClient.get<Trip>(LOGISTICS_ENDPOINTS.adminTrip(uuid))
 }
 
+export async function updateAdminTrip(uuid: string, input: Partial<Trip>): Promise<Trip> {
+	return apiClient.patch<Trip>(LOGISTICS_ENDPOINTS.adminTrip(uuid), input)
+}
+
 export async function cancelAdminTrip(uuid: string, reason = 'Cancelled by admin'): Promise<TripStatusUpdateResponse> {
 	return apiClient.post<TripStatusUpdateResponse>(LOGISTICS_ENDPOINTS.cancelAdminTrip(uuid), { reason })
 }

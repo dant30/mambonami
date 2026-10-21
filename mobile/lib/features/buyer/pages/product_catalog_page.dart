@@ -8,6 +8,7 @@ import '../../../blocs/product/product_bloc.dart';
 import '../../../config/route_paths.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../services/buyer_location_service.dart';
 import '../widgets/category_chip_bar.dart';
 import '../widgets/product_grid_tile.dart';
 import '../widgets/product_search_bar.dart';
@@ -31,7 +32,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(const FetchProductsEvent());
+    _fetchProducts(requestPermission: true);
     _searchCtrl.addListener(_onSearch);
   }
 
@@ -46,6 +47,15 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
     context.read<ProductBloc>().add(
           SearchProductsEvent(query: _searchCtrl.text.trim()),
         );
+  }
+
+  Future<void> _fetchProducts({bool requestPermission = false}) async {
+    final coordinates = await BuyerLocationService.resolve(requestPermission: requestPermission);
+    if (!mounted) return;
+    context.read<ProductBloc>().add(FetchProductsEvent(
+          buyerLatitude: coordinates?.latitude,
+          buyerLongitude: coordinates?.longitude,
+        ));
   }
 
   void _showSortSheet() {
@@ -182,9 +192,7 @@ class _ProductCatalogPageState extends State<ProductCatalogPage> {
                           Text(state.message),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () => context
-                                .read<ProductBloc>()
-                                .add(const FetchProductsEvent()),
+                            onPressed: () => _fetchProducts(requestPermission: true),
                             child: const Text('Retry'),
                           ),
                         ],

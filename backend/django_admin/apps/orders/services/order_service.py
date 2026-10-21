@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 from django.db import transaction
+from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from apps.orders.models import Order, SubOrder, OrderItem
@@ -15,6 +16,15 @@ from apps.logistics.services.fee_calculator import estimate_fee as calculate_del
 from apps.orders.models.promo import PromoCode
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_delivery_distance(distance_km: Decimal) -> None:
+    maximum_distance = Decimal(str(settings.MAX_DELIVERY_DISTANCE_KM))
+    if distance_km > maximum_distance:
+        raise ValidationError(
+            f"We currently deliver within {maximum_distance:g} km of the farm. "
+            f"This delivery is {distance_km:.1f} km away. Choose a closer product or use self pickup."
+        )
 
 
 def coalesce_grouped_products(grouped: dict) -> dict:
@@ -63,6 +73,7 @@ def calculate_order_fee_breakdown(cart_data: dict, order: Optional[Order] = None
                     pickup_location[0], pickup_location[1],
                     float(delivery_lat), float(delivery_lng)
                 )))
+            _validate_delivery_distance(delivery_distance)
         except (ValueError, AttributeError, TypeError):
             logger.exception('Unable to calculate delivery distance for order %s', order.pk)
             delivery_distance = Decimal('10')
@@ -248,6 +259,7 @@ def create_order_from_cart(buyer, cart_data: dict) -> Order:
                     pickup_location[0], pickup_location[1],
                     float(delivery_lat), float(delivery_lng)
                 )))
+            _validate_delivery_distance(delivery_distance)
         except (ValueError, AttributeError, TypeError):
             logger.exception('Unable to calculate delivery distance for order %s', order.pk)
             delivery_distance = Decimal('10')

@@ -8,8 +8,10 @@ abstract class ProductEvent extends Equatable {
 class FetchProductsEvent extends ProductEvent {
   final String? categoryCode;
   final int? farmerId;
-  const FetchProductsEvent({this.categoryCode, this.farmerId});
-  @override List<Object?> get props => [categoryCode, farmerId];
+  final double? buyerLatitude;
+  final double? buyerLongitude;
+  const FetchProductsEvent({this.categoryCode, this.farmerId, this.buyerLatitude, this.buyerLongitude});
+  @override List<Object?> get props => [categoryCode, farmerId, buyerLatitude, buyerLongitude];
 }
 
 class FetchProductDetailEvent extends ProductEvent {

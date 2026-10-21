@@ -1,12 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.users.permissions import IsAdmin
 
 from ..models import Product
-from ..serializers import ProductSerializer
+from ..serializers import ProductCreateUpdateSerializer, ProductSerializer
+from ..services import update_product
 
 
 class AdminProductListView(generics.ListAPIView):
@@ -14,6 +16,20 @@ class AdminProductListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related('farmer__user', 'category').order_by('-created_at')
+
+
+class AdminProductDetailView(generics.RetrieveUpdateAPIView):
+    """View and update a product listing as an administrator."""
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    lookup_field = 'uuid'
+    queryset = Product.objects.select_related('farmer__user', 'category').prefetch_related('bulk_price_tiers')
+
+    def get_serializer_class(self):
+        return ProductSerializer if self.request.method == 'GET' else ProductCreateUpdateSerializer
+
+    def perform_update(self, serializer):
+        update_product(serializer.instance, serializer.validated_data, self.request.user)
 
 
 class AdminProductStatusView(APIView):

@@ -5,6 +5,9 @@ export {
 	getAdminAuditLog,
 	getAdminDashboardData,
 	getAdminDispute,
+	getAdminFarmer,
+	getAdminStaff,
+	getAdminTransportProvider,
 	getAdminUser,
 	createAdminStaff,
 	listAdminStaff,
@@ -19,9 +22,10 @@ export {
 	startAdminDisputeReview,
 	suspendAdminUser,
 	updateAdminUser,
+	updateAdminFarmer,
 	updateAdminStaff,
 	updateAdminSecurityEvent,
 } from './adminService'
 export { getAdminOrder, listAdminOrders, updateAdminOrderStatus } from './orderAdminService'
 export { getAdminAnalyticsSummary, listAdminDailyMetrics, recomputeAdminMetrics } from './analyticsAdminService'
-export { listAdminProducts, setAdminProductActive } from './productAdminService'
+export { getAdminProduct, listAdminProducts, setAdminProductActive, updateAdminProduct } from './productAdminService'

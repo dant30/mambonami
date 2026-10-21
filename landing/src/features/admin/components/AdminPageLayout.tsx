@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Button } from '../../../shared/components/ui/Button'
 
-export type AdminSection = 'overview' | 'orders' | 'products' | 'users' | 'retailers' | 'staff' | 'farmers' | 'transport' | 'disputes' | 'payouts' | 'audit' | 'analytics'
+export type AdminSection = 'overview' | 'orders' | 'products' | 'users' | 'retailers' | 'staff' | 'farmers' | 'transport' | 'logistics' | 'disputes' | 'payouts' | 'audit' | 'analytics'
 
 interface AdminPageLayoutProps {
 	section: AdminSection

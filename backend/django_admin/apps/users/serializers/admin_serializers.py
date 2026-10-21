@@ -97,11 +97,47 @@ class UserAdminSerializer(serializers.ModelSerializer):
 class UserAdminDetailSerializer(UserAdminSerializer):
     national_id = serializers.CharField(read_only=True, allow_null=True)
     referral_code = serializers.CharField(read_only=True)
-    role_profile = serializers.SerializerMethodField()
+    role_profile = serializers.JSONField(required=False)
 
     class Meta(UserAdminSerializer.Meta):
         fields = UserAdminSerializer.Meta.fields + ('national_id', 'referral_code', 'role_profile')
-        read_only_fields = UserAdminSerializer.Meta.read_only_fields + ('national_id', 'referral_code', 'role_profile')
+        read_only_fields = UserAdminSerializer.Meta.read_only_fields + ('national_id', 'referral_code')
+
+    def validate_role_profile(self, value):
+        allowed_fields = {
+            Role.FARMER: {'latitude', 'longitude', 'county', 'sub_county', 'ward', 'village', 'cooperative', 'mpesa_number', 'bank_account'},
+            Role.TRANSPORT_PROVIDER: {'vehicle_type', 'capacity_kg', 'license_plate', 'driver_license', 'bank_account', 'base_rate_per_km', 'waiting_grace_minutes', 'waiting_rate_per_min', 'is_online', 'available'},
+            Role.BUYER: {'delivery_address', 'delivery_instructions', 'bank_account'},
+            Role.RETAILER: {'business_name', 'owner_full_name', 'business_phone', 'business_email', 'business_address', 'business_type', 'kra_pin', 'bank_account', 'business_registration_number', 'latitude', 'longitude'},
+        }.get(self.instance.role if self.instance else None, set())
+        invalid_fields = set(value) - allowed_fields
+        if invalid_fields:
+            raise serializers.ValidationError({field: 'This field cannot be changed for this role.' for field in invalid_fields})
+        return value
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return {**data, 'role_profile': self.get_role_profile(instance)}
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('role_profile', None)
+        instance = super().update(instance, validated_data)
+        if profile_data is None:
+            return instance
+
+        profile_models = {
+            Role.FARMER: FarmerProfile,
+            Role.TRANSPORT_PROVIDER: TransportProviderProfile,
+            Role.BUYER: BuyerProfile,
+            Role.RETAILER: RetailerProfile,
+        }
+        profile_model = profile_models.get(instance.role)
+        if profile_model and profile_data:
+            profile, _ = profile_model.objects.get_or_create(user=instance)
+            for field, value in profile_data.items():
+                setattr(profile, field, value)
+            profile.save()
+        return instance
 
     def get_role_profile(self, obj):
         profile_field = {

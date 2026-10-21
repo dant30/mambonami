@@ -51,6 +51,8 @@ export interface AdminFarmer {
 	village?: string
 	cooperative?: string
 	coop_verified?: boolean
+	mpesa_number?: string
+	bank_account?: string
 	total_sales?: string | number
 	rating?: number
 	rating_count?: number

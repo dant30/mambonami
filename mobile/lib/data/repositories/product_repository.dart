@@ -7,6 +7,7 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../local/database_helper.dart';
 import '../models/product.dart';
+import '../../services/location_service.dart';
 import 'response_utils.dart';
 
 final getIt = GetIt.instance;
@@ -16,23 +17,32 @@ class ProductRepository {
   final DatabaseHelper _databaseHelper = getIt<DatabaseHelper>();
 
   /// Attempt to load products from local DB cache
-  Future<List<Product>> getCachedProducts({String? categoryCode, int? farmerId}) async {
+  Future<List<Product>> getCachedProducts({String? categoryCode, int? farmerId, double? buyerLatitude, double? buyerLongitude}) async {
     final records = await _databaseHelper.getRecords(kProductTable);
-    return records.map((record) => Product.fromJson(normalizeMap(record))).toList();
+    final products = records.map((record) => Product.fromJson(normalizeMap(record))).toList();
+    return _filterForBuyerLocation(products, buyerLatitude, buyerLongitude);
   }
 
-  Future<List<Product>> getProducts({String? categoryCode, int? farmerId}) async {
+  Future<List<Product>> getProducts({String? categoryCode, int? farmerId, double? buyerLatitude, double? buyerLongitude}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (categoryCode != null) queryParams['category_code'] = categoryCode;
       if (farmerId != null) queryParams['farmer_id'] = farmerId;
+      if (buyerLatitude != null && buyerLongitude != null) {
+        queryParams['buyer_lat'] = buyerLatitude;
+        queryParams['buyer_lng'] = buyerLongitude;
+      }
 
       final response = await _apiClient.dio.get('/api/products/', queryParameters: queryParams);
       if (response.statusCode == 200) {
         final payload = response.data is Map<String, dynamic> && (response.data as Map<String, dynamic>).containsKey('results')
             ? response.data['results']
             : response.data;
-        final products = normalizeList<Map<String, dynamic>>(payload).map(Product.fromJson).toList();
+        final products = _filterForBuyerLocation(
+          normalizeList<Map<String, dynamic>>(payload).map(Product.fromJson).toList(),
+          buyerLatitude,
+          buyerLongitude,
+        );
 
         // persist each product into local DB for offline access with TTL
         for (final p in products) {
@@ -45,16 +55,31 @@ class ProductRepository {
       }
 
       // Fallback: return cached products when network failed
-      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId);
+      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId, buyerLatitude: buyerLatitude, buyerLongitude: buyerLongitude);
       if (cached.isNotEmpty) return cached;
 
       throw Exception('Failed to fetch products');
     } catch (e) {
       // On error return cached products if available
-      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId);
+      final cached = await getCachedProducts(categoryCode: categoryCode, farmerId: farmerId, buyerLatitude: buyerLatitude, buyerLongitude: buyerLongitude);
       if (cached.isNotEmpty) return cached;
       throw _handleError(e);
     }
+  }
+
+  List<Product> _filterForBuyerLocation(List<Product> products, double? latitude, double? longitude) {
+    if (latitude == null || longitude == null) return products;
+    return products.where((product) {
+      if (product.pickupLat == null || product.pickupLng == null) return false;
+      final distanceKm = LocationService.distanceBetween(
+            latitude,
+            longitude,
+            product.pickupLat!,
+            product.pickupLng!,
+          ) /
+          1000;
+      return distanceKm <= kMaxDeliveryDistanceKm;
+    }).toList();
   }
 
   Future<Product> getProductByUuid(String uuid) async {

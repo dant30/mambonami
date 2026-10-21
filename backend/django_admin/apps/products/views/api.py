@@ -1,5 +1,6 @@
 ﻿# backend/django_admin/apps/products/views/api.py
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,6 +14,7 @@ from rest_framework.views import APIView
 
 from apps.users.models import FarmerProfile
 from apps.users.permissions import IsFarmer
+from apps.logistics.services.geolocation import haversine
 
 from ..models import Product, ProductCategory, ProductReview, WishlistItem
 from ..serializers import (ProductCategorySerializer, ProductCreateUpdateSerializer,
@@ -29,6 +31,23 @@ def _get_farmer_profile_for_user(user):
         return user.farmer_profile
     except (AttributeError, ObjectDoesNotExist):
         return None
+
+
+def _product_ids_within_delivery_radius(products, buyer_lat, buyer_lng):
+    radius_km = float(settings.MAX_DELIVERY_DISTANCE_KM)
+    valid_ids = []
+    for product in products:
+        if product.pickup_lat is None or product.pickup_lng is None:
+            continue
+        distance_km = haversine(
+            buyer_lat,
+            buyer_lng,
+            float(product.pickup_lat),
+            float(product.pickup_lng),
+        )
+        if distance_km <= radius_km:
+            valid_ids.append(product.pk)
+    return valid_ids
 
 class ProductCategoryListView(generics.ListAPIView):
     queryset = ProductCategory.objects.filter(is_active=True)
@@ -61,8 +80,8 @@ class ProductListView(generics.ListAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         # Extract buyer GPS from query params (if passed)
-        buyer_lat = self.request.query_params.get('lat')
-        buyer_lng = self.request.query_params.get('lng')
+        buyer_lat = self.request.query_params.get('buyer_lat') or self.request.query_params.get('lat')
+        buyer_lng = self.request.query_params.get('buyer_lng') or self.request.query_params.get('lng')
         if buyer_lat and buyer_lng:
             try:
                 context['buyer_lat'] = float(buyer_lat)
@@ -72,7 +91,29 @@ class ProductListView(generics.ListAPIView):
         return context
 
     def get_queryset(self):
-        return list_active_products(self.request.query_params)
+        queryset = list_active_products(self.request.query_params)
+        buyer_lat = self.request.query_params.get('buyer_lat')
+        buyer_lng = self.request.query_params.get('buyer_lng')
+        if buyer_lat is None and buyer_lng is None:
+            buyer_lat = self.request.query_params.get('lat')
+            buyer_lng = self.request.query_params.get('lng')
+        if buyer_lat is None and buyer_lng is None:
+            return queryset
+        if buyer_lat is None or buyer_lng is None:
+            raise ValidationError({'detail': 'Provide both buyer_lat and buyer_lng to filter by delivery distance.'})
+        try:
+            latitude = float(buyer_lat)
+            longitude = float(buyer_lng)
+            if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+                raise ValueError('coordinates out of bounds')
+        except (TypeError, ValueError):
+            raise ValidationError({'detail': 'Buyer coordinates must be valid latitude and longitude values.'})
+
+        candidates = queryset.filter(pickup_lat__isnull=False, pickup_lng__isnull=False).only(
+            'id', 'pickup_lat', 'pickup_lng'
+        ).iterator(chunk_size=500)
+        product_ids = _product_ids_within_delivery_radius(candidates, latitude, longitude)
+        return queryset.filter(pk__in=product_ids)
 
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_active=True).select_related('farmer__user', 'category').prefetch_related('bulk_price_tiers')

@@ -1,4 +1,6 @@
+import { Eye } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { StatCard } from '../../../../shared/components/cards'
 import { DataTable } from '../../../../shared/components/tables/DataTable'
@@ -22,7 +24,7 @@ export function ProductsAdminPage() {
 		{ header: 'Farmer', render: (product: AdminProduct) => <div>{product.farmer_name || 'Unknown'}<p className="text-xs text-muted-foreground">{product.farmer_phone || 'No phone'}</p></div> },
 		{ header: 'Price / stock', render: (product: AdminProduct) => `KES ${product.price_per_unit} / ${product.unit} · ${product.available_quantity} available` },
 		{ header: 'Listing', render: (product: AdminProduct) => product.is_active ? 'Active' : 'Inactive' },
-		{ header: 'Action', render: (product: AdminProduct) => <ProductAvailabilityAction product={product} busy={busy === product.uuid} onToggle={() => toggle(product)} /> },
+		{ header: 'Actions', mobileRole: 'action' as const, render: (product: AdminProduct) => <div className="flex items-center gap-1.5"><Link to={`/app/admin/products/${product.uuid}`} aria-label={`View ${product.name}`} title="View product" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"><Eye className="h-4 w-4" aria-hidden="true" /></Link><ProductAvailabilityAction product={product} busy={busy === product.uuid} onToggle={() => toggle(product)} /></div> },
 	]
 	return <AdminPageLayout section="products" title="Products" loading={loading} error={error} notice={notice} onRefresh={refresh}>
 		<div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 xl:grid-cols-4"><StatCard title="Products" value={allProducts.length} subtitle="All storefront listings" variant="flat" /><StatCard title="Active" value={allProducts.filter((product) => product.is_active).length} subtitle="Visible to shoppers" variant="flat" /><StatCard title="Inactive" value={allProducts.filter((product) => !product.is_active).length} subtitle="Hidden listings" variant="flat" /><StatCard title="Out of stock" value={allProducts.filter((product) => Number(product.available_quantity) <= 0).length} subtitle="Active or inactive listings" variant="flat" /></div>

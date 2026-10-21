@@ -6,6 +6,7 @@ import { Modal } from '../../../../shared/components/ui/Modal'
 import { AdminPageLayout } from '../../components'
 import { activateAdminUser, adminResourceCaches, createAdminStaff, listAdminStaff, suspendAdminUser, updateAdminStaff, useAdminResource } from '../../../../core/lib'
 import type { AdminStaffInput, AdminUser } from '../../../../core/lib/types/admin'
+import { ConfirmDialog } from '../../../../shared/components/ui'
 import { StaffAccountStatus } from './components/StaffAccountStatus'
 import { StaffEditorForm } from './components/StaffEditorForm'
 
@@ -14,12 +15,20 @@ export function StaffAdminPage() {
 	const [editor, setEditor] = useState<AdminUser | 'create' | null>(null)
 	const [saving, setSaving] = useState(false)
 	const [formError, setFormError] = useState('')
+	const [confirming, setConfirming] = useState<AdminUser | null>(null)
 	const staff = data ?? []
 	const activeCount = staff.filter((member) => member.is_active).length
 	const toggle = (member: AdminUser) => {
-		const suspend = member.is_active
-		if (!window.confirm(`${suspend ? 'Suspend' : 'Activate'} ${member.display_name || member.phone}?`)) return
-		void runAction(String(member.id), () => suspend ? suspendAdminUser(member.id) : activateAdminUser(member.id), suspend ? 'Staff account suspended.' : 'Staff account activated.')
+		if (member.is_active) {
+			setConfirming(member)
+			return
+		}
+		void runAction(String(member.id), () => activateAdminUser(member.id), 'Staff account activated.')
+	}
+	const suspend = async () => {
+		if (!confirming) return
+		await runAction(String(confirming.id), () => suspendAdminUser(confirming.id), 'Staff account suspended.')
+		setConfirming(null)
 	}
 	const submitStaff = async (input: AdminStaffInput) => {
 		setSaving(true)
@@ -48,6 +57,7 @@ export function StaffAdminPage() {
 		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'create' ? 'Create staff account' : 'Edit staff member'} subtitle="Roles and permissions are managed separately." maxWidth="2xl">
 			{editor && <StaffEditorForm key={editor === 'create' ? 'create' : editor.id} staff={editor === 'create' ? undefined : editor} saving={saving} error={formError} onCancel={() => setEditor(null)} onSubmit={submitStaff} />}
 		</Modal>
+		<ConfirmDialog isOpen={Boolean(confirming)} title="Suspend staff account" message={<>Suspend {confirming?.display_name || confirming?.phone}? This staff member will lose access to the admin workspace.</>} confirmLabel="Suspend account" variant="danger" loading={confirming ? busy === String(confirming.id) : false} onCancel={() => !busy && setConfirming(null)} onConfirm={() => void suspend()} />
 		<DataTable data={staff} columns={columns} keyExtractor={(member) => String(member.id)} emptyMessage="No staff accounts found." />
 	</AdminPageLayout>
 }

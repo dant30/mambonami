@@ -20,6 +20,7 @@ const adminItems = [
 	{ path: '/app/admin/users', label: 'Users', icon: Users },
 	{ path: '/app/admin/farmers', label: 'Farmers', icon: Package },
 	{ path: '/app/admin/transport', label: 'Transport', icon: Truck },
+	{ path: '/app/admin/logistics', label: 'Logistics', icon: Navigation },
 	{ path: '/app/admin/disputes', label: 'Disputes', icon: ShieldCheck },
 	{ path: '/app/admin/payouts', label: 'Payouts', icon: Navigation },
 	{ path: '/app/admin/audit', label: 'Audit log', icon: FileCheck2 },
