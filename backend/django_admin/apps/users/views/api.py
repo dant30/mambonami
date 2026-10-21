@@ -58,6 +58,7 @@ def _build_safe_user_payload(user, request):
             'account_status': getattr(user, 'account_status', None),
             'kyc_status': getattr(user, 'kyc_status', None),
             'verification_status': getattr(user, 'kyc_status', None),
+            'referral_code': getattr(user, 'referral_code', None),
             'avatar_url': None,
         }
 

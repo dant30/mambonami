@@ -9,6 +9,7 @@ export interface AuthUser {
 	last_name?: string
 	middle_name?: string
 	role?: AuthRole
+	referral_code?: string
 	avatar_url?: string | null
 	is_phone_verified?: boolean
 	is_email_verified?: boolean
@@ -60,6 +61,7 @@ export interface RegisterInitInput {
 }
 
 export interface RegisterInput extends RegisterInitInput {
+	referral_code?: string
 	otp: string
 	username: string
 	password: string

@@ -65,6 +65,7 @@ class RegisterInitSerializer(serializers.Serializer):
 class RegistrationStartSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
     role = serializers.ChoiceField(choices=Role.choices)
+    referral_code = serializers.CharField(required=False, allow_blank=True, max_length=12)
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
@@ -87,9 +88,23 @@ class RegistrationStartSerializer(serializers.Serializer):
             raise serializers.ValidationError('User with this phone already exists.')
         return phone
 
+    def validate_referral_code(self, value):
+        code = value.strip().upper()
+        if not code:
+            return ''
+        referrer = User.objects.filter(referral_code__iexact=code).first()
+        if not referrer:
+            raise serializers.ValidationError('This referral link is invalid.')
+        return referrer.referral_code
+
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+        if attrs.get('referral_code') and User.objects.filter(
+            referral_code=attrs['referral_code'],
+            phone=attrs['phone'],
+        ).exists():
+            raise serializers.ValidationError({'referral_code': 'You cannot use your own referral link.'})
         return attrs
 
     def save(self):
@@ -188,6 +203,7 @@ class VerifyOTPSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=Role.choices)
+    referral_code = serializers.CharField(required=False, allow_blank=True, max_length=12)
 
     # Profile fields
     full_name = serializers.CharField(required=False, allow_blank=True)
@@ -233,6 +249,15 @@ class VerifyOTPSerializer(serializers.Serializer):
             raise serializers.ValidationError('User with this phone already exists.')
         return normalized_phone
 
+    def validate_referral_code(self, value):
+        code = value.strip().upper()
+        if not code:
+            return ''
+        referrer = User.objects.filter(referral_code__iexact=code).first()
+        if not referrer:
+            raise serializers.ValidationError('This referral link is invalid.')
+        return referrer.referral_code
+
     def validate_username(self, value):
         existing_user = User.objects.filter(username=value).first()
         if existing_user:
@@ -249,6 +274,11 @@ class VerifyOTPSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+        if attrs.get('referral_code') and User.objects.filter(
+            referral_code=attrs['referral_code'],
+            phone=attrs['phone'],
+        ).exists():
+            raise serializers.ValidationError({'referral_code': 'You cannot use your own referral link.'})
 
         if attrs.get('role') == Role.TRANSPORT_PROVIDER:
             normalized_vehicle_type = _normalize_vehicle_type(attrs.get('vehicle_type'))
@@ -304,6 +334,7 @@ class VerifyOTPSerializer(serializers.Serializer):
         business_type = validated_data.pop('business_type', '')
         kra_pin = validated_data.pop('kra_pin', '')
         business_registration_number = validated_data.pop('business_registration_number', '')
+        referral_code = validated_data.pop('referral_code', '')
 
         # Create or reuse the user for a duplicate verification retry.
         existing_user = User.objects.filter(phone=validated_data['phone']).first()
@@ -325,6 +356,10 @@ class VerifyOTPSerializer(serializers.Serializer):
                         account_status=AccountStatus.PENDING,
                         kyc_status=KycStatus.PENDING,
                     )
+                    if referral_code:
+                        user.referred_by = User.objects.filter(referral_code__iexact=referral_code).first()
+                        if user.referred_by:
+                            user.save(update_fields=['referred_by'])
             except IntegrityError:
                 logger.warning('IntegrityError while creating user during verify; attempting to fetch existing user for phone=%s', validated_data.get('phone'))
                 user = User.objects.filter(phone=validated_data.get('phone')).first()
@@ -509,10 +544,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'id', 'phone', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'national_id',
             'full_name', 'display_name', 'role', 'is_phone_verified', 'is_email_verified',
             'is_active', 'account_status', 'kyc_status', 'verification_status', 'avatar', 'avatar_url',
+            'referral_code',
             'is_staff', 'is_superuser', 'date_joined', 'last_seen',
             'farm_profile', 'transport_profile', 'buyer_profile', 'retailer_profile',
         )
-        read_only_fields = ('id', 'is_active', 'date_joined', 'is_staff', 'is_superuser', 'last_seen')
+        read_only_fields = ('id', 'referral_code', 'is_active', 'date_joined', 'is_staff', 'is_superuser', 'last_seen')
 
     def get_avatar_url(self, obj):
         if obj.avatar:

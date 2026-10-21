@@ -27,6 +27,7 @@ export interface AuthUser {
 	first_name?: string
 	last_name?: string
 	role?: string
+	referral_code?: string
 	is_staff?: boolean
 	is_superuser?: boolean
 	isOnboarded?: boolean

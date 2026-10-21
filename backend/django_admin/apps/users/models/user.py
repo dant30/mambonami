@@ -1,4 +1,6 @@
 ﻿# backend/django_admin/apps/users/models/user.py
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -9,6 +11,10 @@ from core.validators import normalize_phone_number, validate_phone_number
 from core.storage_backends import PrivateMediaStorage
 
 verification_document_storage = PrivateMediaStorage()
+
+
+def generate_referral_code():
+    return uuid.uuid4().hex[:12].upper()
 
 
 # ────────────────────────────────────────────────────────────────
@@ -175,6 +181,14 @@ class User(AbstractUser):
         blank=True,
         null=True,
         help_text='Second given name (middle name)',
+    )
+    referral_code = models.CharField(max_length=12, unique=True, default=generate_referral_code, editable=False)
+    referred_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referrals',
     )
 
     # ─── AUDIT / SECURITY ─────────────────────────────────────

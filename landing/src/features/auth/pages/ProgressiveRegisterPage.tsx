@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { registrationDraftStore, startRegistrationTransaction } from '../../../core/lib'
 import type { AuthRole, RegisterInput } from '../../../core/lib'
 import { getErrorMessage } from '../../../core/utils'
@@ -34,7 +34,12 @@ function readProgress(role: AuthRole): RegistrationProgress {
 
 export function ProgressiveRegisterPage({ role }: { role: AuthRole }) {
 	const navigate = useNavigate()
-	const [progress, setProgress] = useState(() => readProgress(role))
+	const [searchParams] = useSearchParams()
+	const referralCode = searchParams.get('ref')?.trim() ?? ''
+	const [progress, setProgress] = useState(() => {
+		const saved = readProgress(role)
+		return { ...saved, form: { ...saved.form, ...(referralCode ? { referral_code: referralCode } : {}) } }
+	})
 	const [error, setError] = useState('')
 	const [fieldErrors, setFieldErrors] = useState<{ confirm_password?: string }>({})
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,7 +50,7 @@ export function ProgressiveRegisterPage({ role }: { role: AuthRole }) {
 
 	useEffect(() => {
 		if (typeof window === 'undefined') return
-		const { password: _password, confirm_password: _confirmPassword, ...safeForm } = form
+		const { password: _password, confirm_password: _confirmPassword, referral_code: _referralCode, ...safeForm } = form
 		try {
 			window.sessionStorage.setItem(draftKey(role), JSON.stringify({ form: safeForm, step }))
 		} catch {

@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, Clock3, ShieldCheck } from 'lucide-react'
+import { Camera, Check, CheckCircle2, Clock3, Copy, Share2, ShieldCheck } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 import { uploadAvatar } from '../../../core/lib'
@@ -21,6 +21,7 @@ type ProfileUser = {
 	is_active?: unknown
 	account_status?: unknown
 	kyc_status?: unknown
+	referral_code?: unknown
 }
 
 export function ProfileIdentityPanel({ user, roleLabel }: { user: ProfileUser | null; roleLabel: string }) {
@@ -28,9 +29,37 @@ export function ProfileIdentityPanel({ user, roleLabel }: { user: ProfileUser | 
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(String(user?.avatar_url || '') || null)
 	const [uploading, setUploading] = useState(false)
 	const [error, setError] = useState('')
+	const [referralMessage, setReferralMessage] = useState('')
 	const displayName = [user?.first_name, user?.middle_name, user?.last_name].filter(Boolean).join(' ') || user?.username || 'Mambonami member'
 	const accountStatus = String(user?.account_status || 'pending')
 	const kycStatus = String(user?.kyc_status || 'pending')
+	const referralCode = String(user?.referral_code || '')
+	const referralLink = typeof window === 'undefined' || !referralCode
+		? ''
+		: `${window.location.origin}/role-select?ref=${encodeURIComponent(referralCode)}`
+
+	const copyReferralLink = async () => {
+		try {
+			await navigator.clipboard.writeText(referralLink)
+			setReferralMessage('Referral link copied.')
+		} catch {
+			setReferralMessage('Could not copy the referral link. Please copy it from the field.')
+		}
+	}
+
+	const shareReferralLink = async () => {
+		if (navigator.share) {
+			try {
+				await navigator.share({ title: 'Join Mambonami', text: 'Join me on Mambonami.', url: referralLink })
+				setReferralMessage('Referral link shared.')
+			} catch (shareError) {
+				if (shareError instanceof Error && shareError.name === 'AbortError') return
+				await copyReferralLink()
+			}
+			return
+		}
+		await copyReferralLink()
+	}
 
 	const upload = async (file?: File) => {
 		if (!file) return
@@ -69,6 +98,19 @@ export function ProfileIdentityPanel({ user, roleLabel }: { user: ProfileUser | 
 				<Badge variant={user?.is_active === false ? 'danger' : 'success'} size="sm">{user?.is_active === false ? 'Inactive' : 'Active'}</Badge>
 				<Badge variant={statusVariant(kycStatus)} size="sm" icon={<ShieldCheck className="h-3.5 w-3.5" />}>KYC {kycStatus.replaceAll('_', ' ')}</Badge>
 			</div>
+			{referralLink && <div className="mt-4 border-t border-border pt-4">
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div><h2 className="text-sm font-semibold text-primary-dark">Your referral link</h2><p className="mt-1 text-xs text-muted-foreground">Invite someone to choose any Mambonami account type.</p></div>
+					<div className="flex shrink-0 gap-2">
+						<Button type="button" size="sm" variant="outline" onClick={() => void copyReferralLink()} aria-label="Copy referral link"><Copy className="h-4 w-4" /><span className="sr-only">Copy</span></Button>
+						<Button type="button" size="sm" variant="navy" onClick={() => void shareReferralLink()} aria-label="Share referral link"><Share2 className="h-4 w-4" /><span className="sr-only">Share</span></Button>
+					</div>
+				</div>
+				<div className="mt-3 flex min-w-0 items-center gap-2">
+					<input aria-label="Referral link" readOnly value={referralLink} onFocus={(event) => event.currentTarget.select()} className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground" />
+				</div>
+				{referralMessage && <p role="status" className="mt-2 flex items-center gap-1 text-xs text-primary"><Check className="h-3.5 w-3.5" />{referralMessage}</p>}
+			</div>}
 			{error && <p role="alert" className="mt-3 text-xs text-destructive">{error}</p>}
 		</section>
 	)

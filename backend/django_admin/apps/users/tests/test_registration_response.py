@@ -26,6 +26,26 @@ class RegistrationResponseTests(TestCase):
         self.assertEqual(data['phone'], '+254700000000')
         self.assertEqual(data['role'], Role.BUYER)
         self.assertIn('username', data)
+        self.assertEqual(data['referral_code'], user.referral_code)
+
+    def test_registration_records_referrer(self):
+        referrer = User.objects.create_user(
+            phone='+254700000010',
+            username='referrer',
+            password='TestPass123!',
+            role=Role.FARMER,
+        )
+        referred_user = VerifyOTPSerializer().create({
+            'phone': '+254700000011',
+            'otp': '123456',
+            'username': 'referredbuyer',
+            'password': 'TestPass123!',
+            'confirm_password': 'TestPass123!',
+            'role': Role.BUYER,
+            'referral_code': referrer.referral_code,
+        })
+
+        self.assertEqual(referred_user.referred_by, referrer)
 
 
 class ThrottlingFallbackTests(SimpleTestCase):
@@ -58,6 +78,7 @@ class TransportVehicleTypeTests(TestCase):
         })
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
+
         self.assertEqual(serializer.validated_data['vehicle_type'], 'pickup')
 
 
@@ -74,6 +95,25 @@ class RegistrationStartSerializerTests(TestCase):
         )
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    def test_registration_start_accepts_existing_referral_code(self):
+        referrer = User.objects.create_user(
+            phone='+254700000020',
+            username='referralowner',
+            password='TestPass123!',
+            role=Role.RETAILER,
+        )
+        serializer = RegistrationStartSerializer(data={
+            'phone': '+254700000021',
+            'role': Role.BUYER,
+            'username': 'newreferredbuyer',
+            'password': 'TestPass123!',
+            'confirm_password': 'TestPass123!',
+            'referral_code': referrer.referral_code.lower(),
+        })
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        self.assertEqual(serializer.validated_data['referral_code'], referrer.referral_code)
 
 
 class LoginViewFallbackTests(TestCase):
