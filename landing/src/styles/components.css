@@ -1,52 +1,5 @@
 /* Shared marketplace utilities. */
 
-main.max-w-7xl > a[href="/products"] + div.mt-8.grid {
-  position: relative;
-}
-
-main.max-w-7xl > a[href="/products"] + div.mt-8.grid > div:nth-child(2) > div:first-child > span:first-child {
-  position: absolute;
-  z-index: 10;
-  top: 0.75rem;
-  right: 0.75rem;
-  max-width: min(45%, 12rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 18%);
-  backdrop-filter: blur(8px);
-}
-
-main.max-w-7xl > a[href="/products"] + div.mt-8.grid > div:nth-child(2) > div.mt-9 > button:nth-child(2) {
-  position: absolute;
-  z-index: 10;
-  top: 0.75rem;
-  left: 0.75rem;
-  display: inline-flex;
-  width: 2.75rem;
-  height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border-color: rgb(255 255 255 / 75%);
-  background: rgb(255 255 255 / 92%);
-  color: var(--color-primary-dark);
-  font-size: 0;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 18%);
-  backdrop-filter: blur(8px);
-}
-
-main.max-w-7xl > a[href="/products"] + div.mt-8.grid > div:nth-child(2) > div.mt-9 > button:nth-child(2):hover {
-  background: white;
-}
-
-@media (min-width: 1024px) {
-  main.max-w-7xl > a[href="/products"] + div.mt-8.grid > div:nth-child(2) > div:first-child > span:first-child {
-    right: calc(50% + 2.75rem);
-  }
-}
-
 .bg-gradient-hero { background-image: var(--gradient-hero); }
 .bg-gradient-warm { background-image: var(--gradient-warm); }
 .shadow-soft { box-shadow: var(--shadow-soft); }
