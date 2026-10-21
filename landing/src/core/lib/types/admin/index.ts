@@ -15,4 +15,5 @@ export type {
 	AdminStaffInput,
 	AdminTransportProvider,
 	AdminUser,
+	AdminUserDetail,
 } from './admin'

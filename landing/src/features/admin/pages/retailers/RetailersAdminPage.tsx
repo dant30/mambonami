@@ -1,4 +1,5 @@
 import { DataTable } from '../../../../shared/components/tables/DataTable'
+import { StatCard } from '../../../../shared/components/cards'
 import { AdminPageLayout } from '../../components'
 import { activateAdminUser, adminResourceCaches, listAdminUsers, suspendAdminUser, useAdminResource } from '../../../../core/lib'
 import type { AdminUser } from '../../../../core/lib/types/admin'
@@ -7,6 +8,8 @@ import { RetailerAccountStatus } from './components/RetailerAccountStatus'
 export function RetailersAdminPage() {
 	const { data, loading, error, notice, busy, refresh, runAction } = useAdminResource(listAdminUsers, adminResourceCaches.users)
 	const retailers = (data ?? []).filter((user) => user.role === 'retailer')
+	const activeCount = retailers.filter((retailer) => retailer.is_active).length
+	const verifiedCount = retailers.filter((retailer) => ['approved', 'verified'].includes(retailer.kyc_status || '')).length
 	const toggle = (retailer: AdminUser) => {
 		const suspend = retailer.is_active
 		if (!window.confirm(`${suspend ? 'Suspend' : 'Activate'} retailer ${retailer.display_name || retailer.phone}?`)) return
@@ -19,5 +22,5 @@ export function RetailersAdminPage() {
 		{ header: 'Joined', render: (retailer: AdminUser) => retailer.date_joined ? new Date(retailer.date_joined).toLocaleDateString() : 'Not recorded' },
 		{ header: 'Action', render: (retailer: AdminUser) => <RetailerAccountStatus retailer={retailer} busy={busy === String(retailer.id)} onToggle={() => toggle(retailer)} /> },
 	]
-	return <AdminPageLayout section="retailers" title="Retailers" loading={loading} error={error} notice={notice} onRefresh={refresh}><DataTable data={retailers} columns={columns} keyExtractor={(retailer) => String(retailer.id)} emptyMessage="No retailer accounts found." /></AdminPageLayout>
+	return <AdminPageLayout section="retailers" title="Retailers" loading={loading} error={error} notice={notice} onRefresh={refresh}><div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 xl:grid-cols-4"><StatCard title="Retailers" value={retailers.length} subtitle="Registered businesses" variant="flat" /><StatCard title="Active" value={activeCount} subtitle="Accounts in service" variant="flat" /><StatCard title="KYC verified" value={verifiedCount} subtitle="Approved or verified" variant="flat" /><StatCard title="KYC pending" value={retailers.length - verifiedCount} subtitle="Needs review" variant="flat" /></div><DataTable data={retailers} columns={columns} keyExtractor={(retailer) => String(retailer.id)} emptyMessage="No retailer accounts found." /></AdminPageLayout>
 }

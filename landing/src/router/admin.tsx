@@ -16,6 +16,8 @@ import {
 	TransportersAdminPage,
 	UsersAdminPage,
 } from '../features/admin'
+import { UserDetailsPage } from '../features/admin/pages/users/UserDetailsPage'
+import { OrderDetailsPage } from '../features/admin/pages/orders/OrderDetailsPage'
 import { NotificationsPage } from '../features/notifications'
 import { MainLayout } from '../shared/layouts'
 
@@ -31,11 +33,13 @@ function AdminLayout({ children }: { children: ReactNode }) {
 export const adminRoutes: RouteObject[] = [
 	{ path: '/app/admin', element: <AdminLayout><AdminDashboardPage /></AdminLayout> },
 	{ path: '/app/admin/orders', element: <AdminLayout><OrdersAdminPage /></AdminLayout> },
+	{ path: '/app/admin/orders/:uuid', element: <AdminLayout><OrderDetailsPage /></AdminLayout> },
 	{ path: '/app/admin/products', element: <AdminLayout><ProductsAdminPage /></AdminLayout> },
 	{ path: '/app/admin/retailers', element: <AdminLayout><RetailersAdminPage /></AdminLayout> },
 	{ path: '/app/admin/staff', element: <AdminLayout><StaffAdminPage /></AdminLayout> },
 	{ path: '/app/admin/analytics', element: <AdminLayout><AnalyticsAdminPage /></AdminLayout> },
 	{ path: '/app/admin/users', element: <AdminLayout><UsersAdminPage /></AdminLayout> },
+	{ path: '/app/admin/users/:id', element: <AdminLayout><UserDetailsPage /></AdminLayout> },
 	{ path: '/app/admin/farmers', element: <AdminLayout><FarmersAdminPage /></AdminLayout> },
 	{ path: '/app/admin/transport', element: <AdminLayout><TransportersAdminPage /></AdminLayout> },
 	{ path: '/app/admin/disputes', element: <AdminLayout><DisputesAdminPage /></AdminLayout> },

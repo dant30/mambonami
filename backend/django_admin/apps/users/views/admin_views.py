@@ -10,6 +10,7 @@ from ..serializers.admin_serializers import (
     StaffAdminSerializer,
     TransportProviderAdminSerializer,
     UserAdminSerializer,
+    UserAdminDetailSerializer,
 )
 
 
@@ -43,6 +44,11 @@ class UserAdminViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdmin]
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserAdminSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return UserAdminDetailSerializer
+        return UserAdminSerializer
 
     @action(detail=True, methods=['post'])
     def suspend(self, request, pk=None):

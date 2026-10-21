@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from core.validators import normalize_phone_number
 from ..models import FarmerProfile, TransportProviderProfile, BuyerProfile, RetailerProfile, Role, User
+from .user_serializer import UserDetailSerializer
 
 class FarmerAdminSerializer(serializers.ModelSerializer):
     user_phone = serializers.CharField(source='user.phone', read_only=True)
@@ -91,6 +92,28 @@ class UserAdminSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
         return None
+
+
+class UserAdminDetailSerializer(UserAdminSerializer):
+    national_id = serializers.CharField(read_only=True, allow_null=True)
+    referral_code = serializers.CharField(read_only=True)
+    role_profile = serializers.SerializerMethodField()
+
+    class Meta(UserAdminSerializer.Meta):
+        fields = UserAdminSerializer.Meta.fields + ('national_id', 'referral_code', 'role_profile')
+        read_only_fields = UserAdminSerializer.Meta.read_only_fields + ('national_id', 'referral_code', 'role_profile')
+
+    def get_role_profile(self, obj):
+        profile_field = {
+            Role.FARMER: 'farm_profile',
+            Role.TRANSPORT_PROVIDER: 'transport_profile',
+            Role.BUYER: 'buyer_profile',
+            Role.RETAILER: 'retailer_profile',
+        }.get(obj.role)
+        if not profile_field:
+            return None
+        user_details = UserDetailSerializer(obj, context=self.context).data
+        return user_details.get(profile_field)
 
 
 class StaffAdminSerializer(serializers.ModelSerializer):

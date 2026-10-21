@@ -2,14 +2,14 @@ import { apiClient } from '../../../api'
 import { ADMIN_ENDPOINTS } from '../../../api/endpoints'
 import type { Dispute, DisputeResolutionInput } from '../../types/disputes'
 import type { Payout } from '../../types/payouts'
-import type { AdminAuditLog, AdminFarmer, AdminSecurityEvent, AdminSecurityEventUpdate, AdminStaffInput, AdminTransportProvider, AdminUser } from '../../types'
+import type { AdminAuditLog, AdminFarmer, AdminSecurityEvent, AdminSecurityEventUpdate, AdminStaffInput, AdminTransportProvider, AdminUser, AdminUserDetail } from '../../types'
 import { listAdminOrders } from './orderAdminService'
 import { listAdminDailyMetrics } from './analyticsAdminService'
 
 function list<T>(response: T[] | { results?: T[] }): T[] { return Array.isArray(response) ? response : response.results ?? [] }
 
 export async function listAdminUsers(): Promise<AdminUser[]> { return list(await apiClient.get<AdminUser[] | { results?: AdminUser[] }>(ADMIN_ENDPOINTS.users.list)) }
-export function getAdminUser(id: string | number): Promise<AdminUser> { return apiClient.get<AdminUser>(ADMIN_ENDPOINTS.users.detail(id)) }
+export function getAdminUser(id: string | number): Promise<AdminUserDetail> { return apiClient.get<AdminUserDetail>(ADMIN_ENDPOINTS.users.detail(id)) }
 export function updateAdminUser(id: string | number, input: Partial<AdminUser>): Promise<AdminUser> { return apiClient.patch<AdminUser>(ADMIN_ENDPOINTS.users.detail(id), input) }
 export async function listAdminStaff(): Promise<AdminUser[]> { return list(await apiClient.get<AdminUser[] | { results?: AdminUser[] }>(ADMIN_ENDPOINTS.users.staff)) }
 export function createAdminStaff(input: AdminStaffInput): Promise<AdminUser> { return apiClient.post<AdminUser>(ADMIN_ENDPOINTS.users.staff, input) }

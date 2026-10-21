@@ -1,4 +1,5 @@
 import { DataTable } from '../../../../shared/components/tables/DataTable'
+import { StatCard } from '../../../../shared/components/cards'
 import { AdminPageLayout } from '../../components'
 import { adminResourceCaches, approveAdminFarmer, listAdminFarmers, useAdminResource } from '../../../../core/lib'
 import type { AdminFarmer } from '../../../../core/lib/types/admin'
@@ -7,6 +8,7 @@ import { FarmerApprovalAction } from './components/FarmerApprovalAction'
 export function FarmersAdminPage() {
 	const { data, loading, error, notice, busy, refresh, runAction } = useAdminResource(listAdminFarmers, adminResourceCaches.farmers)
 	const farmers = data ?? []
+	const verifiedCount = farmers.filter((farmer) => farmer.coop_verified).length
 	const columns = [
 		{ header: 'Farmer', render: (farmer: AdminFarmer) => <div><p className="font-semibold">{farmer.user_username || farmer.user_phone || `Farmer ${farmer.id}`}</p><p className="text-xs text-muted-foreground">{farmer.user_phone || 'Phone unavailable'}</p></div> },
 		{ header: 'Location', render: (farmer: AdminFarmer) => [farmer.village, farmer.ward, farmer.sub_county, farmer.county].filter(Boolean).join(', ') || 'Not provided' },
@@ -14,5 +16,5 @@ export function FarmersAdminPage() {
 		{ header: 'Activity', render: (farmer: AdminFarmer) => `${farmer.total_orders ?? 0} orders · ${farmer.rating ?? 'N/A'} rating` },
 		{ header: 'Review', render: (farmer: AdminFarmer) => <FarmerApprovalAction farmer={farmer} busy={busy === String(farmer.id)} onApprove={() => void runAction(String(farmer.id), () => approveAdminFarmer(farmer.id), 'Farmer approved.')} /> },
 	]
-	return <AdminPageLayout section="farmers" title="Farmers" loading={loading} error={error} notice={notice} onRefresh={refresh}><DataTable data={farmers} columns={columns} keyExtractor={(farmer) => String(farmer.id)} emptyMessage="No farmer profiles found." /></AdminPageLayout>
+	return <AdminPageLayout section="farmers" title="Farmers" loading={loading} error={error} notice={notice} onRefresh={refresh}><div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 xl:grid-cols-4"><StatCard title="Farmers" value={farmers.length} subtitle="Registered farm accounts" variant="flat" /><StatCard title="Verified groups" value={verifiedCount} subtitle="Cooperative endorsed" variant="flat" /><StatCard title="Awaiting review" value={farmers.length - verifiedCount} subtitle="Cooperative status pending" variant="flat" /><StatCard title="Orders" value={farmers.reduce((total, farmer) => total + (farmer.total_orders ?? 0), 0)} subtitle="Across farmer accounts" variant="flat" /></div><DataTable data={farmers} columns={columns} keyExtractor={(farmer) => String(farmer.id)} emptyMessage="No farmer profiles found." /></AdminPageLayout>
 }

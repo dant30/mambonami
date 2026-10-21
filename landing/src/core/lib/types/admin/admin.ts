@@ -28,6 +28,13 @@ export interface AdminUser {
 	last_seen?: string | null
 }
 
+export interface AdminUserDetail extends AdminUser {
+	national_id?: string | null
+	last_login_ip?: string | null
+	referral_code?: string
+	role_profile?: Record<string, unknown> | null
+}
+
 export type AdminStaffInput = Pick<AdminUser, 'phone' | 'username'> & Partial<Pick<AdminUser, 'first_name' | 'middle_name' | 'last_name' | 'email'>> & { password?: string }
 
 export interface AdminFarmer {

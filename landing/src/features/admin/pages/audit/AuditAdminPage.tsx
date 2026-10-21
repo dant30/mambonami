@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Activity, AlertTriangle, Check, CheckCircle2, CircleAlert, ShieldAlert } from 'lucide-react'
 
 import { Card } from '../../../../shared/components/cards'
+import { StatCard } from '../../../../shared/components/cards'
 import { DataTable } from '../../../../shared/components/tables/DataTable'
 import { Button, Input, Select, Tabs, Textarea } from '../../../../shared/components/ui'
 import { listAdminAuditLogs, listAdminSecurityEvents, updateAdminSecurityEvent, useAdminResource } from '../../../../core/lib'
@@ -108,6 +109,7 @@ export function AuditAdminPage() {
 
 	return (
 		<AdminPageLayout section="audit" title="Audit & security" loading={loading} error={pageError} notice={actionNotice} onRefresh={refresh}>
+			<div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4 sm:gap-4"><StatCard title="Audit records" value={logs.length} subtitle="Administrative activity" variant="flat" /><StatCard title="Security events" value={events.length} subtitle="Recorded security signals" variant="flat" /><StatCard title="Needs review" value={unresolvedCount} subtitle="Uninvestigated events" variant="flat" /><StatCard title="High or critical" value={elevatedCount} subtitle="Unresolved elevated severity" variant="flat" /></div>
 			<Tabs tabs={tabs} activeTab={tab} onChange={setTab} variant="underline" ariaLabel="Audit views" />
 			{tab === 'activity' ? (
 				<section aria-label="Audit activity" className="mt-5">
@@ -116,11 +118,6 @@ export function AuditAdminPage() {
 				</section>
 			) : (
 				<section aria-label="Security events" className="mt-5 space-y-5">
-					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-						<Metric label="Needs review" value={unresolvedCount} icon={<CircleAlert className="h-4 w-4" />} />
-						<Metric label="High or critical" value={elevatedCount} icon={<AlertTriangle className="h-4 w-4" />} />
-						<Metric label="Total events" value={events.length} icon={<ShieldAlert className="h-4 w-4" />} />
-					</div>
 					<div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
 						<div className="min-w-0 space-y-4">
 							<div className="grid gap-3 sm:grid-cols-3">
@@ -158,10 +155,6 @@ export function AuditAdminPage() {
 			)}
 		</AdminPageLayout>
 	)
-}
-
-function Metric({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
-	return <Card padding="sm" className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span><div><p className="text-xs text-muted-foreground">{label}</p><p className="text-xl font-semibold text-foreground">{value}</p></div></Card>
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
