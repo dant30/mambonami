@@ -86,6 +86,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.animate-slide-in-right,
+  .animate-impulse,
   .skeleton-shimmer {
     animation: none;
   }

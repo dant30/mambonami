@@ -366,7 +366,7 @@ export function Header({
                 >
                   <Bell className="h-5 w-5" />
                   {unreadNotifications.length > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[9px] font-bold text-secondary-foreground">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 animate-impulse items-center justify-center rounded-full bg-secondary px-1 text-[9px] font-bold text-secondary-foreground">
                       {unreadNotifications.length > 9 ? "9+" : unreadNotifications.length}
                     </span>
                   )}
