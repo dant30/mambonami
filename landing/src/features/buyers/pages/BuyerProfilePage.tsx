@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { updateProfile } from '../../../core/lib'
 import { ProfileIdentityPanel } from '../../account/components/ProfileIdentityPanel'
+import { VerificationDocumentsPanel } from '../../account/components/VerificationDocumentsPanel'
 import { FormField, FormSection } from '../../../shared/components/forms'
 import { Button, Input, Textarea } from '../../../shared/components/ui'
 
@@ -58,6 +59,7 @@ export function BuyerProfilePage() {
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8">
 			<ProfileIdentityPanel user={user} roleLabel="Buyer account" />
+			<VerificationDocumentsPanel role={user?.role} />
 			<form onSubmit={submit} className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
 				<FormSection title="Personal details" description="Your verified phone is the account login and cannot be changed here." icon={<UserCircle className="h-4 w-4" />}>
 					<div className="grid gap-4 sm:grid-cols-2">

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { updateProfile } from '../../../core/lib'
 import { ProfileIdentityPanel } from '../../account/components/ProfileIdentityPanel'
+import { VerificationDocumentsPanel } from '../../account/components/VerificationDocumentsPanel'
 import { FormField, FormSection } from '../../../shared/components/forms'
 import { Badge, Button, Input } from '../../../shared/components/ui'
 
@@ -53,6 +54,7 @@ export function FarmerProfilePage() {
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8">
 			<ProfileIdentityPanel user={user} roleLabel="Farmer account" />
+			<VerificationDocumentsPanel role={user?.role} />
 			{Boolean((user?.farm_profile as Record<string, unknown> | undefined)?.cooperative) && (
 				<div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm">
 					<span className="text-muted-foreground">Cooperative endorsement</span>

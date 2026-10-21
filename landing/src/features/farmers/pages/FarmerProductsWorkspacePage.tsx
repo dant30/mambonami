@@ -38,7 +38,6 @@ export function FarmerProductsWorkspacePage() {
         title="My products"
         description="Keep stock, pricing, harvest dates, and listing status accurate."
         icon={<PackagePlus className="h-5 w-5" />}
-        metadata={[{ label: "Listings", value: isLoading ? "..." : products.length }]}
         actions={
           <Link
             to="/app/farmer/products/new"

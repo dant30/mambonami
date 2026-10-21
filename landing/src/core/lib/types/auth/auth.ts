@@ -24,6 +24,24 @@ export interface AuthUser {
 	[key: string]: unknown
 }
 
+export type VerificationDocumentType = 'national_id' | 'business_license' | 'coop_certificate' | 'driver_license' | 'other'
+export type VerificationDocumentStatus = 'submitted' | 'reviewed' | 'approved' | 'rejected'
+
+export interface VerificationDocument {
+	id: number
+	uuid: string
+	user: number
+	document_type: VerificationDocumentType
+	document_number?: string
+	file?: string | null
+	mime_type?: string
+	status: VerificationDocumentStatus
+	notes?: string
+	expiry_date?: string | null
+	reviewed_at?: string | null
+	created_at: string
+}
+
 export interface TransportProfile {
 	vehicle_type?: string
 	capacity_kg?: number

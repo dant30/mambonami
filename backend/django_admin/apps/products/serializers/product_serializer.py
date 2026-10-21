@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from decimal import Decimal
 from datetime import date
+import json
 from ..models import BulkPriceTier, Product, ProductCategory, WishlistItem
 from core.utils import calculate_distance
 
@@ -81,14 +82,35 @@ class ProductSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class BulkPriceTierInputListSerializer(serializers.ListSerializer):
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError('Enter valid JSON for bulk price tiers.') from exc
+        return super().to_internal_value(data)
+
+
+class BulkPriceTierInputSerializer(serializers.Serializer):
+    buyer_role = serializers.ChoiceField(choices=BulkPriceTier.BUYER_ROLE_CHOICES, default='any')
+    minimum_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal('0.01'))
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.01'))
+
+    class Meta:
+        list_serializer_class = BulkPriceTierInputListSerializer
+
+
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
+    bulk_price_tiers = BulkPriceTierInputSerializer(many=True, required=False, write_only=True)
+
     class Meta:
         model = Product
         fields = (
             'sku', 'category', 'name', 'variety', 'price_per_unit', 'available_quantity',
             'reserved_quantity', 'unit', 'harvest_date', 'shelf_life_days', 'expiry_date',
             'is_organic', 'image', 'description', 'is_active', 'pickup_lat', 'pickup_lng',
-            'weight_per_unit'
+            'weight_per_unit', 'bulk_price_tiers'
         )
         read_only_fields = ('sku', 'expiry_date',)
 
@@ -128,6 +150,14 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"reserved_quantity": "Reserved quantity cannot exceed available quantity."}
             )
+        tiers = attrs.get('bulk_price_tiers')
+        if tiers is not None:
+            seen = set()
+            for tier in tiers:
+                key = (tier['buyer_role'], tier['minimum_quantity'])
+                if key in seen:
+                    raise serializers.ValidationError({'bulk_price_tiers': 'Bulk price tiers must have unique buyer roles and minimum quantities.'})
+                seen.add(key)
         return attrs
 
 

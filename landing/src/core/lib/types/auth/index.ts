@@ -1,1 +1,1 @@
-export type { AuthResponse, AuthRole, AuthTokens, AuthUser, LoginInput, PasswordResetInput, RegisterInitInput, RegisterInput, RegistrationStartResponse, RegistrationVerifyInput, TransportProfile } from './auth'
+export type { AuthResponse, AuthRole, AuthTokens, AuthUser, LoginInput, PasswordResetInput, RegisterInitInput, RegisterInput, RegistrationStartResponse, RegistrationVerifyInput, TransportProfile, VerificationDocument, VerificationDocumentStatus, VerificationDocumentType } from './auth'

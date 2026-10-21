@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { updateProfile, updateTransportProfile } from '../../../core/lib'
 import { ProfileIdentityPanel } from '../../account/components/ProfileIdentityPanel'
+import { VerificationDocumentsPanel } from '../../account/components/VerificationDocumentsPanel'
 import { FormField, FormSection } from '../../../shared/components/forms'
 import { Badge, Button, Input, Select } from '../../../shared/components/ui'
 
@@ -70,6 +71,7 @@ export function TransporterProfilePage() {
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8">
 			<ProfileIdentityPanel user={user} roleLabel="Transport provider" />
+			<VerificationDocumentsPanel role={user?.role} />
 			<div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-border bg-card p-3">
 				<div><p className="text-[10px] font-bold uppercase text-muted-foreground">Provider approval</p><Badge variant={(user?.transport_profile as Record<string, unknown> | undefined)?.is_approved ? 'success' : 'warning'} size="sm" className="mt-1">{(user?.transport_profile as Record<string, unknown> | undefined)?.is_approved ? 'Approved' : 'Pending review'}</Badge></div>
 				<div><p className="text-[10px] font-bold uppercase text-muted-foreground">Provider deposit</p><Badge variant={(user?.transport_profile as Record<string, unknown> | undefined)?.deposit_paid ? 'success' : 'warning'} size="sm" className="mt-1">{(user?.transport_profile as Record<string, unknown> | undefined)?.deposit_paid ? 'Paid' : 'Payment pending'}</Badge></div>

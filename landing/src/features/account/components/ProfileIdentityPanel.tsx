@@ -101,13 +101,13 @@ export function ProfileIdentityPanel({ user, roleLabel }: { user: ProfileUser | 
 			{referralLink && <div className="mt-4 border-t border-border pt-4">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div><h2 className="text-sm font-semibold text-primary-dark">Your referral link</h2><p className="mt-1 text-xs text-muted-foreground">Invite someone to choose any Mambonami account type.</p></div>
-					<div className="flex shrink-0 gap-2">
-						<Button type="button" size="sm" variant="outline" onClick={() => void copyReferralLink()} aria-label="Copy referral link"><Copy className="h-4 w-4" /><span className="sr-only">Copy</span></Button>
-						<Button type="button" size="sm" variant="navy" onClick={() => void shareReferralLink()} aria-label="Share referral link"><Share2 className="h-4 w-4" /><span className="sr-only">Share</span></Button>
-					</div>
 				</div>
 				<div className="mt-3 flex min-w-0 items-center gap-2">
-					<input aria-label="Referral link" readOnly value={referralLink} onFocus={(event) => event.currentTarget.select()} className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground" />
+					<div className="relative min-w-0 flex-1">
+						<input aria-label="Referral link" readOnly value={referralLink} onFocus={(event) => event.currentTarget.select()} className="min-h-10 w-full rounded-lg border border-border bg-background py-2 pl-3 pr-11 text-xs text-muted-foreground" />
+						<button type="button" onClick={() => void copyReferralLink()} aria-label="Copy referral link" title="Copy referral link" className="absolute right-1 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-muted"><Copy className="h-4 w-4" /></button>
+					</div>
+					<Button type="button" size="sm" variant="navy" onClick={() => void shareReferralLink()} aria-label="Share referral link" title="Share referral link"><Share2 className="h-4 w-4" /><span className="sr-only">Share</span></Button>
 				</div>
 				{referralMessage && <p role="status" className="mt-2 flex items-center gap-1 text-xs text-primary"><Check className="h-3.5 w-3.5" />{referralMessage}</p>}
 			</div>}

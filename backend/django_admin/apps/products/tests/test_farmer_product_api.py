@@ -4,6 +4,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.products.models import Product, ProductCategory
+from apps.products.models import BulkPriceTier
 from apps.users.models import FarmerProfile, User
 
 
@@ -47,3 +48,26 @@ class FarmerProductCreateApiTests(TestCase):
         product = Product.objects.get(name='Roma tomatoes')
         self.assertEqual(product.farmer.user, self.user)
         self.assertFalse(product.image)
+
+    def test_farmer_can_create_product_with_bulk_price_tiers(self):
+        response = self.client.post(
+            '/api/products/farmer/products/',
+            {
+                'category': self.category.id,
+                'name': 'Bulk Roma tomatoes',
+                'price_per_unit': '120.00',
+                'available_quantity': '25.00',
+                'unit': 'kg',
+                'harvest_date': date.today().isoformat(),
+                'bulk_price_tiers': [
+                    {'buyer_role': 'any', 'minimum_quantity': '10', 'unit_price': '100'},
+                    {'buyer_role': 'retailer', 'minimum_quantity': '20', 'unit_price': '90'},
+                ],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        product = Product.objects.get(name='Bulk Roma tomatoes')
+        self.assertEqual(product.bulk_price_tiers.count(), 2)
+        self.assertTrue(BulkPriceTier.objects.filter(product=product, buyer_role='retailer', unit_price='90.00').exists())

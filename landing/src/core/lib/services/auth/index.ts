@@ -1,1 +1,2 @@
 export { changePassword, getProfile, login, requestPasswordReset, resendRegistration, resetPassword, startRegistration, startRegistrationTransaction, updateProfile, updateTransportProfile, uploadAvatar, verifyPasswordResetCode, verifyRegistration, verifyRegistrationTransaction } from './authService'
+export { listVerificationDocuments, reviewVerificationDocument, uploadVerificationDocument } from './verificationService'

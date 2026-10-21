@@ -9,6 +9,13 @@ export interface ProductUnitOption {
 	name: string
 }
 
+export interface BulkPriceTier {
+	id?: number
+	buyer_role: 'any' | 'buyer' | 'retailer'
+	minimum_quantity: string | number
+	unit_price: string | number
+}
+
 export interface Product {
 	id: number
 	uuid: string
@@ -38,6 +45,7 @@ export interface Product {
 	pickup_lat?: string | number | null
 	pickup_lng?: string | number | null
 	weight_per_unit?: string | number | null
+	bulk_price_tiers?: BulkPriceTier[]
 	rating?: number | null
 	review_count?: number
 	wishlist_count?: number
@@ -105,6 +113,7 @@ export interface ProductCreateInput {
 	pickup_lat?: string | number | null
 	pickup_lng?: string | number | null
 	weight_per_unit?: string | number | null
+	bulk_price_tiers?: Array<Pick<BulkPriceTier, 'buyer_role' | 'minimum_quantity' | 'unit_price'>>
 }
 
 export type ProductUpdateInput = ProductCreateInput

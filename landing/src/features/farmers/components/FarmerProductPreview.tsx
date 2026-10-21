@@ -4,6 +4,7 @@ import type { Product } from '../../../core/lib'
 import { Card, CardHeader } from '../../../shared/components/cards'
 
 export function FarmerProductPreview({ products }: { products: Product[] }) {
+	const fallbackImage = '/assets/images/produce.jpg'
 	return (
 		<Card padding="none" className="overflow-hidden">
 			<CardHeader
@@ -25,8 +26,9 @@ export function FarmerProductPreview({ products }: { products: Product[] }) {
 			) : (
 				<div>
 					{products.slice(0, 5).map((product) => (
-						<div key={product.uuid} className="flex items-center justify-between gap-4 border-t border-border p-4 first:border-t-0">
-							<div>
+						<div key={product.uuid} className="flex items-center gap-3 border-t border-border p-4 first:border-t-0 sm:gap-4">
+							<img src={product.image_url || product.image || fallbackImage} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" onError={(event) => { event.currentTarget.src = fallbackImage }} />
+							<div className="min-w-0 flex-1">
 								<p className="font-semibold text-foreground">{product.name}</p>
 								<p className="mt-1 text-xs text-muted-foreground">
 									KSh {Number(product.price_per_unit).toLocaleString()} / {product.unit} · {product.available_quantity} {product.unit} available

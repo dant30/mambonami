@@ -28,6 +28,10 @@ function buildProductFormData(input: ProductCreateInput): FormData {
 			formData.append(key, value)
 			return
 		}
+		if (Array.isArray(value)) {
+			formData.append(key, JSON.stringify(value))
+			return
+		}
 
 		if (typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') {
 			formData.append(key, String(value))

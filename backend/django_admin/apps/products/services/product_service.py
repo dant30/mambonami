@@ -2,7 +2,7 @@
 from django.db import models, transaction
 from django.core.exceptions import PermissionDenied
 from apps.users.permissions import is_admin_user
-from ..models import Product
+from ..models import BulkPriceTier, Product
 from apps.users.models import FarmerProfile
 from core.cache import RedisCache
 
@@ -34,8 +34,12 @@ def list_active_products(filters=None):
 
 def create_product(farmer_profile: FarmerProfile, data: dict) -> Product:
     """Create a new product for a farmer (atomic)."""
+    data = dict(data)
+    bulk_price_tiers = data.pop('bulk_price_tiers', [])
     with transaction.atomic():
         product = Product.objects.create(farmer=farmer_profile, **data)
+        for tier in bulk_price_tiers:
+            BulkPriceTier.objects.create(product=product, **tier)
         # Invalidate cache for product list
         RedisCache.delete('product_list_cache')
         return product
@@ -44,10 +48,16 @@ def update_product(product: Product, data: dict, user) -> Product:
     """Update product if user is the owner or admin."""
     if product.farmer.user != user and not is_admin_user(user):
         raise PermissionDenied("You do not own this product.")
+    data = dict(data)
+    bulk_price_tiers = data.pop('bulk_price_tiers', None)
     with transaction.atomic():
         for key, value in data.items():
             setattr(product, key, value)
         product.save()
+        if bulk_price_tiers is not None:
+            product.bulk_price_tiers.all().delete()
+            for tier in bulk_price_tiers:
+                BulkPriceTier.objects.create(product=product, **tier)
         RedisCache.delete(f'product_{product.id}')
         RedisCache.delete('product_list_cache')
         return product

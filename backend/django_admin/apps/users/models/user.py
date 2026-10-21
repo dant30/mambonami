@@ -51,6 +51,7 @@ class VerificationDocument(BaseModel):
         ('national_id', 'National ID'),
         ('business_license', 'Business License'),
         ('coop_certificate', 'Cooperative Certificate'),
+        ('driver_license', 'Driver License'),
         ('other', 'Other'),
     ]
     STATUS_CHOICES = [

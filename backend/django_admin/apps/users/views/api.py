@@ -534,7 +534,11 @@ class VerificationDocumentListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         if is_admin_user(user):
-            return VerificationDocument.objects.all().order_by('-created_at')
+            queryset = VerificationDocument.objects.all()
+            user_id = self.request.query_params.get('user_id')
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+            return queryset.order_by('-created_at')
         return VerificationDocument.objects.filter(user=user).order_by('-created_at')
 
     def perform_create(self, serializer):

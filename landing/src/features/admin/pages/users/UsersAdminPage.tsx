@@ -18,6 +18,7 @@ import { Avatar, Modal } from '../../../../shared/components/ui'
 import { DataTable } from '../../../../shared/components/tables/DataTable'
 import { AdminPageLayout } from '../../components'
 import { UserStatusAction } from './components/UserStatusAction'
+import { AdminVerificationDocumentsPanel } from './components/AdminVerificationDocumentsPanel'
 
 type UserMetrics = {
 	orders: Order[]
@@ -176,6 +177,7 @@ export function UsersAdminPage() {
 					<Detail label="KYC" value={viewingUser.kyc_status || 'Pending'} />
 					<Detail label="Last seen" value={viewingUser.last_seen ? new Date(viewingUser.last_seen).toLocaleString() : 'Not recorded'} />
 				</dl>
+				<AdminVerificationDocumentsPanel userId={viewingUser.id} />
 			</div>}
 		</Modal>
 

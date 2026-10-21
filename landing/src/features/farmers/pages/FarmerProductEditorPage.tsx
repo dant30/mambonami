@@ -1,4 +1,4 @@
-import { ArrowLeft, ImagePlus, MapPin, Package, Sprout } from 'lucide-react'
+import { ArrowLeft, ImagePlus, MapPin, Package, Plus, Sprout, Trash2 } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
@@ -23,6 +23,7 @@ interface ProductFormState {
 	description: string
 	is_organic: boolean
 	is_active: boolean
+	bulk_price_tiers: Array<{ buyer_role: 'any' | 'buyer' | 'retailer'; minimum_quantity: string; unit_price: string }>
 }
 
 type FieldErrors = Record<string, string>
@@ -44,7 +45,7 @@ function localToday() {
 }
 
 function emptyForm(): ProductFormState {
-	return { name: '', variety: '', category: '', price_per_unit: '', available_quantity: '', unit: 'kg', harvest_date: localToday(), shelf_life_days: '3', weight_per_unit: '0', description: '', is_organic: false, is_active: true }
+	return { name: '', variety: '', category: '', price_per_unit: '', available_quantity: '', unit: 'kg', harvest_date: localToday(), shelf_life_days: '3', weight_per_unit: '0', description: '', is_organic: false, is_active: true, bulk_price_tiers: [] }
 }
 
 function toFormState(product: Product): ProductFormState {
@@ -61,6 +62,11 @@ function toFormState(product: Product): ProductFormState {
 		description: product.description ?? '',
 		is_organic: Boolean(product.is_organic),
 		is_active: product.is_active !== false,
+		bulk_price_tiers: (product.bulk_price_tiers ?? []).map((tier) => ({
+			buyer_role: tier.buyer_role,
+			minimum_quantity: String(tier.minimum_quantity),
+			unit_price: String(tier.unit_price),
+		})),
 	}
 }
 
@@ -145,6 +151,7 @@ export function FarmerProductEditorPage() {
 		else if (Number(form.available_quantity) < reservedQuantity) next.available_quantity = `${reservedQuantity} ${form.unit} is already reserved by open orders.`
 		if (!(Number(form.shelf_life_days) >= 1)) next.shelf_life_days = 'Shelf life must be at least one day.'
 		if (Number(form.weight_per_unit) < 0) next.weight_per_unit = 'Weight cannot be negative.'
+		if (form.bulk_price_tiers.some((tier) => !(Number(tier.minimum_quantity) > 0) || !(Number(tier.unit_price) > 0))) next.bulk_price_tiers = 'Each bulk tier needs a positive minimum quantity and price.'
 		return next
 	}
 	const submit = async (event: FormEvent) => {
@@ -170,6 +177,7 @@ export function FarmerProductEditorPage() {
 				description: form.description.trim(),
 				is_organic: form.is_organic,
 				is_active: form.is_active,
+				bulk_price_tiers: form.bulk_price_tiers.filter((tier) => tier.minimum_quantity !== '' && tier.unit_price !== ''),
 				image: image ?? undefined,
 			}
 			if (editing && id) await updateFarmerProduct(id, input)
@@ -232,6 +240,19 @@ export function FarmerProductEditorPage() {
 						</FormField>
 						<NumberField id="product-quantity" label="Quantity available" value={text('available_quantity')} onChange={(value) => update('available_quantity', value)} required min="0" error={errors.available_quantity} helperText={reservedQuantity > 0 ? `${reservedQuantity} ${form.unit} is currently reserved by open orders.` : undefined} />
 						<NumberField id="product-weight" label="Weight per unit (kg)" value={text('weight_per_unit')} onChange={(value) => update('weight_per_unit', value)} min="0" error={errors.weight_per_unit} helperText="Used to plan transport capacity. Leave 0 if the unit is already in kg." />
+					</div>
+				</FormSection>
+
+				<FormSection title="Bulk pricing" description="Offer a lower unit price at larger quantities. Each tier can apply to all buyers, consumers, or retailers." icon={<Package className="h-4 w-4" />}>
+					<div className="space-y-3">
+						{form.bulk_price_tiers.map((tier, index) => <div key={index} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+							<FormField label="Buyer group" htmlFor={`bulk-role-${index}`}><Select id={`bulk-role-${index}`} aria-label="Bulk price buyer group" value={tier.buyer_role} onChange={(value) => setForm((current) => ({ ...current, bulk_price_tiers: current.bulk_price_tiers.map((item, itemIndex) => itemIndex === index ? { ...item, buyer_role: value as typeof item.buyer_role } : item) }))} options={[{ value: 'any', label: 'Any buyer' }, { value: 'buyer', label: 'Consumer' }, { value: 'retailer', label: 'Retailer' }]} /></FormField>
+							<NumberField id={`bulk-minimum-${index}`} label={`Minimum quantity (${form.unit})`} value={tier.minimum_quantity} onChange={(value) => setForm((current) => ({ ...current, bulk_price_tiers: current.bulk_price_tiers.map((item, itemIndex) => itemIndex === index ? { ...item, minimum_quantity: value } : item) }))} min="0.01" />
+							<NumberField id={`bulk-price-${index}`} label="Bulk price per unit (KSh)" value={tier.unit_price} onChange={(value) => setForm((current) => ({ ...current, bulk_price_tiers: current.bulk_price_tiers.map((item, itemIndex) => itemIndex === index ? { ...item, unit_price: value } : item) }))} min="0.01" />
+							<button type="button" onClick={() => setForm((current) => ({ ...current, bulk_price_tiers: current.bulk_price_tiers.filter((_, itemIndex) => itemIndex !== index) }))} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-destructive/25 text-destructive hover:bg-destructive/10" aria-label={`Remove bulk price tier ${index + 1}`}><Trash2 className="h-4 w-4" /></button>
+						</div>)}
+						{errors.bulk_price_tiers && <p role="alert" className="text-xs font-medium text-destructive">{errors.bulk_price_tiers}</p>}
+						<button type="button" onClick={() => setForm((current) => ({ ...current, bulk_price_tiers: [...current.bulk_price_tiers, { buyer_role: 'any', minimum_quantity: '', unit_price: '' }] }))} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-semibold text-primary-dark hover:bg-muted"><Plus className="h-4 w-4" />Add bulk price</button>
 					</div>
 				</FormSection>
 

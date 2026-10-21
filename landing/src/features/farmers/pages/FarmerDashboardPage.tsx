@@ -6,7 +6,6 @@ import { useFarmerDashboard } from "../../../core/lib";
 import { getTimeGreeting } from "../../../core/utils";
 import { Button, PageHeader } from "../../../shared/components/ui";
 import {
-  FarmerActionCenter,
   FarmerEarningsSnapshot,
   FarmerMetricCards,
   FarmerOrderList,
@@ -43,6 +42,7 @@ export function FarmerDashboardPage() {
                 type="button"
                 size="sm"
                 variant="outline"
+                className="!text-white hover:!text-primary-dark"
                 leftIcon={<ClipboardList className="h-4 w-4" />}
                 onClick={() => navigate("/app/farmer/orders")}
               >
@@ -56,8 +56,7 @@ export function FarmerDashboardPage() {
             Unable to load your farm workspace.
           </p>
         )}
-        <FarmerMetricCards summary={summary} isLoading={isLoading} />
-        <FarmerActionCenter summary={summary} products={products} isLoading={isLoading} />
+        <FarmerMetricCards summary={summary} products={products} isLoading={isLoading} />
         <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr]">
           <FarmerProductPreview products={products} />
           <FarmerOrderList subOrders={subOrders} isLoading={isLoading} />
