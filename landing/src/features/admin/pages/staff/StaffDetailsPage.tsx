@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { StatCard } from '../../../../shared/components/cards'
-import { Avatar, Button, ConfirmDialog } from '../../../../shared/components/ui'
+import { Avatar, Button, ConfirmDialog, Modal } from '../../../../shared/components/ui'
 import { AdminPageLayout } from '../../components'
 import { activateAdminUser, getAdminStaff, suspendAdminUser, updateAdminStaff } from '../../../../core/lib'
 import type { AdminStaffInput, AdminUser } from '../../../../core/lib/types/admin'
@@ -75,7 +75,7 @@ export function StaffDetailsPage() {
 			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4"><StatCard title="Access" value={staff.is_superuser ? 'Superuser' : 'Staff'} subtitle="Administrative role" variant="flat" /><StatCard title="Account" value={staff.is_active ? 'Active' : 'Suspended'} subtitle={staff.is_active ? 'Can access admin workspace' : 'Access disabled'} variant="flat" /><StatCard title="Joined" value={staff.date_joined ? new Date(staff.date_joined).toLocaleDateString() : 'Unknown'} subtitle="Account creation date" variant="flat" /><StatCard title="Last seen" value={staff.last_seen ? new Date(staff.last_seen).toLocaleDateString() : 'No activity'} subtitle={staff.last_seen ? new Date(staff.last_seen).toLocaleTimeString() : 'No recent activity'} variant="flat" /></div>
 			<section className="rounded-xl border border-border bg-card p-4 sm:p-5"><h2 className="flex items-center gap-2 text-base font-semibold text-primary-dark"><UserRound className="h-4 w-4" />Account details</h2><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3"><Detail label="First name" value={staff.first_name} /><Detail label="Middle name" value={staff.middle_name} /><Detail label="Last name" value={staff.last_name} /><Detail label="Username" value={staff.username} /><Detail label="Phone" value={staff.phone} /><Detail label="Email" value={staff.email} /><Detail label="Phone verified" value={staff.is_phone_verified ? 'Yes' : 'No'} /><Detail label="Email verified" value={staff.is_email_verified ? 'Yes' : 'No'} /></dl></section>
 		</div>}
-		<Modal isOpen={editing} onClose={() => !saving && setEditing(false)} title="Edit staff member" subtitle={staff?.phone} maxWidth="2xl">{staff && <StaffEditorForm staff={staff} saving={saving} error={error} onCancel={() => setEditing(false)} onSubmit={(input) => void save(input)} />}</Modal>
+		<Modal isOpen={editing} onClose={() => !saving && setEditing(false)} title="Edit staff member" subtitle={staff?.phone} maxWidth="2xl">{editing && staff && <StaffEditorForm key={`${staff.id}-${reloadKey}`} staff={staff} saving={saving} error={error} onCancel={() => setEditing(false)} onSubmit={(input) => void save(input)} />}</Modal>
 		<ConfirmDialog isOpen={confirming} title="Suspend staff account" message={<>Suspend {staff?.display_name || staff?.phone}? They will lose access to the admin workspace.</>} confirmLabel="Suspend account" variant="danger" loading={saving} onCancel={() => !saving && setConfirming(false)} onConfirm={() => void setAccountStatus(true)} />
 	</AdminPageLayout>
 }

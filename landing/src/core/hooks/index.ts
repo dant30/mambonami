@@ -1,4 +1,5 @@
 export { useCountUp } from './use-count-up'
+export { useBuyerDeliveryLocation } from './useBuyerDeliveryLocation'
 export { useIsMobile } from './use-mobile'
 export { default as useDebounce } from './useDebounce'
 export { default as useMediaQuery } from './useMediaQuery'

@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useDebounce } from '../../../core/hooks'
 import { useProductCategories, useProducts } from '../../../core/lib'
 import { Button, Input, Select } from '../../../shared/components/ui'
+import { DeliveryAreaControl } from '../components/DeliveryAreaControl'
 import { MarketplaceProductGrid } from '../components/MarketplaceProductGrid'
 
 const PAGE_SIZE = 24
@@ -88,6 +89,7 @@ export function ProductsPage() {
 				</div>
 				<p className="text-xs font-semibold text-muted-foreground">{isLoading ? 'Loading…' : `${count} items`}</p>
 			</div>
+			<DeliveryAreaControl className="mt-4 rounded-xl border border-border bg-card px-4 py-3" />
 
 			<div className="mobile-scroll-row mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Browse categories">
 				<Button type="button" size="sm" variant={!category ? 'primary' : 'outline'} onClick={() => { setCategory(''); setPage(1) }} className="min-h-10 shrink-0 rounded-full">All</Button>

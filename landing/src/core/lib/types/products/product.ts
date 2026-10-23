@@ -72,6 +72,8 @@ export interface ProductListParams {
 	search?: string
 	page?: number
 	page_size?: number
+	buyer_lat?: number
+	buyer_lng?: number
 	lat?: number
 	lng?: number
 	ordering?: string

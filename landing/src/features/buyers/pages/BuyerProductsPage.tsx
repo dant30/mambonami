@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "../../../core/hooks";
 import { useProductCategories, useProducts } from "../../../core/lib";
 import { Button, Input, PageHeader } from "../../../shared/components/ui";
+import { DeliveryAreaControl } from "../../home/components/DeliveryAreaControl";
 import { MarketplaceProductGrid } from "../../home/components/MarketplaceProductGrid";
 
 export function BuyerProductsPage() {
@@ -33,6 +34,7 @@ export function BuyerProductsPage() {
         description="Compare verified local supply, current prices, and available quantities."
         icon={<Search className="h-5 w-5" />}
       />
+      <DeliveryAreaControl className="mt-4 rounded-xl border border-border bg-card px-4 py-3" />
 
       <section
         aria-label="Product filters"

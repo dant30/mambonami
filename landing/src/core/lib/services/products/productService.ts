@@ -1,5 +1,6 @@
 import { apiClient, type QueryValue } from '../../../api'
 import { PRODUCT_ENDPOINTS } from '../../../api/endpoints'
+import { localStorageStore } from '../../../storage'
 import type {
 	Product,
 	ProductCreateInput,
@@ -43,6 +44,9 @@ function buildProductFormData(input: ProductCreateInput): FormData {
 
 export async function listProducts(params: ProductListParams = {}): Promise<ProductListResponse> {
 	const queryParams: Record<string, QueryValue> = {}
+	const storedLocation = localStorageStore.get<{ latitude: number; longitude: number }>('buyer_delivery_location')
+	const buyerLat = params.buyer_lat ?? params.lat ?? storedLocation?.latitude
+	const buyerLng = params.buyer_lng ?? params.lng ?? storedLocation?.longitude
 	if (params.category !== undefined) queryParams.category = params.category
 	if (params.is_organic !== undefined) queryParams.is_organic = params.is_organic
 	if (params.min_price !== undefined) queryParams.min_price = params.min_price
@@ -52,8 +56,8 @@ export async function listProducts(params: ProductListParams = {}): Promise<Prod
 	if (params.search !== undefined) queryParams.search = params.search
 	if (params.page !== undefined) queryParams.page = params.page
 	if (params.page_size !== undefined) queryParams.page_size = params.page_size
-	if (params.lat !== undefined) queryParams.lat = params.lat
-	if (params.lng !== undefined) queryParams.lng = params.lng
+	if (buyerLat !== undefined) queryParams.buyer_lat = buyerLat
+	if (buyerLng !== undefined) queryParams.buyer_lng = buyerLng
 	if (params.ordering !== undefined) queryParams.ordering = params.ordering
 	if (params.farmer_phone !== undefined) queryParams.farmer_phone = params.farmer_phone
 

@@ -13,6 +13,7 @@ import {
 	ProductsAdminPage,
 	RetailersAdminPage,
 	StaffAdminPage,
+	TripsAdminPage,
 	TransportersAdminPage,
 	UsersAdminPage,
 } from '../features/admin'
@@ -22,6 +23,7 @@ import { OrderDetailsPage } from '../features/admin/pages/orders/OrderDetailsPag
 import { ProductDetailsPage } from '../features/admin/pages/products/ProductDetailsPage'
 import { FarmerDetailsPage } from '../features/admin/pages/farmers/FarmerDetailsPage'
 import { RetailerDetailsPage } from '../features/admin/pages/retailers/RetailerDetailsPage'
+import { TripDetailsPage } from '../features/admin/pages/logistics/TripDetailsPage'
 import { NotificationsPage } from '../features/notifications'
 import { MainLayout } from '../shared/layouts'
 
@@ -50,6 +52,8 @@ export const adminRoutes: RouteObject[] = [
 	{ path: '/app/admin/farmers', element: <AdminLayout><FarmersAdminPage /></AdminLayout> },
 	{ path: '/app/admin/farmers/:id', element: <AdminLayout><FarmerDetailsPage /></AdminLayout> },
 	{ path: '/app/admin/transport', element: <AdminLayout><TransportersAdminPage /></AdminLayout> },
+	{ path: '/app/admin/logistics', element: <AdminLayout><TripsAdminPage /></AdminLayout> },
+	{ path: '/app/admin/logistics/:uuid', element: <AdminLayout><TripDetailsPage /></AdminLayout> },
 	{ path: '/app/admin/disputes', element: <AdminLayout><DisputesAdminPage /></AdminLayout> },
 	{ path: '/app/admin/payouts', element: <AdminLayout><PayoutsAdminPage /></AdminLayout> },
 	{ path: '/app/admin/audit', element: <AdminLayout><AuditAdminPage /></AdminLayout> },

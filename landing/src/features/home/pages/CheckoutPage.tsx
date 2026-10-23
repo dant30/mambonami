@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '../../../core/contexts/AuthContext'
+import { useBuyerDeliveryLocation } from '../../../core/hooks'
 import { buildCreateOrderInputFromCart, createOrder, getCart, getCartSummary, getOrder, initiateOrderStkPush } from '../../../core/lib'
 import type { CreateOrderResponse, Order } from '../../../core/lib'
 import { MapPicker, Select } from '../../../shared/components/ui'
@@ -19,7 +20,7 @@ export function CheckoutPage() {
 	const [address, setAddress] = useState('')
 	const [city, setCity] = useState('Nairobi')
 	const [timeWindow, setTimeWindow] = useState('09:00-12:00')
-	const [deliveryLocation, setDeliveryLocation] = useState<Coordinates | null>(null)
+	const { location: deliveryLocation, setLocation: setDeliveryLocation } = useBuyerDeliveryLocation()
 	const [fulfillmentType, setFulfillmentType] = useState<'delivery' | 'self_pickup'>('delivery')
 	const [payment, setPayment] = useState<CreateOrderResponse | null>(null)
 	const [paymentOrder, setPaymentOrder] = useState<Order | null>(null)
