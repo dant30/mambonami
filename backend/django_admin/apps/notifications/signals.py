@@ -2,7 +2,7 @@
 import logging
 
 from django.db import transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from apps.orders.models import Order
 from apps.logistics.models import Trip
@@ -24,33 +24,60 @@ def _queue_after_commit(notification):
     transaction.on_commit(lambda: _queue_notification(notification.pk))
 
 
+def _create_and_queue_notification(notification_data):
+    try:
+        notification = Notification.objects.create(**notification_data)
+        _queue_notification(notification.pk)
+    except Exception:
+        logger.exception('Could not create or queue order notification')
+
+
+def _create_order_notification_after_commit(**notification_data):
+    transaction.on_commit(lambda: _create_and_queue_notification(notification_data))
+
+
+@receiver(pre_save, sender=Order, dispatch_uid='order_status_snapshot')
+def _snapshot_order_status(sender, instance, **kwargs):
+    if not instance.pk:
+        instance._previous_status = None
+        return
+
+    instance._previous_status = (
+        Order.objects.filter(pk=instance.pk).values_list('status', flat=True).first()
+    )
+
+
 @receiver(post_save, sender=Order)
 def order_notification(sender, instance, created, **kwargs):
     if created:
-        notif = Notification.objects.create(
+        _create_order_notification_after_commit(
             user=instance.buyer,
             channel=Notification.Channel.IN_APP,
             category=Notification.Category.ORDER,
             priority=Notification.Priority.NORMAL,
             title='Order Placed',
             body=f"Your order #{instance.id} has been placed. Payment is pending.",
-            metadata={'order_id': instance.id, 'status': instance.status},
+            metadata={'order_id': str(instance.id), 'status': instance.status},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        _queue_after_commit(notif)
-    elif instance.status == 'paid_escrow':
-        farmer = instance.farmer_profile.user
-        notif = Notification.objects.create(
-            user=farmer,
+        return
+
+    previous_status = getattr(instance, '_previous_status', None)
+    if previous_status == 'paid_escrow' or instance.status != 'paid_escrow':
+        return
+
+    sub_orders = instance.sub_orders.select_related('farmer__user').all()
+    for sub_order in sub_orders:
+        _create_order_notification_after_commit(
+            user=sub_order.farmer.user,
             channel=Notification.Channel.WHATSAPP,
             category=Notification.Category.PAYMENT,
             priority=Notification.Priority.HIGH,
             title='Order Paid',
             body=f"Order #{instance.id} has been paid. Please confirm within 30 minutes.",
-            metadata={'order_id': instance.id},
+            metadata={'order_id': str(instance.id), 'sub_order_id': str(sub_order.id)},
             delivery_status=Notification.DeliveryStatus.PENDING,
         )
-        _queue_after_commit(notif)
 
 
 @receiver(post_save, sender=Trip)

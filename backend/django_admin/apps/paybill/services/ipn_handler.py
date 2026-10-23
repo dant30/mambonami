@@ -21,6 +21,28 @@ from apps.analytics.models import DailyMetric
 
 logger = logging.getLogger(__name__)
 
+
+def _create_and_queue_payment_notification(user, order_id, amount):
+    try:
+        from apps.notifications.models import Notification
+        from apps.notifications.tasks import send_notification_task
+
+        notification = Notification.objects.create(
+            user=user,
+            channel='in_app',
+            category='payment',
+            title='Payment Received',
+            body=f'Your payment of KES {amount} for Order #{order_id} has been received.',
+            metadata={
+                'order_id': str(order_id),
+                'amount': str(amount),
+            },
+        )
+        send_notification_task.delay(notification.pk)
+    except Exception:
+        logger.exception('Could not create or queue payment notification for order %s', order_id)
+
+
 class IPNHandler:
     """
     Processes M-Pesa PayBill IPN callbacks with full idempotency,
@@ -252,24 +274,11 @@ class IPNHandler:
 
             # 10. Send notification to buyer (async)
             if order:
-                from apps.notifications.models import Notification
-
-                notif = Notification.objects.create(
-                    user=order.buyer,
-                    channel='in_app',
-                    category='payment',
-                    title='Payment Received',
-                    body=f"Your payment of KES {amount} for Order #{order.id} has been received.",
-                    metadata={
-                        'order_id': order.id,
-                        'amount': str(amount),
-                    }
+                transaction.on_commit(
+                    lambda user=order.buyer, order_id=order.id, payment_amount=amount: (
+                        _create_and_queue_payment_notification(user, order_id, payment_amount)
+                    )
                 )
-                try:
-                    from apps.notifications.tasks import send_notification_task
-                    send_notification_task.delay(notif.id)
-                except Exception as exc:
-                    logger.warning(f"Notification dispatch skipped: {exc}")
 
         # End of atomic transaction
         return {
