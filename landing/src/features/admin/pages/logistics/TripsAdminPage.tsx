@@ -75,7 +75,7 @@ export function TripsAdminPage() {
 		{ header: 'Details', mobileRole: 'action' as const, render: (trip: Trip) => <Link to={`/app/admin/logistics/${trip.uuid}`} aria-label={`Open trip ${trip.id}`} title="Open trip details" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold text-primary hover:bg-muted">View trip <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link> },
 	]
 
-	return <AdminPageLayout section="logistics" title="Logistics and trips" loading={loading} error={error instanceof Error ? error.message : error ? 'Could not load trips.' : ''} onRefresh={refresh}>
+	return <AdminPageLayout section="logistics" title="Logistics and trips" loading={loading} error={error ?? ''} onRefresh={refresh}>
 		<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
 			<StatCard title="All trips" value={trips.length} subtitle="Recorded deliveries" variant="flat" />
 			<StatCard title="In progress" value={activeCount} subtitle="Awaiting completion" variant="flat" />
